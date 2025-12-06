@@ -1,4 +1,24 @@
-# Social Democracy: An Alternate History
+# Social Democracy: An Alternate Horizon
+
+Vanilla Plus game, focused on right wing coalition side, adding right wing and bourgeoise coalitios and their contents, some borrowed from Second Incoming of His Holiness (may I not invoke J's name) called Dynamic Social Democracy. Other than that, treat it as Vanilla Plus on other aspects.
+
+Other than that, suggest your stuff if something gives off the sign that I didn't read not single of Weimar Republic/Interregnum Germany related book.
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
 
 ## Included Libraries
 
