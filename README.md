@@ -4,6 +4,8 @@ Vanilla Plus game, focused on right wing coalition side, adding right wing and b
 
 Other than that, suggest your stuff if something gives off the sign that I didn't read not single of Weimar Republic/Interregnum Germany related book.
 
+Copyright belongs to the Autumn Chen OR https://github.com/aucchen/social_democracy_alternate_history , as usual. My work simply modifies the original source. 
+
 ---
 
 ---
