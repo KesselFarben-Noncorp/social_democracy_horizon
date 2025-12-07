@@ -16,9 +16,20 @@ The Judiciary is one of the most reactionary components of the government, along
 
 - @reform: Carry out substantial judicial reforms.
 - @minor_reforms: Carry out minor judicial reforms.
+- @full_reform: Restructurize the judicial system to our tide.
 - @as_is: Leave the judiciary as it is.
 - @easy_discard
 - @cancel_advisor_action
+
+@full_reform
+subtitle: -1 budget or -6 resources
+unavailable-subtitle: [? if budget < 1: Not enough budget. ?] [? if resources < 6: Not enough resources ?]
+choose-if: judicial_reform >= 4 and (budget >= 1 or resources >= 6)
+on-arrival: budget -= 1 if resources < 6; resources -= 6 if budget < 1; resources -= 6 if (budget >= 1 and resources >= 6); max-cards += 1
+
+We have completely reformed the justiciary, being able now to impose our own and republican decisionship. 
+
+Effect: +1 Maximal Amount of Cards.
 
 @reform
 subtitle: -1 budget
