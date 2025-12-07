@@ -6,23 +6,39 @@ go-to: post_event if started = 1; start_menu if started = 0
 new-page: true
 go-to: start_menu_2
 
-= Social Democracy: An Alternate History
+= Social Democracy: An Alternate Horizon
+      As the Weimar fades away
 
 @start_menu_2
 
 - @start: Start game
 - @election_simulation: Election simulation
+- @information: Information about the Mod
 - @credits: Credits
 - @game_over.achievements
+
+
+@information
+
+= Information of the Mod
+
+Dearly players, welcome to the mod Social Democracy: An Alternative Horizon. Main interest of this mod for you is try out the feeling of being in the same boat as half reactionaries, catholics, far right monarchists, Reichswehr militarists and doomed liberals.
+
+So, that's that briefly.
+
+1.0.0:
+
+• Some minor rebalances on the beginning phase. Game begins from 1927 of 12th instead of 1928 of 1st. 
+
 
 
 @start
 on-arrival: {!
 Q.started = 1;
 // time elapsed (in months)
-Q.time = 1;
-Q.year = 1928;
-Q.month = 1;
+Q.time = 0;
+Q.year = 1927;
+Q.month = 12;
 // how many actions have been taken this month?
 Q.month_actions = 0;
 
@@ -59,11 +75,12 @@ Q.reformist_dissent = 5;
 Q.neorevisionist_strength = 5;
 Q.neorevisionist_dissent = 10;
 
-// secret events...
+// SPLIT EVENTS
 Q.unions_independent = 0;
 Q.centrists_resign = 0;
 Q.left_split = 0;
 Q.reformists_resigned = 0;
+Q.sapd_formed = 0;
 
 // have we discovered neorevisionism?
 Q.neorevisionism = 0;
@@ -106,8 +123,8 @@ Q.kpd_relation = 25;
 Q.ddp_relation = 60;
 Q.dvp_relation = 35;
 // DNVP and NSDAP are invariably hostile
-Q.DNVP_relation = 10;
-Q.NSDAP_relation = 0;
+Q.dnvp_relation = 10;
+Q.nsdap_relation = 0;
 
 Q.kpd_leader = "Thälmann";
 // alternative is the Conciliators as party leader
@@ -117,13 +134,17 @@ Q.z_leader = "Brüning";
 Q.z_party_leader = "Marx";
 Q.nsdap_leader = "Hitler";
 
-// hmm... maybe we can play nice with Hindenburg???
+
+
+
 Q.hindenburg_relation = 25;
 // whether or not hindenburg can dismiss the government.
 Q.hindenburg_enabled = 0;
 
 
-// Does the SPD lead in Prussia?
+
+
+// Does the SPD lead in Prusssia?
 Q.spd_prussia = 1;
 // Options: spd, z, dnvp, papen, nsdap
 Q.prussian_government = "SPD";
@@ -166,11 +187,9 @@ Q.reichswehr_loyalty = 0.2;
 // popular opinion
 // national ideology - on a binary scale
 // nationalism vs internationalism or pacifism or non-nationalism
-Q.nationalism = 60;
-// socialism vs capitalism
-Q.socialism = 40;
-// pro-republic vs anti-republic
-Q.pro_republic = 59;
+Q.nationalism = 54;
+Q.socialism = 32;
+Q.pro_republic = 55;
 
 Q.emergency_rule = 0;
 
@@ -192,20 +211,16 @@ Q.nsdap_banned = 0;
 Q.coup_progress = 0;
 Q.capital_strike_progress = 0;
 
-Q.budget = 4;
+Q.budget = 3;
 
 // Proportion of different social groups
-// source: https://surface.syr.edu/cgi/viewcontent.cgi?filename=3&article=1016&context=books&type=additional page 45, table 3.4 - using 1925 figures
-Q.workers = 48; // industry and trade
-Q.old_middle = 13; // "old mittelstand"
-// 16.4 trade & commerce, 6.6 public and private services, 4.4 domestic help
+Q.workers = 50; // industry and trade
+Q.old_middle = 11; // "old mittelstand"
 Q.new_middle = 14; // "new mittelstand"
-Q.rural = 25; // agriculture and forestry employment... but many of those are proletarians so...
+Q.rural = 23; // agriculture and forestry employment... but many of those are proletarians so...
 // source: https://surface.syr.edu/cgi/viewcontent.cgi?filename=3&article=1016&context=books&type=additional page 43, table 3.3
-Q.unemployed = 8.6;
-Q.catholics = 30;
-
-// unemployment: 1929 - 13.3, 1930 - 22.7, 1931 - 34.3, 1932 - 43.8 (same source as above)
+Q.unemployed = 8.9;
+Q.catholics = 28;
 
 // income for industrial workers in reichsmarks/year - 1928 = 1600 Reichsmarks/year; 1931 = 1440 Reichsmarks/year; 1933 = 1138 Reichsmarks/year - source: https://babel.hathitrust.org/cgi/pt?id=uiug.30112104147985&seq=50
 Q.income = 1600;
@@ -229,9 +244,6 @@ Q.new_middle_qol = 100;
 
 Q.classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed', 'catholics'];
 Q.parties = ['spd', 'kpd', 'z', 'ddp', 'dvp', 'dnvp', 'nsdap', 'other'];
-
-// TODO: add 'sapd' later on
-Q.sapd_formed = 0;
 
 // Support for party by social group
 // they don't have to sum to 100 since the electoral calculations will be normalized.
@@ -550,13 +562,13 @@ Q.rosenfeld_advisor = 0; // Kurt Rosenfeld
 Q.seydewitz_advisor = 0; // Max Seydewitz
 
 // centrist alternate advisors
-Q.pfulf_advisor = 0; // Antonie Pfülf
 Q.breitscheid_advisor = 0; // Rudolf Breitscheid
 
 // Reformist advisors
 Q.severing_advisor = 0; // Carl Severing
 Q.braun_advisor = 0; // Otto Braun
 Q.juchacz_advisor = 0; // Marie Juchacz
+Q.pfulf_advisor = 0; // Antonie Pfülf
 Q.baade_advisor = 0; // Fritz Baade
 
 // Labor advisors
@@ -567,7 +579,6 @@ Q.wissell_advisor = 0; // Rudolf Wissell
 
 // Revisionist advisors
 Q.mierendorff_advisor = 0; // Carlo Mierendorf (post-1930)
-
 Q.leber_advisor = 0; // Julius Leber (post-1930)
 Q.schumacher_advisor = 0; // Kurt Schumacher (post-1930)
 
@@ -583,7 +594,7 @@ new-page: true
 
  - Karl Kautsky, *Hitlerism and Social Democracy*, 1934
 
-This is a game of alternate history. While historical accuracy is a major concern, keep in mind that this is a *game*, and that any divergence from actual events will necessarily have to involve some element of make-believe. Nevertheless, please let the author know if there are any glaring mistakes.
+This is a game of alternate history. As I, Horizon modification man, do not hold myself to the closest for the historical realism, only plausibility is my glove when it comes to this. For fundamental issues, address Autumn Chen. For modification issues, to me.
 
 For more information on the politics and government of the German Republic, see the "Library" page on the top left. If this is your first time playing the game, it is strongly recommended that you read at least some of this information.
 
@@ -593,7 +604,7 @@ For more information on the politics and government of the German Republic, see 
 - @1928_historical: Begin (historical mode)
 
 @1928_easy
-on-arrival: difficulty = -1; resources = 4; dues = 3; rb_strength = 2500; kpd_relation = 29; z_relation = 54; dvp_relation = 49; budget = 5;
+on-arrival: difficulty = -1; resources = 4; dues = 3; rb_strength = 2500; kpd_relation = 28; z_relation = 52; dvp_relation = 47; budget = 4;
 go-to: 1928_main
 
 @1928_hard
@@ -627,7 +638,7 @@ go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
 
 = 1928
 
-It is a bright time for German democracy. After a period of struggle, inflation is finally under control, and the economy is expanding steadily. In foreign policy, we have reached agreements with the Western powers and the Soviet Union that might make genuine peace a reality. 
+Grass shines shiniest where it is furthest, so shall sheep follow it in the way of savior and salvation of the country, as diminishing the pathway is, descending into the death. Regardless, SPD has to carry it all out - all sake for the nation.
 
 Now, the task of Social Democracy is to prepare for the next election. The bourgeois-right government of Wilhelm Marx is unpopular, and we stand to gain. Perhaps the next government will have a socialist majority.
 
