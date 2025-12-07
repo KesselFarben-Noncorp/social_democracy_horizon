@@ -3,7 +3,7 @@ new-page: true
 is-card: true
 view-if: crisis_urgency >= 1 and crisis_program_timer = 0 and economic_plan = 0 and black_thursday_seen == 1
 frequency: 200
-on-arrival: month_actions += 1; crisis_program_timer = 5
+on-arrival: crisis_program_timer = 4
 card-image: img/bankrun.jpg
 tags: party_affairs, govt_affairs
 
@@ -39,7 +39,7 @@ subtitle: Call for increased public works and fiscal stimulus.
 unavailable-subtitle: The Labor faction is not strong enough.
 choose-if: historical_mode == 0 or (labor_strength >= left_strength and labor_strength >= center_strength and labor_strength >= reformist_strength)
 on-arrival: center_dissent += 10; left_dissent += 5; labor_strength += 5; wtb_support += 1;
-go-to: plan_adopted if wtb_support >= 4; plan_support if wtb_support < 4
+go-to: plan_adopted if wtb_support >= 4 and year > 1930; plan_adopted if wtb support >= 6 and year < 1931; plan_support if wtb_support < 4
 
 @plan_support
 
