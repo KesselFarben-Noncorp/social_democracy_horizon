@@ -116,12 +116,23 @@
 
   window.enableLightMode = function() {
       window.dendryUI.dark_mode = false;
+      window.dendryUI.retro_mode = false;
       document.body.classList.remove('dark-mode');
+      document.body.classList.remove('retro-mode');
       window.dendryUI.saveSettings();
   };
   window.enableDarkMode = function() {
       window.dendryUI.dark_mode = true;
+      window.dendryUI.retro_mode = false;
       document.body.classList.add('dark-mode');
+      document.body.classList.remove('retro-mode');
+      window.dendryUI.saveSettings();
+  };
+  window.enableRetroMode = function() {
+      window.dendryUI.retro_mode = true; 
+      window.dendryUI.dark_mode = false;
+      document.body.classList.remove('dark-mode');
+      document.body.classList.add('retro-mode');
       window.dendryUI.saveSettings();
   };
 
