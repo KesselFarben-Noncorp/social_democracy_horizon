@@ -3,9 +3,9 @@ new-page: true
 is-card: true
 tags: party_affairs
 view-if: international_relations_timer <= 0
-on-arrival: month_actions += 1; international_relations_timer += 12;
+on-arrival: month_actions += 1; international_relations_timer += 12 if emergency_state = 0; international_relations_timer += 4;
 card-image: img/international.jpg
-max-visits: 4
+max-visits: 8
 #subtitle: Building ties with our fraternal socialist parties.
 
 At the Labor and Socialist International, we can forge contacts with our fraternal socialist parties in Europe and across the world.
@@ -14,7 +14,7 @@ At the Labor and Socialist International, we can forge contacts with our fratern
 - @austria: Learn organization and street fighting from the Austrian SDAPÖ.
 - @scandi: Learn the path of economics and reform from the Scandinavian social democrats.
 - @comintern: Forget the second international - embed a spy in the Comintern's conference.
-- @america: Contact the Socialist party of America.
+- @help: We need some help from Labor and Socialist International.
 - @return: We do not need international contacts at the moment.
 - @easy_discard
 - @cancel_advisor_action
@@ -57,11 +57,12 @@ The Stalinists of the KPD insists on calling us "social fascists", suggesting th
 
 @america
 subtitle: -1 resources
+view-if: emergency_state = 1
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: resources -= 1
 
-The Socialist Party of America is tiny and has limited support. There is not much we can do for them, and conversely, not much they can do for us.
+
 
 @reduce
 
