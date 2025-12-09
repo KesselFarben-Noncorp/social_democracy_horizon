@@ -167,6 +167,11 @@
     } else {
         $('#light_mode')[0].checked = true;
     }
+    if (window.dendryUI.retro_mode) {
+        $('#retro_mode')[0].checked = true;
+    } else {
+        $('#light_mode')[0].checked = true;
+    }
   };
 
   
