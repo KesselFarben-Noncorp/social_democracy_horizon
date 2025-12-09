@@ -73,8 +73,8 @@ How should we try to salvage the negotiations?
 - @no_business: Nothing can be done.
 
 @salvage_currency
-choose-if: woytinsky_advisor = 1 and wtb_implemented > 1
-unavailable-subtitle: Wladimir Woytinsky would be extremely helpful right now.
+choose-if: woytinsky_advisor = 1 and wtb_implemented > 1 and ruhr_labor = 0 and west_relation > -1
+unavailable-subtitle: [? if (woytinsky_advisor = 0 or wtb_implemented < 1) : Wladimir Woytinsky would be extremely helpful right now. ?] [? if ruhr_labor = 1: After events of the Rhineland reoccupation, French are more than unwilling to listen! ?] [? if west_relation < 0: Western Powers are more than unwilling to listen us due to bad relations! ?]
 on-arrival: unemployed -= 2 if unemployed >= 10; unemployed -= 1.5 if unemployed >= 5; inflation += 1.5; workers_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); economic_growth += 1.5 if economic_growth < 3
 
 Wladimir Woytinsky, now part of our delegation to the conference, uses our successful implementation of the WTB-plan in order to argue for loosening currency valuation. The argument is at least somewhat convincing, and an agreement is reached, leading to increased inflation and demand stimulus throughout the world.
