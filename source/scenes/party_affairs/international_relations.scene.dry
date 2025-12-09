@@ -3,7 +3,7 @@ new-page: true
 is-card: true
 tags: party_affairs
 view-if: international_relations_timer <= 0
-on-arrival: month_actions += 1; international_relations_timer += 12 if emergency_state = 0; international_relations_timer += 4;
+on-arrival: month_actions += 1; international_relations_timer += 12 if emergency_state = 0; international_relations_timer += 4 if emergency_state = 1
 card-image: img/international.jpg
 max-visits: 8
 #subtitle: Building ties with our fraternal socialist parties.
@@ -55,14 +55,14 @@ on-arrival: resources -= 1; kpd_relation += 5*(1-dissent); communist_coalition +
 
 The Stalinists of the KPD insists on calling us "social fascists", suggesting that we social democrats are as bad or worse than actual fascists. Needless to say, this is not good for our relationship with the Communists. By observing the Comintern, we can better understand the KPD, enabling us to potentially improve relations, or counter the KPD if it may come to that.
 
-@america
+@help
 subtitle: -1 resources
 view-if: emergency_state = 1
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: resources -= 1
+on-arrival: resources -= 1; workers_spd += 1; pro_republic += 3; nationalism -= 2; radicalization += 1
 
-
+We should request the help from the Second International to aid our cause against the arising National Socialist Dictatorship threat! 
 
 @reduce
 
