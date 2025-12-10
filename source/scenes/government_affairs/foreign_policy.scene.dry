@@ -27,6 +27,7 @@ What should our foreign policy priority be?
 - @concordat_negotiate
 - @concordat
 - @tyrole
+- @danzig_corridor
 - @support_austria
 - @support_austria_2
 - @root: Do not enact any policies for now.
@@ -41,13 +42,13 @@ The key to peace in Europe is a rapproachment between France and Germany. We are
 
 @improve_east
 title: Improve our relations with our eastern and southern neighbors namely Poland, Czechoslovakia and Austria.
-on-arrival: poland_relation += 2; czech_relation += 1; austria_relation += 1
+on-arrival: poland_relation += 2; czech_relation += 1; austria_relation += 1; hungary_relation += 1
 
 We also aim to improve relations with our eastern neighbors, Poland and Czechoslovakia, who are righfully terrified of German aggression. Hopefully we can convince them of our peaceful intentions.
 
 @improve_italy
 title: Improve relations with Fasci regime of Italy
-view-if: west_relation < 2
+view-if: west_relation < 3
 choose-if: eu = 0
 unavailable-subtitle: This is superseded by the European Union!
 on-arrival: italy_relation += 1; west_relation -= 0.5; nationalism += 1; left_dissent += 2; center_dissent += 2; labor_dissent += 2; reformist_dissent += 2
@@ -182,6 +183,14 @@ unavailable-subtitle: [? if eu = 1: European Union supercedes our pact! ?] [? if
 on-arrival: sdapo_strength += 1; west_relation -= 2; eu_progress -= 1; reparations_negotiation -= 1; czech_relation += 2; hungary_relation += 2; austria_relation += 2; tyrole_signed = 1; foreign_policy_timer -= 2
 
 We may sign up the Tyrole - Danubian Non Aggression pact, promising to not fund German oriented organizations in South Tyrole or Austria and them promising to not assist own oriented Heimwehr or other fasci organizations, annexing Free City of Fiume or invading Balkan/Central European countries.
+
+@danzig_corridor
+title: Discuss the question of germans and german territory rights of Danzig and Polish Corridor.
+view-if: poland_relation > 4 and year > 1930 and west_relation > 0
+subtitle: Polish representatives won't like aggressive policy and generally our current land returning policy.
+on-arrival: danzig_progress += 1; poland_relation -= 1
+
+[? if danzig_progress = 0: We begun our progress regarding the danzig corridor issue, seeking to restore some sort of control to East Prussia. ?] [? if danzig_progress > 0: Talks about Danzig continue. It all may depend on how strong we are, how good our relations are and basically how the situation is. ?]
 
 @support_austria
 title: Diplomatically support Austrian democracy against the Dollfuß dictatorship.
