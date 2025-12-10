@@ -1,91 +1,137 @@
 title: 1930 Austrian Legislative Elections
+view-if: year == 1928 and month == 4
 new-page: true
 tags: event
 priority: 3
-view-if: year == 1930 and month == 5 and austria_outcome = 0
 set-bg: img/austria_map.jpg
 
 = Elections, [+ month : month +] [+ year +]
 
-Austria is set to hold its legislative elections. The political landscape is polarized between the Social Democrats, the Christian Social Party, and the right-wing Heimwehr movement.
+The First Austrian Republic holds its legislative elections today.
 
-- @austria: Let democracy take its course...
+- @austria: May the democratic forces prevail!
 
 @austria
-on-arrival: {!
+on-arrival: {!  
+// Old results
+Q.old_sdapo_vote = 25.0;    // Social Democratic Workers Party (SDAPÖ)
+Q.old_cs_vote = 20.0;       // Christian Social Party (CS)
+Q.old_gdvp_vote = 15.0;     // Greater German People's Party (GDVP)
+Q.old_heimwehr_vote = 10.0; // Heimwehr / right-wing militia parties
+Q.old_kpoe_vote = 5.0;      // Communist Party of Austria (KPÖ)
+Q.old_other_vote = 5.0;     
 
-// Old results from previous election
-Q.old_sdapo_vote = 28.0
-Q.old_cs_vote = 25.0
-Q.old_gdvp_vote = 15.0
-Q.old_kpoe_vote = 10.0
-Q.old_other_vote = 22.0
+// Base vote shares for 1930 Austrian legislative election
+Q.sdapo_vote = 27.5;   // Social Democratic Workers Party
+Q.cs_vote = 18.0;      // Christian Social Party
+Q.gdvp_vote = 14.0;    // Greater German People's Party
+Q.heimwehr_vote = 12.0; // Heimwehr / paramilitary influence
+Q.kpoe_vote = 6.0;     // Communist Party of Austria
+Q.other_vote = 5.5;
 
-// Base vote shares for 1930
-Q.sdapo_vote = 30.0
-Q.cs_vote = 23.0
-Q.gdvp_vote = 17.0
-Q.kpoe_vote = 12.0
-Q.other_vote = 18.0
+// Adjustment factors object
+var vote_factors = {
+    sdapo: 1.0,
+    cs: 1.0,
+    gdvp: 1.0,
+    heimwehr: 1.0,
+    kpoe: 1.0
+};
 
-// Adjustments based on unemployment and economic growth
-if (Q.unemployed > 20) { 
-    Q.sdapo_vote += 1
-    Q.cs_vote -= 1
-    Q.gdvp_vote -= 1
+// Economic influence
+if (Q.unemployed >= 25) { // high unemployment benefits left-wing
+    vote_factors.sdapo += 0.05;
+    vote_factors.kpoe += 0.03;
+} else if (Q.unemployed >= 15) {
+    vote_factors.sdapo += 0.03;
+    vote_factors.kpoe += 0.02;
+} else {
+    vote_factors.cs += 0.02;
+    vote_factors.gdvp += 0.02;
 }
-if (Q.economic_growth < 0) { 
-    Q.sdapo_vote += 1
-    Q.cs_vote -= 0.5
-    Q.gdvp_vote -= 0.5
+
+// Inflation effect
+if (Q.inflation < 0) { // deflation strengthens radical right
+    vote_factors.heimwehr += 0.04;
 }
 
-// Calculate % changes
-Q.str_change_sdapo = Q.sdapo_vote - Q.old_sdapo_vote
-Q.str_change_cs = Q.cs_vote - Q.old_cs_vote
-Q.str_change_gdvp = Q.gdvp_vote - Q.old_gdvp_vote
-Q.str_change_kpoe = Q.kpoe_vote - Q.old_kpoe_vote
-Q.str_change_other = Q.other_vote - Q.old_other_vote
+// Nationalism and socialism index
+vote_factors.cs += Q.nationalism / 200;    // conservative gain from nationalism
+vote_factors.gdvp += Q.nationalism / 300;
+vote_factors.sdapo += Q.socialism / 150;   // left gains from socialism
+vote_factors.kpoe += Q.socialism / 100;
 
-// Coalitions
-Q.popular_front = Q.sdapo_vote + Q.kpoe_vote
-Q.center_right = Q.cs_vote + Q.gdvp_vote + Q.other_vote
-Q.right_coalition = Q.cs_vote + Q.gdvp_vote
+// Paramilitary influence
+vote_factors.heimwehr += Q.sh_strength / 1000;  // Heimwehr grows influence with stronger paramilitary
+
+// SPD internal government participation effect
+if (Q.spd_in_government) { vote_factors.sdapo += 0.02; }
+if (Q.kpd_in_government) { vote_factors.kpoe += 0.01; }
+
+// Calculate adjusted vote shares
+Q.sdapo_vote *= vote_factors.sdapo;
+Q.cs_vote *= vote_factors.cs;
+Q.gdvp_vote *= vote_factors.gdvp;
+Q.heimwehr_vote *= vote_factors.heimwehr;
+Q.kpoe_vote *= vote_factors.kpoe;
+
+// Normalize to 100%
+var total_votes = Q.sdapo_vote + Q.cs_vote + Q.gdvp_vote + Q.heimwehr_vote + Q.kpoe_vote + Q.other_vote;
+Q.sdapo_vote = (Q.sdapo_vote / total_votes) * 100;
+Q.cs_vote = (Q.cs_vote / total_votes) * 100;
+Q.gdvp_vote = (Q.gdvp_vote / total_votes) * 100;
+Q.heimwehr_vote = (Q.heimwehr_vote / total_votes) * 100;
+Q.kpoe_vote = (Q.kpoe_vote / total_votes) * 100;
+Q.other_vote = (Q.other_vote / total_votes) * 100;
+
+// Calculate coalitions
+Q.popular_front = Q.sdapo_vote + Q.kpoe_vote;
+Q.center_right = Q.cs_vote + Q.gdvp_vote;
+Q.right_coalition = Q.heimwehr_vote + Q.cs_vote + Q.gdvp_vote;
+
+// Record changes
+Q.str_change_sdapo = Q.sdapo_vote - Q.old_sdapo_vote;
+Q.str_change_cs = Q.cs_vote - Q.old_cs_vote;
+Q.str_change_gdvp = Q.gdvp_vote - Q.old_gdvp_vote;
+Q.str_change_heimwehr = Q.heimwehr_vote - Q.old_heimwehr_vote;
+Q.str_change_kpoe = Q.kpoe_vote - Q.old_kpoe_vote;
+Q.str_change_other = Q.other_vote - Q.old_other_vote;
 
 !}
 
 = Election Results
 
-{!<table>!}
+{!<table>!}   
 <tr><td>Party</td><td>Vote Share</td><td>% Change</td></tr>
 <tr><td>SDAPÖ</td><td>[+ sdapo_vote +]%</td><td>[+ str_change_sdapo +]</td></tr>
-<tr><td>KPOE</td><td>[+ kpoe_vote +]%</td><td>[+ str_change_kpoe +]</td></tr>
-<tr><td>Christian Social Party</td><td>[+ cs_vote +]%</td><td>[+ str_change_cs +]</td></tr>
-<tr><td>GDVP / Heimwehr</td><td>[+ gdvp_vote +]%</td><td>[+ str_change_gdvp +]</td></tr>
+<tr><td>CS</td><td>[+ cs_vote +]%</td><td>[+ str_change_cs +]</td></tr>
+<tr><td>GDVP</td><td>[+ gdvp_vote +]%</td><td>[+ str_change_gdvp +]</td></tr>
+<tr><td>Heimwehr</td><td>[+ heimwehr_vote +]%</td><td>[+ str_change_heimwehr +]</td></tr>
+<tr><td>KPÖ</td><td>[+ kpoe_vote +]%</td><td>[+ str_change_kpoe +]</td></tr>
 <tr><td>Other</td><td>[+ other_vote +]%</td><td>[+ str_change_other +]</td></tr>
 {!</table>!}
 
 - @popular_front_austria
 - @center_right_austria
-- @right_wing_austria
+- @right_coalition_austria
 
 @popular_front_austria
 choose-if: popular_front >= 50
-title: SDAPÖ forms government with the KPOE
+title: SDAPÖ forms government with KPÖ support
+subtitle: Popular Front government established.
 unavailable-subtitle: This coalition is impossible!
-subtitle: Popular Front coalition gains majority.
-on-arrival: austria_outcome = -1
+on-arrival: stability += 5; relations_with_germany += 2
 
 @center_right_austria
-choose-if: center_right >= 50
-title: Christian Social Party leads a center-right government
+choose-if: center_right >= popular_front and center_right >= right_coalition
+title: CS and GDVP form a centrist government
 unavailable-subtitle: This coalition is impossible!
-subtitle: Coalition formed with GDVP and other moderate parties.
-on-arrival: austria_outcome = 1
+subtitle: Moderate coalition keeps Austria stable.
+on-arrival: stability += 3; relations_with_germany += 1
 
-@right_wing_austria
-choose-if: right_coalition >= 50
-title: Right-wing Heimwehr coalition enters government
+@right_coalition_austria
+choose-if: right_coalition > center_right and right_coalition > popular_front
+title: Heimwehr-backed right-wing coalition takes power
 unavailable-subtitle: This coalition is impossible!
-subtitle: Christian Socials and Heimwehr form government, sidelining Social Democrats.
-on-arrival: austria_outcome = 2
+subtitle: Radical-right influence grows in Austrian politics.
+on-arrival: stability -= 5; relations_with_germany -= 2
