@@ -186,11 +186,48 @@ We may sign up the Tyrole - Danubian Non Aggression pact, promising to not fund 
 
 @danzig_corridor
 title: Discuss the question of germans and german territory rights of Danzig and Polish Corridor.
-view-if: poland_relation > 4 and year > 1930 and west_relation > 0
+view-if: poland_relation > 4 and year > 1930 and west_relation > 0 and danzig_progress < 2
 subtitle: Polish representatives won't like aggressive policy and generally our current land returning policy.
 on-arrival: danzig_progress += 1; poland_relation -= 1
 
 [? if danzig_progress = 0: We begun our progress regarding the danzig corridor issue, seeking to restore some sort of control to East Prussia. ?] [? if danzig_progress > 0: Talks about Danzig continue. It all may depend on how strong we are, how good our relations are and basically how the situation is. ?]
+
+@danzig_corridor_salvation
+title: Negotiate out the Danzig Corridor!
+view-if: danzig_progress = 2
+choose-if: poland_relation > 4 
+unavailable-subtitle: Too low of relationships with Poland! Minimal requirement is 4.
+
+Polish under the Pilsudski are certainly not gonna work it out unless we provide them concessions or do it through other means.
+
+- @military_way
+- @peaceful_way
+- @easy_discard
+- @cancel_advisor_action
+
+@military_way
+title: Threaten the polish with invasion! (Are we sure about it?)
+choose-if: reichswehr_strength > 140 and reichswehr_loyalty > 0.50 and poland_relation < 8
+
+We are gonna do it through the occupation then, as we have no other means left.
+
+@war
+title: Polish do not step back! Occupation then.
+choose-if: reichswehr_loyalty < 0.60 or reichswehr_strength < 160
+unavailable-subtitle: Polish have retreated!
+on-arrival: poland_relation = -10; west_relation -= 5; left_dissent -= 25; center_dissent -= 10; labor_dissent -= 15; reformist_dissent -= 5; neorevisionist_dissent -= 20; reichswehr_loyalty += 0.10; danzig_question = 1; 
+
+@retreat
+title: Polish retreat back as they let us connect the Corridor!
+choose-if: reichswehr_loyalty > 0.60 and reichswehr_strength > 160 
+unavailable-subtitle: Polish will not retreat back!
+on-arrival: poland_relation -= 8; danzig_
+
+@peaceful_way
+title: We can certainly negotiate it out!
+choose-if: budget > 2 and poland_relation > 4
+unavailable-subtitle: We do not have enough of budget!
+on-arrival: budget -= 2; danzig_question = 1; poland_relation += 3; eu_progress += 1; 
 
 @support_austria
 title: Diplomatically support Austrian democracy against the Dollfuß dictatorship.
