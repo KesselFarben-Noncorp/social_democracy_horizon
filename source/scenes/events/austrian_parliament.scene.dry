@@ -23,6 +23,7 @@ Is there anything we could do?
 - @eu_sanctions: Call upon the European Union to sanction Austria, unless the National Council is restored.
 - @diplomatic_pressure: Apply diplomatic pressure to Austria to restore the National Council.
 - @fund_schutzbund: Support the SDAPÖ's underground organizing.
+- @fund_schutzbund_italy: Support the SDAPO's underground organizing, defying Tyrole Pact.
 - @nothing: Nothing can be done.
 
 @eu_sanctions
@@ -44,11 +45,26 @@ The Dollfuß regime does not give in, but it is somewhat weakened.
 @fund_schutzbund
 on-arrival: resources -= 1; sdapo_strength += 1; sdapo_strength += 1 if customs_union
 subtitle: -1 resource
-choose-if: resources >= 1
+view-if: tyrole_signed = 0
+choose-if: resources >= 1 and tyrole_signed = 0
+unavailable-subtitle: [? if tyrole_signed = 1: Tyrole - Danubian Pact disallows us to directly intervene in Civil War. ?]
 
 It is somewhat of a breach of diplomatic protocol for the SPD to so directly interfere in another country's affairs, supporting the Austrian social democrats.
 
 The Dollfuß regime does not give in, but its opponents have an added advantage. That may not be enough when dealing with the total force of the fascist state.
+
+@fund_schutzbund_italy
+on-arrival: resources -= 1; sdapo_strength += 1; sdapo_strength += 1 if customs_union; italy_relation -= 3
+subtitle: -1 resource
+view-if: tyrole_signed = 1
+choose-if: resources >= 1
+
+It is somewhat of a breach of diplomatic protocol for the SPD to so directly interfere in another country's affairs, supporting the Austrian social democrats.
+
+The Dollfuß regime does not give in, but its opponents have an added advantage. That may not be enough when dealing with the total force of the fascist stat
+e.
+
+Pay the attention since we breached the Tyrole - Danubian Pact, it is more than likely that Italy will breach it either!
 
 @nothing
 
