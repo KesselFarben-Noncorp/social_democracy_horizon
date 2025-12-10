@@ -1,9 +1,10 @@
 title: 1930 Austrian Legislative Elections
-view-if: year == 1928 and month == 4
+view-if: year == 1930 and month == 5 and austria_election = 0
 new-page: true
 tags: event
 priority: 3
 set-bg: img/austria_map.jpg
+on-arrival: austria_election = 1
 
 = Elections, [+ month : month +] [+ year +]
 
@@ -120,18 +121,24 @@ choose-if: popular_front >= 50
 title: SDAPÖ forms government with KPÖ support
 subtitle: Popular Front government established.
 unavailable-subtitle: This coalition is impossible!
-on-arrival: stability += 5; relations_with_germany += 2
+on-arrival: relation_austria += 2
+
+Social Democracy aligned government secured win!
 
 @center_right_austria
 choose-if: center_right >= popular_front and center_right >= right_coalition
 title: CS and GDVP form a centrist government
 unavailable-subtitle: This coalition is impossible!
 subtitle: Moderate coalition keeps Austria stable.
-on-arrival: stability += 3; relations_with_germany += 1
+on-arrival: relation_austria += 1
+
+Centrist government forms!
 
 @right_coalition_austria
 choose-if: right_coalition > center_right and right_coalition > popular_front
 title: Heimwehr-backed right-wing coalition takes power
 unavailable-subtitle: This coalition is impossible!
 subtitle: Radical-right influence grows in Austrian politics.
-on-arrival: stability -= 5; relations_with_germany -= 2
+on-arrival: relation_austria -= 2
+
+Radical right takes over the mantle of Austria!
