@@ -1,0 +1,88 @@
+title: 1930 Austrian Legislative Elections
+new-page: true
+tags: event
+priority: 3
+view-if: year == 1930 and month == 5
+set-bg: img/austria_map.jpg
+
+= Elections, [+ month : month +] [+ year +]
+
+Austria is set to hold its legislative elections. The political landscape is polarized between the Social Democrats, the Christian Social Party, and the right-wing Heimwehr movement.
+
+- @austria: Let democracy take its course...
+
+@austria
+on-arrival: {!
+
+// Old results from previous election
+Q.old_sdapo_vote = 28.0
+Q.old_cs_vote = 25.0
+Q.old_gdvp_vote = 15.0
+Q.old_kpoe_vote = 10.0
+Q.old_other_vote = 22.0
+
+// Base vote shares for 1930
+Q.sdapo_vote = 30.0
+Q.cs_vote = 23.0
+Q.gdvp_vote = 17.0
+Q.kpoe_vote = 12.0
+Q.other_vote = 18.0
+
+// Adjustments based on unemployment and economic growth
+if (Q.unemployed > 20) { 
+    Q.sdapo_vote += 2
+    Q.cs_vote -= 1
+    Q.gdvp_vote -= 1
+}
+if (Q.economic_growth < 0) { 
+    Q.sdapo_vote += 1
+    Q.cs_vote -= 0.5
+    Q.gdvp_vote -= 0.5
+}
+
+// Calculate % changes
+Q.str_change_sdapo = Q.sdapo_vote - Q.old_sdapo_vote
+Q.str_change_cs = Q.cs_vote - Q.old_cs_vote
+Q.str_change_gdvp = Q.gdvp_vote - Q.old_gdvp_vote
+Q.str_change_kpoe = Q.kpoe_vote - Q.old_kpoe_vote
+Q.str_change_other = Q.other_vote - Q.old_other_vote
+
+// Coalitions
+Q.popular_front = Q.sdapo_vote + Q.kpoe_vote
+Q.center_right = Q.cs_vote + Q.gdvp_vote + Q.other_vote
+Q.right_coalition = Q.cs_vote + Q.gdvp_vote
+
+!}
+
+= Election Results
+
+{!<table>!}
+<tr><td>Party</td><td>Vote Share</td><td>% Change</td></tr>
+<tr><td>SDAPÖ</td><td>[+ sdapo_vote +]%</td><td>[+ str_change_sdapo +]</td></tr>
+<tr><td>KPOE</td><td>[+ kpoe_vote +]%</td><td>[+ str_change_kpoe +]</td></tr>
+<tr><td>Christian Social Party</td><td>[+ cs_vote +]%</td><td>[+ str_change_cs +]</td></tr>
+<tr><td>GDVP / Heimwehr</td><td>[+ gdvp_vote +]%</td><td>[+ str_change_gdvp +]</td></tr>
+<tr><td>Other</td><td>[+ other_vote +]%</td><td>[+ str_change_other +]</td></tr>
+{!</table>!}
+
+- @popular_front_austria
+- @center_right_austria
+- @right_wing_austria
+
+@popular_front_austria
+choose-if: popular_front >= 50
+title: SDAPÖ forms government with the KPOE
+subtitle: Popular Front coalition gains majority.
+on-arrival: popular_front_austria = 1
+
+@center_right_austria
+choose-if: center_right >= 50
+title: Christian Social Party leads a center-right government
+subtitle: Coalition formed with GDVP and other moderate parties.
+on-arrival: center_right_austria = 1
+
+@right_wing_austria
+choose-if: right_coalition >= 50
+title: Right-wing Heimwehr coalition enters government
+subtitle: Christian Socials and Heimwehr form government, sidelining Social Democrats.
+on-arrival: right_front_austria = 1
