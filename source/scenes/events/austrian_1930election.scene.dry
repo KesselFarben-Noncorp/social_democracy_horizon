@@ -14,7 +14,6 @@ Austria is set to hold its legislative elections. The political landscape is pol
 
 @austria
 on-arrival: {!
-
 // Old results from previous election
 Q.old_sdapo_vote = 28.0
 Q.old_cs_vote = 25.0
@@ -40,6 +39,43 @@ if (Q.economic_growth < 0) {
     Q.cs_vote -= 0.5
     Q.gdvp_vote -= 0.5
 }
+var total_seats = 170;
+
+// List of Austrian parties in 1930
+Q.aus_parties = ['sdapo', 'cs', 'gdvp', 'bpoe', 'kpog', 'other'];
+
+// Save old results and calculate total qualifying votes
+var new_party_sum = 0;
+for (var party of Q.aus_parties) {
+    Q.aus[party + '_old_r'] = Q.aus[party + '_r'] || 0;
+
+    // Apply threshold or banned check
+    if (Q.electoral_threshold && Q.aus[party + '_votes'] < Q.electoral_threshold) {
+        Q.aus[party + '_r'] = 0;
+    } else {
+        Q.aus[party + '_r'] = Q.aus[party + '_votes'];
+    }
+
+    new_party_sum += Q.aus[party + '_r'];
+
+    // Display formatting
+    Q.aus[party + '_r_disp'] = Q.use_decimals ? Q.aus[party+'_r'].toFixed(1) : Q.aus[party+'_r'];
+    Q.aus['change_' + party + '_r'] = Q.aus[party + '_r'] - Q.aus[party + '_old_r'];
+    var sign = Q.aus['change_' + party + '_r'] > 0 ? '+' : '';
+    Q.aus['str_change_' + party] = sign + Q.aus['change_' + party + '_r'];
+}
+
+// Allocate seats proportionally to 170-seat parliament
+for (var party of Q.aus_parties) {
+    if (Q.aus[party + '_r'] > 0) {
+        Q.aus[party + '_seats'] = Math.round(Q.aus[party + '_r'] * total_seats / new_party_sum);
+    } else {
+        Q.aus[party + '_seats'] = 0;
+    }
+    // Update display
+    Q.aus[party + '_r_disp'] = Q.use_decimals ? Q.aus[party+'_r'].toFixed(1) : Q.aus[party+'_r'];
+}
+!}
 
 // Calculate % changes
 Q.str_change_sdapo = Q.sdapo_vote - Q.old_sdapo_vote
