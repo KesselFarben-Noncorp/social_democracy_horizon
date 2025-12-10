@@ -211,17 +211,20 @@ choose-if: reichswehr_strength > 140 and reichswehr_loyalty > 0.50 and poland_re
 
 We are gonna do it through the occupation then, as we have no other means left.
 
+-@war
+-@retreat
+
 @war
 title: Polish do not step back! Occupation then.
 choose-if: reichswehr_loyalty < 0.60 or reichswehr_strength < 160
 unavailable-subtitle: Polish have retreated!
-on-arrival: poland_relation = -10; west_relation -= 5; left_dissent -= 25; center_dissent -= 10; labor_dissent -= 15; reformist_dissent -= 5; neorevisionist_dissent -= 20; reichswehr_loyalty += 0.10; danzig_question = 1; 
+on-arrival: poland_relation = -10; west_relation -= 5; left_dissent -= 25; center_dissent -= 10; labor_dissent -= 15; reformist_dissent -= 5; neorevisionist_dissent -= 20; reichswehr_loyalty += 0.10; danzig_question = 1; reichswehr_strength -= 25; dnvp_relation += 25
 
 @retreat
 title: Polish retreat back as they let us connect the Corridor!
-choose-if: reichswehr_loyalty > 0.60 and reichswehr_strength > 160 
+choose-if: reichswehr_loyalty > 0.60 and reichswehr_strength > 160 and resources >= 2; 
 unavailable-subtitle: Polish will not retreat back!
-on-arrival: poland_relation -= 8; danzig_
+on-arrival: poland_relation -= 8; danzig_question = 1; west_relation -= 5; left_dissent -= 19; center_dissent -= 8; labor_dissent -= 12; reformist_dissent -= 3; neorevisionist_dissent -= 15; dnvp_relation += 30
 
 @peaceful_way
 title: We can certainly negotiate it out!
