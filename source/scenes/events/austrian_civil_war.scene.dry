@@ -28,7 +28,7 @@ Eventually...
 @crushed
 title: The rebellious Schutzbund has been crushed.
 on-arrival: austria_defeat = 1
-view-if: sdapo_strength < 7
+view-if: sdapo_strength < 5
 
 The uprising lasted for no more than a few days before it was crushed. The Schutzbund and SDAPÖ were too weak and too divided to stand against the forces of the state.
 
@@ -48,7 +48,7 @@ Neither side is backing down, and the SDAPÖ have formed an alternative governme
 title: As a party, the SPD will provide the SDAPÖ with support.
 subtitle: -2 resources
 choose-if: resources >= 2
-on-arrival: resources -= 2; sdapo_strength += 1
+on-arrival: resources -= 2; sdapo_strength += 1; italy_relation -= 1
 go-to: sdapo_victory if sdapo_strength >= 7; long_war_2 if sdapo_strength < 7
 
 The SPD raises its resources to provide arms and volunteers for the SDAPÖ.
@@ -56,14 +56,14 @@ The SPD raises its resources to provide arms and volunteers for the SDAPÖ.
 @support_sdapo_govt
 title: The Foreign Ministry will support the democratic Austrian forces.
 view-if: spd_in_government and foreign_minister_party = "SPD"
-on-arrival: sdapo_strength += 1.5
+on-arrival: sdapo_strength += 1.5; italy_relation -= 1
 go-to: sdapo_victory if sdapo_strength >= 7; long_war_2 if sdapo_strength < 7
 
 We provide diplomatic and some financial and material support to the SDAPÖ forces.
 
 @force_peace
 title: Can we bring the sides together for a peace?
-view-if: spd_in_government and foreign_minister_party = "SPD" and sdapo_strength = 6
+view-if: spd_in_government and foreign_minister_party = "SPD" and (sdapo_strength = 6 or sdapo_strength = 5.5 or sdapo_strength = 6.5)
 on-arrival: austria_peace = 1; pro_republic += 3; coup_progress -= 1; italy_relation += 1
 achievement: arbeiter_von_wien
 
