@@ -19,14 +19,14 @@ Q.old_sdapo_vote = 28.0
 Q.old_cs_vote = 25.0
 Q.old_gdvp_vote = 15.0
 Q.old_kpoe_vote = 10.0
-Q.old_other_vote = 22.0
+Q.old_other_ausvote = 22.0
 
 // Base vote shares for 1930
 Q.sdapo_vote = 30.0
 Q.cs_vote = 23.0
 Q.gdvp_vote = 17.0
 Q.kpoe_vote = 12.0
-Q.other_vote = 18.0
+Q.otheraus_vote = 18.0
 
 // Adjustments based on unemployment and economic growth
 if (Q.unemployed > 20) { 
@@ -42,7 +42,7 @@ if (Q.economic_growth < 0) {
 var total_seats = 170;
 
 // List of Austrian parties in 1930
-Q.aus_parties = ['sdapo', 'cs', 'gdvp', 'bpoe', 'kpog', 'other'];
+Q.aus_parties = ['sdapo', 'cs', 'gdvp', 'bpoe', 'kpog', 'otheraus'];
 
 // Save old results and calculate total qualifying votes
 var new_party_sum = 0;
@@ -82,11 +82,11 @@ Q.str_change_sdapo = Q.sdapo_vote - Q.old_sdapo_vote
 Q.str_change_cs = Q.cs_vote - Q.old_cs_vote
 Q.str_change_gdvp = Q.gdvp_vote - Q.old_gdvp_vote
 Q.str_change_kpoe = Q.kpoe_vote - Q.old_kpoe_vote
-Q.str_change_other = Q.other_vote - Q.old_other_vote
+Q.str_change_otheraus = Q.otheraus_vote - Q.old_otheraus_vote
 
 // Coalitions
 Q.popular_front = Q.sdapo_vote + Q.kpoe_vote
-Q.center_right = Q.cs_vote + Q.gdvp_vote + Q.other_vote
+Q.center_right = Q.cs_vote + Q.gdvp_vote + Q.otheraus_vote
 Q.right_coalition = Q.cs_vote + Q.gdvp_vote
 
 !}
