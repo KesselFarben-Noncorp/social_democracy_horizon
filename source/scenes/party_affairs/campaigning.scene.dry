@@ -25,6 +25,7 @@ subtitle: <span style="color:#FF6699;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: workers_spd += 6*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2;
+
 We have increased our campaigning among the <span style="color:#FF6699;"><b>workers</b></span>. [? if unemployed >= 15: The high levels of unemployment make our campaign more difficult. ?] [? if wtb_adopted = 1: Adopting the WTB plan gives us a new rallying point to attract labor support. ?]
 
 @new_middle
@@ -32,6 +33,7 @@ subtitle: <span style="color:#66CCFF;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: new_middle_spd += 6*(1-dissent); new_middle_spd -= 4 if socialism <= 49 and peoples_party == 0; resources -= 1; peoples_party_support += 1;
+
 We have increased our campaigning among the <span style="color:#66CCFF;"><b>new middle class</b></span>. [? if socialism <= 49 and peoples_party == 0: The antipathy toward socialism in this group makes our campaign more difficult. ?] [? if peoples_party > 0: As a people's party, we have an easier time gaining middle-class support. ?]
 
 @old_middle
@@ -39,6 +41,7 @@ subtitle: <span style="color:#FFCC66;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1
+
 We have increased our campaigning among the <span style="color:#FFCC66;"><b>old middle class</b></span>. [? if nationalism >= 51 and peoples_party == 0: High nationalism among this group makes campaigning difficult. ?] [? if peoples_party > 0: As a people's party, it is now easier to increase support among them. ?]
 
 @rural
@@ -46,6 +49,7 @@ subtitle: <span style="color:#99CC66;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: rural_spd += 5*(1-dissent); rural_spd -= 3*(1-dissent) if peoples_party == 0; resources -= 1; peoples_party_support += 1; rural_spd += 3*(1-dissent) if rural_policy >= 2
+
 We have increased our campaigning among <span style="color:#99CC66;"><b>farmers and rural workers</b></span>. [? if peoples_party == 0: Our lack of historical focus on rural voters undermines trust. ?] [? if peoples_party > 0: As a people's party, we face fewer obstacles in rural campaigning. ?] [? if rural_policy >= 2: Our rural policies have eased support-building efforts. ?]
 
 @unemployed
@@ -53,6 +57,7 @@ subtitle: <span style="color:#CC99FF;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: unemployed_spd += 6*(1-dissent); resources -= 1; unemployed_spd -= 3 if welfare < 0; unemployed_spd += 5*(1-dissent) if wtb_adopted = 1; unemployed_spd += 3*(1-dissent) if welfare >= 2; unemployed_spd += 2 if nazi_urgency > 4;
+
 We have increased our campaigning among the <span style="color:#CC99FF;"><b>unemployed</b></span>. [? if welfare < 0: Welfare cuts harm our credibility and hinder campaign efforts. ?] [? if wtb_adopted = 1: The WTB plan strengthens our appeal among the unemployed. ?]
 
 @catholics
@@ -61,4 +66,5 @@ choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 view-if: peoples_party == 1
 on-arrival: catholics_spd += 6*(1-dissent); resources -= 1
+
 We have increased our campaigning among the <span style="color:#CCCCCC;"><b>Catholics</b></span>.
