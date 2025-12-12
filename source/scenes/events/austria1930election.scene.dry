@@ -167,10 +167,10 @@ center_right_disabled = center_right_disabled || 0;
 <tr><td>Turnout</td><td>[+ turnout +]%</td><td></td></tr>
 {!</table>!}
 
-- [? if (popular_front >= 50 && !popular_front_disabled) : @popular_front_austria]  
-- [? if (center_right >= popular_front && center_right >= right_coalition && !center_right_disabled) : @center_right_austria]  
-- [? if (right_coalition > center_right && right_coalition > popular_front && !right_coalition_disabled) : @right_coalition_austria]  
-- [? if (hung_parliament == 1) : @hung_parliament_austria]
+[? if (popular_front >= 50 && !popular_front_disabled) : - @popular_front_austria]  
+[? if (center_right >= popular_front && center_right >= right_coalition && !center_right_disabled) : - @center_right_austria]  
+[? if (right_coalition > center_right && right_coalition > popular_front && !right_coalition_disabled) : - @right_coalition_austria]  
+[? if (hung_parliament == 1) : - @hung_parliament_austria]
 
 @popular_front_austria
 choose-if: popular_front >= 50 and popular_front_disabled == 0
