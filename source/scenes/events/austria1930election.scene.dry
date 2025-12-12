@@ -20,15 +20,15 @@ Q.old_cs_vote = Q.old_cs_vote || 20.0;
 Q.old_gdvp_vote = Q.old_gdvp_vote || 15.0;
 Q.old_heimwehr_vote = Q.old_heimwehr_vote || 10.0;
 Q.old_kpoe_vote = Q.old_kpoe_vote || 5.0;
-Q.old_other_vote = Q.old_other_vote || 5.0;
+Q.aus_old_other_vote = Q.aus_old_other_vote || 5.0;
 
 // --- Base vote shares
-Q.sdapo_vote = 27.5;
-Q.cs_vote = 20.0;
-Q.gdvp_vote = 14.0;
-Q.heimwehr_vote = 10.0;
+Q.sdapo_vote = 38.5;
+Q.cs_vote = 30.0;
+Q.gdvp_vote = 18.0;
+Q.heimwehr_vote = 9.0;
 Q.kpoe_vote = 6.0;
-Q.other_vote = 5.5;
+Q.aus_other_vote = 7.5;
 
 // --- Vote factor pool
 var vote_factors = {
@@ -52,6 +52,7 @@ if (Q.unemployed >= 25) {
 } else {
     vote_factors.cs += 0.02;
     vote_factors.gdvp += 0.02;
+    vote_factors.heimwehr += 0.01;
 }
 
 // --- Inflation / deflation effect
@@ -76,21 +77,21 @@ if (Q.spd_in_government) { vote_factors.sdapo += 0.025; }
 if (Q.kpd_in_government) { vote_factors.kpoe += 0.01; }
 
 // --- International influence
-if (Q.italy_relation > 50) { vote_factors.heimwehr += 0.018; vote_factors.cs += 0.006; }
-if (Q.italy_relation < -25) { vote_factors.heimwehr -= 0.01; }
+if (Q.italy_relation > 0 ) { vote_factors.heimwehr += 0.018; vote_factors.cs += 0.006; }
+if (Q.italy_relation < 0 ) { vote_factors.heimwehr -= 0.01; }
 
-if (Q.west_relation > 60) { vote_factors.cs += 0.015; vote_factors.heimwehr -= 0.01; vote_factors.kpoe -= 0.005; }
-if (Q.west_relation < -20) { vote_factors.heimwehr += 0.01; vote_factors.gdvp += 0.01; }
+if (Q.west_relation > 2 ) { vote_factors.cs += 0.015; vote_factors.heimwehr -= 0.01; vote_factors.kpoe -= 0.005; }
+if (Q.west_relation < 0 ) { vote_factors.heimwehr += 0.01; vote_factors.gdvp += 0.01; }
 
 if (Q.czech_relation < 0) { vote_factors.gdvp += 0.02; vote_factors.heimwehr += 0.01; }
-if (Q.czech_relation > 40) { vote_factors.gdvp -= 0.015; }
+if (Q.czech_relation > 1) { vote_factors.gdvp -= 0.015; }
 
 if (Q.poland_relation < 0) { vote_factors.gdvp += 0.01; }
-if (Q.hungary_relation > 30) { vote_factors.heimwehr += 0.01; }
+if (Q.hungary_relation > 1) { vote_factors.heimwehr += 0.01; }
 
 if (Q.ruhr_labor == 1) { vote_factors.sdapo += 0.02; vote_factors.kpoe += 0.005; }
 if (Q.tyrole_signed == 1) { vote_factors.heimwehr -= 0.015; vote_factors.cs += 0.01; }
-if (young_plan_catastrophy == 1) { vote_factors.heimwehr += 0.025; vote_factors.gdvp += 0.02; vote_factors.sdapo -= 0.02; }
+if (Q.young_plan_catastrophy == 1) { vote_factors.heimwehr += 0.025; vote_factors.gdvp += 0.02; vote_factors.sdapo -= 0.02; }
 if (Q.eu_progress > 1) { vote_factors.cs += 0.01; vote_factors.sdapo += 0.01; vote_factors.gdvp -= 0.01; }
 
 // --- Apply vote factors
@@ -120,7 +121,7 @@ Q.cs_vote = (Q.cs_vote / total_votes) * 100;
 Q.gdvp_vote = (Q.gdvp_vote / total_votes) * 100;
 Q.heimwehr_vote = (Q.heimwehr_vote / total_votes) * 100;
 Q.kpoe_vote = (Q.kpoe_vote / total_votes) * 100;
-Q.other_vote = (Q.other_vote / total_votes) * 100;
+Q.aus_other_vote = (Q.aus_other_vote / total_votes) * 100;
 
 // --- Hard caps
 Q.sdapo_vote = Math.max(3, Math.min(48, Q.sdapo_vote));
@@ -128,7 +129,7 @@ Q.cs_vote = Math.max(8, Math.min(50, Q.cs_vote));
 Q.gdvp_vote = Math.max(3, Math.min(30, Q.gdvp_vote));
 Q.heimwehr_vote = Math.max(0, Math.min(25, Q.heimwehr_vote));
 Q.kpoe_vote = Math.max(0.5, Math.min(12, Q.kpoe_vote));
-Q.other_vote = Math.max(0, Math.min(15, Q.other_vote));
+Q.aus_other_vote = Math.max(0, Math.min(15, Q.aus_other_vote));
 
 // --- Re-normalize after caps
 total_votes = Q.sdapo_vote + Q.cs_vote + Q.gdvp_vote + Q.heimwehr_vote + Q.kpoe_vote + Q.other_vote;
@@ -137,12 +138,12 @@ Q.cs_vote = (Q.cs_vote / total_votes) * 100;
 Q.gdvp_vote = (Q.gdvp_vote / total_votes) * 100;
 Q.heimwehr_vote = (Q.heimwehr_vote / total_votes) * 100;
 Q.kpoe_vote = (Q.kpoe_vote / total_votes) * 100;
-Q.other_vote = (Q.other_vote / total_votes) * 100;
+Q.aus_other_vote = (Q.aus_other_vote / total_votes) * 100;
 
 // --- Coalition math
 Q.aus_popular_front = Q.sdapo_vote + Q.kpoe_vote;
 Q.aus_center_right = Q.cs_vote + Q.gdvp_vote;
-Q.aus_right_coalition = Q.heimwehr_vote + Q.cs_vote + Q.gdvp_vote;
+Q.aus_right_coalition = Q.heimwehr_vote + Q.gdvp_vote + Q.aus_other;
 
 // --- Coalition feasibility
 Q.aus_popular_front_disabled = (Q.kpoe_vote > (Q.sdapo_vote * 0.45)) ? 1 : 0;
@@ -158,11 +159,11 @@ Q.str_change_cs = (Q.cs_vote - Q.old_cs_vote);
 Q.str_change_gdvp = (Q.gdvp_vote - Q.old_gdvp_vote);
 Q.str_change_heimwehr = (Q.heimwehr_vote - Q.old_heimwehr_vote);
 Q.str_change_kpoe = (Q.kpoe_vote - Q.old_kpoe_vote);
-Q.str_change_other = (Q.other_vote - Q.old_other_vote);
+Q.str_change_other = (Q.aus_other_vote - Q.aus_old_other_vote);
 
 // --- Persist voting history
 Q.election_records = Q.election_records || [];
-Q.election_records.push({date: new Date(Q.year, Q.month - 1), sdapo: Q.sdapo_vote, cs: Q.cs_vote, gdvp: Q.gdvp_vote, heimwehr: Q.heimwehr_vote, kpoe: Q.kpoe_vote, other: Q.other_vote});
+Q.election_records.push({date: new Date(Q.year, Q.month - 1), sdapo: Q.sdapo_vote, cs: Q.cs_vote, gdvp: Q.gdvp_vote, heimwehr: Q.heimwehr_vote, kpoe: Q.kpoe_vote, aus_other: Q.aus_other_vote});
 !}
 
 = Election Results
@@ -174,7 +175,7 @@ Q.election_records.push({date: new Date(Q.year, Q.month - 1), sdapo: Q.sdapo_vot
 <tr><td>GDVP</td><td>[+ gdvp_vote +]%</td><td>[+ str_change_gdvp +]</td></tr>
 <tr><td>Heimwehr</td><td>[+ heimwehr_vote +]%</td><td>[+ str_change_heimwehr +]</td></tr>
 <tr><td>KPÖ</td><td>[+ kpoe_vote +]%</td><td>[+ str_change_kpoe +]</td></tr>
-<tr><td>Other</td><td>[+ other_vote +]%</td><td>[+ str_change_other +]</td></tr>
+<tr><td>Austrian Other</td><td>[+ aus_other_vote +]%</td><td>[+ str_change_aus_other +]</td></tr>
 <tr><td>Turnout</td><td>[+ turnout +]%</td><td></td></tr>
 {!</table>!}
 
