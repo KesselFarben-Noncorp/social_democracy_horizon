@@ -1,0 +1,47 @@
+title: Suspension of the Austrian parliament
+new-page: true
+subtitle: Our southern neighbor is sliding into dictatorship.
+view-if: year = 1933 and austria_govt = 0 and (month = 3 or month = 4) and ((spd_in_government and foreign_minister_party = "SPD") or (austria_relation >= 1))
+max-visits: 1
+on-arrival: austrian_parliament_seen = 1
+face-image: img/Dollfuss.jpg
+tags: event
+
+# Must control foreign ministry or have made contact with Austrian socialists.
+
+= Suspension of the Austrian Parliament
+
+There is a heavy arising suspicions on paramilitaries of Heimwehr, Landbund and Christian Social Party are planning out the coup against the Austrian Government of SDAPÖ! Especially following heavy crisis regarding railroad, which almost led to three Presidents leaving their position and grassroots power gained by group of Austrofascists, Austrian nationalist disjoint groups seeking to combat socialism of SDAPÖ and unify country against external threats. We may intervene in the situation to preserve SDAPÖ if such is the case.
+
+Is there anything we could do?
+
+- @fund_schutzbund: Support the SDAPÖ's underground organizing.
+- @fund_schutzbund_italy: Support the SDAPO's underground organizing, defying Tyrole Pact.
+- @nothing: Nothing can be done.
+
+@fund_schutzbund
+on-arrival: resources -= 1; sdapo_strength += 1; italy_relation -= 2
+subtitle: It may not satisfy Italy.
+choose-if: tyrole_signed = 0
+unavailable-subtitle: [? if tyrole_signed = 1: Tyrole - Danubian Pact disallows us to directly intervene in current affairs. ?]
+
+It is somewhat of a breach of diplomatic protocol for the SPD to so directly interfere in another country's affairs, supporting the Austrian social democrats.
+
+We have provided armament for the Schutzbund, republican concentration and armed wing of the SDAPÖ in the defence of the republic, hence army can not be trusted with such task.
+
+@fund_schutzbund_italy
+on-arrival: resources -= 1; sdapo_strength += 2; sdapo_strength += 1 if customs_union; italy_relation -= 3
+subtitle: -1 resource
+unavailable-subtitle: 
+view-if: tyrole_signed = 1
+choose-if: resources >= 1
+
+It is somewhat of a breach of diplomatic protocol for the SPD to so directly interfere in another country's affairs, supporting the Austrian social democrats.
+
+We have provided armament for the Schutzbund, republican concentration and armed wing of the SDAPÖ in the defence of the republic, hence army can not be trusted with such task. In addition, we have launched operations in order for SDAPÖ to bypass current Austrian system of Judiciary and Bureaucracy, shifting blame from SDAPÖ to certain different individuals.
+
+Pay the attention since we breached the Tyrole - Danubian Pact, it is more than likely that Italy will breach it either!
+
+@nothing
+
+Unfortunately, there is nothing we can do for our Austrian comrade's
