@@ -24,9 +24,9 @@ old_other_vote = old_other_vote || 5.0;
 
 // --- Base vote shares
 sdapo_vote = 27.5;
-cs_vote = 20.0;
+cs_vote = 21.0;
 gdvp_vote = 14.0;
-heimwehr_vote = 10.0;
+heimwehr_vote = 9.0;
 kpoe_vote = 6.0;
 other_vote = 5.5;
 
@@ -64,15 +64,15 @@ if (spd_in_government) { vote_factors.sdapo += 0.025; }
 if (kpd_in_government) { vote_factors.kpoe += 0.01; }
 
 // --- International influence
-if (italy_relation > 50) { vote_factors.heimwehr += 0.018; vote_factors.cs += 0.006; }
-if (italy_relation < -25) { vote_factors.heimwehr -= 0.01; }
-if (west_relation > 60) { vote_factors.cs += 0.015; vote_factors.heimwehr -= 0.01; vote_factors.kpoe -= 0.005; }
-if (west_relation < -20) { vote_factors.heimwehr += 0.01; vote_factors.gdvp += 0.01; }
+if (italy_relation > 1) { vote_factors.heimwehr += 0.018; vote_factors.cs += 0.006; }
+if (italy_relation < 0) { vote_factors.heimwehr -= 0.01; }
+if (west_relation > 2) { vote_factors.cs += 0.015; vote_factors.heimwehr -= 0.01; vote_factors.kpoe -= 0.005; }
+if (west_relation < 0) { vote_factors.heimwehr += 0.01; vote_factors.gdvp += 0.01; }
 if (czech_relation < 0) { vote_factors.gdvp += 0.02; vote_factors.heimwehr += 0.01; }
-if (czech_relation > 40) { vote_factors.gdvp -= 0.015; }
+if (czech_relation > 1) { vote_factors.gdvp -= 0.015; }
 if (poland_relation < 0) { vote_factors.gdvp += 0.01; }
-if (hungary_relation > 30) { vote_factors.heimwehr += 0.01; }
-if (ruhr_labor == 1) { vote_factors.sdapo += 0.02; vote_factors.kpoe += 0.005; }
+if (hungary_relation < 0) { vote_factors.heimwehr += 0.01; }
+if (ruhr_labor == 1) { vote_factors.sdapo += 0.005; vote_factors.kpoe += 0.05; }
 if (tyrole_signed == 1) { vote_factors.heimwehr -= 0.015; vote_factors.cs += 0.01; }
 if (young_plan_catastrophy == 1) { vote_factors.heimwehr += 0.025; vote_factors.gdvp += 0.02; vote_factors.sdapo -= 0.02; }
 if (eu_progress > 1) { vote_factors.cs += 0.01; vote_factors.sdapo += 0.01; vote_factors.gdvp -= 0.01; }
@@ -124,14 +124,14 @@ kpoe_vote = (kpoe_vote / total_votes) * 100;
 other_vote = (other_vote / total_votes) * 100;
 
 // --- Coalition math
-popular_front = sdapo_vote + kpoe_vote;
-center_right = cs_vote + gdvp_vote;
-right_coalition = heimwehr_vote + cs_vote + gdvp_vote;
+aus_popular_front = sdapo_vote + kpoe_vote;
+aus_center_right = cs_vote + gdvp_vote;
+aus_right_coalition = heimwehr_vote + cs_vote + gdvp_vote;
 
 // --- Coalition feasibility
-popular_front_disabled = (kpoe_vote > (sdapo_vote * 0.45)) ? 1 : 0;
-right_coalition_disabled = (heimwehr_vote > 0.6 * (cs_vote + gdvp_vote + heimwehr_vote)) ? 1 : 0;
-center_right_disabled = (italy_relation > 70 && cs_vote < 18) || (west_relation < -30) ? 1 : 0;
+aus_popular_front_disabled = (kpoe_vote > (sdapo_vote * 0.45)) ? 1 : 0;
+aus_right_coalition_disabled = (heimwehr_vote > 0.6 * (cs_vote + gdvp_vote + heimwehr_vote)) ? 1 : 0;
+aus_center_right_disabled = (italy_relation > 2 && cs_vote < 18) || (west_relation < -2) ? 1 : 0;
 
 // --- Deadlock detection
 hung_parliament = (popular_front < 50 && center_right < 50 && right_coalition < 50) ? 1 : 0;
@@ -149,9 +149,9 @@ election_records = election_records || [];
 election_records.push({date: new Date(year, month - 1), sdapo: sdapo_vote, cs: cs_vote, gdvp: gdvp_vote, heimwehr: heimwehr_vote, kpoe: kpoe_vote, other: other_vote});
 
 // --- Helper flags
-popular_front_disabled = popular_front_disabled || 0;
-right_coalition_disabled = right_coalition_disabled || 0;
-center_right_disabled = center_right_disabled || 0;
+aus_popular_front_disabled = aus_popular_front_disabled || 0;
+aus_right_coalition_disabled = aus_right_coalition_disabled || 0;
+aus_center_right_disabled = aus_center_right_disabled || 0;
 !}
 
 = Election Results
@@ -167,41 +167,42 @@ center_right_disabled = center_right_disabled || 0;
 <tr><td>Turnout</td><td>[+ turnout +]%</td><td></td></tr>
 {!</table>!}
 
-[? if (popular_front >= 50 && !popular_front_disabled) : - @popular_front_austria]  
-[? if (center_right >= popular_front && center_right >= right_coalition && !center_right_disabled) : - @center_right_austria]  
-[? if (right_coalition > center_right && right_coalition > popular_front && !right_coalition_disabled) : - @right_coalition_austria]  
-[? if (hung_parliament == 1) : - @hung_parliament_austria]
+- @right_coalition_austria
+- @center_right_austria
+- @popular_front_austria
+- @hung_parliament_austria
 
 @popular_front_austria
-choose-if: popular_front >= 50 and popular_front_disabled == 0
+choose-if: aus_popular_front >= 50 and aus_popular_front_disabled == 0
 title: SDAPÖ forms government with KPÖ support
 subtitle: Popular Front government established.
 unavailable-subtitle: This coalition is impossible!
-on-arrival: relation_austria += 2; austria_govt = 0; in_popular_front = 1
+on-arrival: relation_austria += 2; austria_govt = 0; aus_in_popular_front = 1
 achievement: wien_freeien
 
 Social Democracy aligned government secured win!
 
 @center_right_austria
-choose-if: center_right >= popular_front and center_right >= right_coalition and center_right_disabled == 0
+choose-if: aus_center_right >= aus_popular_front and aus_center_right >= aus_right_coalition and aus_center_right_disabled == 0
 title: CS and GDVP form a centrist government
 unavailable-subtitle: This coalition is impossible!
 subtitle: Moderate coalition keeps Austria stable.
-on-arrival: relation_austria += 1; austria_govt = 1; in_grand_coalition = 1
+on-arrival: relation_austria += 1; austria_govt = 1; aus_in_grand_coalition = 1
 
 Centrist government forms!
 
 @right_coalition_austria
-choose-if: right_coalition > center_right and right_coalition > popular_front and right_coalition_disabled == 0
+choose-if: aus_right_coalition > aus_center_right and aus_right_coalition > aus_popular_front and aus_right_coalition_disabled == 0
 title: Heimwehr-backed right-wing coalition takes power
 unavailable-subtitle: This coalition is impossible!
 subtitle: Radical-right influence grows in Austrian politics.
-on-arrival: relation_austria -= 2; austria_govt = -1; in_right_coalition = 1
+on-arrival: relation_austria -= 2; austria_govt = -1; aus_in_right_coalition = 1
 
 Radical right takes over the mantle of Austria!
 
 @hung_parliament_austria
 title: Hung Parliament — Deadlock
 subtitle: No stable coalition can be formed
+on-arrival: austria_govt = 1
 text: >
   No coalition has reached a majority. Political negotiations continue without a clear resolution.
