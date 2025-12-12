@@ -188,15 +188,17 @@ We may sign up the Tyrole - Danubian Non Aggression pact, promising to not fund 
 
 @danzig_corridor
 title: Discuss the question of germans and german territory rights of Danzig and Polish Corridor.
-view-if: poland_relation > 4 and year > 1930 and west_relation > 0 and danzig_progress < 2 
-subtitle: Polish representatives won't like aggressive policy and generally our current land returning policy.
+view-if: year > 1930 and danzig_progress < 2 
+choose-if: poland_relation >= 4 and west_relation >= 3
+subtitle: Polish representatives won't like aggressive policy and generally our current land returning policy. 
+unavailable-subtitle: [? if poland_relation < 4: Polish won't even bother to negotiate this question! ?] [? if west_relation < 3: Western Countries will not let us negotiate this out. ?]
 on-arrival: danzig_progress += 1; poland_relation -= 1
 
 [? if danzig_progress = 0: We begun our progress regarding the danzig corridor issue, seeking to restore some sort of control to East Prussia. ?] [? if danzig_progress > 0: Talks about Danzig continue. It all may depend on how strong we are, how good our relations are and basically how the situation is. ?]
 
 @danzig_corridor_salvation
 title: Negotiate out the Danzig Corridor!
-view-if: danzig_progress = 2 or danzig_question = 1 or danzig_question = -1
+view-if: danzig_progress = 2 or danzig_question != 1 or danzig_question != -1
 choose-if: poland_relation > 4 
 unavailable-subtitle: Too low of relationships with Poland! Minimal requirement is 4.
 
@@ -204,6 +206,7 @@ Polish under the Pilsudski are certainly not gonna work it out unless we provide
 
 - @military_way
 - @peaceful_way
+- @european_way
 - @easy_discard
 - @cancel_advisor_action
 
@@ -250,7 +253,7 @@ Now we can let European Union decide what will be decided!
 title: Danzig is, as decided , is controlled jointly by Germany and Poland.
 choose-if: poland_relation >= 6 and (west_relation + hungary_relation + poland_relation + czech_relation + austria_relation) > 15
 unavailable-subtitle: [? if poland_relation < 6: Poland does not trust us with that task ?] [? if (west_relation + hungary_relation + poland_relation + czech_relation + austria_relation) <= 15: European Union members do not trust us with that task! ?]
-on-arrival: unemployed -= 1
+on-arrival: unemployed -= 1; danzig_question = -1
 
 @transit
 title: Danzig is, as decided , is transferred to Germany for definite time by treaty!
@@ -265,10 +268,10 @@ on-arrival: danzig_question = -1
 @sudetenland
 title: Our germans in the Sudetenland are vulnerable, we should certainly intervene in this situation!
 view-if: year >= 1932
-choose-if: czech_relation >= 3 
-on-arrival: sudetenland_question = 1; budget += 3
+choose-if: czech_relation >= 3 and sudetenland_question = 0
+on-arrival: sudetenland_question = 1; budget += 2 and sudetenland_question = 1
 
-WIP. To not waste your time, get your budget of 3.
+WIP. To not waste your time, get your budget of 2.
 
 @support_austria
 title: Diplomatically support Austrian democracy against the Dollfuß dictatorship.
