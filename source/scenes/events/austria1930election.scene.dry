@@ -13,22 +13,22 @@ The First Austrian Republic holds its legislative elections today.
 - @austria: May the democratic forces prevail!
 
 @austria
-on-arrival: {!  
-// --- preserve previous results for comparison
-old_sdapo_vote = old_sdapo_vote || 25.0;
-old_cs_vote = old_cs_vote || 20.0;
-old_gdvp_vote = old_gdvp_vote || 15.0;
-old_heimwehr_vote = old_heimwehr_vote || 10.0;
-old_kpoe_vote = old_kpoe_vote || 5.0;
-old_other_vote = old_other_vote || 5.0;
+on-arrival: {!
+// --- preserve previous results
+Q.old_sdapo_vote = Q.old_sdapo_vote || 25.0;
+Q.old_cs_vote = Q.old_cs_vote || 20.0;
+Q.old_gdvp_vote = Q.old_gdvp_vote || 15.0;
+Q.old_heimwehr_vote = Q.old_heimwehr_vote || 10.0;
+Q.old_kpoe_vote = Q.old_kpoe_vote || 5.0;
+Q.old_other_vote = Q.old_other_vote || 5.0;
 
 // --- Base vote shares
-sdapo_vote = 27.5;
-cs_vote = 21.0;
-gdvp_vote = 14.0;
-heimwehr_vote = 9.0;
-kpoe_vote = 6.0;
-other_vote = 5.5;
+Q.sdapo_vote = 27.5;
+Q.cs_vote = 20.0;
+Q.gdvp_vote = 14.0;
+Q.heimwehr_vote = 10.0;
+Q.kpoe_vote = 6.0;
+Q.other_vote = 5.5;
 
 // --- Vote factor pool
 var vote_factors = {
@@ -40,118 +40,129 @@ var vote_factors = {
 };
 
 // --- Economic conditions
-if (unemployed >= 25) { vote_factors.sdapo += 0.06; vote_factors.kpoe += 0.04; } 
-else if (unemployed >= 15) { vote_factors.sdapo += 0.035; vote_factors.kpoe += 0.02; } 
-else if (unemployed >= 10) { vote_factors.cs += 0.01; vote_factors.gdvp += 0.01; } 
-else { vote_factors.cs += 0.02; vote_factors.gdvp += 0.02; }
+if (Q.unemployed >= 25) {
+    vote_factors.sdapo += 0.06;
+    vote_factors.kpoe += 0.04;
+} else if (Q.unemployed >= 15) {
+    vote_factors.sdapo += 0.035;
+    vote_factors.kpoe += 0.02;
+} else if (Q.unemployed >= 10) {
+    vote_factors.cs += 0.01;
+    vote_factors.gdvp += 0.01;
+} else {
+    vote_factors.cs += 0.02;
+    vote_factors.gdvp += 0.02;
+}
 
-// --- Inflation / deflation
-if (inflation < -5) { vote_factors.heimwehr += 0.06; } 
-else if (inflation < 0) { vote_factors.heimwehr += 0.03; }
+// --- Inflation / deflation effect
+if (Q.inflation < -5) {
+    vote_factors.heimwehr += 0.06;
+} else if (Q.inflation < 0) {
+    vote_factors.heimwehr += 0.03;
+}
 
-// --- Ideology indexes
-vote_factors.cs += Math.min(nationalism / 400, 0.06);
-vote_factors.gdvp += Math.min(nationalism / 600, 0.04);
-vote_factors.sdapo += Math.min(socialism / 200, 0.06);
-vote_factors.kpoe += Math.min(socialism / 140, 0.05);
+// --- Ideological indexes
+vote_factors.cs += Math.min(Q.nationalism / 400, 0.06);
+vote_factors.gdvp += Math.min(Q.nationalism / 600, 0.04);
+vote_factors.sdapo += Math.min(Q.socialism / 200, 0.06);
+vote_factors.kpoe += Math.min(Q.socialism / 140, 0.05);
 
 // --- Paramilitary influence
-var heimwehr_effective = sh_strength || 0;
+var heimwehr_effective = Q.sh_strength || 0;
 vote_factors.heimwehr += Math.min(heimwehr_effective / 1200, 0.08);
 
 // --- SPD / Communist government participation
-if (spd_in_government) { vote_factors.sdapo += 0.025; }
-if (kpd_in_government) { vote_factors.kpoe += 0.01; }
+if (Q.spd_in_government) { vote_factors.sdapo += 0.025; }
+if (Q.kpd_in_government) { vote_factors.kpoe += 0.01; }
 
 // --- International influence
-if (italy_relation > 1) { vote_factors.heimwehr += 0.018; vote_factors.cs += 0.006; }
-if (italy_relation < 0) { vote_factors.heimwehr -= 0.01; }
-if (west_relation > 2) { vote_factors.cs += 0.015; vote_factors.heimwehr -= 0.01; vote_factors.kpoe -= 0.005; }
-if (west_relation < 0) { vote_factors.heimwehr += 0.01; vote_factors.gdvp += 0.01; }
-if (czech_relation < 0) { vote_factors.gdvp += 0.02; vote_factors.heimwehr += 0.01; }
-if (czech_relation > 1) { vote_factors.gdvp -= 0.015; }
-if (poland_relation < 0) { vote_factors.gdvp += 0.01; }
-if (hungary_relation < 0) { vote_factors.heimwehr += 0.01; }
-if (ruhr_labor == 1) { vote_factors.sdapo += 0.005; vote_factors.kpoe += 0.05; }
-if (tyrole_signed == 1) { vote_factors.heimwehr -= 0.015; vote_factors.cs += 0.01; }
+if (Q.italy_relation > 50) { vote_factors.heimwehr += 0.018; vote_factors.cs += 0.006; }
+if (Q.italy_relation < -25) { vote_factors.heimwehr -= 0.01; }
+
+if (Q.west_relation > 60) { vote_factors.cs += 0.015; vote_factors.heimwehr -= 0.01; vote_factors.kpoe -= 0.005; }
+if (Q.west_relation < -20) { vote_factors.heimwehr += 0.01; vote_factors.gdvp += 0.01; }
+
+if (Q.czech_relation < 0) { vote_factors.gdvp += 0.02; vote_factors.heimwehr += 0.01; }
+if (Q.czech_relation > 40) { vote_factors.gdvp -= 0.015; }
+
+if (Q.poland_relation < 0) { vote_factors.gdvp += 0.01; }
+if (Q.hungary_relation > 30) { vote_factors.heimwehr += 0.01; }
+
+if (Q.ruhr_labor == 1) { vote_factors.sdapo += 0.02; vote_factors.kpoe += 0.005; }
+if (Q.tyrole_signed == 1) { vote_factors.heimwehr -= 0.015; vote_factors.cs += 0.01; }
 if (young_plan_catastrophy == 1) { vote_factors.heimwehr += 0.025; vote_factors.gdvp += 0.02; vote_factors.sdapo -= 0.02; }
-if (eu_progress > 1) { vote_factors.cs += 0.01; vote_factors.sdapo += 0.01; vote_factors.gdvp -= 0.01; }
+if (Q.eu_progress > 1) { vote_factors.cs += 0.01; vote_factors.sdapo += 0.01; vote_factors.gdvp -= 0.01; }
 
 // --- Apply vote factors
-sdapo_vote *= vote_factors.sdapo;
-cs_vote *= vote_factors.cs;
-gdvp_vote *= vote_factors.gdvp;
-heimwehr_vote *= vote_factors.heimwehr;
-kpoe_vote *= vote_factors.kpoe;
+Q.sdapo_vote *= vote_factors.sdapo;
+Q.cs_vote *= vote_factors.cs;
+Q.gdvp_vote *= vote_factors.gdvp;
+Q.heimwehr_vote *= vote_factors.heimwehr;
+Q.kpoe_vote *= vote_factors.kpoe;
 
-// --- Turnout
+// --- Turnout model
 var base_turnout = 82;
-if (unemployed > 20) base_turnout += 3;
-if (sh_strength > 800) base_turnout -= 3;
-if (interior_police_militancy > 1.5) base_turnout -= 2;
-if (socialism > 40) base_turnout += 1;
-if (nationalism > 60) base_turnout += 1;
-turnout = Math.max(65, Math.min(95, Math.round(base_turnout)));
+if (Q.unemployed > 20) base_turnout += 3;
+if (Q.sh_strength > 800) base_turnout -= 3;
+if (Q.interior_police_militancy > 1.5) base_turnout -= 2;
+if (Q.socialism > 40) base_turnout += 1;
+if (Q.nationalism > 60) base_turnout += 1;
+Q.turnout = Math.max(65, Math.min(95, Math.round(base_turnout)));
 
-if (turnout >= 88) { sdapo_vote *= 1.03; cs_vote *= 1.02; }
-if (turnout <= 72) { heimwehr_vote *= 1.05; kpoe_vote *= 1.03; }
+if (Q.turnout >= 88) { Q.sdapo_vote *= 1.03; Q.cs_vote *= 1.02; }
+if (Q.turnout <= 72) { Q.heimwehr_vote *= 1.05; Q.kpoe_vote *= 1.03; }
 
-// --- Normalize votes
-var total_votes = sdapo_vote + cs_vote + gdvp_vote + heimwehr_vote + kpoe_vote + other_vote;
+// --- Normalize to 100
+var total_votes = Q.sdapo_vote + Q.cs_vote + Q.gdvp_vote + Q.heimwehr_vote + Q.kpoe_vote + Q.other_vote;
 if (total_votes <= 0) total_votes = 1;
-sdapo_vote = (sdapo_vote / total_votes) * 100;
-cs_vote = (cs_vote / total_votes) * 100;
-gdvp_vote = (gdvp_vote / total_votes) * 100;
-heimwehr_vote = (heimwehr_vote / total_votes) * 100;
-kpoe_vote = (kpoe_vote / total_votes) * 100;
-other_vote = (other_vote / total_votes) * 100;
+Q.sdapo_vote = (Q.sdapo_vote / total_votes) * 100;
+Q.cs_vote = (Q.cs_vote / total_votes) * 100;
+Q.gdvp_vote = (Q.gdvp_vote / total_votes) * 100;
+Q.heimwehr_vote = (Q.heimwehr_vote / total_votes) * 100;
+Q.kpoe_vote = (Q.kpoe_vote / total_votes) * 100;
+Q.other_vote = (Q.other_vote / total_votes) * 100;
 
 // --- Hard caps
-sdapo_vote = Math.max(3, Math.min(48, sdapo_vote));
-cs_vote = Math.max(8, Math.min(50, cs_vote));
-gdvp_vote = Math.max(3, Math.min(30, gdvp_vote));
-heimwehr_vote = Math.max(0, Math.min(25, heimwehr_vote));
-kpoe_vote = Math.max(0.5, Math.min(12, kpoe_vote));
-other_vote = Math.max(0, Math.min(15, other_vote));
+Q.sdapo_vote = Math.max(3, Math.min(48, Q.sdapo_vote));
+Q.cs_vote = Math.max(8, Math.min(50, Q.cs_vote));
+Q.gdvp_vote = Math.max(3, Math.min(30, Q.gdvp_vote));
+Q.heimwehr_vote = Math.max(0, Math.min(25, Q.heimwehr_vote));
+Q.kpoe_vote = Math.max(0.5, Math.min(12, Q.kpoe_vote));
+Q.other_vote = Math.max(0, Math.min(15, Q.other_vote));
 
 // --- Re-normalize after caps
-total_votes = sdapo_vote + cs_vote + gdvp_vote + heimwehr_vote + kpoe_vote + other_vote;
-sdapo_vote = (sdapo_vote / total_votes) * 100;
-cs_vote = (cs_vote / total_votes) * 100;
-gdvp_vote = (gdvp_vote / total_votes) * 100;
-heimwehr_vote = (heimwehr_vote / total_votes) * 100;
-kpoe_vote = (kpoe_vote / total_votes) * 100;
-other_vote = (other_vote / total_votes) * 100;
+total_votes = Q.sdapo_vote + Q.cs_vote + Q.gdvp_vote + Q.heimwehr_vote + Q.kpoe_vote + Q.other_vote;
+Q.sdapo_vote = (Q.sdapo_vote / total_votes) * 100;
+Q.cs_vote = (Q.cs_vote / total_votes) * 100;
+Q.gdvp_vote = (Q.gdvp_vote / total_votes) * 100;
+Q.heimwehr_vote = (Q.heimwehr_vote / total_votes) * 100;
+Q.kpoe_vote = (Q.kpoe_vote / total_votes) * 100;
+Q.other_vote = (Q.other_vote / total_votes) * 100;
 
 // --- Coalition math
-aus_popular_front = sdapo_vote + kpoe_vote;
-aus_center_right = cs_vote + gdvp_vote;
-aus_right_coalition = heimwehr_vote + cs_vote + gdvp_vote;
+Q.aus_popular_front = Q.sdapo_vote + Q.kpoe_vote;
+Q.aus_center_right = Q.cs_vote + Q.gdvp_vote;
+Q.aus_right_coalition = Q.heimwehr_vote + Q.cs_vote + Q.gdvp_vote;
 
 // --- Coalition feasibility
-aus_popular_front_disabled = (kpoe_vote > (sdapo_vote * 0.45)) ? 1 : 0;
-aus_right_coalition_disabled = (heimwehr_vote > 0.6 * (cs_vote + gdvp_vote + heimwehr_vote)) ? 1 : 0;
-aus_center_right_disabled = (italy_relation > 2 && cs_vote < 18) || (west_relation < -2) ? 1 : 0;
+Q.aus_popular_front_disabled = (Q.kpoe_vote > (Q.sdapo_vote * 0.45)) ? 1 : 0;
+Q.aus_right_coalition_disabled = (Q.heimwehr_vote > 0.6 * (Q.cs_vote + Q.gdvp_vote + Q.heimwehr_vote)) ? 1 : 0;
+Q.aus_center_right_disabled = (Q.italy_relation > 70 && Q.cs_vote < 18) || (Q.west_relation < -30) ? 1 : 0;
 
 // --- Deadlock detection
-hung_parliament = (popular_front < 50 && center_right < 50 && right_coalition < 50) ? 1 : 0;
+Q.hung_parliament = (Q.popular_front < 50 && Q.center_right < 50 && Q.right_coalition < 50) ? 1 : 0;
 
-// --- Record change strings
-str_change_sdapo = sdapo_vote - old_sdapo_vote;
-str_change_cs = cs_vote - old_cs_vote;
-str_change_gdvp = gdvp_vote - old_gdvp_vote;
-str_change_heimwehr = heimwehr_vote - old_heimwehr_vote;
-str_change_kpoe = kpoe_vote - old_kpoe_vote;
-str_change_other = other_vote - old_other_vote;
+// --- Record changes
+Q.str_change_sdapo = (Q.sdapo_vote - Q.old_sdapo_vote);
+Q.str_change_cs = (Q.cs_vote - Q.old_cs_vote);
+Q.str_change_gdvp = (Q.gdvp_vote - Q.old_gdvp_vote);
+Q.str_change_heimwehr = (Q.heimwehr_vote - Q.old_heimwehr_vote);
+Q.str_change_kpoe = (Q.kpoe_vote - Q.old_kpoe_vote);
+Q.str_change_other = (Q.other_vote - Q.old_other_vote);
 
 // --- Persist voting history
-election_records = election_records || [];
-election_records.push({date: new Date(year, month - 1), sdapo: sdapo_vote, cs: cs_vote, gdvp: gdvp_vote, heimwehr: heimwehr_vote, kpoe: kpoe_vote, other: other_vote});
-
-// --- Helper flags
-aus_popular_front_disabled = aus_popular_front_disabled || 0;
-aus_right_coalition_disabled = aus_right_coalition_disabled || 0;
-aus_center_right_disabled = aus_center_right_disabled || 0;
+Q.election_records = Q.election_records || [];
+Q.election_records.push({date: new Date(Q.year, Q.month - 1), sdapo: Q.sdapo_vote, cs: Q.cs_vote, gdvp: Q.gdvp_vote, heimwehr: Q.heimwehr_vote, kpoe: Q.kpoe_vote, other: Q.other_vote});
 !}
 
 = Election Results
