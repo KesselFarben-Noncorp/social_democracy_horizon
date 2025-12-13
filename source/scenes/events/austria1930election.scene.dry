@@ -161,17 +161,22 @@ Q.str_change_heimwehr = (Q.heimwehr_vote - Q.old_heimwehr_vote);
 Q.str_change_kpoe = (Q.kpoe_vote - Q.old_kpoe_vote);
 Q.str_change_other = (Q.aus_other_vote - Q.aus_old_other_vote);
 
+// --- Persist voting history
+Q.election_records = Q.election_records || [];
+Q.election_records.push({date: new Date(Q.year, Q.month - 1), sdapo: Q.sdapo_vote, cs: Q.cs_vote, gdvp: Q.gdvp_vote, heimwehr: Q.heimwehr_vote, kpoe: Q.kpoe_vote, other: Q.aus_other_vote});
+!}
+
 = Election Results
 
-{!<table>!}   
+{!<table>!}
 <tr><td>Party</td><td>Vote Share</td><td>% Change</td></tr>
-<tr><td>SDAPÖ</td><td>[+ sdapo_vote +]%</td><td>[+ str_change_sdapo +]</td></tr>
+<tr><td>SDAPÖ</td><td>[+ sdapo_vote+]%</td><td>[+ str_change_sdapo +]</td></tr>
 <tr><td>CS</td><td>[+ cs_vote +]%</td><td>[+ str_change_cs +]</td></tr>
 <tr><td>GDVP</td><td>[+ gdvp_vote +]%</td><td>[+ str_change_gdvp +]</td></tr>
 <tr><td>Heimwehr</td><td>[+ heimwehr_vote +]%</td><td>[+ str_change_heimwehr +]</td></tr>
 <tr><td>KPÖ</td><td>[+ kpoe_vote +]%</td><td>[+ str_change_kpoe +]</td></tr>
-<tr><td>Austrian Other</td><td>[+ aus_other_vote +]%</td><td>[+ str_change_aus_other +]</td></tr>
-<tr><td>Turnout</td><td>[+ turnout +]%</td><td></td></tr>
+<tr><td>Other</td><td>[+ aus_other_vote +]%</td><td>[+ str_change_aus_other +]</td></tr>
+<tr><td>Turnout</td><td>[+ Q.turnout +]%</td><td></td></tr>
 {!</table>!}
 
 - @right_coalition_austria
