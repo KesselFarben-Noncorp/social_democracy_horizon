@@ -304,10 +304,10 @@ if (Q.month_actions >= 1) {
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
 // Base drift parameters
-var drift_base = 0.9;
+var drift_base = 0.95;
 
 // Random factor helper
-function random_factor(f, variance = 0.65) {
+function random_factor(f, variance = 0.85) {
     return f * (1 - variance/2 + Math.random()*variance);
 }
 
@@ -337,27 +337,31 @@ var class_influences = {
     catholics:  1 + rb_influence
 };
 
-// --- Nationalist Siphon Adjustment ---
-var nationalist_parties = ['nsdap', 'dnvp', 'other', 'dvp']; // parties with nationalist tag
-// Determine the dominant nationalist party based on current ideology alignment
-var dominant_nat = nationalist_parties[0];
-var max_nat_factor = 0;
+// Determine dominant nationalist party for this month
+var nationalist_parties = ['nsdap','dnvp','other'];
+var dominant_nat = null;
+var max_factor = -Infinity;
+
 for (var p of nationalist_parties) {
     var nat_factor = nationalism_factor;
     if (p === 'nsdap') nat_factor *= nat_dom;
-    if (nat_factor > max_nat_factor) {
-        max_nat_factor = nat_factor;
+    if (p === 'dnvp') nat_factor *= 1; // optional modifier for DNVP
+    // 'other' can also have modifier if desired
+    if (nat_factor > max_factor) {
+        max_factor = nat_factor;
         dominant_nat = p;
     }
 }
 
-// Siphon votes from other nationalist parties to the dominant
-for (var p of nationalist_parties) {
-    if (p === dominant_nat) continue;
-    for (var c of Q.classes) {
-        var siphonable = Q[c+'_'+p] * 0.05 * unrest_factor; // max 5% per month, scaled by unrest
-        Q[c+'_'+p] -= siphonable;
-        Q[c+'_'+dominant_nat] += siphonable;
+// Only siphon votes if NSDAP is the dominant nationalist party
+if (dominant_nat === 'nsdap') {
+    for (var p of nationalist_parties) {
+        if (p === 'nsdap') continue;
+        for (var c of Q.classes) {
+            var siphonable = Q[c+'_'+p] * 0.05 * unrest_factor; // capped
+            Q[c+'_'+p] -= siphonable;
+            Q[c+'_'+dominant_nat] += siphonable;
+        }
     }
 }
 
