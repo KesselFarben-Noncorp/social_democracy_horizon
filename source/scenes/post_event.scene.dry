@@ -323,9 +323,9 @@ var soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
 
 // turns sus nationalist or reverses
 
-if (Q.dvp_right_shift = 1) nationalist_parties.push('dvp');
-
-
+if (Q.dvp_right_shift == 1) {
+    nationalist_parties.push('dvp');
+}
 
 // Paramilitary influence (randomized)
 var sa_influence  = random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
@@ -335,11 +335,11 @@ var rb_influence  = random_factor((Q.rb_strength/100 + Q.rb_militancy) * 0.15, 0
 
 // Class-specific scaling
 var class_influences = {
-    workers:    1.2 + rfb_influence,
+    workers:    1.3 + rfb_influence,
     old_middle: 1 + sh_influence,
     new_middle: 1 + sh_influence,
     rural:      1 + sh_influence,
-    unemployed: 1.2 + sa_influence,
+    unemployed: 1.3 + sa_influence,
     catholics:  1 + rb_influence
 };
 
