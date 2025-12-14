@@ -1,7 +1,7 @@
 title: Uprising in Austria
 new-page: true
 subtitle: In response to police attacks, the Austrian socialists are rising up...
-view-if: year = 1934 and (month = 2 or month = 3) and austrian_parliament_seen
+view-if: year = 1934 and (month = 2 or month = 3) and (austrian_parliament_seen or austrian_coup_seen = 1)
 max-visits: 1
 on-arrival: austrian_civil_war_seen = 1
 face-image: img/schutzbund.png
@@ -13,7 +13,9 @@ tags: event
 # long civil war if sdapo_strength = 5 or 4 - opportunity for interference/forced peace
 # instant defeat if sdapo_strength < 4
 
-The crisis in Austria is continuing. The "Austrofascist" government led by Engelbert Dollfuß continues to rule by emergency decree. It has been persecuting its political opposition, primarily the social democrats of the SDAPÖ.
+[? if austrian_parliament_seen = 1: The crisis in Austria is continuing. The "Austrofascist" government led by Engelbert Dollfuß continues to rule by emergency decree. It has been persecuting its political opposition, primarily the social democrats of the SDAPÖ. ?]
+
+[? if austrian_coup_seen = 1: Following coup attempt of the Heimwehr, Landbund and armed forces siding Austrofascist - Italian funded units, SDAPÖ is met with existential threat of Republic being finally overthrown and authoritarian regime being installed. SDAPÖ must consolidate in order to survive this! ?]
 
 [? if sdapo_strength < 6: Now, Austria is entering a state of civil war. When the police attempted to seize weapons from the Republikanischer Schutzbund, the Schutzbund responded with force, shooting at the government troops. Fighting has sporadically broken out between Schutzbund and government forces all over Austria. ?]
 
@@ -27,7 +29,7 @@ Eventually...
 
 @crushed
 title: The rebellious Schutzbund has been crushed.
-on-arrival: austria_defeat = 1
+on-arrival: austria_defeat = 1; austria_civil war = 0
 view-if: sdapo_strength < 5
 
 The uprising lasted for no more than a few days before it was crushed. The Schutzbund and SDAPÖ were too weak and too divided to stand against the forces of the state.
@@ -66,7 +68,7 @@ title: Can we bring the sides together for a peace?
 view-if: spd_in_government and foreign_minister_party = "SPD" and (sdapo_strength = 6 or sdapo_strength = 5.5 or sdapo_strength = 6.5)
 choose-if: italy_relation > 0
 unavailable-subtitle: Italy is obstructing the peace, forcing Heimwehr and Austrofascists into continuing the war!
-on-arrival: austria_peace = 1; pro_republic += 3; coup_progress -= 1; italy_relation += 1
+on-arrival: austria_peace = 1; pro_republic += 3; coup_progress -= 1; italy_relation += 1; austria_civil war = 0
 achievement: arbeiter_von_wien
 
 The Austrian government obviously sees us as biased, so there is no way they will let us host peace negotiations. However, negotiations begin nonetheless. In Switzerland, with Fascist Italy as the Austrofascists' protector and Germany as the SDAPÖ's, a peace deal is hammered out. The socialists are disarmed and give up all pretense of revolution, while the right-wing paramilitaries are also disarmed. Dictatorship ends, and normal government is restored, with free elections.
@@ -82,10 +84,10 @@ No matter our efforts, the war continues. Too many lives are extinguished. Refug
 
 @sdapo_victory
 title: The Austrofascists are backing down!
-on-arrival: pro_republic += 5; west_relation += 1; east_relation += 1; austria_victory = 1; reichswehr_loyalty += 0.1; coup_progress -= 2; italy_relation -= 2
+on-arrival: pro_republic += 5; west_relation += 1; east_relation += 1; austria_victory = 1; reichswehr_loyalty += 0.1; coup_progress -= 2; italy_relation -= 2; austria_civil war = 0
 view-if: sdapo_strength >= 7
 achievement: arbeiter_von_wien
 
-The result is that the Austrofascists have backed down! Caught in an untenable position domestically and abroad, they have agreed to restore the National Council and resign from government, holding new elections. Now begins the long work of reconstruction. Our countries are likely to be brought closer together as a result.
+The result is that the Austrofascists [? if austrian_coup_seen = 1: and Heimwehr/Landbund ?] have backed down! Caught in an untenable position domestically and abroad, they have agreed to restore the National Council and resign from government, holding new elections. Now begins the long work of reconstruction. Our countries are likely to be brought closer together as a result.
 
 [? if eu_austria: This is a great success of the new European Union, and its prestige is seen to rise internationally. ?]
