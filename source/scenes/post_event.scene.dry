@@ -1,190 +1,146 @@
+= post_event
 title: Post Event
 new-page: true
+
 on-arrival: {!
+    // Reset last actions
+    Q.last_advisor_action = 0
+    Q.last_cabinet_action = 0
 
-// -------------------------------
-// Reset last actions
-// -------------------------------
-Q.last_advisor_action = 0;
-Q.last_cabinet_action = 0;
-
-// -------------------------------
-// Ensure no stat is below 0
-// -------------------------------
-for (var c of Q.classes) {
-    for (var party of Q.parties) {
-        if (Q[c+'_'+party] < 0) Q[c+'_'+party] = 0;
-    }
-}
-
-// -------------------------------
-// Clamp political metrics
-// -------------------------------
-Q.pro_republic = Math.max(0, Math.min(99, Math.round(Q.pro_republic)));
-Q.nationalism = Math.round(Q.nationalism);
-Q.socialism = Math.round(Q.socialism);
-Q.pacifism = Math.round(Q.pacifism);
-
-// -------------------------------
-// Define class-party drift factors
-// -------------------------------
-var driftFactors = {
-    nsdap: { workers: 0.02, old_middle: 0.03, new_middle: 0.03, rural: 0.04, unemployed: 0.05, catholics: 0 },
-    spd:   { workers: 0.01, old_middle: 0, new_middle: 0, rural: -0.01, unemployed: 0.02, catholics: 0.01 },
-    kpd:   { workers: 0.015, unemployed: 0.02, rural: 0, old_middle: 0, new_middle: 0, catholics: 0 },
-    dnvp:  { rural: 0.02, old_middle: 0.01, new_middle: 0, workers: -0.01 },
-    dvp:   { new_middle: 0.01, old_middle: 0.01, rural: 0.01, workers: -0.005 },
-    z:     { catholics: 0.03, workers: -0.01, rural: -0.005 },
-    ddp:   { new_middle: 0.02, old_middle: 0.01, workers: -0.005 },
-    nsdap: { rural: 0.04, unemployed: 0.05 },
-    other: { },
-};
-
-// -------------------------------
-// Economic multipliers
-// -------------------------------
-var economicMultiplier = 1 + (Q.unemployed / 50) - (Q.economic_growth / 50);
-
-// -------------------------------
-// Apply drift to classes
-// -------------------------------
-for (var party of Q.parties) {
+    // Ensure no stat is below 0
     for (var c of Q.classes) {
-        var drift = driftFactors[party]?.[c] || 0;
-        Q[c+'_'+party] += drift * economicMultiplier;
-        // prevent negative
-        if (Q[c+'_'+party] < 0) Q[c+'_'+party] = 0;
+        for (var party of Q.parties) {
+            if (Q[c+'_'+party] < 0) {
+                Q[c+'_'+party] = 0
+            }
+        }
     }
-}
 
-// -------------------------------
-// Militia/faction influence
-// -------------------------------
-Q.nsdap_strength = (Q.sa_strength || 0) + (Q.stahlhelm_strength || 0);
-Q.spd_strength   = (Q.rb_strength || 0) + (Q.rfb_strength || 0);
+    // Round ideology stats
+    Q.pro_republic = Math.round(Q.pro_republic)
+    Q.nationalism = Math.round(Q.nationalism)
+    Q.socialism = Math.round(Q.socialism)
 
-Q.workers_nsdap   += Q.nsdap_strength / 2000;
-Q.old_middle_nsdap += Q.nsdap_strength / 2000;
-Q.new_middle_nsdap += Q.nsdap_strength / 2000;
-Q.rural_nsdap     += Q.nsdap_strength / 2000;
+    if (Q.pro_republic < 0) Q.pro_republic = 0
+    if (Q.pro_republic >= 100) Q.pro_republic = 99
 
-Q.workers_spd += Q.spd_strength / 2000;
-Q.unemployed_spd += Q.spd_strength / 3000;
+    // Recalculate class-normalized voting
+    for (var c of Q.classes) {
+        var class_votes = 0
+        for (var party of Q.parties) {
+            class_votes += Q[c+'_'+party]
+        }
+        for (var party of Q.parties) {
+            Q[c + '_' + party + '_normalized'] = 100 * Q[c+'_'+party] / class_votes
+            Q[c + '_' + party + '_display'] = Math.round(100 * Q[c+'_'+party] / class_votes)
+        }
+    }
 
-// -------------------------------
-// Historical year-specific boosts
-// -------------------------------
-var yearAdjustments = {
-    1931: function() {
-        Q.catholics_z += 2/12;
-        Q.rural_dvp -= 8/12;
-        Q.old_middle_dvp -= 8/12;
-        Q.new_middle_dvp -= 8/12;
-        Q.old_middle_ddp -= 8/12;
-        Q.new_middle_ddp -= 8/12;
-        Q.sa_strength += 50/12;
-        Q.sh_strength += 50/12;
-    },
-    1932: function() {
-        Q.old_middle_other -= 7/12;
-        Q.rural_other -= 7/12;
-        Q.old_middle_nsdap += 7/12;
-        Q.rural_nsdap += 7/12;
-        Q.unemployed_nsdap += 4/12;
-        Q.sa_strength += 200/12;
-    },
-    1933: function() {
+    // Calculate total party support
+    var total_support = 0
+    for (var party of Q.parties) {
+        var party_support = 0
+        for (var c of Q.classes) {
+            if (Q.old_demographics) {
+                party_support += Q[c]*Q[c+'_'+party]
+            } else {
+                party_support += Q[c]*Q[c+'_'+party+'_normalized']
+            }
+        }
+        Q[party + '_support'] = party_support
+        total_support += party_support
+    }
+
+    // Normalize party support
+    for (var party of Q.parties) {
+        Q[party+'_normalized'] = Q[party + '_support'] / total_support
+        Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100)
+        Q[party+'_votes_display'] = Math.round(Q[party+'_normalized']*100)
+    }
+
+    // Faction strength/dissent adjustments
+    for (var f of Q.factions) {
+        if (Q[f+'_dissent'] < 0) Q[f+'_dissent'] = 0
+        if (Q[f+'_dissent'] >= 100) Q[f+'_dissent'] = 99
+        if (Q[f+'_strength'] < 0) Q[f+'_strength'] = 0
+    }
+
+    // Year-based voting/militia adjustments
+    if (Q.unemployed <= 1) Q.unemployed = 1
+
+    // Adjust class-party support and militias per year
+    if (Q.year == 1931) {
+        Q.catholics_z += 2/12
+        Q.rural_dvp -= 8/12
+        Q.old_middle_dvp -= 8/12
+        Q.new_middle_dvp -= 8/12
+        Q.old_middle_ddp -= 8/12
+        Q.new_middle_ddp -= 8/12
+        Q.sa_strength += 50/12
+        Q.sh_strength += 50/12
+        Q.sa_militancy += 0.1/12
+        Q.old_middle_nsdap += 10/12
+        Q.rural_nsdap += 9/12
+    }
+
+    if (Q.year == 1932) {
+        Q.old_middle_nsdap += 10/12
+        Q.new_middle_nsdap += 10/12
+        Q.rural_nsdap += 8/12
+        Q.unemployed_nsdap += 8/12
+        Q.sa_strength += 200/12
+        Q.sh_strength += 50/12
+    }
+
+    if (Q.year >= 1933) {
         if (Q.return_to_normalcy) {
-            if (Q.new_middle_ddp_normalized < 0.4) Q.new_middle_ddp += 6/12;
-            if (Q.new_middle_dvp_normalized < 0.25) Q.new_middle_dvp += 3/12;
-            if (Q.old_middle_dvp_normalized < 0.4) Q.old_middle_dvp += 6/12;
-            if (Q.rural_dnvp_normalized < 0.4) Q.rural_dnvp += 6/12;
-            if (Q.catholics_z_normalized < 0.4) Q.catholics_z += 6/12;
+            // voters return to base
+            if (Q.new_middle_ddp_normalized < 40) Q.new_middle_ddp += 6/12
+            if (Q.new_middle_dvp_normalized < 25) Q.new_middle_dvp += 3/12
+            if (Q.old_middle_dvp_normalized < 40) Q.old_middle_dvp += 6/12
+            if (Q.rural_dnvp_normalized < 40) Q.rural_dnvp += 6/12
+            if (Q.catholics_z_normalized < 40) Q.catholics_z += 6/12
         }
         if (Q.unemployed > 20 && Q.spd_in_government) {
-            Q.workers_spd -= 4/12;
+            Q.workers_spd -= 4/12
         }
     }
-};
 
-if (yearAdjustments[Q.year]) yearAdjustments[Q.year]();
-
-// -------------------------------
-// Clamp faction strength/dissent
-// -------------------------------
-for (var c of Q.factions) {
-    Q[c+'_dissent'] = Math.max(0, Math.min(99, Q[c+'_dissent']));
-    Q[c+'_strength'] = Math.max(0, Q[c+'_strength']);
-}
-
-// -------------------------------
-// Normalize class support for achievements
-// -------------------------------
-for (var c of Q.classes) {
-    var classVotes = 0;
-    for (var party of Q.parties) classVotes += Q[c+'_'+party];
-    for (var party of Q.parties) {
-        Q[c+'_'+party+'_normalized'] = Q[c+'_'+party]/classVotes;
-        Q[c+'_'+party+'_display'] = Math.round(100*Q[c+'_'+party]/classVotes);
+    // Late-1934 SPD correction for bad economy
+    if (Q.year >= 1934 && (Q.inflation >= 8 || Q.unemployed >= 20) && Q.pro_republic <= 45 && Q.spd_in_government) {
+        if (Q.workers_spd_normalized > 40) Q.workers_spd -= 6/12
+        if (Q.unemployed_spd_normalized > 20) Q.unemployed_spd -= 6/12
+        if (Q.new_middle_spd_normalized > 20) Q.new_middle_spd -= 6/12
+        if (Q.old_middle_spd_normalized > 20) Q.old_middle_spd -= 6/12
+        if (Q.rural_spd_normalized > 20) Q.rural_spd -= 6/12
+        if (Q.catholics_spd_normalized > 20) Q.catholics_spd -= 6/12
     }
-}
 
-// -------------------------------
-// Total party support
-// -------------------------------
-var total_support = 0;
-for (var party of Q.parties) {
-    var party_support = 0;
-    for (var c of Q.classes) {
-        party_support += Q[c]*Q[c+'_'+party+'_normalized'];
-    }
-    Q[party+'_support'] = party_support;
-    total_support += party_support;
-}
+    // Event check
+    Q.has_event = 0
+    var scene = this.game.scenes['post_event.events_choice']
+    var choices = this._compileChoices(scene)
+    if (choices && choices[0].title != "Continue...") Q.has_event = 1
 
-// Normalize
-for (var party of Q.parties) {
-    Q[party+'_normalized'] = Q[party+'_support']/total_support;
-    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100);
-    Q[party+'_votes_display'] = Math.round(Q[party+'_normalized']*100);
-}
-
-// -------------------------------
-// Ensure unemployment floor
-// -------------------------------
-if (Q.unemployed < 1) Q.unemployed = 1;
-
-// -------------------------------
-// Reset event tracker
-// -------------------------------
-Q.has_event = 0;
-var scene = this.game.scenes['post_event.events_choice'];
-var choices = this._compileChoices(scene);
-if (choices && choices[0].title != "Continue...") Q.has_event = 1;
-
-// -------------------------------
-// Preload event images
-// -------------------------------
-if (this.ui && this.ui.show_portraits) {
-    for (var choice of choices) {
-        var cc = this.game.scenes[choice.id];
-        if (cc.faceImage) {
-            var im = new Image();
-            im.url = cc.faceImage;
+    // Preload event portraits
+    if (this.ui && this.ui.show_portraits && choices) {
+        for (var choice of choices) {
+            var cc = this.game.scenes[choice.id]
+            if (cc.faceImage) {
+                var im = new Image()
+                im.url = cc.faceImage
+            }
         }
     }
-}
-
 !}
 
-// -------------------------------
-// Navigation
-// -------------------------------
-go-to: events_choice if has_event = 1; main if has_event = 0 and difficulty >= 0; main.main_easy if has_event = 0 and difficulty < 0
+go-to: events_choice if Q.has_event = 1
+go-to: main if Q.has_event = 0 and Q.difficulty >= 0
+go-to: main.main_easy if Q.has_event = 0 and Q.difficulty < 0
 
 = [+ month : month +] [+ year +]
 
 @events_choice
-- 
+- #event
 
-# Scene solely for updating
+# Scene for updating party support, militias, and factions after events
