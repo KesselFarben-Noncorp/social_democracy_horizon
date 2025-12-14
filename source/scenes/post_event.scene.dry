@@ -255,6 +255,12 @@ if (Q.month_actions >= 1) {
     if (Q.inflation >= 8 && Q.pro_republic > 40) {
         Q.pro_republic -= 1;
     }
+    if (Q.unemployed > 10 && Q.nationalism < 50) {
+        Q.nationalism += 1;
+    }
+    if (Q.unemployed > 20 && Q.nationalism < 50) {
+        Q.nationalism += 2;
+    }
 
     ///////////////////////////// change party support based on pro_republic
     // if pro_republic is less than the support of the Weimar coalition, reduce SPD support...
@@ -306,7 +312,7 @@ function random_factor(f, variance=0.3) {
 }
 
 // Dynamic factors with randomness
-var unrest_factor = random_factor(Math.max(Q.unemployed / 10, 1), 0.25);
+var unrest_factor = random_factor(Math.max(Q.unemployed / 10, 1), 0.45);
 var pro_republic_factor = random_factor(Math.min(Math.max(Q.pro_republic / 50, 0.5), 1.5), 0.15);
 var nationalism_factor = random_factor(Math.min(Math.max(Q.nationalism / 50, 0.5), 1.5), 0.15);
 var socialism_factor = random_factor(Math.min(Math.max(Q.socialism / 50, 0.5), 1.5), 0.15);
