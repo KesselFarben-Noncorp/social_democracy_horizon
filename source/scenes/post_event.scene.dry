@@ -294,15 +294,14 @@ if (Q.month_actions >= 1) {
         }
     }
 
-    // --- Begin consolidated yearly drift ---
+    // --- Begin consolidated yearly drift overhaul ---
 
-// Dynamic factors based on economic and social conditions
-var unrest_factor = Math.max(Q.unemployed / 20, 1);       // scales 1–2 with unemployment
+// Dynamic growth factors
+var unrest_factor = Math.max(Q.unemployed / 20, 1);       // 1–2 scaling with unemployment
 var works_factor = Q.works_program ? 0.7 : 1;             // reduces extremist growth if works programs exist
-var spd_in_gov = Q.spd_in_government ? 1.1 : 1.0;        // boosts SPD if in government
+var spd_in_gov_factor = Q.spd_in_government ? 1.1 : 1.0; // boosts SPD if in government
 
 /////////////////////////// CENTRIST / CATHOLIC STABILIZERS
-// Ensure Z, DNVP, DVP, DD P stay above a minimum floor
 var stabilizer_parties = [
     'catholics_z',
     'rural_dnvp',
@@ -311,69 +310,67 @@ var stabilizer_parties = [
     'new_middle_ddp',
     'old_middle_ddp'
 ];
-
+var floor_value = 0.15; // 15% minimum normalized support
 for (var sp of stabilizer_parties) {
-    var floor = 0.2 * Q[sp + '_normalized']; // 20% of normalized value as minimum
-    if (Q[sp] < floor) {
-        Q[sp] = floor;
+    if (Q[sp+'_normalized'] < floor_value) {
+        Q[sp+'_normalized'] = floor_value;
     }
 }
 
-/////////////////////////// DAMPEN RADICAL PARTY SHIFTS
-var damp_factor = 0.01; // reduce NSDAP, SPD, KPD monthly swings by 1%
-Q.new_middle_nsdap = Q.old_middle_nsdap = Q.rural_nsdap = Q.workers_nsdap = Q.unemployed_nsdap = Q.sa_strength = Q.sa_militancy ? Q.sa_strength*damp_factor : Q.sa_strength;
-Q.workers_spd = Q.old_middle_spd = Q.new_middle_spd = Q.rural_spd = Q.catholics_spd = Q.unemployed_spd ? Q.workers_spd*damp_factor : Q.workers_spd;
-Q.workers_kpd = Q.unemployed_kpd = Q.workers_kpd*damp_factor;
+/////////////////////////// DAMP RADICAL PARTY SWINGS
+var damp_factor = {
+    'nsdap': 0.05,  // max 5% swing per month
+    'spd': 0.03,
+    'kpd': 0.02
+};
 
-/////////////////////////// OPTIONAL: CAP EXTREME PARTY TOTAL
-var extreme_total = Q.nsdap_votes + Q.spd_votes + Q.kpd_votes;
-if (extreme_total > 75) { // maximum 75% for radical parties
-    var excess = extreme_total - 75;
-    Q.nsdap_votes -= excess*Q.nsdap_votes/extreme_total;
-    Q.spd_votes   -= excess*Q.spd_votes/extreme_total;
-    Q.kpd_votes   -= excess*Q.kpd_votes/extreme_total;
+for (var party of ['nsdap', 'spd', 'kpd']) {
+    var current = Q[party+'_normalized'];
+    var previous = Q[party+'_votes_display']/100;
+    var change = current - previous;
+    if (change > damp_factor[party]) current = previous + damp_factor[party];
+    if (change < -damp_factor[party]) current = previous - damp_factor[party];
+    Q[party+'_normalized'] = Math.min(Math.max(current, 0), 1);
 }
 
-// Iterate over all classes for party support drift
+// --- Class-level drift ---
 for (var c of Q.classes) {
-    // NSDAP growth
+    // NSDAP drift
     var nsdap_growth = ((Q[c+'_nsdap'] || 0) + 1) * unrest_factor * works_factor / 12;
     Q[c+'_nsdap'] += nsdap_growth;
 
-    // SPD growth
-    var spd_growth = ((Q[c+'_spd'] || 0) + 1) * spd_in_gov / 12;
+    // SPD drift
+    var spd_growth = ((Q[c+'_spd'] || 0) + 1) * spd_in_gov_factor / 12;
     Q[c+'_spd'] += spd_growth;
 
-    // Optional: KPD minor drift (example)
+    // KPD minor drift
     if (!Q.works_program) {
         var kpd_growth = ((Q[c+'_kpd'] || 0) + 0.5) * unrest_factor / 12;
         Q[c+'_kpd'] += kpd_growth;
     }
 
-    // Clamp values to 0–100
+    // Clamp 0–100
     Q[c+'_nsdap'] = Math.min(Math.max(Q[c+'_nsdap'], 0), 100);
     Q[c+'_spd'] = Math.min(Math.max(Q[c+'_spd'], 0), 100);
     Q[c+'_kpd'] = Math.min(Math.max(Q[c+'_kpd'], 0), 100);
 }
 
-// Update paramilitary groups with unrest scaling
+/////////////////////////// Paramilitary scaling
 Q.sa_strength += (100/12) * unrest_factor;
 Q.sh_strength += (50/12) * unrest_factor;
 Q.sa_militancy += (0.1/12) * unrest_factor;
 
-// Optional: extra NSDAP drift if unemployment is very high
+/////////////////////////// Optional: extra NSDAP drift for high unemployment
 if (Q.unemployed > 20) {
-    Q.old_middle_nsdap += 2/12 * unrest_factor;
-    Q.new_middle_nsdap += 2/12 * unrest_factor;
-    Q.rural_nsdap += 2/12 * unrest_factor;
-    Q.unemployed_nsdap += 2/12 * unrest_factor;
-
+    ['old_middle','new_middle','rural','unemployed'].forEach(cls => {
+        Q[cls+'_nsdap'] += 2/12 * unrest_factor;
+    });
     if (Q.spd_in_government) {
-        Q.workers_spd -= 1/12; // reduces SPD support slightly in crisis
+        Q.workers_spd -= 1/12; // slight SPD reduction in crisis
     }
 }
 
-// Optional: return to normalcy after 1933
+/////////////////////////// Post-1933 return to normalcy
 if (Q.year >= 1933 && Q.return_to_normalcy) {
     if (Q.new_middle_ddp_normalized < 40) Q.new_middle_ddp += 6/12;
     if (Q.new_middle_dvp_normalized < 25) Q.new_middle_dvp += 3/12;
@@ -382,13 +379,14 @@ if (Q.year >= 1933 && Q.return_to_normalcy) {
     if (Q.catholics_z_normalized < 40) Q.catholics_z += 6/12;
 }
 
-// Clamp all critical party values across all classes
+/////////////////////////// Clamp all critical party values across classes
 for (var c of Q.classes) {
     for (var party of Q.parties) {
-        if (Q[c+'_'+party] < 0) Q[c+'_'+party] = 0;
-        if (Q[c+'_'+party] > 100) Q[c+'_'+party] = 100;
+        Q[c+'_'+party] = Math.min(Math.max(Q[c+'_'+party], 0), 100);
     }
 }
+
+// --- End of yearly drift overhaul ---
 
 // --- End consolidated yearly drift ---
 }
