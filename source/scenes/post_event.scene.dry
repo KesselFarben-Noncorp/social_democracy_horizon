@@ -295,22 +295,29 @@ if (Q.month_actions >= 1) {
     }
 
 
-    // --- Begin Monthly Party Drift System ---
+    // --- Begin Randomized Monthly Party Drift ---
 
-// Parameters controlling drift intensity
-var drift_base = 0.5;             // base drift factor
-var unrest_factor = Math.max(Q.unemployed / 20, 1); // scales with unemployment
-var pro_republic_factor = Math.min(Math.max(Q.pro_republic / 50, 0.5), 1.5);
-var nationalism_factor = Math.min(Math.max(Q.nationalism / 50, 0.5), 1.5);
-var socialism_factor = Math.min(Math.max(Q.socialism / 50, 0.5), 1.5);
+// Base drift parameters
+var drift_base = 0.5;
 
-// Paramilitary/force influence factors
-var sa_influence = (Q.sa_strength/100 + Q.sa_militancy) * 0.3;
-var sh_influence = (Q.sh_strength/100 + Q.sh_militancy) * 0.2;
-var rfb_influence = (Q.rfb_strength/100 + Q.rfb_militancy) * 0.2;
-var rb_influence = (Q.rb_strength/100 + Q.rb_militancy) * 0.1;
+// Randomized multipliers (10–20% variability each month)
+function random_factor(f, variance=0.2) {
+    return f * (1 - variance/2 + Math.random()*variance);
+}
 
-// Total class influence map
+// Dynamic factors with randomness
+var unrest_factor = random_factor(Math.max(Q.unemployed / 20, 1), 0.25);
+var pro_republic_factor = random_factor(Math.min(Math.max(Q.pro_republic / 50, 0.5), 1.5), 0.15);
+var nationalism_factor = random_factor(Math.min(Math.max(Q.nationalism / 50, 0.5), 1.5), 0.15);
+var socialism_factor = random_factor(Math.min(Math.max(Q.socialism / 50, 0.5), 1.5), 0.15);
+
+// Randomized paramilitary influence
+var sa_influence = random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.3, 0.3);
+var sh_influence = random_factor((Q.sh_strength/100 + Q.sh_militancy) * 0.2, 0.2);
+var rfb_influence = random_factor((Q.rfb_strength/100 + Q.rfb_militancy) * 0.2, 0.2);
+var rb_influence = random_factor((Q.rb_strength/100 + Q.rb_militancy) * 0.1, 0.2);
+
+// Class-specific influence
 var class_influences = {
     workers: 1 + sa_influence + rfb_influence,
     old_middle: 1 + sh_influence,
@@ -320,44 +327,39 @@ var class_influences = {
     catholics: 1 + rb_influence
 };
 
-// Iterate over social classes and parties
+// Iterate over classes and parties
 for (var c of Q.classes) {
     var class_total = 0;
     for (var party of Q.parties) {
 
         var base = Q[c+'_'+party] || 0;
 
-        // Determine ideology alignment multiplier
+        // Ideology alignment with randomness
         var ideology_factor = 1.0;
         switch(party) {
-            case 'nsdap': ideology_factor = nationalism_factor * unrest_factor; break;
-            case 'spd': ideology_factor = socialism_factor * pro_republic_factor; break;
-            case 'kpd': ideology_factor = socialism_factor * unrest_factor; break;
-            case 'z': ideology_factor = pro_republic_factor; break;
-            case 'dnvp': ideology_factor = nationalism_factor; break;
-            case 'ddp': ideology_factor = pro_republic_factor; break;
-            case 'dvp': ideology_factor = pro_republic_factor; break;
-            default: ideology_factor = 1; break;
+            case 'nsdap': ideology_factor = random_factor(nationalism_factor * unrest_factor, 0.2); break;
+            case 'spd': ideology_factor = random_factor(socialism_factor * pro_republic_factor, 0.2); break;
+            case 'kpd': ideology_factor = random_factor(socialism_factor * unrest_factor, 0.2); break;
+            case 'z': ideology_factor = random_factor(pro_republic_factor, 0.15); break;
+            case 'dnvp': ideology_factor = random_factor(nationalism_factor, 0.15); break;
+            case 'ddp': ideology_factor = random_factor(pro_republic_factor, 0.15); break;
+            case 'dvp': ideology_factor = random_factor(pro_republic_factor, 0.15); break;
+            default: ideology_factor = random_factor(1,0.1); break;
         }
 
-        // Compute delta (scaled for small parties)
-        var scale = Math.min(1, base / 10 + 0.1); // prevents oscillation for minor parties
+        // Random drift scale
+        var scale = Math.min(1, base / 10 + 0.1);
         var delta = drift_base * ideology_factor * class_influences[c] * scale / 12;
 
-        // Random minor variation for realism
-        delta *= 0.9 + Math.random() * 0.2;
+        // Apply delta with randomness
+        delta *= 0.7 + Math.random()*0.6; // +/-30% variability
 
-        // Apply delta
-        Q[c+'_'+party] = base + delta;
+        Q[c+'_'+party] = Math.max(base + delta, 0);
 
-        // Clamp to avoid negative values
-        Q[c+'_'+party] = Math.max(Q[c+'_'+party], 0);
-
-        // Add to class total
         class_total += Q[c+'_'+party];
     }
 
-    // Normalize class percentages
+    // Normalize
     if (class_total > 0) {
         for (var party of Q.parties) {
             Q[c+'_'+party+'_normalized'] = Q[c+'_'+party] / class_total;
@@ -366,7 +368,7 @@ for (var c of Q.classes) {
     }
 }
 
-// Compute party support across classes
+// Update overall party support
 var total_support = 0;
 for (var party of Q.parties) {
     var support = 0;
@@ -377,27 +379,26 @@ for (var party of Q.parties) {
     total_support += support;
 }
 
-// Normalize total party support
+// Normalize total
 for (var party of Q.parties) {
     Q[party+'_normalized'] = Q[party+'_support'] / total_support;
     Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100);
     Q[party+'_votes_display'] = Q[party+'_votes'];
 }
 
-// Optional: paramilitary growth
-Q.sa_strength += (unrest_factor*5)/12;
-Q.sh_strength += (unrest_factor*2)/12;
-Q.rfb_strength += (unrest_factor*1)/12;
-Q.rb_strength += (unrest_factor*1)/12;
+// Paramiltary strength growth with minor randomness
+Q.sa_strength += random_factor((unrest_factor*5)/12, 0.3);
+Q.sh_strength += random_factor((unrest_factor*2)/12, 0.3);
+Q.rfb_strength += random_factor((unrest_factor*1)/12, 0.3);
+Q.rb_strength += random_factor((unrest_factor*1)/12, 0.3);
 
-// Clamp paramilitary strength
+// Clamp paramilitary
 Q.sa_strength = Math.min(Math.max(Q.sa_strength, 0), 200);
 Q.sh_strength = Math.min(Math.max(Q.sh_strength, 0), 200);
 Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 200);
 Q.rb_strength = Math.min(Math.max(Q.rb_strength, 0), 200);
 
-// End of monthly party drift
-// --- End Monthly Party Drift System ---
+// --- End Randomized Monthly Party Drift ---
 
 }
 Q.has_event = 0;
