@@ -359,7 +359,7 @@ for (var p of nationalist_parties) {
     if (p === dominant_nat) continue;
     for (var c of Q.classes) {
         var available = Q[c+'_'+p];
-        var delta = Math.min(available * siphon_fraction, 0.15); // cap max 15% per class
+        var delta = Math.min(available * siphon_fraction, 0.15 * unrest_factor); // cap max 15% per class on unrest factor
         Q[c+'_'+p] -= delta;
         Q[c+'_'+dominant_nat] += delta;
     }
