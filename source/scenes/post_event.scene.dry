@@ -298,15 +298,15 @@ if (Q.month_actions >= 1) {
     // --- Begin Randomized Monthly Party Drift ---
 
 // Base drift parameters
-var drift_base = 0.5;
+var drift_base = 0.6;
 
-// Randomized multipliers (10–20% variability each month)
-function random_factor(f, variance=0.2) {
+// Randomized multipliers (10–30% variability each month)
+function random_factor(f, variance=0.3) {
     return f * (1 - variance/2 + Math.random()*variance);
 }
 
 // Dynamic factors with randomness
-var unrest_factor = random_factor(Math.max(Q.unemployed / 20, 1), 0.25);
+var unrest_factor = random_factor(Math.max(Q.unemployed / 10, 1), 0.25);
 var pro_republic_factor = random_factor(Math.min(Math.max(Q.pro_republic / 50, 0.5), 1.5), 0.15);
 var nationalism_factor = random_factor(Math.min(Math.max(Q.nationalism / 50, 0.5), 1.5), 0.15);
 var socialism_factor = random_factor(Math.min(Math.max(Q.socialism / 50, 0.5), 1.5), 0.15);
