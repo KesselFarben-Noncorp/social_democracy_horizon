@@ -339,7 +339,6 @@ var class_influences = {
 
 // Determine dominant nationalist party for this month
 var nationalist_parties = ['nsdap','dnvp','other'];
-if (Q.dvp_right_shift) nationalist_parties.push('dvp');
 var dominant_nat = null;
 var max_support = -Infinity;
 
@@ -402,7 +401,7 @@ for (var c of Q.classes) {
                 ideology_factor = random_factor(pro_republic_factor * 0.3, 0.15);
                 break;
             case 'dvp':
-                if (Q.dvp_right_shift = 1) {
+                if (Q.dvp_right_shift) {
                     ideology_factor = random_factor(
                         nationalism_factor * (1 + unrest_factor*0.1),
                         0.15
@@ -494,7 +493,8 @@ if (this.ui && this.ui.show_portraits) {
         var cc = this.game.scenes[choice.id];
         if (cc.faceImage) {
             var im = new Image();
-            im.url = cc.faceImage;
+            im.onload = function(){};
+            im.src = cc.faceImage;
         }
     }
 }
