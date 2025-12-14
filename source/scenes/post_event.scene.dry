@@ -340,28 +340,26 @@ var class_influences = {
 // Determine dominant nationalist party for this month
 var nationalist_parties = ['nsdap','dnvp','other'];
 var dominant_nat = null;
-var max_factor = -Infinity;
+var max_support = -Infinity;
 
 for (var p of nationalist_parties) {
-    var nat_factor = nationalism_factor;
-    if (p === 'nsdap') nat_factor *= nat_dom;
-    if (p === 'dnvp') nat_factor *= 1; // optional modifier for DNVP
-    // 'other' can also have modifier if desired
-    if (nat_factor > max_factor) {
-        max_factor = nat_factor;
+    var support = 0;
+    for (var c of Q.classes) support += Q[c+'_'+p];
+    if (support > max_support) {
+        max_support = support;
         dominant_nat = p;
     }
 }
 
-// Only siphon votes if NSDAP is the dominant nationalist party
-if (dominant_nat === 'nsdap') {
-    for (var p of nationalist_parties) {
-        if (p === 'nsdap') continue;
-        for (var c of Q.classes) {
-            var siphonable = Q[c+'_'+p] * 0.05 * unrest_factor; // capped
-            Q[c+'_'+p] -= siphonable;
-            Q[c+'_'+dominant_nat] += siphonable;
-        }
+// Proportional siphon: only dominant nationalist gains from others
+var siphon_fraction = 0.05; // 5% max per month per party
+for (var p of nationalist_parties) {
+    if (p === dominant_nat) continue;
+    for (var c of Q.classes) {
+        var available = Q[c+'_'+p];
+        var delta = Math.min(available * siphon_fraction, 0.05); // cap max 5% per class
+        Q[c+'_'+p] -= delta;
+        Q[c+'_'+dominant_nat] += delta;
     }
 }
 
