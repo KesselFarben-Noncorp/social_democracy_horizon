@@ -313,14 +313,14 @@ var stabilizer_parties = [
 ];
 
 for (var sp of stabilizer_parties) {
-    var floor = 0.3 * Q[sp + '_normalized']; // 70% of normalized value as minimum
+    var floor = 0.2 * Q[sp + '_normalized']; // 20% of normalized value as minimum
     if (Q[sp] < floor) {
         Q[sp] = floor;
     }
 }
 
 /////////////////////////// DAMPEN RADICAL PARTY SHIFTS
-var damp_factor = 0.9; // reduce NSDAP, SPD, KPD monthly swings by 90%
+var damp_factor = 0.01; // reduce NSDAP, SPD, KPD monthly swings by 1%
 Q.new_middle_nsdap = Q.old_middle_nsdap = Q.rural_nsdap = Q.workers_nsdap = Q.unemployed_nsdap = Q.sa_strength = Q.sa_militancy ? Q.sa_strength*damp_factor : Q.sa_strength;
 Q.workers_spd = Q.old_middle_spd = Q.new_middle_spd = Q.rural_spd = Q.catholics_spd = Q.unemployed_spd ? Q.workers_spd*damp_factor : Q.workers_spd;
 Q.workers_kpd = Q.unemployed_kpd = Q.workers_kpd*damp_factor;
