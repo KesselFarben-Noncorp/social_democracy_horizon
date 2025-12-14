@@ -354,12 +354,12 @@ for (var p of nationalist_parties) {
 }
 
 // Proportional siphon: only dominant nationalist gains from others
-var siphon_fraction = 0.05; // 5% max per month per party
+var siphon_fraction = 0.20; // 20% max per month per party
 for (var p of nationalist_parties) {
     if (p === dominant_nat) continue;
     for (var c of Q.classes) {
         var available = Q[c+'_'+p];
-        var delta = Math.min(available * siphon_fraction, 0.05); // cap max 5% per class
+        var delta = Math.min(available * siphon_fraction, 0.15); // cap max 15% per class
         Q[c+'_'+p] -= delta;
         Q[c+'_'+dominant_nat] += delta;
     }
