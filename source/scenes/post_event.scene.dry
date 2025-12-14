@@ -16,6 +16,12 @@ Q.pro_republic = Math.round(Q.pro_republic);
 Q.nationalism = Math.round(Q.nationalism);
 Q.socialism = Math.round(Q.socialism);
 
+if (Q.dvp_right_shift) {
+    if (!nationalist_parties.includes('dvp')) {
+        nationalist_parties.push('dvp');
+    }
+}
+
 if (Q.pro_republic < 0) {
     Q.pro_republic = 0;
 }
@@ -320,12 +326,6 @@ var socialism_factor    = random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 
 // Ideology dominance modifiers
 var nat_dom = Math.min(Math.max(Q.nationalism/(Q.socialism+1), 0.5), 1.5);
 var soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
-
-if (Q.dvp_right_shift) {
-    if (!nationalist_parties.includes('dvp')) {
-        nationalist_parties.push('dvp');
-    }
-}
 
 // Paramilitary influence (randomized)
 var sa_influence  = random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
