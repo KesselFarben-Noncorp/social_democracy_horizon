@@ -15,7 +15,12 @@ Gustav Stresemann, leader of the DVP and longtime foreign minister, has died at 
 - @left: DVP remains centre!
 
 @right
-on-arrival: dvp_right_shift = 1; nationalist_parties.push('dvp');
+on-arrival:
+    dvp_right_shift = 1
+    if (!Q.nationalist_parties.includes('dvp')) {
+        Q.nationalist_parties.push('dvp')
+    }
 
 @left
-on-arrival: dvp_right_shift = 0
+on-arrival:
+    dvp_right_shift = 0
