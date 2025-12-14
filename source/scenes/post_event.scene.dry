@@ -335,24 +335,24 @@ for (var party of ['nsdap', 'spd', 'kpd']) {
 
 // --- Class-level drift ---
 for (var c of Q.classes) {
-    // NSDAP drift
-    var nsdap_growth = ((Q[c+'_nsdap'] || 0) + 1) * unrest_factor * works_factor / 12;
-    Q[c+'_nsdap'] += nsdap_growth;
+    for (var party of Q.parties) {
+        var growth = 0;
+        // Determine growth based on ideological alignment
+        if (party in ['nsdap','dnvp']) growth = 0.05*Q.nationalism;
+        if (party in ['spd','kpd','labor']) growth = 0.05*Q.socialism;
+        if (party in ['ddp','dvp','z','catholics']) growth = 0.03*Q.pro_republic;
 
-    // SPD drift
-    var spd_growth = ((Q[c+'_spd'] || 0) + 1) * spd_in_gov_factor / 12;
-    Q[c+'_spd'] += spd_growth;
+        // Apply unrest/unemployment factor
+        growth *= Math.max(Q.unemployed/20, 1);
 
-    // KPD minor drift
-    if (!Q.works_program) {
-        var kpd_growth = ((Q[c+'_kpd'] || 0) + 0.5) * unrest_factor / 12;
-        Q[c+'_kpd'] += kpd_growth;
+        // Spread growth proportionally
+        Q[c+'_'+party] += growth;
     }
 
-    // Clamp 0–100
-    Q[c+'_nsdap'] = Math.min(Math.max(Q[c+'_nsdap'], 0), 100);
-    Q[c+'_spd'] = Math.min(Math.max(Q[c+'_spd'], 0), 100);
-    Q[c+'_kpd'] = Math.min(Math.max(Q[c+'_kpd'], 0), 100);
+    // Normalize all parties in the class to sum to 100
+    var class_total = 0;
+    for (var party of Q.parties) class_total += Q[c+'_'+party];
+    for (var party of Q.parties) Q[c+'_'+party] = 100*Q[c+'_'+party]/class_total;
 }
 
 /////////////////////////// Paramilitary scaling
