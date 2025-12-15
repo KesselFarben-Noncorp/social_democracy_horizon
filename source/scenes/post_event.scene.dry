@@ -391,16 +391,17 @@ for (Q.p of Q.nationalist_parties) {
     }
 }
 
-// Cap party votes according to ideology ceiling
+Q.ideology_elasticity = 1.5;
+
 Q.ideology_caps = {
-    nsdap: Q.nationalism,
-    dnvp:  Q.nationalism / 1.2,
-    dvp:   Q.dvp_right_shift ? Q.nationalism : Q.pro_republic,
-    kpd:   Q.socialism,
-    spd:   Q.pro_republic,
-    ddp:   Q.pro_republic,
-    z:     Q.pro_republic,
-    other: (Q.nationalism + Q.pro_republic + Q.socialism) / 3
+    nsdap: Q.nationalism * 1.25,          // extremist, limited elasticity
+    dnvp:  Q.nationalism * 1.35,          // traditional right, broader base
+    dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
+    kpd:   Q.socialism * 1.25,             // extremist left, limited elasticity
+    spd:   Q.pro_republic * 1.6,           // mass party, high elasticity
+    ddp:   Q.pro_republic * 1.4,
+    z:     Q.pro_republic * 1.6,           // confessional catch-all
+    other: ((Q.nationalism + Q.pro_republic + Q.socialism) / 3) * 1.3
 };
 
 // Reworked drift per class
