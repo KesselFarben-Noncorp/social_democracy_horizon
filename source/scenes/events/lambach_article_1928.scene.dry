@@ -2,7 +2,7 @@ title: The Lambach Article – “Monarchy”
 tags: event
 view-if: year >= 1928 and month >= 7 and dnvp_votes < 14
 max-visits: 1
-on-arrival: lambach_seen = 1 
+on-arrival: lambach_seen = 1 ; dnvp_win = 1 if (pro_republic > 50 and spd_in_government = 0) or (pro_republic > 55 and spd_in_government = 1) elif dnvp_win = 3 if (pro_republic < 45 and spd_in_government = 1) or (pro_republic < 50 and spd_in_government = 0) else dnvp_win = 2;
 
 = Lambach Article "Monarchy".
 
@@ -17,7 +17,7 @@ On other hand, we may support Hugenbergites to distance them even further from R
 - @hugenberg: Hugenberg's radicals take over the party!
 
 @lambach
-choose-if: (pro_republic >= 50 and nationalism <= 30) or (spd_in_government = 0 and pro_republic > 47)
+choose-if: dnvp_win = 1
 on-arrival: dnvp_line = 1
 
 = Lambach has secured the win in DNVP Congress of 1928!
@@ -27,7 +27,7 @@ Barely managing to secure the victory for the Christian - Socialist / Republican
 Enraged by the defeat, Hugenberg pulls out the media funding for the party and threatens to split away the party!
 
 @westarp
-choose-if: (pro_republic > 42 and pro_republic < 50 and spd_in_government = 1) or (pro_republic > 40 and pro_republic < 48 and spd_in_government = 0)
+choose-if: dnvp_win = 2
 on-arrival: dnvp_line = 2
 
 = Stagnating Stalemate of the DNVP 1928 Congress
@@ -37,7 +37,7 @@ Following the stagnation of the Congress votings, Westarp has stepped into it to
 On the other side of the ring of moderates, Oskar Hergt seeks to overthrow the Westarp and consolidate the power back to himself and form right wing concentration of Z, BVP, DVP, DNVP and other minor parties!
 
 @hugenberg
-choose-if: (pro_republic <= 42 and nationalism >= 25) or (spd_in_government = 1 and pro_republic < 45)
+choose-if: dnvp_win = 3
 on-arrival: dnvp_line = 3
 
 = Hugenberg takes the helm!
