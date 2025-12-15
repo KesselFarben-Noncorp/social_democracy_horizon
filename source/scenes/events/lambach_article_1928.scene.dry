@@ -2,8 +2,12 @@ title: The Lambach Article – “Monarchy”
 tags: event
 view-if: year >= 1928 and month >= 7 and dnvp_votes < 14
 max-visits: 1
-on-arrival: lambach_seen = 1 ; dnvp_win = 1 if (pro_republic > 50 and spd_in_government = 0) or (pro_republic > 55 and spd_in_government = 1) elif dnvp_win = 3 if (pro_republic < 45 and spd_in_government = 1) or (pro_republic < 50 and spd_in_government = 0) else dnvp_win = 2;
-
+on-arrival: lambach_seen = 1; {
+dnvp_win = 
+    ( (Q.pro_republic > 50 && !Q.spd_in_government) || (Q.pro_republic > 55 && Q.spd_in_government) ) ? 1 :
+    ( (Q.pro_republic < 45 && Q.spd_in_government) || (Q.pro_republic < 50 && !Q.spd_in_government) ) ? 3 :
+    2;
+}
 = Lambach Article "Monarchy".
 
 Following catastrophic polls DNVP of dropping from 20% down to 13%, Westarp has resigned from his position and currently acts as current leader until the replacement, being succeeded by none. Shortly after, Walther Lambach writes the article about "Monarchy" about the futility of all-or-nothing and authoritarian conservative - monarchist nostalgia policy, seeking to cooperate with republican parties in order to counteract SPD and KPD. Causing heavy inflammation within the party, Hugenberg led his aristocrats, officers and radicals against the Lambach and to remove him from the party, while civilians, non Hugenbergite royalists (officers , aristocrats, Junker, military, landowners) and party members stand against Hugenberg in back of either of Westarp/Hergt or Lambach/Treviranus.
