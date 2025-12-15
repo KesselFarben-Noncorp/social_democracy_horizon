@@ -8,6 +8,12 @@ Q.game_over = 1;
 // Eiserne Front - Form the Iron Front.
 this.achieve('game_completed');
 
+// Conservative Revolution
+if (Q.dnvp_votes >= 30) {
+    this.achieve('konservolution');
+}
+
+
 // Roter Zar von Preußen - At the end of the game, Otto Braun is president, chancellor, and minister-president of prussia at the same time.
 if (Q.president == 'Braun' && Q.chancellor == 'Braun' && Q.spd_prussia) {
     this.achieve('red_tzar_of_prussia');
@@ -398,6 +404,8 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if game_achievement_klassenkampf: **Klassenkampf** - SPD worker support is at least 80%, while middle-class and rural supports are less than 20%. ?]
 
+[? if game_achievement_konservolution: **Die Konservative Revolution** - DNVP secures 30% of the votes! ?]
+
 [? if game_achievement_raterepublik: **Räterepublik** - begin the transformation to a socialist economy. ?]
 
 [? if game_achievement_polykrise: **Polykrise** - survive a capital strike and a fascist coup. ?]
@@ -511,6 +519,8 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if achievement_klassenkampf: **Klassenkampf** - SPD worker support is at least 80%, while middle-class and rural supports are less than 20%. ?]
 
+[? if achievement_konservolution: **Die Konservative Revolution** - DNVP secures 30% of the votes! ?]
+
 [? if achievement_raterepublik: **Räterepublik** - begin the transformation to a socialist economy. ?]
 
 [? if achievement_polykrise: **Polykrise** - survive a capital strike and a fascist coup. ?]
@@ -622,6 +632,8 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 [? if not achievement_grosse_volkspartei: **Große Volkspartei** - All classes have at least 40% SPD support. ?]
 
 [? if not achievement_klassenkampf: **Klassenkampf** - SPD worker support is at least 80%, while middle-class and rural supports are less than 20%. ?]
+
+[? if not achievement_konservolution: **Die Konservative Revolution** - DNVP secures 30% of the votes! ?]
 
 [? if not achievement_raterepublik: **Räterepublik** - begin the transformation to a socialist economy. ?]
 
