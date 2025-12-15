@@ -2,10 +2,7 @@ title: The Lambach Article – “Monarchy”
 tags: event
 view-if: year >= 1928 and month >= 7 and dnvp_votes < 14
 max-visits: 1
-on-arrival: 
-lambach_seen = 1;
-dnvp_win = ((pro_republic > 50 and spd_in_government = 0) or (pro_republic > 55 and spd_in_government = 1)) ? 1 :
-           ((pro_republic < 45 and spd_in_government = 1) or (pro_republic < 50 and spd_in_government = 0)) ? 3 : 2;
+on-arrival: lambach_seen = 1; dnvp_win = ((Q.pro_republic > 50 && !Q.spd_in_government) || (Q.pro_republic > 55 && Q.spd_in_government)) ? 1 : ((Q.pro_republic < 45 && Q.spd_in_government) || (Q.pro_republic < 50 && !Q.spd_in_government)) ? 3 : 2;
 
 = Lambach Article "Monarchy".
 
