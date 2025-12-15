@@ -135,6 +135,13 @@
       document.body.classList.add('retro-mode');
       window.dendryUI.saveSettings();
   };
+  window.enableCRTMode = function() {
+      window.dendryUI.retro_mode = true; 
+      window.dendryUI.dark_mode = false;
+      document.body.classList.remove('dark-mode');
+      document.body.classList.add('retro-mode');
+      window.dendryUI.saveSettings();
+  };
 
   // populates the checkboxes in the options view
   window.populateOptions = function() {
@@ -169,6 +176,11 @@
     }
     if (window.dendryUI.retro_mode) {
         $('#retro_mode')[0].checked = true;
+    } else {
+        $('#light_mode')[0].checked = true;
+    }
+    if (window.dendryUI.crt_mode) {
+        $('#crt_mode')[0].checked = true;
     } else {
         $('#light_mode')[0].checked = true;
     }
