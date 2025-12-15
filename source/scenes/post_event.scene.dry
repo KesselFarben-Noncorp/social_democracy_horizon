@@ -385,7 +385,7 @@ for (Q.p of Q.nationalist_parties) {
 // Proportional siphon scaled by unrest
 Q.siphon_fraction = 0.20 * (1 + Q.unrest_factor);
 for (Q.p of Q.nationalist_parties) {
-    if (Q.p === Q.dominant_nat) continue;
+    if (Q.p === Q.dominant_nat && Q.p !== 'other') continue;
     for (Q.c of Q.classes) {
         Q.available = Q[Q.c+'_'+Q.p];
         Q.delta = Math.min(Q.available * Q.siphon_fraction, 0.15 * Q.unrest_factor);
