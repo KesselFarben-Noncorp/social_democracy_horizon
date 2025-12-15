@@ -385,7 +385,7 @@ for (Q.c of Q.classes) {
         Q.ideology_factor = 1.0;      
         switch (Q.party) {      
             case 'nsdap':      
-                Q.ideology_factor = Q.random_factor(Q.nationalism_factor * Q.unrest_factor * Q.nat_dom, 0.25);      
+                Q.ideology_factor = Q.random_factor(Q.nationalism_factor * Q.unrest_factor * Q.nat_dom, 0.30);      
                 break;      
             case 'kpd':      
                 Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);      
@@ -395,7 +395,7 @@ for (Q.c of Q.classes) {
                 Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);      
                 break;      
             case 'dnvp':      
-                Q.ideology_factor = Q.random_factor(Q.nationalism_factor * (1 + Q.unrest_factor*0.2), 0.15);      
+                Q.ideology_factor = Q.random_factor(Q.nationalism_factor * 1.2 * (1 + Q.unrest_factor*0.02), 0.15);      
                 break;      
             case 'z':      
                 Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);      
@@ -476,7 +476,7 @@ if (Q.year >= 1930 && Q.year <= 1932) {
         for (Q.c of Q.classes) {
 
             // pull mainly from DNVP + DVP
-            Q.pull_dnvp = Math.min(Q[c+'_dnvp'] * 0.12, Q.nsdap_accel);
+            Q.pull_dnvp = Math.min(Q[c+'_dnvp'] * 0.32, Q.nsdap_accel);
             Q.pull_dvp  = Q.dvp_right_shift
                 ? Math.min(Q[c+'_dvp'] * 0.10, Q.nsdap_accel)
                 : 0;
