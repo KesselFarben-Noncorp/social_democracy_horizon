@@ -455,6 +455,40 @@ for (Q.party of Q.parties) {
     Q[Q.party+'_votes_display'] = Q[Q.party+'_votes'];      
 }      
 
+// --- NSDAP Accelerant:(1930–1932) ---
+
+if (Q.year >= 1930 && Q.year <= 1932) {
+
+    Q.nsdap_accel = 0;
+
+    // DNVP voter leakage
+    if (Q.dnvp_votes > 8) {
+        Q.nsdap_accel += 0.015 * (Q.dnvp_votes - 8);
+    }
+
+    // DVP right-wing voter leakage
+    if (Q.dvp_right_shift && Q.dvp_votes > 5) {
+        Q.nsdap_accel += 0.02 * (Q.dvp_votes - 5);
+    }
+
+    // Apply accelerant proportionally across classes
+    if (Q.nsdap_accel > 0) {
+        for (Q.c of Q.classes) {
+
+            // pull mainly from DNVP + DVP
+            Q.pull_dnvp = Math.min(Q[c+'_dnvp'] * 0.12, Q.nsdap_accel);
+            Q.pull_dvp  = Q.dvp_right_shift
+                ? Math.min(Q[c+'_dvp'] * 0.10, Q.nsdap_accel)
+                : 0;
+
+            Q[c+'_dnvp'] -= Q.pull_dnvp;
+            Q[c+'_dvp']  -= Q.pull_dvp;
+
+            Q[c+'_nsdap'] += (Q.pull_dnvp + Q.pull_dvp);
+        }
+    }
+}
+
 // Paramilitary growth with minor randomness      
 Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);      
 Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);      
