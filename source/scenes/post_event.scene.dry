@@ -8,7 +8,6 @@ Q.last_cabinet_action = 0;
 Q.pro_republic = Math.round(Q.pro_republic);
 Q.nationalism = Math.round(Q.nationalism);
 Q.socialism = Math.round(Q.socialism);
-Q.pacifism = Q.pacifism.toFixed(1);
 
 if (Q.pro_republic < 0) {
     Q.pro_republic = 0;
@@ -323,156 +322,157 @@ if (Q.month_actions >= 1) {
         }
     }
 
-// --- Begin Reworked Randomized Monthly Party Drift ---
+    // --- Begin Reworked Randomized Monthly Party Drift ---
 
-Q.drift_base = 0.95;
+    Q.drift_base = 0.95;
 
-Q.random_factor = function(f, variance = 0.85) {
-    return f * (1 - variance/2 + Math.random()*variance);
-};
+    Q.random_factor = function(f, variance = 0.85) {
+        return f * (1 - variance/2 + Math.random()*variance);
+    };
 
-// Dynamic factors with randomness
-Q.unrest_factor       = Q.random_factor(Math.max(Q.unemployed/10, 1), 0.4);
-Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/50, 0.5), 1.5), 0.15);
-Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/50, 0.5), 1.5), 0.15);
-Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
+    // Dynamic factors with randomness
+    Q.unrest_factor       = Q.random_factor(Math.max(Q.unemployed/10, 1), 0.4);
+    Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/50, 0.5), 1.5), 0.15);
+    Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/50, 0.5), 1.5), 0.15);
+    Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
 
-Q.nat_dom = Math.min(Math.max(Q.nationalism/(Q.socialism+1), 0.5), 1.5);
-Q.soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
+    Q.nat_dom = Math.min(Math.max(Q.nationalism/(Q.socialism+1), 0.5), 1.5);
+    Q.soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
 
-// Paramilitary influence (randomized)
-Q.sa_influence  = Q.random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
-Q.sh_influence  = Q.random_factor((Q.sh_strength/100 + Q.sh_militancy) * 0.2, 0.25);
-Q.rfb_influence = Q.random_factor((Q.rfb_strength/100 + Q.rfb_militancy) * 0.2, 0.25);
-Q.rb_influence  = Q.random_factor((Q.rb_strength/100 + Q.rb_militancy) * 0.15, 0.25);
+    // Paramilitary influence (randomized)
+    Q.sa_influence  = Q.random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
+    Q.sh_influence  = Q.random_factor((Q.sh_strength/100 + Q.sh_militancy) * 0.2, 0.25);
+    Q.rfb_influence = Q.random_factor((Q.rfb_strength/100 + Q.rfb_militancy) * 0.2, 0.25);
+    Q.rb_influence  = Q.random_factor((Q.rb_strength/100 + Q.rb_militancy) * 0.15, 0.25);
 
-// Class-specific scaling
-Q.class_influences = {
-    workers:    1.3 + Q.rfb_influence,
-    old_middle: 1 + Q.sh_influence,
-    new_middle: 1 + Q.sh_influence,
-    rural:      1 + Q.sh_influence,
-    unemployed: 1.3 + Q.sa_influence,
-    catholics:  1 + Q.rb_influence
-};
+    // Class-specific scaling
+    Q.class_influences = {
+        workers:    1.3 + Q.rfb_influence,
+        old_middle: 1 + Q.sh_influence,
+        new_middle: 1 + Q.sh_influence,
+        rural:      1 + Q.sh_influence,
+        unemployed: 1.3 + Q.sa_influence,
+        catholics:  1 + Q.rb_influence
+        };
 
-// Ensure nationalist parties exist
-Q.nationalist_parties = Q.nationalist_parties || ['nsdap','dnvp','other'];
-if (Q.dvp_right_shift && !Q.nationalist_parties.includes('dvp')) {
-    Q.nationalist_parties.push('dvp');
-}
-if (Q.dnvp_line = 1 && Q.nationalist_parties.includes('dnvp')) {
-    Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
-}
-
-// Determine dominant nationalist party
-Q.dominant_nat = null;
-Q.max_support = -Infinity;
-for (Q.p of Q.nationalist_parties) {
-    Q.support = 0;
-    for (Q.c of Q.classes) Q.support += Q[Q.c+'_'+Q.p];
-    if (Q.support > Q.max_support) {
-        Q.max_support = Q.support;
-        Q.dominant_nat = Q.p;
+    // Ensure nationalist parties exist
+    Q.nationalist_parties = Q.nationalist_parties || ['nsdap','dnvp','other'];
+    if (Q.dvp_right_shift && !Q.nationalist_parties.includes('dvp')) {
+        Q.nationalist_parties.push('dvp');
     }
-}
-
-// Proportional siphon scaled by unrest
-Q.siphon_fraction = 0.20 * (1 + Q.unrest_factor);
-for (Q.p of Q.nationalist_parties) {
-    if (Q.p === Q.dominant_nat && Q.p !== 'other') continue;
-    for (Q.c of Q.classes) {
-        Q.available = Q[Q.c+'_'+Q.p];
-        Q.delta = Math.min(Q.available * Q.siphon_fraction, 0.15 * Q.unrest_factor);
-        Q[Q.c+'_'+Q.p] -= Q.delta;
-        Q[Q.c+'_'+Q.dominant_nat] += Q.delta;
+    if (Q.dnvp_line = 1 && Q.nationalist_parties.includes('dnvp')) {
+        Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
     }
-}
 
-Q.ideology_elasticity = 1.5;
-
-Q.ideology_caps = {
-    nsdap: Q.nationalism * 1.25,          // extremist, limited elasticity
-    dnvp:  Q.nationalism * 1.35,          // traditional right, broader base
-    dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
-    kpd:   Q.socialism * 1.25,             // extremist left, limited elasticity
-    spd:   Q.pro_republic * 1.6,           // mass party, high elasticity
-    ddp:   Q.pro_republic * 1.4,
-    z:     Q.pro_republic * 1.6,           // confessional catch-all
-    other: ((Q.nationalism + Q.pro_republic + Q.socialism) / 3) * 1.3
-};
-
-// Reworked drift per class
-for (Q.c of Q.classes) {
-    Q.class_total = 0;
-    for (Q.party of Q.parties) {
-        Q.base = Q[Q.c+'_'+Q.party] || 0;
-        Q.ideology_factor = 1.0;
-
-        switch (Q.party) {
-            case 'nsdap':
-                Q.ideology_factor = Q.random_factor(Q.nationalism_factor * Q.unrest_factor * 3.5 * Q.nat_dom, 0.25);
-                break;
-            case 'dnvp':
-                Q.ideology_factor = Q.random_factor(Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor*0.2), 0.15);
-                break;
-            case 'kpd':
-                Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
-                Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj, 0.25);
-                break;
-            case 'spd':
-                Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
-                break;
-            case 'z':
-                Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
-                break;
-            case 'ddp':
-                Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.3, 0.15);
-                break;
-            case 'dvp':
-                Q.ideology_factor = Q.random_factor(Q.dvp_right_shift ? Q.nationalism_factor * (1 + Q.unrest_factor*0.1) : Q.pro_republic_factor * 0.9, 0.15);
-                break;
-            case 'other':
-                Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/2 * (1 + Q.unrest_factor*0.2), 0.2);
-                break;
-            default:
-                Q.ideology_factor = Q.random_factor(1, 0.1);
+    // Determine dominant nationalist party
+    Q.dominant_nat = null;
+    Q.max_support = -Infinity;
+    for (Q.p of Q.nationalist_parties) {
+        Q.support = 0;
+        for (Q.c of Q.classes) Q.support += Q[Q.c+'_'+Q.p];
+        if (Q.support > Q.max_support) {
+            Q.max_support = Q.support;
+            Q.dominant_nat = Q.p;
         }
-
-        Q.scale = Math.min(1, Math.sqrt(Q.base + 1)/5);
-        Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] * Q.scale / 12;
-        Q.delta *= (0.7 + Math.random()*0.6);
-        Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
-        Q.class_total += Q[Q.c+'_'+Q.party];
     }
-}
 
-// Recalculate normalized fractions after drift
-for (var c of Q.classes) {
-    var class_votes = 0;
-    for (var party of Q.parties) {
-        class_votes += Q[c+'_'+party]; // use raw numbers after drift
+    // Proportional siphon scaled by unrest
+    Q.siphon_fraction = 0.20 * (1 + Q.unrest_factor);
+    for (Q.p of Q.nationalist_parties) {
+        if (Q.p === Q.dominant_nat && Q.p !== 'other') continue;
+        for (Q.c of Q.classes) {
+            Q.available = Q[Q.c+'_'+Q.p];
+            Q.delta = Math.min(Q.available * Q.siphon_fraction, 0.15 * Q.unrest_factor);
+            Q[Q.c+'_'+Q.p] -= Q.delta;
+            Q[Q.c+'_'+Q.dominant_nat] += Q.delta;
+        }
     }
-    for (var party of Q.parties) {
+
+    Q.ideology_elasticity = 1.5;
+
+    Q.ideology_caps = {
+        nsdap: Q.nationalism * 1.25,          // extremist, limited elasticity
+        dnvp:  Q.nationalism * 1.35,          // traditional right, broader base
+        dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
+        kpd:   Q.socialism * 1.25,             // extremist left, limited elasticity
+        spd:   Q.pro_republic * 1.6,           // mass party, high elasticity
+        ddp:   Q.pro_republic * 1.4,
+        z:     Q.pro_republic * 1.6,           // confessional catch-all
+        other: ((Q.nationalism + Q.pro_republic + Q.socialism) / 3) * 1.3
+    };
+
+    // Reworked drift per class
+    for (Q.c of Q.classes) {
+        Q.class_total = 0;
+        for (Q.party of Q.parties) {
+            Q.base = Q[Q.c+'_'+Q.party] || 0;
+            Q.ideology_factor = 1.0;
+
+            switch (Q.party) {
+                case 'nsdap':
+                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor * Q.unrest_factor * 3.5 * Q.nat_dom, 0.25);
+                    break;
+                case 'dnvp':
+                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor*0.2), 0.15);
+                    break;
+                case 'kpd':
+                    Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj, 0.25);
+                    break;
+                case 'spd':
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
+                    break;
+                case 'z':
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
+                    break;
+                case 'ddp':
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.3, 0.15);
+                    break;
+                case 'dvp':
+                    Q.ideology_factor = Q.random_factor(Q.dvp_right_shift ? Q.nationalism_factor * (1 + Q.unrest_factor*0.1) : Q.pro_republic_factor * 0.9, 0.15);
+                    break;
+                case 'other':
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/2 * (1 + Q.unrest_factor*0.2), 0.2);
+                    break;
+                default:
+                    Q.ideology_factor = Q.random_factor(1, 0.1);
+            }
+
+            Q.scale = Math.min(1, Math.sqrt(Q.base + 1)/5);
+            Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] * Q.scale / 12;
+            Q.delta *= (0.7 + Math.random()*0.6);
+            Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
+            Q.class_total += Q[Q.c+'_'+Q.party];
+        }
+    }
+
+    // Recalculate normalized fractions after drift
+    for (var c of Q.classes) {
+        var class_votes = 0;
+        for (var party of Q.parties) {
+            class_votes += Q[c+'_'+party]; // use raw numbers after drift
+        }
+        for (var party of Q.parties) {
         Q[c+'_'+party+'_normalized'] = class_votes > 0 ? Q[c+'_'+party]/class_votes : 0;
         Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1);
+        }
     }
+
+    // Paramilitary growth
+    Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);
+    Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
+    Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
+    Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
+
+    Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 300);
+    Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 300);
+    Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 300);
+    Q.rb_strength  = Math.min(Math.max(Q.rb_strength, 0), 300);
+
+    // --- End Reworked Randomized Monthly Party Drift ---
+
 }
 
-// Paramilitary growth
-Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);
-Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
-Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
-Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
-
-Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 300);
-Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 300);
-Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 300);
-Q.rb_strength  = Math.min(Math.max(Q.rb_strength, 0), 300);
-
-// --- End Reworked Randomized Monthly Party Drift ---
-
-}
 Q.has_event = 0;
 // check if there are any cards in #event, and then go to main if not.
 var scene = this.game.scenes['post_event.events_choice'];
