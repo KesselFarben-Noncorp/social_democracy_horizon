@@ -39,7 +39,7 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
-// --- Normalize class-level support (internal, fractions only) ---
+// --- Normalize class-level support (internal fractions only) ---
 for (var c of Q.classes) {
     var class_votes = 0;
     for (var party of Q.parties) {
@@ -66,10 +66,12 @@ for (var party of Q.parties) {
     Q.total_support += party_support;
 }
 
-// --- Final normalized votes and display with 1 decimal ---
+// --- Final normalized votes and display (1 decimal, string) ---
 for (var party of Q.parties) {
     Q[party+'_normalized'] = Q.total_support > 0 ? Q[party+'_support'] / Q.total_support : 0;
-    Q[party+'_votes_display'] = Math.round(Q[party+'_normalized'] * 1000) / 10; // e.g., 32.3%
+
+    // Display only: string with one decimal
+    Q[party+'_votes_display'] = (Q[party+'_normalized'] * 100).toFixed(1); // e.g., "32.3"
 }
 
 // tried merging this and draft party support changer code, went horrible for one hour.
