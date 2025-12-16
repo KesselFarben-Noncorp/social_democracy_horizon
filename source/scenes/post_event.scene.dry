@@ -8,6 +8,7 @@ Q.last_cabinet_action = 0;
 Q.pro_republic = Math.round(Q.pro_republic);
 Q.nationalism = Math.round(Q.nationalism);
 Q.socialism = Math.round(Q.socialism);
+Q.pacifism = Q.pacifism.toFixed(1);
 
 if (Q.pro_republic < 0) {
     Q.pro_republic = 0;
@@ -443,6 +444,18 @@ for (Q.c of Q.classes) {
         Q.delta *= (0.7 + Math.random()*0.6);
         Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
         Q.class_total += Q[Q.c+'_'+Q.party];
+    }
+}
+
+// Recalculate normalized fractions after drift
+for (var c of Q.classes) {
+    var class_votes = 0;
+    for (var party of Q.parties) {
+        class_votes += Q[c+'_'+party]; // use raw numbers after drift
+    }
+    for (var party of Q.parties) {
+        Q[c+'_'+party+'_normalized'] = class_votes > 0 ? Q[c+'_'+party]/class_votes : 0;
+        Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1);
     }
 }
 
