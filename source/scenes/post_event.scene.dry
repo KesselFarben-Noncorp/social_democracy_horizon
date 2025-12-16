@@ -4,13 +4,6 @@ on-arrival: {!
 Q.last_advisor_action = 0;
 Q.last_cabinet_action = 0;
 // make sure no stat is below 0.
-for (var c of Q.classes) {
-    for (var party of Q.parties) {
-        if (Q[c+'_'+party] < 0) {
-            Q[c+'_'+party] = 0;
-        }
-    }
-}
 
 Q.pro_republic = Math.round(Q.pro_republic);
 Q.nationalism = Math.round(Q.nationalism);
@@ -47,10 +40,10 @@ for (var c of Q.classes) {
         class_votes += Q[c+'_'+party];
     }
     for (var party of Q.parties) {
-        // keep internal fractions (0–1)
+        // Keep internal fractions for gameplay
         Q[c+'_'+party+'_normalized'] = class_votes > 0 ? Q[c+'_'+party] / class_votes : 0;
-        // optional display for class (string with 1 decimal %)
-        Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1); // e.g., "32.3"
+        // Display string with 1 decimal for UI
+        Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1); // "32.3"
     }
 }
 
@@ -59,6 +52,7 @@ Q.total_support = 0;
 for (var party of Q.parties) {
     var party_support = 0;
     for (var c of Q.classes) {
+        // Use decimals for gameplay calculations
         if (Q.old_demographics) {
             party_support += Q[c] * Q[c+'_'+party];
         } else {
@@ -71,10 +65,11 @@ for (var party of Q.parties) {
 
 // --- Final normalized votes and display ---
 for (var party of Q.parties) {
+    // Keep normalized fraction for gameplay
     Q[party+'_normalized'] = Q.total_support > 0 ? Q[party+'_support'] / Q.total_support : 0;
-    // Display string with 1 decimal
+    // Display string with 1 decimal (UI)
     Q[party+'_votes_display'] = (Q[party+'_normalized']*100).toFixed(1); // e.g., "64.8"
-    // Optional integer for internal uses
+    // Optional integer for internal calculations
     Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100); // e.g., 65
 }
 
