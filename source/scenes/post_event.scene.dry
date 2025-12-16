@@ -444,14 +444,6 @@ for (Q.c of Q.classes) {
         Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
         Q.class_total += Q[Q.c+'_'+Q.party];
     }
-
-    // Normalize class proportions
-    if (Q.class_total > 0) {
-        for (Q.party of Q.parties) {
-            Q[Q.c+'_'+Q.party+'_normalized'] = Q[Q.c+'_'+Q.party] / Q.class_total;
-            Q[Q.c+'_'+Q.party+'_display'] = Math.round(Q[Q.c+'_'+Q.party+'_normalized']*100);
-        }
-    }
 }
 
 // Paramilitary growth
