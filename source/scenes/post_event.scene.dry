@@ -39,12 +39,43 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
-// Class-level display only
-Q[c + '_' + party + '_ui_percent'] = 100 * Q[c+'_'+party] / class_votes;
-Q[c + '_' + party + '_ui_display'] = Math.round(100 * Q[c+'_'+party] / class_votes);
+// re-calculate party support
+// calculate normalized class voting for the achievements
+for (var c of Q.classes) {
+    var class_votes = 0;
+    for (var party of Q.parties) {
+        if (Q[c+'_'+party] < 0) {
+            Q[c+'_'+party] = 0;
+        }
+        class_votes += Q[c+'_'+party];
+    }
+    for (var party of Q.parties) {
+        Q[c + '_' + party + '_normalized'] = 100*Q[c+'_'+party]/class_votes;
+        Q[c + '_' + party + '_display'] = Math.round(100*Q[c+'_'+party]/class_votes);
+    }
+}
+// calculate support for each of the parties
+var total_support = 0; 
+for (var party of Q.parties) {
+    var party_support = 0;
+    for (var c of Q.classes) {
+        if (Q.old_demographics) { 
+            party_support += Q[c]*Q[c+'_'+party];
+        } else  { 
+            party_support += Q[c]*Q[c+'_'+party+'_normalized'];
+        } 
+    }
+    Q[party + '_support'] = party_support;
+    total_support += party_support; 
+}
+// 2. normalize support (fraction)
+for (var party of Q.parties) {
+    Q[party+'_normalized'] = Q[party + '_support']/total_support;
+    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*1000);
+    Q[party+'_votes_display'] = Math.round(Q[party+'_normalized']*1000)/10; // shows by one more fraction now
+}
 
-// Party vote display only
-Q[party+'_votes_display'] = Math.round(Q[party+'_normalized']*1000)/10; // e.g., 90.1%
+// tried merging this and draft party support changer code, went horrible for one hour.
 
 // re-calculate dissent.
 var total_strength = Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength;
