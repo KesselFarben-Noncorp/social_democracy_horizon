@@ -39,6 +39,13 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
+// Class-level display only
+Q[c + '_' + party + '_ui_percent'] = 100 * Q[c+'_'+party] / class_votes;
+Q[c + '_' + party + '_ui_display'] = Math.round(100 * Q[c+'_'+party] / class_votes);
+
+// Party vote display only
+Q[party+'_votes_display'] = Math.round(Q[party+'_normalized']*1000)/10; // e.g., 90.1%
+
 // re-calculate dissent.
 var total_strength = Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength;
 
@@ -437,25 +444,20 @@ for (var c of Q.classes) {
     }
 }
 
-// Aggregate party support
-var total_support = 0;
-for (var party of Q.parties) {
-    var party_support = 0;
-    for (var c of Q.classes) {
-        party_support += Q[c] * Q[c+'_'+party+'_normalized'];
-    }
-    Q[party + '_support'] = party_support;
-    total_support += party_support;
+// Aggregate support across classes
+Q.total_support = 0;
+for (Q.party of Q.parties) {
+Q.support = 0;
+for (Q.c of Q.classes) Q.support += Q[Q.c] * Q[Q.c+'_'+Q.party+'_normalized'];
+Q[Q.party+'_support'] = Q.support;
+Q.total_support += Q.support;
 }
 
 // Normalize total votes
-for (var party of Q.parties) {
-    Q[party+'_normalized'] =
-        total_support > 0 ? Q[party+'_support'] / total_support : 0;
-
-    // display only
-    Q[party+'_votes_display'] =
-        Math.round(Q[party+'_normalized'] * 1000) / 10; // 1 decimal
+for (Q.party of Q.parties) {
+Q[Q.party+'_normalized'] = Q[Q.party+'_support']/Q.total_support;
+Q[Q.party+'_votes'] = Math.round(Q[Q.party+'_normalized']*100);
+Q[Q.party+'_votes_display'] = Q[Q.party+'_votes'];
 }
 
 // Paramilitary growth
