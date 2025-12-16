@@ -39,7 +39,7 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
-// --- Normalize class-level support (internal fractions only) ---
+// --- Normalize class-level support (fractions only) ---
 for (var c of Q.classes) {
     var class_votes = 0;
     for (var party of Q.parties) {
@@ -47,7 +47,10 @@ for (var c of Q.classes) {
         class_votes += Q[c+'_'+party];
     }
     for (var party of Q.parties) {
+        // keep internal fractions (0–1)
         Q[c+'_'+party+'_normalized'] = class_votes > 0 ? Q[c+'_'+party] / class_votes : 0;
+        // optional display for class (string with 1 decimal %)
+        Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1); // e.g., "32.3"
     }
 }
 
@@ -66,12 +69,13 @@ for (var party of Q.parties) {
     Q.total_support += party_support;
 }
 
-// --- Final normalized votes and display (1 decimal, string) ---
+// --- Final normalized votes and display ---
 for (var party of Q.parties) {
     Q[party+'_normalized'] = Q.total_support > 0 ? Q[party+'_support'] / Q.total_support : 0;
-
-    // Display only: string with one decimal
-    Q[party+'_votes_display'] = (Q[party+'_normalized'] * 100).toFixed(1); // e.g., "32.3"
+    // Display string with 1 decimal
+    Q[party+'_votes_display'] = (Q[party+'_normalized']*100).toFixed(1); // e.g., "64.8"
+    // Optional integer for internal uses
+    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100); // e.g., 65
 }
 
 // tried merging this and draft party support changer code, went horrible for one hour.
