@@ -32,46 +32,40 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
-// --- Normalize class-level support (fractions only) ---
+// re-calculate party support
+// calculate normalized class voting for the achievements
 for (var c of Q.classes) {
     var class_votes = 0;
     for (var party of Q.parties) {
-        Q[c+'_'+party] = Math.max(Q[c+'_'+party], 0); // prevent negatives
+        if (Q[c+'_'+party] < 0) {
+            Q[c+'_'+party] = 0;
+        }
         class_votes += Q[c+'_'+party];
     }
     for (var party of Q.parties) {
-        // Keep internal fractions for gameplay
-        Q[c+'_'+party+'_normalized'] = class_votes > 0 ? Q[c+'_'+party] / class_votes : 0;
-        // Display string with 1 decimal for UI
-        Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1); // "32.3"
+        Q[c + '_' + party + '_normalized'] = 100*Q[c+'_'+party]/class_votes;
+        Q[c + '_' + party + '_display'] = Math.round(100*Q[c+'_'+party]/class_votes);
     }
 }
-
-// --- Aggregate party support across classes ---
-Q.total_support = 0;
+// calculate support for each of the parties
+var total_support = 0; 
 for (var party of Q.parties) {
     var party_support = 0;
     for (var c of Q.classes) {
-        // Use decimals for gameplay calculations
-        if (Q.old_demographics) {
-            party_support += Q[c] * Q[c+'_'+party];
-        } else {
-            party_support += Q[c] * Q[c+'_'+party+'_normalized'];
-        }
+        if (Q.old_demographics) { 
+            party_support += Q[c]*Q[c+'_'+party];
+        } else  { 
+            party_support += Q[c]*Q[c+'_'+party+'_normalized'];
+        } 
     }
-    Q[party+'_support'] = party_support;
-    Q.total_support += party_support;
+
+// 2. normalize support (fraction)
+for (var party of Q.parties) {
+    Q[party+'_normalized'] = Q[party + '_support']/total_support;
+    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*1000)/ 10;
 }
 
-// --- Final normalized votes and display ---
-for (var party of Q.parties) {
-    // Keep normalized fraction for gameplay
-    Q[party+'_normalized'] = Q.total_support > 0 ? Q[party+'_support'] / Q.total_support : 0;
-    // Display string with 1 decimal (UI)
-    Q[party+'_votes_display'] = (Q[party+'_normalized']*100).toFixed(1); // e.g., "64.8"
-    // Optional integer for internal calculations
-    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100); // e.g., 65
-}
+---
 
 // tried merging this and draft party support changer code, went horrible for one hour.
 
