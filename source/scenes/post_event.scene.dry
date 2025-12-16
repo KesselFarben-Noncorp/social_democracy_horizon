@@ -51,7 +51,7 @@ for (var c of Q.classes) {
     }
     for (var party of Q.parties) {
         Q[c + '_' + party + '_normalized'] = 100*Q[c+'_'+party]/class_votes;
-        Q[c + '_' + party + '_display'] = Math.round(100*Q[c+'_'+party]/class_votes);
+        Q[c + '_' + party + '_display'] = Math.round(1000*Q[c+'_'+party]/class_votes);
     }
 }
 // calculate support for each of the parties
@@ -71,7 +71,7 @@ for (var party of Q.parties) {
 // 2. normalize support (fraction)
 for (var party of Q.parties) {
     Q[party+'_normalized'] = Q[party + '_support']/total_support;
-    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*1000);
+    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100);
     Q[party+'_votes_display'] = Math.round(Q[party+'_normalized']*1000)/10; // shows by one more fraction now
 }
 
@@ -487,8 +487,8 @@ Q.total_support += Q.support;
 // Normalize total votes
 for (Q.party of Q.parties) {
 Q[Q.party+'_normalized'] = Q[Q.party+'_support']/Q.total_support;
-Q[Q.party+'_votes'] = Math.round(Q[Q.party+'_normalized']*1000);
-Q[Q.party+'_votes_display'] = Q[Q.party+'_votes'];
+Q[Q.party+'_votes'] = Math.round(Q[Q.party+'_normalized']*100);
+Q[Q.party+'_votes_display'] = Math.round(Q[party+'_normalized']*1000)/10; // shows by one more fraction now
 }
 
 // Paramilitary growth
