@@ -358,36 +358,57 @@ if (Q.month_actions >= 1) {
         catholics:  1 + Q.rb_influence
         };
 
-    // Ensure nationalist parties exist
-    Q.nationalist_parties = Q.nationalist_parties || ['nsdap','dnvp','other'];
+    Q.nationalist_parties = Q.nationalist_parties || ['nsdap', 'dnvp', 'other'];
+
     if (Q.dvp_right_shift && !Q.nationalist_parties.includes('dvp')) {
-        Q.nationalist_parties.push('dvp');
-    }
-    if (Q.dnvp_line = 1 && Q.nationalist_parties.includes('dnvp')) {
-        Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
+    Q.nationalist_parties.push('dvp');
     }
 
-    // Determine dominant nationalist party
+     if (Q.dnvp_line === 1 && Q.nationalist_parties.includes('dnvp')) {
+    Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
+    }
+
     Q.dominant_nat = null;
     Q.max_support = -Infinity;
+
     for (Q.p of Q.nationalist_parties) {
+        if (Q.p === 'other') continue; // hard exclusion
+
         Q.support = 0;
-        for (Q.c of Q.classes) Q.support += Q[Q.c+'_'+Q.p];
+        for (Q.c of Q.classes) {
+            Q.support += Q[Q.c + '_' + Q.p];
+        }
+
         if (Q.support > Q.max_support) {
             Q.max_support = Q.support;
             Q.dominant_nat = Q.p;
         }
     }
 
-    // Proportional siphon scaled by unrest
     Q.siphon_fraction = 0.20 * (1 + Q.unrest_factor);
-    for (Q.p of Q.nationalist_parties) {
-        if (Q.p === Q.dominant_nat && Q.p !== 'other') continue;
-        for (Q.c of Q.classes) {
-            Q.available = Q[Q.c+'_'+Q.p];
-            Q.delta = Math.min(Q.available * Q.siphon_fraction, 0.15 * Q.unrest_factor);
-            Q[Q.c+'_'+Q.p] -= Q.delta;
-            Q[Q.c+'_'+Q.dominant_nat] += Q.delta;
+
+    if (Q.dominant_nat) {
+        for (Q.p of Q.nationalist_parties) {
+
+            // never siphon from leader
+            if (Q.p === Q.dominant_nat) continue;
+
+            for (Q.c of Q.classes) {
+                Q.available = Q[Q.c + '_' + Q.p];
+                if (Q.available <= 0) continue;
+
+                Q.delta = Math.min(
+                    Q.available * Q.siphon_fraction,
+                    0.15 * Q.unrest_factor
+                );
+
+                Q[Q.c + '_' + Q.p] -= Q.delta;
+
+                // NEVER feed 'other'
+                if (Q.dominant_nat !== 'other') {
+                    Q[Q.c + '_' + Q.dominant_nat] += Q.delta;
+                }
+            }
         }
     }
 
