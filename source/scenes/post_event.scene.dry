@@ -32,42 +32,45 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
-// --- Normalize class-level support (internal fractions 0–1) ---
+// Re-calculate party support
+// Calculate normalized class voting for the achievements
 for (var c of Q.classes) {
     var class_votes = 0;
     for (var party of Q.parties) {
-        Q[c+'_'+party] = Math.max(Q[c+'_'+party], 0); // prevent negatives
-        class_votes += Q[c+'_'+party];
+        if (Q[c + '_' + party] < 0) {
+            Q[c + '_' + party] = 0;
+        }
+        class_votes += Q[c + '_' + party];
     }
+
     for (var party of Q.parties) {
-        Q[c+'_'+party+'_normalized'] = class_votes > 0 ? Q[c+'_'+party]/class_votes : 0;
-        Q[c+'_'+party+'_display'] = (Q[c+'_'+party+'_normalized']*100).toFixed(1); // display only
+        Q[c + '_' + party + '_normalized'] = 100 * Q[c + '_' + party] / class_votes;
+        Q[c + '_' + party + '_display'] = Math.round(100 * Q[c + '_' + party] / class_votes);
     }
 }
 
-// --- Aggregate party support across classes ---
-Q.total_support = 0;
+// Calculate support for each of the parties
+var total_support = 0;
 for (var party of Q.parties) {
     var party_support = 0;
     for (var c of Q.classes) {
         if (Q.old_demographics) {
-            party_support += Q[c] * Q[c+'_'+party];
+            party_support += Q[c] * Q[c + '_' + party];
         } else {
-            party_support += Q[c] * Q[c+'_'+party+'_normalized'];
+            party_support += Q[c] * Q[c + '_' + party + '_normalized'];
         }
     }
-    Q[party+'_support'] = party_support;
-    Q.total_support += party_support;
+    Q[party + '_support'] = party_support;
+    total_support += party_support;
 }
 
-// --- Final normalized votes and display ---
+// Normalize support (fraction) and compute final votes
 for (var party of Q.parties) {
-    Q[party+'_normalized'] = Q.total_support > 0 ? Q[party+'_support']/Q.total_support : 0;
-    Q[party+'_votes_display'] = (Q[party+'_normalized']*100).toFixed(1); // string for display
-    Q[party+'_votes'] = Math.round(Q[party+'_normalized']*100);           // integer for logic
+    Q[party + '_normalized'] = Q[party + '_support'] / total_support;
+    Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10;
 }
 
-// tried merging this and draft party support changer code, went horrible for one hour.
+// tried merging this and draft party support changer code, went horrible for one hour... Fuck this, I tried to rewrite the code with both AI and without trying to invent some random bullshit fractions, fuck this now, im stealing code from Originn0.
 
 // re-calculate dissent.
 var total_strength = Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength;
