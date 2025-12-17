@@ -416,7 +416,7 @@ if (Q.month_actions >= 1) {
 
     Q.ideology_caps = {
         nsdap: Q.nationalism * 1.25,          // extremist, limited elasticity
-        dnvp:  Q.nationalism * 1.35,          // traditional right, broader base
+        dnvp: Q.dnvp_line === 1  ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8)  : Q.nationalism * 1.35,
         dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
         kpd:   Q.socialism * 1.25,             // extremist left, limited elasticity
         spd:   Q.pro_republic * 1.6,           // mass party, high elasticity
@@ -437,7 +437,20 @@ if (Q.month_actions >= 1) {
                     Q.ideology_factor = Q.random_factor(Q.nationalism_factor * Q.unrest_factor * 3.5 * Q.nat_dom, 0.25);
                     break;
                 case 'dnvp':
-                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor*0.2), 0.15);
+                    if (Q.dnvp_line === 1) {
+                        // constitutional / republican-aligned DNVP
+                        Q.ideology_factor = Q.random_factor(
+                            (Q.pro_republic_factor * 0.75 + Q.nationalism_factor * 0.5) *
+                            (1 + Q.unrest_factor * 0.15),
+                            0.15
+                        );
+                    } else {
+                        // traditional nationalist DNVP
+                        Q.ideology_factor = Q.random_factor(
+                            Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor * 0.2),
+                            0.15
+                        );
+                    }
                     break;
                 case 'kpd':
                     Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
