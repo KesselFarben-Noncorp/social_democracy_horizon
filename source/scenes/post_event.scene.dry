@@ -36,6 +36,8 @@ if (Q.unemployed <= 1) {
 // Calculate normalized class voting for the achievements
 for (var c of Q.classes) {
     var class_votes = 0;
+
+    // Ensure no negative class votes
     for (var party of Q.parties) {
         if (Q[c + '_' + party] < 0) {
             Q[c + '_' + party] = 0;
@@ -43,28 +45,32 @@ for (var c of Q.classes) {
         class_votes += Q[c + '_' + party];
     }
 
+    // Calculate normalized fractions and display
     for (var party of Q.parties) {
-        Q[c + '_' + party + '_normalized'] = 100 * Q[c + '_' + party] / class_votes;
-        Q[c + '_' + party + '_display'] = Math.round(100 * Q[c + '_' + party] / class_votes);
+        Q[c + '_' + party + '_normalized'] = class_votes > 0 ? Q[c + '_' + party] / class_votes : 0;
+        Q[c + '_' + party + '_display'] = (Q[c + '_' + party + '_normalized'] * 100).toFixed(1);
     }
 }
 
-// Calculate support for each of the parties
+// Calculate total support for each party across classes
 var total_support = 0;
 for (var party of Q.parties) {
     var party_support = 0;
     for (var c of Q.classes) {
-        party_support += Q[c] * Q[c+'_'+party+'_normalized'];
+        if (Q.old_demographics) {
+            party_support += Q[c] * Q[c + '_' + party];
+        } else {
+            party_support += Q[c] * Q[c + '_' + party + '_normalized'];
+        }
     }
     Q[party + '_support'] = party_support;
     total_support += party_support;
 }
 
-// Normalize support (fraction) and compute final votes
+// Normalize party support (fraction) and compute final votes
 for (var party of Q.parties) {
-    Q[party + '_normalized'] = Q[party + '_support'] / total_support;
-    Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10;
-    Q[party + '_votes_display'] = (Q[party + '_normalized'] * 100).toFixed(1);
+    Q[party + '_normalized'] = total_support > 0 ? Q[party + '_support'] / total_support : 0;
+    Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10; // 0.1 precision
 }
 
 // tried merging this and draft party support changer code, went horrible for one hour... Fuck this, I tried to rewrite the code with both AI and without trying to invent some random bullshit fractions, fuck this now, im stealing code from Originn0.
