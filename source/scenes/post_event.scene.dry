@@ -32,30 +32,25 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
-// Re-calculate party support
-// Calculate normalized class voting for the achievements
+// --- Recalculate normalized class votes ---
 for (var c of Q.classes) {
-    var class_votes = 0;
+    let class_votes = 0;
 
-    // Ensure no negative class votes
     for (var party of Q.parties) {
-        if (Q[c + '_' + party] < 0) {
-            Q[c + '_' + party] = 0;
-        }
+        Q[c + '_' + party] = Math.max(0, Q[c + '_' + party]);
         class_votes += Q[c + '_' + party];
     }
 
-    // Calculate normalized fractions and display
     for (var party of Q.parties) {
         Q[c + '_' + party + '_normalized'] = class_votes > 0 ? Q[c + '_' + party] / class_votes : 0;
         Q[c + '_' + party + '_display'] = (Q[c + '_' + party + '_normalized'] * 100).toFixed(1);
     }
 }
 
-// Calculate total support for each party across classes
+// --- Calculate total party support ---
 var total_support = 0;
 for (var party of Q.parties) {
-    var party_support = 0;
+    let party_support = 0;
     for (var c of Q.classes) {
         if (Q.old_demographics) {
             party_support += Q[c] * Q[c + '_' + party];
@@ -67,10 +62,10 @@ for (var party of Q.parties) {
     total_support += party_support;
 }
 
-// Normalize party support (fraction) and compute final votes
+// --- Normalize party support fractions, keep votes separate ---
 for (var party of Q.parties) {
     Q[party + '_normalized'] = total_support > 0 ? Q[party + '_support'] / total_support : 0;
-    Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10; // 0.1 precision
+    Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10; // only for display
 }
 
 // tried merging this and draft party support changer code, went horrible for one hour... Fuck this, I tried to rewrite the code with both AI and without trying to invent some random bullshit fractions, fuck this now, im stealing code from Originn0.
