@@ -42,67 +42,62 @@ on-arrival: {!
 // election threshold constitutional reform
 // banning parties
 
-// --- Election results (fraction-safe) ---
-
-var new_party_sum = 0;
-
-// store previous result fractions for change display
+// --- Store previous results (fractions 0–1) ---
 for (var party of Q.parties) {
-    Q['old_' + party + '_r_frac'] = Q[party + '_r_frac'] || 0;
+    Q['old_' + party + '_normalized'] = Q[party + '_normalized'] || 0;
 }
 
-// apply thresholds / bans on FRACTIONS
-for (var party of Q.parties) {
+// --- Apply thresholds / bans on fractions ---
+var new_party_sum = 0;
 
-    var base_frac = Q[party + '_normalized']; // 0–1, NEVER rounded
+for (var party of Q.parties) {
+    var base = Q[party + '_normalized']; // 0–1 fraction
 
     if (Q.constitutional_reform > 0) {
         if (
-            base_frac * 100 < Q.electoral_threshold ||
+            base * 100 < Q.electoral_threshold ||
             (Q.electoral_threshold > 1 && party === 'other') ||
             Q[party + '_banned']
         ) {
-            Q[party + '_r_frac'] = 0;
+            Q[party + '_normalized'] = 0;
         } else {
-            Q[party + '_r_frac'] = base_frac;
-            new_party_sum += base_frac;
+            new_party_sum += base;
         }
     } else {
-        Q[party + '_r_frac'] = base_frac;
-        new_party_sum += base_frac;
+        new_party_sum += base;
     }
 }
 
-// renormalize AFTER exclusions (still fractions)
-if (Q.electoral_threshold && Q.electoral_threshold > 0 && new_party_sum > 0) {
+// --- Renormalize AFTER exclusions (still 0–1 fractions) ---
+if (Q.constitutional_reform > 0 && new_party_sum > 0) {
     for (var party of Q.parties) {
-        if (Q[party + '_r_frac'] > 0) {
-            Q[party + '_r_frac'] /= new_party_sum;
+        if (Q[party + '_normalized'] > 0) {
+            Q[party + '_normalized'] /= new_party_sum;
         }
     }
 }
 
-// --- display & change values (NO logic below this line) ---
+// --- Display & change values (NO LOGIC BELOW) ---
 for (var party of Q.parties) {
 
-    var pct = Q[party + '_r_frac'] * 100;
+    var pct = Q[party + '_normalized'] * 100;
 
     // display
     Q[party + '_r_disp'] = Q.use_decimals
         ? pct.toFixed(1)
         : Math.round(pct);
 
-    // legacy compatibility if something still reads *_r
+    // legacy compatibility
     Q[party + '_r'] = pct;
 
     // change display
-    var delta = pct - (Q['old_' + party + '_r_frac'] * 100);
+    var delta = pct - (Q['old_' + party + '_normalized'] * 100);
     var sign = delta > 0 ? '+' : '';
 
     Q['change_' + party + '_r'] = delta;
-    Q['str_change_' + party] = sign + (Q.use_decimals
-        ? delta.toFixed(1)
-        : Math.round(delta));
+    Q['str_change_' + party] = sign + (
+        Q.use_decimals ? delta.toFixed(1) : Math.round(delta)
+    );
 }
 
 // get change arrows and signs
