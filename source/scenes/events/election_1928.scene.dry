@@ -42,24 +42,19 @@ on-arrival: {!
 // election threshold constitutional reform
 // banning parties
 
-// --- Store previous results (fractions 0–1) ---
-for (var party of Q.parties) {
-    Q['old_' + party + '_normalized'] = Q[party + '_normalized'] || 0;
-}
-
 // --- Apply thresholds / bans on fractions ---
 var new_party_sum = 0;
 
 for (var party of Q.parties) {
-    var base = Q[party + '_normalized']; // 0–1 fraction
+    var base = Q[party + '_normalized']; // internal 0–1 fraction
 
     if (Q.constitutional_reform > 0) {
         if (
-            base * 100 < Q.electoral_threshold ||
+            base * 100 < Q.electoral_threshold || 
             (Q.electoral_threshold > 1 && party === 'other') ||
             Q[party + '_banned']
         ) {
-            Q[party + '_normalized'] = 0;
+            Q[party + '_normalized'] = 0; // internal fraction still 0–1
         } else {
             new_party_sum += base;
         }
@@ -68,36 +63,30 @@ for (var party of Q.parties) {
     }
 }
 
-// --- Renormalize AFTER exclusions (still 0–1 fractions) ---
+// --- Renormalize AFTER exclusions (fractions preserved) ---
 if (Q.constitutional_reform > 0 && new_party_sum > 0) {
     for (var party of Q.parties) {
         if (Q[party + '_normalized'] > 0) {
-            Q[party + '_normalized'] /= new_party_sum;
+            Q[party + '_normalized'] /= new_party_sum; // still 0–1
         }
     }
 }
 
-// --- Display & change values (NO LOGIC BELOW) ---
+// --- Compute display values separately ---
 for (var party of Q.parties) {
-
     var pct = Q[party + '_normalized'] * 100;
 
-    // display
-    Q[party + '_r_disp'] = Q.use_decimals
-        ? pct.toFixed(1)
-        : Math.round(pct);
+    // Separate display variable: can round or show decimals
+    Q[party + '_r_disp'] = Q.use_decimals ? pct.toFixed(1) : Math.round(pct);
 
-    // legacy compatibility
+    // Legacy compatibility: internal fraction * 100 but do NOT overwrite normalized fraction
     Q[party + '_r'] = pct;
 
-    // change display
+    // Delta for display
     var delta = pct - (Q['old_' + party + '_normalized'] * 100);
     var sign = delta > 0 ? '+' : '';
-
     Q['change_' + party + '_r'] = delta;
-    Q['str_change_' + party] = sign + (
-        Q.use_decimals ? delta.toFixed(1) : Math.round(delta)
-    );
+    Q['str_change_' + party] = sign + (Q.use_decimals ? delta.toFixed(1) : Math.round(delta));
 }
 
 // get change arrows and signs
