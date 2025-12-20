@@ -228,6 +228,14 @@ go-to: rm_main
 
 Schumacher has been removed as an advisor. The Neorevisionist faction disapproves.
 
+@remove_buchwitz
+title: Remove Buchwitz
+view-if: buchwitz_advisor = 1
+tags: remove_advisor
+on-arrival: buchwitz_advisor = 0; neorevisionist_dissent += 3; n_advisors -= 1
+go-to: rm_main
+
+Buchwitz has been removed as an advisor. The Neorevisionist faction disapproves.
 
 ## nonfactional
 
@@ -583,6 +591,19 @@ go-to: advisor_menu
 tags: neorev_advisor
 
 Julius Leber is now an advisor.
+
+
+@add_buchwitz
+title: Otto Buchwitz
+subtitle: Julius Leber is a former Reichswehr officer who resigned in opposition to the Kapp coup attempt. {!<br><br>!}[? if difficulty < 0 : Actions - Rally for Democracy, Military Affairs, Building a People's Party ?]
+is-card: true
+card-image: img/portraits/LeberJulius.jpg
+view-if: buchwitz_advisor = 0 and n_advisors < 4
+on-arrival: buchwitz_advisor = 1; n_advisors += 1; neorevisionist_strength += 5
+go-to: advisor_menu
+tags: neorev_advisor
+
+Otto Buchwitz is now an advisor.
 
 # Nonfactional advisors
 
