@@ -42,52 +42,72 @@ on-arrival: {!
 // election threshold constitutional reform
 // banning parties
 
-// --- Apply thresholds / bans on fractions ---
+// set old results
+// election threshold constitutional reform
+// banning parties
 var new_party_sum = 0;
 
 for (var party of Q.parties) {
-    var base = Q[party + '_normalized']; // internal 0–1 fraction
+    Q['old_' + party + '_r'] = Q[party + '_r'];
 
     if (Q.constitutional_reform > 0) {
         if (
-            base * 100 < Q.electoral_threshold || 
-            (Q.electoral_threshold > 1 && party === 'other') ||
+            Q[party + '_votes'] < Q.electoral_threshold ||
+            (Q.electoral_threshold > 1 && party == 'other') ||
             Q[party + '_banned']
         ) {
-            Q[party + '_normalized'] = 0; // internal fraction still 0–1
+            Q[party + '_r'] = 0;
         } else {
-            new_party_sum += base;
+            Q[party + '_r'] = Q.use_decimals
+                ? Math.round(Q[party + '_votes'] * 10) / 10
+                : Q[party + '_votes'];
         }
+        new_party_sum += Q[party + '_r'];
     } else {
-        new_party_sum += base;
+        Q[party + '_r'] = Q.use_decimals
+            ? Math.round(Q[party + '_votes'] * 10) / 10
+            : Q[party + '_votes'];
     }
+
+    // display value
+    if (Q.use_decimals) {
+        Q[party + '_r_disp'] = Q[party + '_r'].toFixed(1);
+    } else {
+        Q[party + '_r_disp'] = Q[party + '_r'];
+    }
+
+    Q['change_' + party + '_r'] =
+        Q[party + '_r'] - Q['old_' + party + '_r'];
+    var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
+    Q['str_change_' + party] =
+        sign + Q['change_' + party + '_r'];
 }
 
-// --- Renormalize AFTER exclusions (fractions preserved) ---
-if (Q.constitutional_reform > 0 && new_party_sum > 0) {
+// calculate new party sum if electoral reform
+if (Q.electoral_threshold && Q.electoral_threshold > 0) {
     for (var party of Q.parties) {
-        if (Q[party + '_normalized'] > 0) {
-            Q[party + '_normalized'] /= new_party_sum; // still 0–1
+        if (Q[party + '_r'] > 0) {
+            if (Q.use_decimals) {
+                Q[party + '_r'] =
+                    Math.round(Q[party + '_r'] * 1000 / new_party_sum) / 10;
+            } else {
+                Q[party + '_r'] =
+                    Math.round(Q[party + '_r'] * 100 / new_party_sum);
+            }
         }
+
+        if (Q.use_decimals) {
+            Q[party + '_r_disp'] = Q[party + '_r'].toFixed(1);
+        } else {
+            Q[party + '_r_disp'] = Q[party + '_r'];
+        }
+
+        Q['change_' + party + '_r'] =
+            Q[party + '_r'] - Q['old_' + party + '_r'];
+        var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
+        Q['str_change_' + party] =
+            sign + Q['change_' + party + '_r'];
     }
-}
-
-// --- Compute display values separately ---
-for (var party of Q.parties) {
-    var pct = Q[party + '_normalized'] * 100;
-
-    // Display
-    Q[party + '_r_disp'] = Q.use_decimals ? pct.toFixed(1) : Math.round(pct);
-
-    // Legacy compatibility with 1 decimal precision
-    Q[party + '_r'] = Math.round(pct * 10) / 10;
-
-    // Delta calculation safely
-    var old_val = Q['old_' + party + '_normalized'] != null ? Q['old_' + party + '_normalized'] : 0;
-    var delta = pct - (old_val * 100);
-    var sign = delta > 0 ? '+' : '';
-    Q['change_' + party + '_r'] = delta;
-    Q['str_change_' + party] = sign + (Q.use_decimals ? delta.toFixed(1) : Math.round(delta));
 }
 
 // get change arrows and signs
