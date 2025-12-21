@@ -354,6 +354,7 @@ if (Q.month_actions >= 1) {
     Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/50, 0.5), 1.5), 0.15);
     Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/50, 0.5), 1.5), 0.15);
     Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
+    Q.street_pressure_factor = Q.random_factor(Math.min(Math.max((Q.sa_strength * Q.sa_militancy + Q.rfb_strength * Q.rfb_militancy + Q.sh_strength * Q.sh_militancy) / 4000,  0.7 ), 1.8 ), 0.25);
 
     Q.nat_dom = Math.min(Math.max(Q.nationalism/(Q.socialism+1), 0.5), 1.5);
     Q.soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
@@ -450,7 +451,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor * (Q.unrest_factor * 2.1) * Q.nat_dom, 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor * (Q.unrest_factor * 2.1) * Q.nat_dom * Q.street_pressure_factor, 0.25);
                     break;
                 case 'dnvp':
                     if (Q.dnvp_line === 1) {
@@ -462,14 +463,14 @@ if (Q.month_actions >= 1) {
                     } else {
                         // traditional nationalist DNVP
                         Q.ideology_factor = Q.random_factor(
-                            Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor * 0.085),
+                            Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor * 0.085) * (Q.street_pressure_factor / 2) ,
                             0.15
                         );
                     }
                     break;
                 case 'kpd':
                     Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj, 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor, 0.25);
                     break;
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
