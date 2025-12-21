@@ -401,7 +401,7 @@ if (Q.month_actions >= 1) {
         }
     }
 
-    Q.siphon_fraction = 0.20 * (1 + Q.unrest_factor);
+    Q.siphon_fraction = 0.15 * (1 + Q.unrest_factor);
 
     if (Q.dominant_nat) {
         for (Q.p of Q.nationalist_parties) {
@@ -450,7 +450,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor * Q.unrest_factor * 2.2 * Q.nat_dom, 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.nationalism_factor * (Q.unrest_factor * 2.1) * Q.nat_dom, 0.25);
                     break;
                 case 'dnvp':
                     if (Q.dnvp_line === 1) {
@@ -462,7 +462,7 @@ if (Q.month_actions >= 1) {
                     } else {
                         // traditional nationalist DNVP
                         Q.ideology_factor = Q.random_factor(
-                            Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor * 0.2),
+                            Q.nationalism_factor / 1.25 * (1 + Q.unrest_factor * 0.085),
                             0.15
                         );
                     }
