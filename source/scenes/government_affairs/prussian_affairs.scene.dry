@@ -13,6 +13,9 @@ Prussia, by far the largest and most important state in Germany, is governed by 
 
 We can enact policies in Prussia.
 
+Current police loyalty: [+ prussian_police_loyalty : loyalty +].
+Current police strength: [+ prussian_police_strength : strength +].
+
 - @police_loyalty: Bolster the loyalty of the police.
 - @police_strength: Recruit additional police.
 - @bureaucracy: Purge the bureaucracy of reactionary elements.
@@ -38,12 +41,12 @@ The police have historically been overrun with reactionaries, and we are trying 
 Current police loyalty: [+ prussian_police_loyalty : loyalty +].
 
 @police_strength
-on-arrival: prussian_police_strength += 20
+on-arrival: prussian_police_strength += 20 if prussian_police_loyalty < 0.75; prussian_police_strength += 40 if prussian_police_loyalty >= 0.75
 
-We have increased the size of the Prussian police.
+We have increased the size of the Prussian police. [? if prussian_police_loyalty >= 0.75: Loyalty of our Prussian Police allows us to recruit even more units compared to our previous crippled state! ?]
 
 @bureaucracy
-on-arrival: prussian_police_loyalty += 0.05; nationalism -= 5; pacifism += 1; democratization += 1; pro_republic += 3*(1-dissent); new_middle_spd += 2*(1-dissent) if democratization >= 3; new_middle_spd += 2*(1-dissent) if democratization >= 4; coup_progress += 0.5
+on-arrival: prussian_police_loyalty += 0.05; nationalism -= 5; pacifism += 1; democratization += 1; pro_republic += 3*(1-dissent); new_middle_spd += 2*(1-dissent) if democratization >= 3; new_middle_spd += 2*(1-dissent) if democratization >= 4; coup_progress += 0.5; prussian_police_strength *= 0.91
 
 The bureaucracy is deeply reactionary, and many abuse their power to favor the political right. By removing the pro-monarchy and pro-dictatorship elements, we can democratize it. Some of our opponents claim that we are infringing on individual freedoms, but perhaps the security of the republic requires it.
 
@@ -74,7 +77,7 @@ The Stahlhelm is no longer banned.
 
 @ban_rfb
 view-if: communist_coalition < 3 and rfb_banned = 0
-on-arrival: kpd_relation -= 15; rfb_strength -= 50; rfb_banned = 1; communist_coalition -= 1; z_relation += 5; dvp_relation += 5; prussian_police_loyalty += 0.1; rdb_strength *= (bonus_mdf_reform + 0.3) if full_reform_initiated = 1;
+on-arrival: kpd_relation -= 15; rfb_strength -= 50; rfb_banned = 1; communist_coalition -= 1; z_relation += 5; dvp_relation += 5; prussian_police_loyalty += 0.1; rfb_strength *= (bonus_mdf_reform + 0.3) if full_reform_initiated = 1;
 
 The ban is enthusiastically carried out by the police, perhaps too enthusiastically. The Communists take this as one more reason why the Socialists are traitors to the left. However, the moderate and center-right parties approve, as do the police.
 
