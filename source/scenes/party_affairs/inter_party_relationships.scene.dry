@@ -1,6 +1,6 @@
 title: Inter-Party Relationships
 new-page: true
-view-if: year <= 1932 and inter_party_relationships_timer <= 0
+view-if: (year <= 1932 and inter_party_relationships_timer <= 0) or sandbox = 1
 tags: party_affairs
 is-card: true
 on-arrival: month_actions += 1; inter_party_relationships_timer = 6;
@@ -66,7 +66,7 @@ on-arrival: resources -= 1; z_relation += 2 if z_party_leader == "Joos"
 go-to: center_op if z_in_government = 1 and spd_in_government = 0 and chancellor != "Brüning"; center_coalition if spd_in_government = 1 and z_in_government = 1; center_bruning if chancellor = "Brüning"
 
 @center_op
-on-arrival: z_relation += 5*(1 - dissent)
+on-arrival: z_relation += 4*(1 - dissent)
 
 We are in opposition, but good-will-building continues with the <span style="color:#FF6699;"><b>Center Party</b></span>.
 
@@ -76,7 +76,7 @@ on-arrival: z_relation += 8*(1 - dissent)
 As coalition partners, relations improve naturally.
 
 @center_bruning
-on-arrival: z_relation += 5*(1 - dissent)
+on-arrival: z_relation += 6*(1 - dissent)
 
 The <span style="color:#FF6699;"><b>Brüning</b></span> semi-autocratic regime complicates building friendly relations, but it is possible.
 
@@ -85,7 +85,7 @@ subtitle: <span style="color:#66CCFF;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: resources -= 1; ddp_relation += 5*(1 - dissent)
-go-to: dvp_stresemann if stresemann_dead = 0; dvp_loss if stresemann_dead = 1 and year <= 1930; dvp_moribund if year > 1930
+go-to: dvp_stresemann if stresemann_dead = 0; dvp_loss if stresemann_dead = 1 and dvp_votes >= 3; dvp_moribund if dvp_votes <= 3
 
 The <span style="color:#66CCFF;"><b>[+ ddp_name +]</b></span> has been one of our closest allies in the Republic.
 
@@ -100,7 +100,7 @@ on-arrival: dvp_relation += 5*(1 - dissent)
 After Stresemann’s death, the DVP is less accommodating. Liberals are also in decline, but influence remains among right-wing parties[? if president == "Hindenburg": and with President Hindenburg ?].
 
 @dvp_moribund
-on-arrival: dvp_relation += 5*(1 - dissent)
+on-arrival: dvp_relation += 3*(1 - dissent)
 
 The liberal parties (both <span style="color:#66CCFF;"><b>[+ ddp_name +]</b></span> and DVP) are electorally moribund. Influence over right-wing factions and Hindenburg remains relevant[? if president == "Hindenburg": and with President Hindenburg ?].
 
@@ -108,9 +108,11 @@ The liberal parties (both <span style="color:#66CCFF;"><b>[+ ddp_name +]</b></sp
 subtitle: <span style="color:#000000;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources
-on-arrival: resources -= 1; dnvp_relation += 3*(1 - dissent)
+on-arrival: resources -= 1; dnvp_relation += 3*(1 - dissent); dnvp_relation += 1 if dnvp_line = 1
 
 We attempted reconciliation with the <span style="color:#000000;"><b>DNVP</b></span>, staying distant on core issues due to inherent contradictions.
+
+[? if dnvp_line = 1: DNVP is more friendly after the victory of Republican General Fraction amongst DNVP, but this does not mean in any way anything but simple cooperation to keep radicals out of the bay. ?]
 
 @spd_alone
 
