@@ -587,7 +587,7 @@ go-to: right_coalition_2
 unavailable-subtitle: The DNVP is not interested in a coalition with the Center.
 view-if: right_coalition >= 50
 choose-if: year < 1929 or dnvp_line != 3
-on-arrival: spd_in_government = 0; spd_toleration = 0; chancellor = "Brüning"; chancellor_party = "Z"; foreign_minister_party = "DVP"; interior_minister_party = "DNVP"; justice_minister_party = "DNVP"; labor_minister_party = "Z"; reichswehr_minister_party = "I"; economic_minister_party = "DVP"; finance_minister_party = "Z"; agriculture_minister_party = "DNVP"; in_right_coalition = 1;
+on-arrival: spd_in_government = 0; chancellor = "Brüning"; chancellor_party = "Z"; foreign_minister_party = "DVP"; interior_minister_party = "DNVP"; justice_minister_party = "DNVP"; labor_minister_party = "Z"; reichswehr_minister_party = "I"; economic_minister_party = "DVP"; finance_minister_party = "Z"; agriculture_minister_party = "DNVP"; in_right_coalition = 1; spd_toleration = 1
 
 Even though the DNVP is very reluctant to participate in such a coalition, they still accede to President Hindenburg's wishes. Thus, a majority center-right coalition is formed, with Brüning as chancellor.
 
@@ -595,7 +595,7 @@ Even though the DNVP is very reluctant to participate in such a coalition, they 
 
 @no_majority
 title: There is no clear governing majority.
-view-if: weimar_coalition < 50 and (grand_coalition < 50 or grand_coalition_failed == 1) and president = "Hindenburg" and far_right_coalition < 50 and (far_right_coalition >= 50 and dnvp_line = 1)
+view-if: weimar_coalition < 50 and (grand_coalition < 50 or grand_coalition_failed == 1) and president = "Hindenburg" and far_right_coalition < 50 or (far_right_coalition >= 50 and dnvp_line = 1)
 on-arrival: no_majority_elections += 1
 go-to: no_majority_bruning if chancellor = "Brüning" or chancellor = "Wirth"; no_majority_papen if chancellor = "Papen" and no_majority_papen_elections == 0; no_majority_papen_2 if chancellor == "Papen" and no_majority_papen_elections > 0; no_majority_schleicher if chancellor = "Schleicher"; no_majority_spd if chancellor_party = "SPD" or chancellor == "Marx"
 
