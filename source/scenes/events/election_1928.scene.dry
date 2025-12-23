@@ -44,11 +44,12 @@ on-arrival: {!
 
 var new_party_sum = 0;
 
-/* ========= PASS 1: RAW VALUES ONLY ========= */
+/* ========= PASS 1: RAW VALUES ========= */
 for (var party of Q.parties) {
+    // store previous value
     Q['old_' + party + '_r'] = Q[party + '_r'] || 0;
 
-    // RAW value (never rounded)
+    // raw votes, with electoral threshold checks
     if (Q.constitutional_reform > 0) {
         if (
             Q[party + '_votes'] < Q.electoral_threshold ||
@@ -64,29 +65,31 @@ for (var party of Q.parties) {
         Q[party + '_r_raw'] = Q[party + '_votes'];
     }
 
-    // store raw as float
+    // store raw value as float
     Q[party + '_r'] = Q[party + '_r_raw'];
 }
 
-/* ========= PASS 2: NORMALIZATION (IF ELECTORAL THRESHOLD) ========= */
+/* ========= PASS 2: NORMALIZATION ========= */
 if (Q.electoral_threshold && Q.electoral_threshold > 0 && new_party_sum > 0) {
     for (var party of Q.parties) {
-        Q[party + '_r_normalized'] = Q[party + '_r_raw'] / new_party_sum;
+        Q[party + '_r_normalized'] = Q[party + '_r_raw'] / new_party_sum; // fraction
         Q[party + '_r'] = Q[party + '_r_normalized'] * 100; // exact float percent
     }
 } else {
     for (var party of Q.parties) {
-        Q[party + '_r_normalized'] = Q[party + '_r'] / 100; // keep fraction for internal calculations
+        Q[party + '_r_normalized'] = Q[party + '_r'] / 100; // fraction for calculations
     }
 }
 
-/* ========= PASS 3: DISPLAY + DELTAS (ONE DECIMAL) ========= */
+/* ========= PASS 3: DISPLAY + DELTAS ========= */
 for (var party of Q.parties) {
-    // display with one decimal
+    // display with one decimal (string only)
     Q[party + '_r_disp'] = Q[party + '_r'].toFixed(1);
 
-    // change from old value
+    // compute change as float (never rounded)
     Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
+
+    // string for display with one decimal
     var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
     Q['str_change_' + party] = sign + Q['change_' + party + '_r'].toFixed(1);
 }
