@@ -48,8 +48,7 @@ var new_party_sum = 0;
 for (var party of Q.parties) {
     Q['old_' + party + '_r'] = Q[party + '_r'] || 0;
 
-    Q[party + '_r_raw'] = 0;
-
+    // RAW value (never rounded)
     if (Q.constitutional_reform > 0) {
         if (
             Q[party + '_votes'] < Q.electoral_threshold ||
@@ -65,27 +64,28 @@ for (var party of Q.parties) {
         Q[party + '_r_raw'] = Q[party + '_votes'];
     }
 
-    // Keep raw value
+    // store raw as float
     Q[party + '_r'] = Q[party + '_r_raw'];
 }
 
 /* ========= PASS 2: NORMALIZATION (IF ELECTORAL THRESHOLD) ========= */
-if (Q.electoral_threshold && Q.electoral_threshold > 0) {
+if (Q.electoral_threshold && Q.electoral_threshold > 0 && new_party_sum > 0) {
     for (var party of Q.parties) {
-        if (Q[party + '_r_raw'] > 0) {
-            Q[party + '_r'] = (Q[party + '_r_raw'] / new_party_sum) * 1000;
-        } else {
-            Q[party + '_r'] = 0;
-        }
+        Q[party + '_r_normalized'] = Q[party + '_r_raw'] / new_party_sum;
+        Q[party + '_r'] = Q[party + '_r_normalized'] * 100; // exact float percent
+    }
+} else {
+    for (var party of Q.parties) {
+        Q[party + '_r_normalized'] = Q[party + '_r'] / 100; // keep fraction for internal calculations
     }
 }
 
-/* ========= PASS 3: DISPLAY + DELTAS (FORCE ONE DECIMAL) ========= */
+/* ========= PASS 3: DISPLAY + DELTAS (ONE DECIMAL) ========= */
 for (var party of Q.parties) {
-    // Display vote share with 1 decimal
+    // display with one decimal
     Q[party + '_r_disp'] = Q[party + '_r'].toFixed(1);
 
-    // Change vs old, also forced to 1 decimal
+    // change from old value
     Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
     var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
     Q['str_change_' + party] = sign + Q['change_' + party + '_r'].toFixed(1);
