@@ -42,14 +42,9 @@ on-arrival: {!
 // election threshold constitutional reform
 // banning parties
 
-function round1(x) {
-    return Number(x.toFixed(1));
-}
-
 var new_party_sum = 0;
 
 /* ========= PASS 1: RAW VALUES ONLY ========= */
-
 for (var party of Q.parties) {
     Q['old_' + party + '_r'] = Q[party + '_r'] || 0;
 
@@ -70,42 +65,28 @@ for (var party of Q.parties) {
         Q[party + '_r_raw'] = Q[party + '_votes'];
     }
 
-    // TEMP assignment — NO rounding here
+    // Keep raw value
     Q[party + '_r'] = Q[party + '_r_raw'];
 }
 
-/* ========= PASS 2: NORMALIZATION ========= */
-
+/* ========= PASS 2: NORMALIZATION (IF ELECTORAL THRESHOLD) ========= */
 if (Q.electoral_threshold && Q.electoral_threshold > 0) {
     for (var party of Q.parties) {
         if (Q[party + '_r_raw'] > 0) {
-            Q[party + '_r'] = round1(
-                (Q[party + '_r_raw'] / new_party_sum) * 100
-            );
+            Q[party + '_r'] = (Q[party + '_r_raw'] / new_party_sum) * 100;
         } else {
             Q[party + '_r'] = 0;
         }
     }
-} else {
-    for (var party of Q.parties) {
-        Q[party + '_r'] = round1(Q[party + '_r_raw']);
-    }
 }
 
-/* ========= PASS 3: DISPLAY + DELTAS ========= */
-
+/* ========= PASS 3: DISPLAY + DELTAS (NO ROUNDING) ========= */
 for (var party of Q.parties) {
-    Q[party + '_r_disp'] = Q.use_decimals
-        ? Q[party + '_r'].toFixed(1)
-        : Q[party + '_r'];
+    Q[party + '_r_disp'] = Q[party + '_r']; // raw display
 
-    Q['change_' + party + '_r'] = round1(
-        Q[party + '_r'] - Q['old_' + party + '_r']
-    );
-
+    Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
     var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
-    Q['str_change_' + party] =
-        sign + Q['change_' + party + '_r'].toFixed(1);
+    Q['str_change_' + party] = sign + Q['change_' + party + '_r'];
 }
 
 
