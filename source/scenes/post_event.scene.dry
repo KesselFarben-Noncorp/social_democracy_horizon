@@ -43,33 +43,32 @@ for (var c of Q.factions) {
 if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
-
 // Original values
-let groups = {
-    workers,
-    old_middle,
-    new_middle,
-    rural,
-    unemployed,
-    catholics
+let socialGroups = {
+    workers: 50,
+    old_middle: 11,
+    new_middle: 14,
+    rural: 23,
+    unemployed: 8.9,
+    catholics: 28
 };
 
-// Step 1: calculate total
+// Calculate total
 let total = 0;
-for (let g in groups) total += groups[g];
+for (let key in socialGroups) {
+    total += socialGroups[key];
+}
 
-// Step 2: calculate normalization factor
+// Calculate normalization factor
 let factor = 100 / total;
 
-// Step 3: normalize each group
-for (let g in groups) {
-    Q[g] = groups[g] * factor;
+// Apply normalization
+for (let key in socialGroups) {
+    socialGroups[key] = +(socialGroups[key] * factor).toFixed(2); // rounded to 2 decimals
 }
 
-// Optional: round to 2 decimal places
-for (let g in groups) {
-    Q[g] = Math.round(Q[g]*100)/100;
-}
+// Output normalized values
+console.log(socialGroups);
 
 
 
