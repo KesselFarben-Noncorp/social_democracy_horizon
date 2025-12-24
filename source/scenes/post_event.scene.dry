@@ -45,6 +45,25 @@ if (Q.unemployed <= 1) {
 }
 
 
+// Original proportions
+let classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed', 'catholics'];
+
+// Calculate total
+let total = 0;
+for (let c of classes) {
+    total += Q[c];
+}
+
+// Calculate normalization factor
+let factor = 100 / total;
+
+// Normalize each class
+for (let c of classes) {
+    Q[c] = +(Q[c] * factor).toFixed(2); // round to 2 decimals if desired
+}
+
+// After this, sum of Q.workers + Q.old_middle + ... + Q.catholics === 100
+
 
 // --- Recalculate normalized class votes ---
 for (var c of Q.classes) {
@@ -354,34 +373,7 @@ if (Q.month_actions >= 1) {
             Q.rural_nsdap += 4/12;
         }
     }
-
-    // Original values
-    let socialGroups = {
-        workers: 50,
-        old_middle: 11,
-        new_middle: 14,
-        rural: 23,
-        unemployed: 8.9,
-        catholics: 28
-    };
-
-    // Calculate total
-        let total = 0;
-        for (let key in socialGroups) {
-            total += socialGroups[key];
-        }
-
-    // Calculate normalization factor
-    let factor = 100 / total;
-
-    // Apply normalization
-    for (let key in socialGroups) {
-        socialGroups[key] = +(socialGroups[key] * factor).toFixed(2); // rounded to 2 decimals
-    }
-
-    // Output normalized values
-    console.log(socialGroups);
-
+    
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
     Q.drift_base = 0.95;
