@@ -44,6 +44,36 @@ if (Q.unemployed <= 1) {
     Q.unemployed = 1;
 }
 
+// Original values
+let groups = {
+    workers,
+    old_middle,
+    new_middle,
+    rural,
+    unemployed,
+    catholics
+};
+
+// Step 1: calculate total
+let total = 0;
+for (let g in groups) total += groups[g];
+
+// Step 2: calculate normalization factor
+let factor = 100 / total;
+
+// Step 3: normalize each group
+for (let g in groups) {
+    Q[g] = groups[g] * factor;
+}
+
+// Optional: round to 2 decimal places
+for (let g in groups) {
+    Q[g] = Math.round(Q[g]*100)/100;
+}
+
+
+
+
 // --- Recalculate normalized class votes ---
 for (var c of Q.classes) {
     let class_votes = 0;
