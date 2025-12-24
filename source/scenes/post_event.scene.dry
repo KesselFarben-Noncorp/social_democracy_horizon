@@ -215,63 +215,93 @@ if (Q.month_actions >= 1) {
     }
 
     function updateEconomy(Q, dt = 1) {
+    const NAIRU = 6.0;
+    const POTENTIAL_GROWTH = 2.5;
 
-        /* === PARAMETERS (tuneable regimes) === */
-        const NAIRU = 6.0;
-        const POTENTIAL_GROWTH = 2.5;
+    // === IMPULSE → STATE MAPPINGS ===
+    
+    // Fiscal stance affects budget and demand
+    Q.budget += Q.fiscal_stance * 0.5 * dt;
+    let fiscal_demand = -Q.fiscal_stance * 0.3; // expansion boosts demand
+    
+    // Aggregate demand effect
+    let total_demand = Q.demand_impulse + fiscal_demand;
+    
+    // Capital pressure dampens investment
+    let investment_effect = Q.supply_impulse * (1 - Q.capital_pressure * 0.4);
+    
+    // Distribution affects consumption multiplier
+    let consumption_multiplier = 1 + Q.distribution_shift * 0.2;
+    total_demand *= consumption_multiplier;
 
-        const α = 0.08;   // unemployment → inflation
-        const β = 0.05;   // output gap → inflation
-        const γ = 0.04;   // deficit → inflation
-        const ρ = 0.15;   // inflation inertia
+    // === CORE PARAMETERS ===
+    const α = 0.08;
+    const β = 0.05;
+    const γ = 0.04;
+    const ρ = 0.15;
+    const κ = 0.12;
+    const λ = 0.02;
+    const μ = 0.10;
+    const η = 0.015;
+    const θ = 0.03;
+    const ψ = 0.04;
+    const ω = 0.25;
 
-        const κ = 0.12;   // growth → unemployment
-        const λ = 0.02;   // inflation shock → unemployment
+    let output_gap = Q.economic_growth - POTENTIAL_GROWTH;
+    let overheating = Math.max(0, Q.economic_growth - 6);
 
-        const μ = 0.10;   // output gap persistence
-        const η = 0.015;  // inflation drag on growth
-        const θ = 0.03;   // unemployment drag
-        const ψ = 0.04;   // overheating penalty
+    // === INFLATION DYNAMICS (with impulses) ===
+    let dInflation =
+        α * (NAIRU - Q.unemployed) +
+        β * output_gap +
+        γ * Math.min(0, Q.budget) -
+        ρ * (Q.inflation - Q.inflation_expectations) +
+        Q.price_pressure * 0.15 + // direct price shocks
+        Q.trade_pressure * 0.08;  // imported inflation
 
-        const ω = 0.25;   // expectations speed
+    Q.inflation_expectations += ω * (Q.inflation - Q.inflation_expectations) * dt;
 
-        /* === DERIVED TERMS === */
-        let output_gap = Q.economic_growth - POTENTIAL_GROWTH;
-        let overheating = Math.max(0, Q.economic_growth - 6);
+    // === UNEMPLOYMENT DYNAMICS ===
+    let dUnemployment =
+        -κ * (Q.economic_growth - POTENTIAL_GROWTH) +
+        λ * Math.max(0, Q.inflation - 6) -
+        total_demand * 0.05; // demand creates jobs
 
-        /* === INFLATION DYNAMICS === */
-        let dInflation =
-            α * (NAIRU - Q.unemployed) +
-            β * output_gap +
-            γ * Math.min(0, Q.budget) -
-            ρ * (Q.inflation - Q.inflation_expectations);
+    // === GROWTH DYNAMICS (with impulses) ===
+    let dGrowth =
+        μ * output_gap -
+        η * Math.pow(Q.inflation, 2) -
+        θ * Math.max(0, Q.unemployed - NAIRU) -
+        ψ * overheating +
+        total_demand * 0.20 +        // demand-led growth
+        investment_effect * 0.25 -   // supply-side growth
+        Q.trade_pressure * 0.10 -    // trade friction drag
+        Q.capital_pressure * 0.15;   // investment strike
 
-        /* === EXPECTATIONS UPDATE === */
-        Q.inflation_expectations +=
-            ω * (Q.inflation - Q.inflation_expectations) * dt;
+    // === IMPULSE DECAY (return to baseline) ===
+    Q.demand_impulse *= Math.exp(-0.3 * dt);
+    Q.supply_impulse *= Math.exp(-0.2 * dt);
+    Q.price_pressure *= Math.exp(-0.4 * dt);
+    Q.trade_pressure *= Math.exp(-0.25 * dt);
+    Q.capital_pressure *= Math.exp(-0.15 * dt);
+    
+    // Fiscal stance persists longer
+    Q.fiscal_stance *= Math.exp(-0.1 * dt);
+    
+    // Distribution shifts are structural (slow decay)
+    Q.distribution_shift *= Math.exp(-0.05 * dt);
 
-        /* === UNEMPLOYMENT DYNAMICS === */
-         let dUnemployment =
-            -κ * (Q.economic_growth - POTENTIAL_GROWTH) +
-             λ * Math.max(0, Q.inflation - 6);
+    // === APPLY CHANGES ===
+    Q.inflation += dInflation * dt;
+    Q.unemployed += dUnemployment * dt;
+    Q.economic_growth += dGrowth * dt;
 
-        /* === GROWTH DYNAMICS === */
-        let dGrowth =
-            μ * output_gap -
-            η * Math.pow(Q.inflation, 2) -
-            θ * Math.max(0, Q.unemployed - NAIRU) -
-            ψ * overheating;
-
-        /* === APPLY CHANGES === */
-        Q.inflation += dInflation * dt;
-        Q.unemployed += dUnemployment * dt;
-        Q.economic_growth += dGrowth * dt;
-
-        /* === HARD CONSTRAINTS === */
-        Q.inflation = clamp(Q.inflation, -8, 18);
-        Q.unemployed = clamp(Q.unemployed, 1, 40);
-        Q.economic_growth = clamp(Q.economic_growth, -12, 15);
-        Q.inflation_expectations = clamp(Q.inflation_expectations, -5, 12);
+    // === CONSTRAINTS ===
+    Q.inflation = clamp(Q.inflation, -8, 18);
+    Q.unemployed = clamp(Q.unemployed, 1, 40);
+    Q.economic_growth = clamp(Q.economic_growth, -12, 15);
+    Q.inflation_expectations = clamp(Q.inflation_expectations, -5, 12);
+    Q.budget = clamp(Q.budget, -50, 50);
     }
 
     //////////////////////////////// Education & Science support/economic changes
