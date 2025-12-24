@@ -44,56 +44,53 @@ on-arrival: {!
 
 var new_party_sum = 0;
 
+/* ========= PASS 1: BUILD RAW FLOAT SUPPORT ========= */
 for (var party of Q.parties) {
-    Q['old_' + party + '_r'] = Q[party + '_r'] || 0;
+    // store old value (float!)
+    Q['old_' + party + '_r'] = Q[party + '_r'] ?? 0;
 
+    // RAW SUPPORT (never rounded)
     if (Q.constitutional_reform > 0) {
         if (
             Q[party + '_votes'] < Q.electoral_threshold ||
             (Q.electoral_threshold > 1 && party === 'other') ||
             Q[party + '_banned']
         ) {
-            Q[party + '_r'] = 0;
+            Q[party + '_support'] = 0;
         } else {
-            Q[party + '_r'] = Q[party + '_votes']; // float preserved
+            Q[party + '_support'] = Q[party + '_support']; // keep float
         }
-        new_party_sum += Q[party + '_r'];
-    } else {
-        Q[party + '_r'] = Q[party + '_votes'];
     }
 
-    // DISPLAY ONLY
+    new_party_sum += Q[party + '_support'];
+}
+
+/* ========= PASS 2: NORMALIZATION (PURE FLOAT) ========= */
+for (var party of Q.parties) {
+    if (new_party_sum > 0) {
+        Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
+    } else {
+        Q[party + '_r'] = 0;
+    }
+
+    // OPTIONAL snapshot (never reused!)
+    Q[party + '_votes'] = Math.round(Q[party + '_r'] * 10) / 10;
+}
+
+/* ========= PASS 3: DISPLAY + DELTAS (FORMAT ONLY) ========= */
+for (var party of Q.parties) {
+    // DISPLAY (string)
     Q[party + '_r_disp'] = Q.use_decimals
         ? Q[party + '_r'].toFixed(1)
-        : Q[party + '_r'];
+        : Math.round(Q[party + '_r']).toString();
 
+    // CHANGE (float math)
     Q['change_' + party + '_r'] =
         Q[party + '_r'] - Q['old_' + party + '_r'];
 
-    var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
     Q['str_change_' + party] =
-        sign + Q['change_' + party + '_r'].toFixed(1);
-}
-
-/* ===== Electoral threshold normalization (NO rounding) ===== */
-if (Q.electoral_threshold && Q.electoral_threshold > 0 && new_party_sum > 0) {
-    for (var party of Q.parties) {
-        if (Q[party + '_r'] > 0) {
-            // PURE FLOAT NORMALIZATION
-            Q[party + '_r'] = (Q[party + '_r'] * 100) / new_party_sum;
-        }
-
-        Q[party + '_r_disp'] = Q.use_decimals
-            ? Q[party + '_r'].toFixed(1)
-            : Q[party + '_r'];
-
-        Q['change_' + party + '_r'] =
-            Q[party + '_r'] - Q['old_' + party + '_r'];
-
-        var sign = Q['change_' + party + '_r'] > 0 ? '+' : '';
-        Q['str_change_' + party] =
-            sign + Q['change_' + party + '_r'].toFixed(1);
-    }
+        (Q['change_' + party + '_r'] >= 0 ? '+' : '') +
+        Q['change_' + party + '_r'].toFixed(1);
 }
 
 
