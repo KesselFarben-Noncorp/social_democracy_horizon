@@ -153,64 +153,61 @@ if (Q.month_actions >= 1) {
     Q.economic_records.push({'date': new Date(Q.year, Q.month - 1),
                              'inflation': Q.inflation,
                              'unemployment': Q.unemployed});
-    // change economic stats...
-    // we're basically implicity drawing a Philips curve
-    // budget deficits lead to some inflation
-    if (Q.budget <= 0 && Q.budget > -2 && Q.inflation < 2.5) {
-        Q.inflation += 0.1;
+
+    // Helper functions
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
     }
-    if (Q.budget <= -2 && Q.budget > -5 && Q.inflation < 5) {
-        Q.inflation += 0.2;
-        if (Q.unemployed >= 12) {
-            Q.inflation -= 0.1;
+
+    function randomNoise(scale = 0.01) {
+        return (Math.random() - 0.5) * 2 * scale; // small random perturbation
+    }
+
+    // Update macroeconomic variables
+    function updateEconomy(Q, dt = 1) {
+        // ---- Budget Deficit → Inflation ----
+        let deficitEffect = 0;
+        if (Q.budget < 0) {
+            deficitEffect = -Q.budget * 0.05; // proportional effect
+            deficitEffect *= (1 - Math.tanh((Q.unemployed - 10)/5)); // dampened if high unemployment
         }
-    }
-    if (Q.budget <= -5 && Q.inflation < 10) {
-        Q.inflation += 0.3;
-        if (Q.unemployed >= 15) {
-            Q.inflation -= 0.1;
+
+        // ---- Inflation dynamics ----
+        let inflationChange = deficitEffect;
+        // Deflation impact on unemployment
+        if (Q.inflation < 0) {
+            inflationChange -= 0.02 * (Q.unemployed / 20);
+            Q.unemployed += 0.05 * (-Q.inflation) * (1 - Math.exp(-Q.unemployed/15));
         }
-    }
-    // deflation is bad
-    if (Q.inflation < -0.5 && Q.inflation > -5 && Q.unemployed < 15) {
-        Q.unemployed += 0.2;
-    }
-    if (Q.inflation <= -5 && Q.unemployed < 20) {
-        Q.unemployed += 0.3;
-    }
-    // economic growth
-    if (Q.economic_growth < -0.5 && Q.unemployed <= 18) {
-        Q.unemployed += 0.1;
-    }
-    if (Q.economic_growth < -5 && Q.unemployed <= 28) {
-        Q.unemployed += 0.1;
-    }
-    if (Q.economic_growth >= 2 && Q.unemployed >= 17) {
-        Q.unemployed -= 0.1;
-    }
-    if (Q.economic_growth >= 4 && Q.unemployed >= 12) {
-        Q.unemployed -= 0.1;
-    }
-    if (Q.economic_growth >= 6 && Q.unemployed >= 7) {
-        Q.unemployed -= 0.1;
-    }
-    if (Q.economic_growth >= 8 && Q.unemployed >= 3) {
-        Q.unemployed -= 0.1;
-    }
-    if (Q.economic_growth >= 4 && Q.inflation >= 7.5) {
-        Q.economic_growth -= 0.1;
-    }
-    if (Q.economic_growth >= -2.5 && Q.inflation <= -5) {
-        Q.economic_growth -= 0.1;
-    }
-    if (Q.economic_growth >= 7) {
-        Q.economic_growth -= 0.1;
-    }
-    if (Q.economic_growth >= 10) {
-        Q.economic_growth -= 0.2;
-    }
-    if (Q.economic_growth >= 12) {
-        Q.economic_growth -= 0.3;
+
+        // Add small stochastic shocks
+        inflationChange += randomNoise(0.05);
+
+        Q.inflation = clamp(Q.inflation + inflationChange * dt, -10, 15);
+
+        // ---- Unemployment dynamics ----
+        let growthImpact = -0.1 * Q.economic_growth / 10; // growth reduces unemployment
+        let inflationImpact = 0.05 * Q.inflation; // high inflation increases unemployment slightly
+
+        let unemploymentChange = growthImpact + inflationImpact + randomNoise(0.02);
+        Q.unemployed = clamp(Q.unemployed + unemploymentChange * dt, 0, 100);
+
+        // ---- Economic Growth dynamics ----
+        let growthChange = 0;
+        // Inflation feedback
+        if (Q.inflation > 6) growthChange -= 0.05 * (Q.inflation - 6);
+        if (Q.inflation < -2) growthChange -= 0.03 * (-2 - Q.inflation);
+    
+        // Unemployment feedback (high unemployment slows growth)
+        growthChange -= 0.02 * Math.max(0, Q.unemployed - 10);
+
+        // Self-correction for extreme growth
+        growthChange -= 0.01 * Math.max(0, Q.economic_growth - 8);
+    
+        // Add stochastic variability
+        growthChange += randomNoise(0.03);
+
+        Q.economic_growth = clamp(Q.economic_growth + growthChange * dt, -10, 15);
     }
 
     //////////////////////////////// Education & Science support/economic changes
