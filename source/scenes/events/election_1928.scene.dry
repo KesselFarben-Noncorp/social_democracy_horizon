@@ -77,20 +77,22 @@ for (var party of Q.parties) {
     Q[party + '_votes'] = Math.round(Q[party + '_r'] * 10) / 10;
 }
 
-/* ========= PASS 3: DISPLAY + DELTAS (FORMAT ONLY) ========= */
+/* ========= PASS 3: DISPLAY + DELTAS (ROUND-UP TO 1 DECIMAL) ========= */
 for (var party of Q.parties) {
-    // DISPLAY (string)
-    Q[party + '_r_disp'] = Q.use_decimals
-        ? Q[party + '_r'].toFixed(1)
-        : Math.round(Q[party + '_r']).toString();
+    // DISPLAY: round up to first decimal
+    if (Q.use_decimals) {
+        Q[party + '_r_disp'] = (Math.ceil(Q[party + '_r'] * 10) / 10).toFixed(1);
+    } else {
+        Q[party + '_r_disp'] = Math.round(Q[party + '_r']).toString();
+    }
 
-    // CHANGE (float math)
+    // CHANGE: same round-up logic
     Q['change_' + party + '_r'] =
         Q[party + '_r'] - Q['old_' + party + '_r'];
 
     Q['str_change_' + party] =
         (Q['change_' + party + '_r'] >= 0 ? '+' : '') +
-        Q['change_' + party + '_r'].toFixed(1);
+        (Math.ceil(Q['change_' + party + '_r'] * 10) / 10).toFixed(1);
 }
 
 
