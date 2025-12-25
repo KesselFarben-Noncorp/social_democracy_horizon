@@ -269,16 +269,16 @@ if (Q.month_actions >= 1) {
         // ========================================================================
 
         // === CORE PARAMETERS ===
-        Q.α = 0.8;   // unemployment → inflation (Phillips curve)
-        Q.β = 0.5;   // output gap → inflation
-        Q.γ = 0.4;   // deficit → inflation
-        Q.ρ = 0.5;   // inflation inertia
-        Q.κ = 0.2;   // growth → unemployment (Okun's law)
-        Q.λ = 0.2;   // inflation shock → unemployment
-        Q.μ = 0.1;   // output gap persistence
-        Q.η = 0.5;  // inflation drag on growth
-        Q.θ = 0.3;   // unemployment drag
-        Q.ψ = 0.4;   // overheating penalty
+        Q.α = 0.20;   // unemployment → inflation (Phillips curve)
+        Q.β = 0.15;   // output gap → inflation
+        Q.γ = 0.12;   // deficit → inflation
+        Q.ρ = 0.35;   // inflation inertia
+        Q.κ = 0.35;   // growth → unemployment (Okun's law)
+        Q.λ = 0.08;   // inflation shock → unemployment
+        Q.μ = 0.30;   // output gap persistence
+        Q.η = 0.03;  // inflation drag on growth
+        Q.θ = 0.08;   // unemployment drag
+        Q.ψ = 0.10;   // overheating penalty
         Q.ω = 0.5;   // expectations speed
 
         Q.output_gap = Q.economic_growth - Q.POTENTIAL_GROWTH;
@@ -397,9 +397,9 @@ if (Q.month_actions >= 1) {
         Q.dGrowth += randomNoise(0.03);
 
         // === APPLY CHANGES ===
-        Q.inflation += Q.dInflation * dt;
-        Q.unemployed += Q.dUnemployment * dt;
-        Q.economic_growth += Q.dGrowth * dt;
+        Q.inflation += Q.dInflation * dt * 1.1;
+        Q.unemployed += Q.dUnemployment * dt * 1.1;
+        Q.economic_growth += Q.dGrowth * dt *1.1;
 
         // === IMPULSE DECAY ===
         Q.demand_impulse = (Q.demand_impulse || 0) * Math.exp(-0.3 * dt);
