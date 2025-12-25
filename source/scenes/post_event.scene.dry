@@ -299,7 +299,7 @@ if (Q.month_actions >= 1) {
 
     // === UNEMPLOYMENT DYNAMICS ===
     Q.dUnemployment = 0;
-    Q.dUnemployment -= 0.35 * (Q.economic_growth - Q.POTENTIAL_GROWTH) * 1.5;
+    Q.dUnemployment -= 0.25 * (Q.economic_growth - Q.POTENTIAL_GROWTH) * 1.5;
     Q.dUnemployment += 0.08 * Math.max(0, Q.inflation - 6) * 2.0;
     Q.dUnemployment -= Q.total_demand * 0.5;
     Q.dUnemployment += (Q.capital_pressure || 0) * 0.8;
@@ -320,12 +320,12 @@ if (Q.month_actions >= 1) {
     Q.dGrowth += Q.productivity_growth;
 
     if (Q.inflation > 6) {
-        Q.dGrowth -= 0.3 * (Q.inflation - 6);
+        Q.dGrowth -= 0.2 * (Q.inflation - 6);
     }
     if (Q.inflation < -2) {
         Q.dGrowth -= 0.2 * (-2 - Q.inflation);
     }
-    Q.dGrowth -= 0.03 * Math.pow(Q.inflation, 2) * 2.0;
+    Q.dGrowth -= 0.015 * Math.pow(Q.inflation, 2) * 2.0;
     Q.dGrowth -= 0.08 * Math.max(0, Q.unemployed - Q.NAIRU) * 2.5;
     Q.dGrowth -= 0.15 * Math.max(0, Q.unemployed - 10);
     Q.dGrowth -= 0.10 * Q.overheating * 2.0;
@@ -337,9 +337,9 @@ if (Q.month_actions >= 1) {
     Q.dGrowth += (Math.random() - 0.5) * 2 * 0.2;
 
     // === APPLY CHANGES ===
-    Q.inflation += Q.dInflation * Q.dt * 1.5;
-    Q.unemployed += Q.dUnemployment * Q.dt * 1.1;
-    Q.economic_growth += Q.dGrowth * Q.dt * 1.5;
+    Q.inflation += Q.dInflation * Q.dt * 0.9;
+    Q.unemployed += Q.dUnemployment * Q.dt * 0.9;
+    Q.economic_growth += Q.dGrowth * Q.dt * 0.9;
 
     // === DECAY IMPULSES ===
     Q.demand_impulse = (Q.demand_impulse || 0) * Math.exp(-0.3 * Q.dt);
