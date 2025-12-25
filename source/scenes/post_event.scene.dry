@@ -155,8 +155,7 @@ if (Q.month_actions >= 1) {
                              'unemployment': Q.unemployed});
 
     
-
-     // Helper functions
+    // Helper functions
     function clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
     }
@@ -167,24 +166,24 @@ if (Q.month_actions >= 1) {
 
     // Update macroeconomic variables
     function updateEconomy(Q, dt = 1) {
-        const NAIRU = 6.0;
-        const POTENTIAL_GROWTH = 2.5;
+        Q.NAIRU = 6.0;
+        Q.POTENTIAL_GROWTH = 2.5;
 
         // === IMPULSE → STATE MAPPINGS ===
         
         // Fiscal stance affects budget and demand
         Q.budget += Q.fiscal_stance * 0.5 * dt;
-        let fiscal_demand = -Q.fiscal_stance * 0.3;
+        Q.fiscal_demand = -Q.fiscal_stance * 0.3;
         
         // Aggregate demand effect
-        let total_demand = Q.demand_impulse + fiscal_demand;
+        Q.total_demand = Q.demand_impulse + Q.fiscal_demand;
         
         // Capital pressure dampens investment
-        let investment_effect = Q.supply_impulse * (1 - Q.capital_pressure * 0.4);
+        Q.investment_effect = Q.supply_impulse * (1 - Q.capital_pressure * 0.4);
         
         // Distribution affects consumption multiplier
-        let consumption_multiplier = 1 + Q.distribution_shift * 0.2;
-        total_demand *= consumption_multiplier;
+        Q.consumption_multiplier = 1 + Q.distribution_shift * 0.2;
+        Q.total_demand *= Q.consumption_multiplier;
 
         // ========================================================================
         // === PASSIVE ECONOMIC DRIFT (SIMULATES REAL-WORLD DYNAMICS) ===
@@ -194,213 +193,213 @@ if (Q.month_actions >= 1) {
         if (!Q.cycle_phase) Q.cycle_phase = 0;
         Q.cycle_phase += 0.015 * dt; // ~42 month cycle
         
-        let cycle_amplitude = 0.3 * (1 + (Q.shock_residual || 0) * 0.5);
-        let business_cycle = cycle_amplitude * Math.sin(Q.cycle_phase);
+        Q.cycle_amplitude = 0.3 * (1 + (Q.shock_residual || 0) * 0.5);
+        Q.business_cycle = Q.cycle_amplitude * Math.sin(Q.cycle_phase);
         
         // 2. PRODUCTIVITY DRIFT (slow technological progress)
-        let productivity_trend = 0.02 * dt; // +2% annual trend
-        productivity_trend *= (1 - Q.capital_pressure * 0.3);
+        Q.productivity_trend = 0.02 * dt; // +2% annual trend
+        Q.productivity_trend *= (1 - Q.capital_pressure * 0.3);
         
         // 3. LABOR MARKET CHURN (natural hiring/firing)
-        let labor_churn = 0;
-        if (Q.unemployed > NAIRU) {
-            labor_churn = -0.05 * (Q.unemployed - NAIRU) * dt;
-        } else if (Q.unemployed < NAIRU) {
-            labor_churn = 0.03 * (NAIRU - Q.unemployed) * dt;
+        Q.labor_churn = 0;
+        if (Q.unemployed > Q.NAIRU) {
+            Q.labor_churn = -0.05 * (Q.unemployed - Q.NAIRU) * dt;
+        } else if (Q.unemployed < Q.NAIRU) {
+            Q.labor_churn = 0.03 * (Q.NAIRU - Q.unemployed) * dt;
         }
         
         // 4. INFLATION PERSISTENCE (momentum)
-        let inflation_momentum = 0.1 * Q.inflation * dt;
+        Q.inflation_momentum = 0.1 * Q.inflation * dt;
         
         // 5. TRADE BALANCE DRIFT
-        let trade_drift = 0;
-        if (Q.economic_growth > POTENTIAL_GROWTH + 2) {
-            trade_drift = 0.05 * dt; // overheating -> import surge
-        } else if (Q.economic_growth < POTENTIAL_GROWTH - 2) {
-            trade_drift = -0.04 * dt; // recession -> trade improves
+        Q.trade_drift = 0;
+        if (Q.economic_growth > Q.POTENTIAL_GROWTH + 2) {
+            Q.trade_drift = 0.05 * dt; // overheating -> import surge
+        } else if (Q.economic_growth < Q.POTENTIAL_GROWTH - 2) {
+            Q.trade_drift = -0.04 * dt; // recession -> trade improves
         }
-        Q.trade_pressure = (Q.trade_pressure || 0) + trade_drift;
+        Q.trade_pressure = (Q.trade_pressure || 0) + Q.trade_drift;
         
         // 6. CAPITAL ACCUMULATION/DECUMULATION
-        let capital_drift = 0;
+        Q.capital_drift = 0;
         if (Q.economic_growth > 4 && Q.capital_pressure < 0.3) {
-            capital_drift = -0.02 * dt; // boom -> investment confidence
+            Q.capital_drift = -0.02 * dt; // boom -> investment confidence
         } else if (Q.economic_growth < 0) {
-            capital_drift = 0.08 * dt; // recession -> capital nervousness
+            Q.capital_drift = 0.08 * dt; // recession -> capital nervousness
         }
-        Q.capital_pressure = (Q.capital_pressure || 0) + capital_drift;
+        Q.capital_pressure = (Q.capital_pressure || 0) + Q.capital_drift;
         Q.capital_pressure = Math.max(0, Q.capital_pressure);
         
         // 7. WAGE-PRICE SPIRAL
-        let wage_pressure = 0;
-        if (Q.unemployed < NAIRU - 2 && Q.inflation > 3) {
-            wage_pressure = 0.15 * (NAIRU - Q.unemployed) * (Q.inflation / 10) * dt;
-            Q.price_pressure = (Q.price_pressure || 0) + wage_pressure;
+        Q.wage_pressure = 0;
+        if (Q.unemployed < Q.NAIRU - 2 && Q.inflation > 3) {
+            Q.wage_pressure = 0.15 * (Q.NAIRU - Q.unemployed) * (Q.inflation / 10) * dt;
+            Q.price_pressure = (Q.price_pressure || 0) + Q.wage_pressure;
         }
         
         // 8. DEMOGRAPHIC/STRUCTURAL DRIFT
-        let structural_unemployment_drift = 0.01 * dt;
+        Q.structural_unemployment_drift = 0.01 * dt;
         
         // 9. FINANCIAL SECTOR EFFECTS
-        let credit_conditions = 0;
+        Q.credit_conditions = 0;
         if (Q.inflation > 8 || Q.budget < -20) {
-            credit_conditions = 0.05 * dt; // crisis -> credit crunch
-            Q.capital_pressure += credit_conditions;
+            Q.credit_conditions = 0.05 * dt; // crisis -> credit crunch
+            Q.capital_pressure += Q.credit_conditions;
         } else if (Q.inflation < 2 && Q.economic_growth > 3) {
-            credit_conditions = -0.03 * dt; // goldilocks -> easy credit
-            Q.capital_pressure += credit_conditions;
+            Q.credit_conditions = -0.03 * dt; // goldilocks -> easy credit
+            Q.capital_pressure += Q.credit_conditions;
         }
         
         // 10. EXPECTATIONAL SHOCKS (random confidence/panic)
         if (Math.random() < 0.05 * dt) {
-            let shock_size = (Math.random() - 0.5) * 0.4;
+            Q.shock_size = (Math.random() - 0.5) * 0.4;
             if (Q.unemployed > 20 || Q.inflation > 12) {
-                shock_size *= 2; // crises magnify shocks
+                Q.shock_size *= 2; // crises magnify shocks
             }
-            Q.price_pressure = (Q.price_pressure || 0) + shock_size;
+            Q.price_pressure = (Q.price_pressure || 0) + Q.shock_size;
         }
 
         // === PASSIVE EFFECTS SUMMARY ===
-        let cycle_growth_effect = business_cycle * 0.8;
-        let productivity_growth = productivity_trend * 0.5;
-        let passive_inflation = inflation_momentum;
+        Q.cycle_growth_effect = Q.business_cycle * 0.8;
+        Q.productivity_growth = Q.productivity_trend * 0.5;
+        Q.passive_inflation = Q.inflation_momentum;
 
         // ========================================================================
         // === CORE ECONOMIC DYNAMICS ===
         // ========================================================================
 
         // === CORE PARAMETERS ===
-        const α = 0.08;   // unemployment → inflation (Phillips curve)
-        const β = 0.05;   // output gap → inflation
-        const γ = 0.04;   // deficit → inflation
-        const ρ = 0.15;   // inflation inertia
-        const κ = 0.12;   // growth → unemployment (Okun's law)
-        const λ = 0.02;   // inflation shock → unemployment
-        const μ = 0.10;   // output gap persistence
-        const η = 0.015;  // inflation drag on growth
-        const θ = 0.03;   // unemployment drag
-        const ψ = 0.04;   // overheating penalty
-        const ω = 0.25;   // expectations speed
+        Q.α = 0.08;   // unemployment → inflation (Phillips curve)
+        Q.β = 0.05;   // output gap → inflation
+        Q.γ = 0.04;   // deficit → inflation
+        Q.ρ = 0.15;   // inflation inertia
+        Q.κ = 0.12;   // growth → unemployment (Okun's law)
+        Q.λ = 0.02;   // inflation shock → unemployment
+        Q.μ = 0.10;   // output gap persistence
+        Q.η = 0.015;  // inflation drag on growth
+        Q.θ = 0.03;   // unemployment drag
+        Q.ψ = 0.04;   // overheating penalty
+        Q.ω = 0.25;   // expectations speed
 
-        let output_gap = Q.economic_growth - POTENTIAL_GROWTH;
-        let overheating = Math.max(0, Q.economic_growth - 6);
+        Q.output_gap = Q.economic_growth - Q.POTENTIAL_GROWTH;
+        Q.overheating = Math.max(0, Q.economic_growth - 6);
 
         // === INFLATION DYNAMICS ===
-        let dInflation = 0;
+        Q.dInflation = 0;
         
         // Phillips curve effect
-        dInflation += α * (NAIRU - Q.unemployed);
+        Q.dInflation += Q.α * (Q.NAIRU - Q.unemployed);
         
         // Output gap effect
-        dInflation += β * output_gap;
+        Q.dInflation += Q.β * Q.output_gap;
         
         // Budget deficit effect (dampened by high unemployment)
         if (Q.budget < 0) {
-            let deficitEffect = -Q.budget * γ;
-            deficitEffect *= (1 - Math.tanh((Q.unemployed - 10) / 5));
-            dInflation += deficitEffect;
+            Q.deficitEffect = -Q.budget * Q.γ;
+            Q.deficitEffect *= (1 - Math.tanh((Q.unemployed - 10) / 5));
+            Q.dInflation += Q.deficitEffect;
         }
         
         // Expectations anchor
-        dInflation -= ρ * (Q.inflation - (Q.inflation_expectations || Q.inflation));
+        Q.dInflation -= Q.ρ * (Q.inflation - (Q.inflation_expectations || Q.inflation));
         
         // Price shocks from impulses
-        dInflation += (Q.price_pressure || 0) * 0.15;
-        dInflation += (Q.trade_pressure || 0) * 0.08;
+        Q.dInflation += (Q.price_pressure || 0) * 0.15;
+        Q.dInflation += (Q.trade_pressure || 0) * 0.08;
         
         // PASSIVE: Inflation momentum
-        dInflation += passive_inflation;
+        Q.dInflation += Q.passive_inflation;
         
         // Deflation spiral (original mechanic)
         if (Q.inflation < 0) {
-            dInflation -= 0.02 * (Q.unemployed / 20);
+            Q.dInflation -= 0.02 * (Q.unemployed / 20);
         }
         
         // Stochastic noise
-        dInflation += randomNoise(0.05);
+        Q.dInflation += randomNoise(0.05);
 
         // Update expectations
         if (!Q.inflation_expectations) Q.inflation_expectations = Q.inflation;
-        Q.inflation_expectations += ω * (Q.inflation - Q.inflation_expectations) * dt;
+        Q.inflation_expectations += Q.ω * (Q.inflation - Q.inflation_expectations) * dt;
 
         // === UNEMPLOYMENT DYNAMICS ===
-        let dUnemployment = 0;
+        Q.dUnemployment = 0;
         
         // Okun's law (growth reduces unemployment)
-        dUnemployment -= κ * (Q.economic_growth - POTENTIAL_GROWTH);
+        Q.dUnemployment -= Q.κ * (Q.economic_growth - Q.POTENTIAL_GROWTH);
         
         // Stagflation effect
-        dUnemployment += λ * Math.max(0, Q.inflation - 6);
+        Q.dUnemployment += Q.λ * Math.max(0, Q.inflation - 6);
         
         // Demand creates jobs
-        dUnemployment -= total_demand * 0.05;
+        Q.dUnemployment -= Q.total_demand * 0.05;
         
         // Capital pressure kills jobs
-        dUnemployment += Q.capital_pressure * 0.08;
+        Q.dUnemployment += Q.capital_pressure * 0.08;
         
         // Trade pressure hurts employment
-        dUnemployment += (Q.trade_pressure || 0) * 0.06;
+        Q.dUnemployment += (Q.trade_pressure || 0) * 0.06;
         
         // PASSIVE: Labor market churn
-        dUnemployment += labor_churn;
+        Q.dUnemployment += Q.labor_churn;
         
         // PASSIVE: Structural unemployment drift
-        dUnemployment += structural_unemployment_drift;
+        Q.dUnemployment += Q.structural_unemployment_drift;
         
         // Deflation spiral (original mechanic)
         if (Q.inflation < 0) {
-            dUnemployment += 0.05 * (-Q.inflation) * (1 - Math.exp(-Q.unemployed / 15));
+            Q.dUnemployment += 0.05 * (-Q.inflation) * (1 - Math.exp(-Q.unemployed / 15));
         }
         
         // Stochastic noise
-        dUnemployment += randomNoise(0.02);
+        Q.dUnemployment += randomNoise(0.02);
 
         // === GROWTH DYNAMICS ===
-        let dGrowth = 0;
+        Q.dGrowth = 0;
         
         // Mean reversion (output gap persistence)
-        dGrowth += μ * output_gap;
+        Q.dGrowth += Q.μ * Q.output_gap;
         
         // PASSIVE: Business cycle
-        dGrowth += cycle_growth_effect;
+        Q.dGrowth += Q.cycle_growth_effect;
         
         // PASSIVE: Productivity trend
-        dGrowth += productivity_growth;
+        Q.dGrowth += Q.productivity_growth;
         
         // Inflation drag
         if (Q.inflation > 6) {
-            dGrowth -= 0.05 * (Q.inflation - 6);
+            Q.dGrowth -= 0.05 * (Q.inflation - 6);
         }
         if (Q.inflation < -2) {
-            dGrowth -= 0.03 * (-2 - Q.inflation);
+            Q.dGrowth -= 0.03 * (-2 - Q.inflation);
         }
-        dGrowth -= η * Math.pow(Q.inflation, 2);
+        Q.dGrowth -= Q.η * Math.pow(Q.inflation, 2);
         
         // Unemployment drag
-        dGrowth -= θ * Math.max(0, Q.unemployed - NAIRU);
-        dGrowth -= 0.02 * Math.max(0, Q.unemployed - 10);
+        Q.dGrowth -= Q.θ * Math.max(0, Q.unemployed - Q.NAIRU);
+        Q.dGrowth -= 0.02 * Math.max(0, Q.unemployed - 10);
         
         // Overheating penalty
-        dGrowth -= ψ * overheating;
-        dGrowth -= 0.01 * Math.max(0, Q.economic_growth - 8);
+        Q.dGrowth -= Q.ψ * Q.overheating;
+        Q.dGrowth -= 0.01 * Math.max(0, Q.economic_growth - 8);
         
         // Demand-led growth
-        dGrowth += total_demand * 0.20;
+        Q.dGrowth += Q.total_demand * 0.20;
         
         // Supply-side growth (dampened by capital pressure)
-        dGrowth += investment_effect * 0.25;
+        Q.dGrowth += Q.investment_effect * 0.25;
         
         // Trade and capital effects
-        dGrowth -= (Q.trade_pressure || 0) * 0.10;
-        dGrowth -= Q.capital_pressure * 0.15;
+        Q.dGrowth -= (Q.trade_pressure || 0) * 0.10;
+        Q.dGrowth -= Q.capital_pressure * 0.15;
         
         // Stochastic noise
-        dGrowth += randomNoise(0.03);
+        Q.dGrowth += randomNoise(0.03);
 
         // === APPLY CHANGES ===
-        Q.inflation += dInflation * dt;
-        Q.unemployed += dUnemployment * dt;
-        Q.economic_growth += dGrowth * dt;
+        Q.inflation += Q.dInflation * dt;
+        Q.unemployed += Q.dUnemployment * dt;
+        Q.economic_growth += Q.dGrowth * dt;
 
         // === IMPULSE DECAY ===
         Q.demand_impulse = (Q.demand_impulse || 0) * Math.exp(-0.3 * dt);
@@ -418,7 +417,6 @@ if (Q.month_actions >= 1) {
         Q.inflation_expectations = clamp(Q.inflation_expectations, -5, 12);
         Q.budget = clamp(Q.budget, -50, 50);
     }
-    
     /////////// Education & Science support/economic changes
     if (Q.major_curriculum && Q.major_curriculum == "democratic") {
         if (Q.pro_republic < 60) {
