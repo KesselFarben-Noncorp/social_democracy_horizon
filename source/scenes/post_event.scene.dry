@@ -378,6 +378,32 @@ if (Q.month_actions >= 1) {
     // Hard cap on growth changes
     Q.dGrowth = Math.max(-8, Math.min(8, Q.dGrowth));
 
+    // === ONGOING TAX POLICY EFFECTS (cumulative drag from tax changes) ===
+
+    // Tax drag accumulates and slowly decays
+    if (Q.tax_drag && Q.tax_drag > 0) {
+        Q.total_demand -= Q.tax_drag * 0.25;  // Reduces demand gradually
+        Q.tax_drag *= 0.92;  // Decays 8% per month
+        if (Q.tax_drag < 0.01) Q.tax_drag = 0;  // Clean up tiny values
+    } else if (Q.tax_drag && Q.tax_drag < 0) {
+        Q.total_demand -= Q.tax_drag * 0.25;  // Negative drag = stimulus
+        Q.tax_drag *= 0.92;
+        if (Q.tax_drag > -0.01) Q.tax_drag = 0;
+    }
+
+    // Investment chill accumulates and slowly decays
+    if (Q.investment_chill && Q.investment_chill > 0) {
+        Q.investment_effect -= Q.investment_chill * 0.3;  // Reduces investment
+        Q.capital_pressure += Q.investment_chill * 0.12;  // Adds capital pressure
+        Q.investment_chill *= 0.90;  // Decays 10% per month
+        if (Q.investment_chill < 0.01) Q.investment_chill = 0;
+    } else if (Q.investment_chill && Q.investment_chill < 0) {
+        Q.investment_effect -= Q.investment_chill * 0.3;  // Negative = investment boost
+        Q.capital_pressure += Q.investment_chill * 0.12;  // Negative = pressure relief
+        Q.investment_chill *= 0.90;
+        if (Q.investment_chill > -0.01) Q.investment_chill = 0;
+    }
+
     // === APPLY CHANGES (with mean reversion at extremes) ===
     
     // Mean reversion when at extremes
