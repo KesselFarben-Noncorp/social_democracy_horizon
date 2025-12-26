@@ -331,7 +331,7 @@ if (Q.month_actions >= 1) {
     // Output gap effect with diminishing returns
     if (Q.output_gap < 0) {
         // Negative gaps have diminishing impact
-        Q.dGrowth += 0.30 * Q.output_gap / (1 + Math.abs(Q.output_gap) * 0.1);
+        Q.dGrowth += 0.30 * Q.output_gap / (1 + Math.abs(Q.output_gap) * 0.2);
     } else {
         Q.dGrowth += 0.30 * Q.output_gap;
     }
@@ -347,7 +347,7 @@ if (Q.month_actions >= 1) {
     // Deflation drag (capped and diminishing)
     if (Q.inflation < -2) {
         Q.deflation_severity = Math.abs(Q.inflation + 2);
-        Q.dGrowth -= Math.min(0.2 * Q.deflation_severity / (1 + Q.deflation_severity * 0.2), 2.0);
+        Q.dGrowth -= Math.min(0.15 * Q.deflation_severity / (1 + Q.deflation_severity * 0.2), 1.5);
     }
     
     // Inflation volatility penalty (diminishing, using 1.5 power instead of squared)
@@ -356,11 +356,11 @@ if (Q.month_actions >= 1) {
     
     // Unemployment drag (diminishing)
     Q.unemployment_gap = Math.max(0, Q.unemployed - Q.NAIRU);
-    Q.dGrowth -= Math.min(0.08 * Q.unemployment_gap / (1 + Q.unemployment_gap * 0.05) * 2.5, 2.5);
+    Q.dGrowth -= Math.min(0.06 * Q.unemployment_gap / (1 + Q.unemployment_gap * 0.08) * 2.5,2.0);
     
     // Severe unemployment crisis (diminishing)
     if (Q.unemployed > 10) {
-        Q.dGrowth -= Math.min(0.15 * (Q.unemployed - 10) / (1 + (Q.unemployed - 10) * 0.1), 2.0);
+        Q.dGrowth -= Math.min(0.1 * (Q.unemployed - 10) / (1 + (Q.unemployed - 10) * 0.15), 1.5);
     }
     
     Q.dGrowth -= 0.10 * Q.overheating * 2.0;
@@ -372,7 +372,7 @@ if (Q.month_actions >= 1) {
     Q.dGrowth += Q.total_demand * 2.0;
     Q.dGrowth += Q.investment_effect * 2.5;
     Q.dGrowth -= Math.min((Q.trade_pressure || 0) * 1.0, 2.0);
-    Q.dGrowth -= Math.min((Q.capital_pressure || 0) * 1.5, 3.0);
+    Q.dGrowth -= Math.min((Q.capital_pressure || 0) * 1.2, 2.0);
     Q.dGrowth += (Math.random() - 0.5) * 2 * 0.2;
     
     // Hard cap on growth changes
