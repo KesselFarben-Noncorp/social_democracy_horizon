@@ -404,6 +404,14 @@ if (Q.month_actions >= 1) {
         if (Q.investment_chill > -0.01) Q.investment_chill = 0;
     }
 
+    // DEFLATION FLOOR BOUNCE
+    if (Q.inflation <= -9 && Q.inflation_expectations > Q.inflation) {
+        // Emergency reflation when stuck at deflation floor
+        Q.dInflation += 0.3 * (Q.inflation_expectations - Q.inflation);
+        Q.demand_impulse += 0.2; // Emergency stimulus
+        Q.price_pressure += 0.1; // Break deflationary psychology
+    }
+
     // === APPLY CHANGES (with mean reversion at extremes) ===
     
     // Mean reversion when at extremes
@@ -431,7 +439,7 @@ if (Q.month_actions >= 1) {
     // === CONSTRAINTS ===
     Q.inflation = Math.max(-10, Math.min(99, Q.inflation));
     Q.unemployed = Math.max(0, Math.min(99, Q.unemployed));
-    Q.economic_growth = Math.max(-12, Math.min(99, Q.economic_growth));
+    Q.economic_growth = Math.max(-15, Math.min(99, Q.economic_growth));
     Q.inflation_expectations = Math.max(-5, Math.min(99, Q.inflation_expectations));
     Q.budget = Math.max(-50, Math.min(50, Q.budget));
     Q.capital_pressure = (Q.capital_pressure || 0) + Q.capital_drift;
