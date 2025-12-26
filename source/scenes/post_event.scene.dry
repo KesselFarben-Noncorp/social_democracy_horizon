@@ -297,13 +297,22 @@ if (Q.month_actions >= 1) {
 
     Q.inflation_expectations += 0.5 * (Q.inflation - Q.inflation_expectations) * Q.dt;
 
-    // === UNEMPLOYMENT DYNAMICS ===
+    // === UNEMPLOYMENT DYNAMICS (with diminishing returns and caps) ===
     Q.dUnemployment = 0;
-    Q.dUnemployment -= 0.25 * (Q.economic_growth - Q.POTENTIAL_GROWTH) * 1.5;
+    
+    // Okun's law with diminishing returns at extremes
+    Q.growth_gap = Q.economic_growth - Q.POTENTIAL_GROWTH;
+    if (Q.growth_gap < 0) {
+        // Negative growth increases unemployment (diminishing)
+        Q.dUnemployment -= 0.25 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.15) * 1.5;
+    } else {
+        Q.dUnemployment -= 0.25 * Q.growth_gap * 1.5;
+    }
+    
     Q.dUnemployment += 0.08 * Math.max(0, Q.inflation - 6) * 2.0;
     Q.dUnemployment -= Q.total_demand * 0.5;
-    Q.dUnemployment += (Q.capital_pressure || 0) * 0.8;
-    Q.dUnemployment += (Q.trade_pressure || 0) * 0.6;
+    Q.dUnemployment += Math.min((Q.capital_pressure || 0) * 0.8, 2.0);
+    Q.dUnemployment += Math.min((Q.trade_pressure || 0) * 0.6, 1.5);
     Q.dUnemployment += Q.labor_churn;
     Q.dUnemployment += Q.structural_unemployment_drift;
 
@@ -312,31 +321,74 @@ if (Q.month_actions >= 1) {
     }
 
     Q.dUnemployment += (Math.random() - 0.5) * 2 * 0.15;
+    
+    // Hard cap on unemployment changes
+    Q.dUnemployment = Math.max(-5, Math.min(5, Q.dUnemployment));
 
-    // === GROWTH DYNAMICS ===
+    // === GROWTH DYNAMICS (with diminishing returns and caps) ===
     Q.dGrowth = 0;
-    Q.dGrowth += 0.30 * Q.output_gap;
+    
+    // Output gap effect with diminishing returns
+    if (Q.output_gap < 0) {
+        // Negative gaps have diminishing impact
+        Q.dGrowth += 0.30 * Q.output_gap / (1 + Math.abs(Q.output_gap) * 0.1);
+    } else {
+        Q.dGrowth += 0.30 * Q.output_gap;
+    }
+    
     Q.dGrowth += Q.cycle_growth_effect;
     Q.dGrowth += Q.productivity_growth;
 
+    // High inflation drag (capped)
     if (Q.inflation > 6) {
-        Q.dGrowth -= 0.2 * (Q.inflation - 6);
+        Q.dGrowth -= Math.min(0.2 * (Q.inflation - 6), 3.0);
     }
+    
+    // Deflation drag (capped and diminishing)
     if (Q.inflation < -2) {
-        Q.dGrowth -= 0.2 * (-2 - Q.inflation);
+        Q.deflation_severity = Math.abs(Q.inflation + 2);
+        Q.dGrowth -= Math.min(0.2 * Q.deflation_severity / (1 + Q.deflation_severity * 0.2), 2.0);
     }
-    Q.dGrowth -= 0.015 * Math.pow(Q.inflation, 2) * 2.0;
-    Q.dGrowth -= 0.08 * Math.max(0, Q.unemployed - Q.NAIRU) * 2.5;
-    Q.dGrowth -= 0.15 * Math.max(0, Q.unemployed - 10);
+    
+    // Inflation volatility penalty (diminishing, using 1.5 power instead of squared)
+    Q.inflation_penalty = 0.015 * Math.pow(Math.abs(Q.inflation), 1.5) * 1.0;
+    Q.dGrowth -= Math.min(Q.inflation_penalty, 2.0);
+    
+    // Unemployment drag (diminishing)
+    Q.unemployment_gap = Math.max(0, Q.unemployed - Q.NAIRU);
+    Q.dGrowth -= Math.min(0.08 * Q.unemployment_gap / (1 + Q.unemployment_gap * 0.05) * 2.5, 2.5);
+    
+    // Severe unemployment crisis (diminishing)
+    if (Q.unemployed > 10) {
+        Q.dGrowth -= Math.min(0.15 * (Q.unemployed - 10) / (1 + (Q.unemployed - 10) * 0.1), 2.0);
+    }
+    
     Q.dGrowth -= 0.10 * Q.overheating * 2.0;
-    Q.dGrowth -= 0.08 * Math.max(0, Q.economic_growth - 8);
+    
+    if (Q.economic_growth > 8) {
+        Q.dGrowth -= 0.08 * (Q.economic_growth - 8);
+    }
+    
     Q.dGrowth += Q.total_demand * 2.0;
     Q.dGrowth += Q.investment_effect * 2.5;
-    Q.dGrowth -= (Q.trade_pressure || 0) * 1.0;
-    Q.dGrowth -= (Q.capital_pressure || 0) * 1.5;
+    Q.dGrowth -= Math.min((Q.trade_pressure || 0) * 1.0, 2.0);
+    Q.dGrowth -= Math.min((Q.capital_pressure || 0) * 1.5, 3.0);
     Q.dGrowth += (Math.random() - 0.5) * 2 * 0.2;
+    
+    // Hard cap on growth changes
+    Q.dGrowth = Math.max(-8, Math.min(8, Q.dGrowth));
 
-    // === APPLY CHANGES ===
+    // === APPLY CHANGES (with mean reversion at extremes) ===
+    
+    // Mean reversion when at extremes
+    //if (Q.economic_growth < -8) {
+    //    Q.dGrowth += (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.08;
+    //}
+    //
+    //if (Q.unemployed > 25) {
+    //    Q.dUnemployment -= (Q.unemployed - 25) * 0.1;
+    //}
+    
     Q.inflation += Q.dInflation * Q.dt * 0.9;
     Q.unemployed += Q.dUnemployment * Q.dt * 0.9;
     Q.economic_growth += Q.dGrowth * Q.dt * 0.9;
