@@ -1,0 +1,174 @@
+title: The Nazi Party Crisis
+subtitle: June 1929
+new-page: true
+view-if: year = 1929 and month = 6
+tags: event, nsdap
+max-visits: 1
+face-image: img/portraits/HitlerAdolf.jpg
+on-arrival: month_actions += 1
+
+= The Nazi Party Crisis
+
+Reports reach SPD intelligence networks of serious internal turmoil within the National Socialist German Workers' Party. The Nazis, still a relatively minor political force, are convulsed by factional struggle over the party's future direction.
+
+At the center stands Adolf Hitler, the party's leader and chief propagandist. But his authority faces challenges from two directions:
+
+**Gregor Strasser** leads the party's left-wing faction, particularly strong in northern Germany. Strasser takes the "socialist" in National Socialist seriously—he advocates genuine worker protections, corporate limitations, even limited nationalizations. His brother Otto publishes increasingly radical critiques of capitalism that Hitler finds embarrassing. Strasser commands significant organizational apparatus and loyalty from party functionaries who built the NSDAP's local presence.
+
+**Ernst Röhm** controls the SA, the party's paramilitary arm. The *Sturmabteilung* now numbers in the tens of thousands—unemployed young men brutalized by war and economic crisis. Röhm envisions the SA not as an auxiliary to a political party but as the core of a revolutionary militia that will sweep aside both the "November criminals" and the conservative establishment. He barely conceals his contempt for parliamentary politics, including Hitler's increasing focus on electoral strategy.
+
+The crisis erupted over several interrelated issues: Hitler's autocratic leadership style, the party's relationship with conservative nationalists and industrialists, the SA's role and autonomy, and whether the NSDAP should pursue power through elections or putsch.
+
+Strasser's faction demands democratization of party structures and authentic anti-capitalist policies. Röhm wants the SA formally recognized as Germany's future army, independent of party political control. Both increasingly question Hitler's leadership.
+
+Our intelligence suggests the Nazi Party is approaching a decisive confrontation. How this internal struggle resolves could fundamentally alter the fascist threat.
+
+- @observe: Observe carefully and gather intelligence on the outcome.
+
+@observe
+go-to: hitler_victory if nsdap_factionalism = 0; hitler_challenged if nsdap_factionalism = 1; strasser_victory if nsdap_factionalism = 2; rohm_victory if nsdap_factionalism = 3; split_party if nsdap_factionalism = 4
+
+@hitler_victory
+on-arrival: {!
+// Hitler victory most likely - 60% base chance
+var roll = Math.random() * 100;
+var hitler_bonus = 0;
+
+// Factors favoring Hitler
+if (Q.economic_growth > 0) hitler_bonus += 15; // Growing economy helps Hitler's electoral strategy
+if (Q.sa_banned) hitler_bonus += 20; // SA bans vindicate Hitler's legal strategy
+if (Q.nazi_urgency < 3) hitler_bonus += 15; // Low urgency = we haven't weakened them
+if (Q.unemployed < 15) hitler_bonus += 10; // Low unemployment weakens revolutionary appeal
+if (Q.capital_strike_progress >= 3) hitler_bonus += 10; // Capitalist support flows to Hitler
+if (Q.strasser_seen_as_threat) hitler_bonus -= 15; // If we've built up Strasser
+if (Q.rohm_empowered) hitler_bonus -= 15; // If we've empowered SA independence
+
+// Determine outcome
+if (roll + hitler_bonus >= 85) {
+    Q.nsdap_factionalism = 4; // Split party
+} else if (roll + hitler_bonus >= 70) {
+    Q.nsdap_factionalism = 3; // Röhm victory
+} else if (roll + hitler_bonus >= 55) {
+    Q.nsdap_factionalism = 2; // Strasser victory
+} else if (roll + hitler_bonus >= 30) {
+    Q.nsdap_factionalism = 1; // Hitler challenged
+} else {
+    Q.nsdap_factionalism = 0; // Hitler clean victory
+}
+!}
+go-to: hitler_wins if nsdap_factionalism = 0; hitler_wins_narrow if nsdap_factionalism = 1; strasser_wins if nsdap_factionalism = 2; rohm_wins if nsdap_factionalism = 3; party_splits if nsdap_factionalism = 4
+
+@hitler_wins
+on-arrival: nsdap_outcome = "hitler_dominant"; nsdap_leader = "Hitler"; nazi_urgency += 1; workers_nsdap += 2; old_middle_nsdap += 4; new_middle_nsdap += 3; rural_nsdap += 3; unemployed_nsdap += 2; workers_dnvp -= 1; old_middle_dnvp -= 2; rural_dnvp -= 2;
+
+**Hitler Consolidates Total Control**
+
+The power struggle within the NSDAP resolves decisively in Hitler's favor. At a party conference in Munich, he delivers a masterful performance—alternating between wounded martyrdom and volcanic rage.
+
+"I built this movement from nothing!" he thunders. "Seven men in a beer hall! And now, when we stand at the threshold of power, the doubters and splitters emerge!"
+
+Gregor Strasser attempts to present his critique of Hitler's autocratic methods and insufficient anti-capitalism. He is shouted down by Hitler loyalists. When Röhm tries to defend SA autonomy, Hitler turns on him with cold fury: "The SA serves the movement. The movement serves Germany. I embody both. There is no other authority."
+
+The result is unambiguous. Strasser is marginalized, his northern organization brought to heel. Röhm is forced to publicly affirm SA subordination to party leadership—meaning Hitler personally. Several prominent dissidents are expelled. Others recant.
+
+Hitler emerges with unchallengeable authority. The NSDAP is now unambiguously his instrument, disciplined and centralized. The "socialist" elements are definitively subordinated to nationalist and racialist priorities. The SA becomes an electoral tool rather than revolutionary force.
+
+Our analysts are deeply troubled. A fragmented, faction-ridden Nazi Party was a manageable threat. A unified party under absolute dictatorship, with clear strategic focus on electoral conquest and alliance with conservative elites, is far more dangerous.
+
+"Hitler has learned from the Beer Hall Putsch," notes one intelligence report. "He will pursue power legally, with ruthless discipline and sophisticated propaganda. The buffoonish rabble-rouser has become a serious political threat."
+
+The consequences unfold quickly. Nazi electoral performance improves across all demographics. Conservative industrialists and Junkers, reassured by Hitler's suppression of "socialist" elements, increase funding. The SA becomes a more effective electoral intimidation force precisely because it's more controlled. Even some DNVP voters begin drifting toward the more dynamic Nazi movement.
+
+We face a streamlined, disciplined fascist movement under absolute leadership. That may be the most dangerous outcome of all.
+
+@hitler_wins_narrow
+on-arrival: nsdap_outcome = "hitler_weakened"; nsdap_leader = "Hitler"; workers_nsdap += 1; old_middle_nsdap += 2; new_middle_nsdap += 1; rural_nsdap += 1; unemployed_nsdap += 1;
+
+**Hitler Prevails, But Weakened**
+
+The Nazi Party crisis concludes with Hitler formally retaining leadership—but at significant cost. Gregor Strasser remains in the party, controlling substantial organizational apparatus in northern Germany. Ernst Röhm keeps the SA, its autonomy somewhat enhanced by the struggle.
+
+Hitler won the formal battle for authority but revealed his position is not invulnerable. The party remains fractious, with multiple power centers. Strasser's faction continues advocating anti-capitalist positions that complicate Nazi appeals to industrialists. Röhm's SA pursues its own agenda, sometimes contradicting party strategy.
+
+"The Führer principle has been challenged," our intelligence reports note with satisfaction. "Hitler rules, but not absolutely. The NSDAP remains vulnerable to internal fracture."
+
+The practical effects are significant. Nazi discipline suffers—SA units sometimes act contrary to central directives. Electoral messaging becomes inconsistent as Strasser's faction emphasizes different themes than Hitler. Competition for resources and authority breeds inefficiency.
+
+Nazi support grows modestly across demographics, but the internal tensions limit their effectiveness. Conservative allies worry about betting on a leader who can't fully control his own movement.
+
+Most importantly, the struggle has demonstrated Hitler is not invincible. Ambitious Nazis now know his authority can be questioned. If we can exploit these divisions...
+
+@strasser_wins
+on-arrival: nsdap_outcome = "strasser_dominant"; nsdap_leader = "Strasser"; nazi_urgency -= 2; workers_nsdap += 4; unemployed_nsdap += 3; old_middle_nsdap -= 2; new_middle_nsdap -= 1; rural_nsdap += 1; workers_spd -= 2; workers_kpd -= 1; old_middle_dnvp += 2; new_middle_dvp += 1;
+
+**Strasser Seizes Control**
+
+In a stunning upset, Gregor Strasser has wrested control of the NSDAP from Adolf Hitler. The struggle climaxed at a party conference where Strasser's superior organization and support from party functionaries overwhelmed Hitler's personal magnetism.
+
+"The party cannot be one man's cult!" Strasser declared. "We are National *Socialists*—we must genuinely represent workers against plutocratic capitalism, not just mouth racist slogans!"
+
+Hitler's response was characteristically volcanic—but ineffective. When he threatened to resign and form his own movement, Strasser called his bluff: "Then go. The party apparatus, the membership lists, the newspaper—these belong to the organization, not to you personally."
+
+Faced with the prospect of becoming a leader without followers, Hitler capitulated. He remains in the party, for now, but humiliated and stripped of authority. Röhm and the SA, always more interested in action than ideology, have thrown support to Strasser—seeing him as more committed to revolutionary change than Hitler's increasingly conservative electoral strategy.
+
+The immediate consequences are dramatic:
+
+The NSDAP pivots sharply toward anti-capitalist rhetoric. Strasser denounces "Jewish finance capital" but also "Aryan plutocrats." Nazi propaganda now attacks big business, demands worker protections, and advocates limited nationalizations. This alienates conservative donors and the upper-middle class—many flee to the DNVP or DVP.
+
+But the working-class appeal strengthens dangerously. Strasser's nationalist socialism proves seductive to some of our own base and even KPD supporters. The unemployed, desperate and angry, are particularly vulnerable to this fusion of revolutionary economics and nationalist identity.
+
+The party's racial antisemitism, while still present, becomes less central than class-based revolutionary appeals. This makes the Nazis simultaneously less uniquely dangerous (they sound more like radical KPD) and potentially more appealing to desperate workers.
+
+But the movement is fracturing. An estimated 35% of the party's membership remains loyal to Hitler personally—particularly in Bavaria. The threat of open split looms.
+
+Our analysts are divided: "Strasser's anti-capitalism could steal our working-class base if economic crisis deepens. His nationalist socialism might prove more seductive than our internationalist version."
+
+@rohm_wins
+on-arrival: nsdap_outcome = "rohm_dominant"; nsdap_leader = "Röhm"; nazi_urgency -= 1; workers_nsdap += 2; unemployed_nsdap += 5; old_middle_nsdap -= 3; new_middle_nsdap -= 2; rural_nsdap -= 1; unemployed_kpd -= 1; reichswehr_loyalty -= 5; coup_progress += 2;
+
+**Röhm and the SA Seize Control**
+
+In perhaps the most shocking outcome, Ernst Röhm has led a virtual coup within the NSDAP. The SA, frustrated with political maneuvering and hungry for action, has seized control of the party apparatus at gunpoint.
+
+"The revolution will not be voted into existence!" Röhm proclaimed as SA units occupied party headquarters. "The *Sturmabteilung* is Germany's future, not some politician's tool!"
+
+Hitler attempted to assert authority but was physically prevented from entering his own party office by SA guards. Strasser's organizational apparatus proved worthless against armed brownshirts. The NSDAP is now effectively the political arm of a paramilitary organization, not the reverse.
+
+Röhm's vision is explicitly putschist and militaristic. Parliamentary politics are dismissed as weakness. The SA will become Germany's true army, displacing the Reichswehr. The "national revolution" will come through force, not elections.
+
+This creates multiple immediate effects:
+
+The Reichswehr views Röhm's SA with naked hostility. The regular military will not tolerate a rival armed force. Conservative allies flee—industrialists and middle-class supporters want nothing to do with Röhm's openly revolutionary militia. Support from respectable circles collapses.
+
+But the SA swells with recruits. Unemployed young men, brutalized by war and economic despair, flock to an organization promising action, violence, and revolutionary transformation. Some KPD supporters even drift toward the SA, attracted by its revolutionary militancy.
+
+Most critically, the movement is fractured beyond repair. Hitler refuses to accept Röhm's authority—an estimated 40% of party members remain personally loyal to Hitler. The NSDAP is headed for inevitable split.
+
+The NSDAP under Röhm is more immediately dangerous—armed, aggressive, contemptuous of legality—but also less politically viable. This is a putschist organization that will either be crushed by state forces or attempt violent seizure of power.
+
+@party_splits
+on-arrival: nsdap_outcome = "split"; hitler_nsdap = 1; strasser_splinter = 1; rohm_sa_independent = 1; nazi_urgency -= 3; workers_nsdap -= 3; old_middle_nsdap -= 2; new_middle_nsdap -= 2; rural_nsdap -= 2; unemployed_nsdap -= 1; catholics_nsdap -= 1; workers_dnvp += 1; old_middle_dnvp += 2; rural_dnvp += 1; workers_kpd += 1; workers_spd += 1; unemployed_spd += 1;
+
+**The Nazi Party Shatters**
+
+The NSDAP's internal crisis has culminated in complete organizational collapse. The party has splintered into competing factions, each claiming to represent authentic National Socialism.
+
+**Hitler's NSDAP**: Adolf Hitler retains the party name, Bavarian base, and core of true believers—perhaps 35% of the original membership. His movement continues focusing on electoral strategy, racial antisemitism, and alliance with conservative nationalists. Stripped of Strasser's organization and Röhm's muscle, Hitler's party is diminished but ideologically pure and absolutely loyal to the Führer.
+
+**Strasser's Black Front**: Gregor Strasser has formed what he calls the "Black Front"—a revolutionary nationalist-socialist movement emphasizing anti-capitalism over racial ideology. About 30% of former Nazis have followed Strasser, particularly party functionaries and those genuinely committed to "socialist" elements. This faction explicitly competes with both the SPD and KPD for working-class support.
+
+**Röhm's SA**: Ernst Röhm has declared the SA independent from party politics entirely. Perhaps 25% of the original movement—particularly the younger, more violent elements—have embraced pure paramilitarism. The SA is now an autonomous force, available as muscle-for-hire to whoever pays or ideologically aligned with revolutionary violence regardless of specific program.
+
+**The Remainder**: About 10% have simply quit political extremism, disillusioned by the factional bloodletting, or drifted to other right-wing parties like the DNVP.
+
+The immediate effect is dramatic weakening of the fascist threat. Former Nazi voters scatter—some return to the DNVP, others to conventional conservative parties, some even drift back to republican parties or the KPD. Workers who briefly flirted with Nazism return to the SPD fold. The unified NSDAP was dangerous; three squabbling factions are far less so.
+
+They compete for members, resources, and ideological territory. Hitler denounces Strasser as a traitor. Strasser calls Hitler a capitalist tool. Röhm dismisses both as talkers rather than fighters.
+
+Our intelligence is cautiously optimistic: "The fascist movement has committed political suicide. Without unity, these factions are manageable threats—fringe parties and criminal gangs rather than existential danger to the Republic."
+
+But some analysts worry: "Three competing extremist movements may radicalize each other, each trying to prove they're more revolutionary than rivals. And if economic crisis deepens catastrophically, could they reunify under desperate circumstances?"
+
+For now, the Nazi threat has imploded. Whether this is permanent salvation or temporary reprieve depends on what happens next in German society.
+
+The Republic has been granted unexpected breathing room. Will we use it wisely?
