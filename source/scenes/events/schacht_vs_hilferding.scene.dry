@@ -1,34 +1,122 @@
 title: Hjalmar Schacht against Hilferding
 new-page: true
-view-if: year = 1929 and month >= 11 and spd_in_government = 1 and finance_minister = "Hilferding" and finance_minister_party = "SPD"
+view-if: year = 1929 and month >= 11 and spd_in_government = 1 and finance_minister = "Hilferding" and finance_minister_party = "SPD" and support_memorandum != 1
 tags: event
 max-visits: 1
 face-image: img/portraits/SchachtHjalmar.jpg
 
 = Schacht against Hilferding
 
-Reichsbank president Hjalmar Schacht has criticized Finance Minister Hilferding of the SPD for his budget, which he claims is unbalanced and contains too much social welfare and not enough tax cuts for top earners and businesses. More importantly, he is refusing to release loans necessary for the functioning of the government unless Hilferding either massively changes his budget or resigns.
+November brings a crisis within the government itself. Hjalmar Schacht, President of the Reichsbank, has launched a public assault on Finance Minister Rudolf Hilferding's budget proposals.
 
-Of course, this criticism is unfounded, but the bourgeois establishment does not care.
+Schacht's attack is comprehensive and brutal. The budget is "fundamentally unbalanced," he declares. Social welfare spending is "unsustainable." Tax policy favors consumption over investment. Germany faces financial catastrophe unless drastic changes are made—specifically, massive cuts to social programs and tax relief for businesses and high earners.
 
-- @expose_him: Expose his reactionary dealings!
-- @work_with: Work with him to shape the budget.
-- @hilferding_resign: Hilferding must resign.
+More ominously, Schacht is wielding the Reichsbank's institutional power as a weapon. He is refusing to authorize crucial short-term loans that the government needs to function. "I cannot in good conscience support a budget that violates sound financial principles," he announces piously.
+
+It's financial blackmail dressed in technical language. Hilferding's budget is hardly radical—it maintains existing social programs while seeking modest new revenues. But to Schacht and the business establishment, any budget that doesn't slash welfare and cut upper-bracket taxes is "irresponsible socialism."
+
+The bourgeois press amplifies Schacht's critique. The *Deutsche Allgemeine Zeitung* calls for Hilferding's immediate resignation. The DVP, our coalition partner, begins making pointed remarks about "qualified economic leadership." Even President Hindenburg privately expresses concern about the Finance Ministry's direction.
+
+Hilferding is bitter but unsurprised. "Schacht serves capital, not Germany," he tells the Cabinet. "He'd rather see millions unemployed than see a pfennig taxed from the wealthy. This is class warfare by other means."
+
+The left wing of our party demands we fight back. The reformists counsel compromise. The bourgeois parties watch, waiting to see if we'll capitulate.
+
+How should we respond?
+
+- @expose_him: Expose Schacht's reactionary agenda and political connections.
+- @work_with: Attempt to negotiate a revised budget acceptable to Schacht.
+- @defend_budget: Defend Hilferding's budget and dare Schacht to follow through on his threats.
+- @hilferding_resign: Accept that Hilferding must resign to preserve the coalition.
 
 @expose_him
 view-if: investigate_far_right >= 1
+on-arrival: schacht_exposed = 1; schacht_relation = -100; dnvp_relation -= 10; hindenburg_relation -= 5; left_strength += 5; labor_strength += 5; dvp_relation -= 8; coalition_dissent += 1; reichsbank_independent += 1;
 
-We expose to the public Schacht's dealings with the Nazis. For better or worse, he is cowed, and refrains from taking further actions against us.
+We launch a counterattack, using intelligence gathered from our investigations into right-wing networks.
 
+Our newspapers publish damning revelations: Schacht has been meeting secretly with Nazi Party officials. He's provided financial advice to industrialists funding the NSDAP. He's privately expressed sympathy for "national renewal" and criticized the "November criminals" who founded the Republic.
+
+"The Reichsbank President is a reactionary conspirator!" we declare. "His attack on Hilferding isn't about sound finance—it's about destroying the democratic welfare state and empowering fascism!"
+
+The evidence is incontrovertible. Schacht's reputation takes a severe hit. Faced with public exposure, he backs down from his most aggressive demands. The loans are released. Hilferding remains Finance Minister.
+
+But we've made a powerful enemy. Schacht will never forgive this humiliation. The Reichsbank becomes increasingly independent, resistant to government direction. Hindenburg coldly notes that we've "politicized" a technical institution. The DVP protests our "character assassination" of a respected financial expert.
+
+Still, we've won this battle. Hilferding's budget passes. The government survives. And Germany sees clearly that Schacht is no neutral technocrat—he's a partisan for the right.
+
+[? if left_strength > 35 : Our left wing celebrates: "This is how you fight reaction—expose it, name it, defeat it!" ?]
 
 @work_with
+on-arrival: schacht_negotiation = 1;
 
-After a second budget proposal, Schacht still considers Hilferding's budget to be unacceptable, despite more regressive taxes and expenditure cuts.
+Perhaps negotiation can salvage this situation. We approach Schacht to discuss budget revisions.
 
-- @hilferding_resign: Hilferding must resign.
+The Reichsbank President presents his demands with the clinical precision of a surgeon: Cut unemployment insurance by 15%. Reduce housing subsidies. Eliminate proposed tax increases on high incomes and corporations. Instead, raise consumption taxes and tariffs.
 
+Hilferding objects that this would devastate working-class families while enriching the already wealthy. "Your 'reforms' are class warfare," he tells Schacht bluntly.
+
+"My reforms are economic necessity," Schacht replies icily. "But if the Finance Minister prefers ideology to solvency, Germany will pay the price."
+
+We revise the budget according to Schacht's specifications—less generous social spending, more regressive taxation. The second proposal is submitted with gritted teeth.
+
+Schacht reviews it and issues his verdict: "Still inadequate. The fundamental problem remains—this government prioritizes political constituencies over economic rationality."
+
+The implication is clear: no budget with Hilferding as author will satisfy him. The assault was never about the numbers. It was about removing a socialist from the Finance Ministry.
+
+- @hilferding_resign: Hilferding must resign to end this crisis.
+- @defend_budget_2: Enough. We'll defend our Finance Minister, consequences be damned.
+
+@defend_budget
+choose-if: left_strength > reformist_strength or labor_strength >= 55
+unavailable-subtitle: [? if left_strength <= reformist_strength : The party lacks the stomach for confrontation with the Reichsbank. ?] [? if labor_strength < 55 : We need stronger labor backing to take this stand. ?]
+on-arrival: schacht_relation = -50; left_strength += 8; labor_strength += 5; left_dissent -= 10; reformist_dissent += 8; coalition_dissent += 3; dvp_relation -= 12; financial_crisis_progress += 2;
+
+"The Finance Minister's budget stands!" we declare. "The Reichsbank President may offer advice, but he does not dictate fiscal policy to a democratic government. If Herr Schacht wishes to withhold necessary loans, let him explain to the German people why he's sabotaging the economy for political reasons!"
+
+It's a direct challenge to Schacht's authority—and implicitly, to the independence of the Reichsbank itself. The left wing cheers. Finally, we're not capitulating to reactionary financial interests!
+
+Schacht responds by... doing exactly what we dared him to do. The Reichsbank continues withholding short-term credit. Government operations become increasingly difficult. The DVP threatens coalition withdrawal if we don't "restore responsible financial leadership."
+
+We've called Schacht's bluff, and he's called ours. Now we're in a war of attrition—can the government function without Reichsbank cooperation, or will financial pressure force our surrender?
+
+The crisis deepens. Markets grow nervous. The bourgeois press portrays us as reckless radicals choosing political posturing over economic stability.
+
+[? if coalition_dissent > 8 : The coalition is fracturing. Our partners may abandon us over this confrontation. ?]
+
+[? if left_strength > 40 : But our base is energized. If the Republic can't defend democratic control over finance, what kind of democracy is it? ?]
+
+@defend_budget_2
+choose-if: left_strength > reformist_strength or labor_strength >= 55
+unavailable-subtitle: [? if left_strength <= reformist_strength : The party lacks the stomach for continued confrontation. ?] [? if labor_strength < 55 : We need stronger labor backing to maintain this fight. ?]
+on-arrival: schacht_relation = -50; left_strength += 8; labor_strength += 5; left_dissent -= 10; reformist_dissent += 8; coalition_dissent += 3; dvp_relation -= 12; financial_crisis_progress += 2;
+
+"We've compromised enough!" we announce. "Finance Minister Hilferding's revised budget already incorporated reasonable concerns. The Reichsbank President's continued obstruction is political, not technical. We will not surrender democratic fiscal policy to an unelected banker!"
+
+The lines are drawn. Schacht continues withholding credit. We continue defending Hilferding. The government lurches forward in crisis, but it lurches forward under Social Democratic leadership.
+
+The consequences multiply. The DVP grows more hostile. Markets become skittish. The bourgeois press portrays us as dangerous radicals.
+
+But we've made our stand: the Republic will not be governed by the Reichsbank.
+
+[? if coalition_dissent > 8 : The coalition may not survive this crisis. ?]
 
 @hilferding_resign
-on-arrival: finance_minister_party = "DVP" if in_grand_coalition; finance_minister_party = "I" if in_weimar_coalition or in_popular_front or in_left_front; finance_minister = "Moldenhauer"
+on-arrival: finance_minister_party = "DVP" if in_grand_coalition; finance_minister_party = "I" if in_weimar_coalition or in_popular_front or in_left_front; finance_minister = "Moldenhauer"; left_dissent += 15; labor_dissent += 10; reformist_dissent += 5; dvp_relation += 8; schacht_relation += 10; left_strength -= 5;
 
-With no other choice, Hilferding has resigned as Finance Minister, to be replaced by a [? if in_grand_coalition: center-right ?][? if not in_grand_coalition: technocratic ?] candidate.
+With bitter reluctance, Rudolf Hilferding submits his resignation as Finance Minister.
+
+"I cannot serve in a government where policy is dictated by the Reichsbank rather than elected representatives," he states in his resignation letter. "Hjalmar Schacht has demonstrated that democratic socialism is incompatible with the current financial order. That is a lesson Germany will learn at great cost."
+
+[? if in_grand_coalition : The DVP quickly nominates Paul Moldenhauer, a business-friendly economist, as Hilferding's replacement. The coalition accepts. ?]
+
+[? if in_weimar_coalition or in_popular_front or in_left_front : A technocratic "independent" Finance Minister, Paul Moldenhauer, is appointed to replace Hilferding—nominally nonpartisan, but clearly acceptable to business interests. ?]
+
+Schacht has won. A socialist Finance Minister has been driven from office by financial blackmail. The Reichsbank's independence has been weaponized against democratic governance.
+
+Our left wing is furious. "We've capitulated to reaction!" they rage. "Hilferding should have fought!" Even reformists feel the humiliation—we were forced to sacrifice one of our most capable ministers to satisfy a reactionary banker.
+
+The bourgeois press celebrates the restoration of "responsible financial leadership." Schacht receives congratulatory telegrams from industrialists. The right has demonstrated that even in a coalition government, the SPD cannot truly control economic policy.
+
+It's a defeat that will echo through the remaining years of the Republic.
+
+[? if left_strength > 35 : Emergency party conferences demand explanations. How can we claim to represent workers when we cannot defend our own Finance Minister? ?]
