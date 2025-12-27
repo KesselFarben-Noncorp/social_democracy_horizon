@@ -1,0 +1,87 @@
+title: The Prussian Question Conference
+subtitle: January 1928
+tags: event, prussia
+view-if: year = 1928 and month = 1
+on-arrival: month_actions += 1
+max-visits: 1
+
+= The Prussian Question
+
+The Reich Conference convenes in Berlin amid bitter January cold. At the center of debate: what the newspapers are calling the "Prussian anomaly."
+
+Prussia, containing three-fifths of Germany's population and territory, has been governed by a Social Democratic-led coalition since 1920—the famous "Weimar Coalition" of SPD, Center, and DDP. While Reich governments come and go, Otto Braun's administration in Prussia remains stable, controlling vast police forces, the civil service, and local government across northern and eastern Germany.
+
+This gives us extraordinary power. The Prussian *Schutzpolizei*, 60,000 strong and loyal to Interior Minister Carl Severing, has proven far more reliable than the Reichswehr in suppressing Nazi street violence. When Berlin SA thugs rampage, it's Prussian police who restore order.
+
+But our dominance breeds resentment. The DVP fulminates about "one-party dictatorship masquerading as coalition government." The DNVP demands Prussia be broken up into smaller states—conveniently eliminating our power base. Even our coalition partners in the Center and DDP whisper about "Prussian particularism" and the need for greater Reich oversight.
+
+From the left, the Communists sneer at our "Red Prussia" as proof we've become mere administrators of the bourgeois state. "You control the police who beat striking workers!" they cry. "You're the Republic's praetorian guard!"
+
+Otto Braun addresses the conference with characteristic bluntness: "Prussia is the fortress of democracy in Germany. Abandon it, and you abandon the Republic itself. Where else can we rely on state power to defend constitutional order? In Bavaria, where separatists dream of monarchy? In Thuringia, where Communists agitate? Prussia alone stands firm."
+
+The choice is ours. How do we respond?
+
+- @defend_prussia: Prussia's autonomy is non-negotiable—it's the Republic's foundation.
+- @compromise: Propose coordination mechanisms between Prussia and Reich authorities.
+- @centralize: Support transferring key powers to the Reich government.
+- @federalize: Advocate for genuine federalism, empowering all German states equally.
+
+@defend_prussia
+on-arrival: prussian_power += 1; left_dissent -= 5; labor_dissent -= 3; dvp_relation -= 8; ddp_relation -= 4; z_relation -= 3; reichswehr_loyalty -= 0.05; prussian_police_loyalty += 0.05; center_strength += 3; coup_progress += 1;
+
+"Prussia stays as it is!" we declare. Otto Braun's government will continue unhindered, the Prussian police will remain under Severing's control, and Social Democracy will maintain its strongest institutional bastion.
+
+Our working-class base approves. Finally, we're not compromising! The Prussian police have protected trade union offices, dispersed Nazi rallies, and maintained order when the Reichswehr proved unreliable. Why surrender such power?
+
+But the bourgeois parties are livid. The DVP withdraws its ministers from the Prussian government in protest—though the coalition survives without them. "The SPD has become a state within a state," thunders the *Deutsche Allgemeine Zeitung*. "A partisan militia wearing police uniforms!"
+
+Even the Center Party, our coalition partner, grumbles about SPD intransigence. And the Reichswehr officer corps takes note: the Social Democrats clearly trust their own police more than the national army. That insult will not be forgotten.
+
+[? if reichswehr_loyalty < 0.3: The military's hostility grows more palpable. Are we creating the conditions for our own destruction? ?]
+
+@compromise
+on-arrival: dvp_relation += 3; ddp_relation += 5; z_relation += 4; left_dissent += 3; reichswehr_loyalty += 0.05; coalition_dissent -= 1;
+
+"We recognize the need for coordination while preserving federalism's benefits," we announce diplomatically.
+
+The compromise involves creating liaison mechanisms between Prussian police and Reich interior ministry, joint conferences on security matters, and voluntary information-sharing about extremist groups. Prussia maintains operational autonomy, but we demonstrate goodwill toward Reich institutions.
+
+It's the kind of bureaucratic solution that satisfies no one completely but prevents a crisis. The Center and DDP appreciate our reasonableness. The DVP stops threatening coalition withdrawal. Even the Reichswehr grudgingly accepts this modest gesture toward national unity.
+
+Our left wing grumbles about "unnecessary concessions to reaction," but most recognize this is pragmatic politics. Otto Braun keeps his power; we maintain coalition stability; everyone saves face.
+
+It's not glorious. But perhaps survival in a democratic republic rarely is.
+
+@centralize
+on-arrival: prussian_power -= 2; left_dissent += 8; labor_dissent += 5; dvp_relation += 8; ddp_relation += 6; reichswehr_loyalty += 0.07; prussian_police_loyalty -= 0.09; kpd_relation += 3; center_dissent += 5; reformist_dissent += 3;
+
+In a stunning reversal, we agree to transfer significant powers from Prussia to the Reich. Prussian police will coordinate closely with Reich authorities. Interior Minister oversight will be shared. Prussia's administrative independence is curtailed.
+
+The bourgeois parties are delighted. "The SPD has finally chosen Germany over party power!" proclaims the *Vossische Zeitung*. The Reichswehr is pleased—at last, the Social Democrats show proper national spirit.
+
+But within our own ranks, the reaction is furious.
+
+"We've surrendered our only reliable power base!" Otto Braun thunders. "When the Reich government falls to reactionaries—and it will—what protection will we have? The Prussian police were our shield!"
+
+The left wing is apoplectic. Even reformists question the wisdom of voluntarily disarming before our enemies have been defeated. And the Communists smell blood: "The SPD proves it prefers bourgeois respectability to workers' power! They've betrayed you again!"
+
+Prussian police morale plummets. Why should they remain loyal when their own party leadership doesn't trust them?
+
+[? if left_strength > 30: Our left wing demands an emergency party conference. This decision may fracture the party. ?]
+
+@federalize
+on-arrival: prussian_power -= 1; left_dissent += 2; reformist_dissent -= 3; ddp_relation += 6; dvp_relation += 2; workers_spd += 2*(1-dissent); new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); pro_republic += 2;
+
+"We propose genuine federalism," we announce. "Not Prussian hegemony, not Reich centralization, but true equality among the German states."
+
+It's an idealistic position, rooted in democratic principle rather than power politics. We advocate strengthening *all* state governments—giving Bavaria, Saxony, and the smaller states the same administrative capacity Prussia enjoys. A federal council would coordinate between equals, not dominate from Berlin or Potsdam.
+
+The liberal DDP is thrilled. This is constitutional idealism at its finest! Even some DVP members, jealous of centralist tendencies, cautiously approve. The proposal wins democratic credibility—we're willing to share power for republican principles.
+
+But it's also naïve. Bavaria's conservative government will use enhanced power to shelter right-wing extremists. Thuringia's Communist influences will be strengthened. And we'll have voluntarily surrendered our Prussian advantage for... what? A theoretical commitment to federalism?
+
+Otto Braun is philosophical: "If German democracy cannot survive without SPD police dominance, then it cannot survive at all. Perhaps it's time to trust the Republic itself."
+
+Whether that trust is wisdom or folly, only time will tell.
+
+[? if nazi_urgency > 3: Given the Nazi threat, some question whether now is the time for idealistic experiments. ?]
