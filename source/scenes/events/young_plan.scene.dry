@@ -16,7 +16,7 @@ While this seems to be a positive development for the country, the Right is camp
 - @collapse: Young Plan collapses due to non referendum reasonings.
 
 @pro_plan
-view-if: ruhr_labor = 0
+view-if: ruhr_labor = 0 or young_plan_catastrophy = 0
 
 How should we campaign in favor of the Plan?
 
@@ -36,13 +36,13 @@ The referendum easily fails, with only around 15% of voters supporting it. It se
 
 
 @no_plan
-view-if: ruhr_labor = 0
+view-if: ruhr_labor = 0 or young_plan_catastrophy = 0
 on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5;
 
 The referendum easily fails with or without our presence in the campaign, with only around 15% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
 
 @collapse
-view-if: (west_relation < 0 and nationalism > 60) or ruhr_labor = 1
+view-if: (west_relation < 0 and nationalism > 60) or ruhr_labor = 1 or young_plan_catastrophy = 1
 on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1
 achievement: ruhrland
 
