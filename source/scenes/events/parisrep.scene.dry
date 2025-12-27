@@ -25,7 +25,7 @@ How should we proceed?
 - @demand_worker_consultation: Require that any agreement be submitted to trade union approval.
 
 @support_schacht
-on-arrival: reparations_negotiation = "schacht"; dvp_relation += 5; z_relation += 3; dnvp_relation += 4; left_dissent += 5; labor_dissent += 3; reichsbank_independent = 1;
+on-arrival: reparation_negotiation = "schacht"; dvp_relation += 5; z_relation += 3; dnvp_relation += 4; left_dissent += 5; labor_dissent += 3; reichsbank_independent = 1;
 
 We acquiesce to Schacht and Vögler's appointment. The bourgeois parties are pleased by our "statesmanship." Even the Nationalists grudgingly approve—at least the SPD isn't trying to turn reparations negotiations into class warfare.
 
@@ -38,7 +38,7 @@ Our left wing is bitter. "We've handed Germany's financial future to a reactiona
 @propose_alternatives
 choose-if: in_grand_coalition or in_weimar_coalition
 unavailable-subtitle: [? if not in_grand_coalition and not in_weimar_coalition: We need to be in a coalition government to have influence over the delegation composition. ?]
-on-arrival: reparations_negotiation = "labor_included"; labor_strength += 5; left_dissent -= 5; reformist_strength += 3; dvp_relation -= 8; z_relation -= 4; dnvp_relation -= 10; allies_suspicious = 1;
+on-arrival: reparation_negotiation = "labor_included"; labor_strength += 5; left_dissent -= 5; reformist_strength += 3; dvp_relation -= 8; z_relation -= 4; dnvp_relation -= 10; allies_suspicious = 1;
 
 "Germany's delegation must include representatives of organized labor!" we insist. We propose adding Theodor Leipart of the ADGB trade unions and Hermann Müller as political balance to Schacht and Vögler.
 
@@ -53,7 +53,7 @@ The negotiations begin under a cloud of Allied skepticism. Whether labor's prese
 @hilferding_lead
 choose-if: (in_grand_coalition or in_weimar_coalition) and spd_in_government and reformist_strength >= left_strength and coalition_dissent <= 2
 unavailable-subtitle: [? if not spd_in_government: We must be in government to propose our Finance Minister. ?][? if not in_grand_coalition and not in_weimar_coalition: We need to be in a coalition to have this influence. ?][? if reformist_strength < left_strength: The party's left wing would never accept a reformist leading such crucial negotiations. ?][? if coalition_dissent > 2: Our coalition partners are already too alienated to accept this demand. ?]
-on-arrival: reparations_negotiation = "hilferding"; reformist_strength += 8; center_strength += 5; left_dissent -= 3; dvp_relation -= 12; dnvp_relation -= 15; z_relation -= 6; allies__suspicious = 2; coalition_dissent += 0.5;
+on-arrival: reparation_negotiation = "hilferding"; reformist_strength += 8; center_strength += 5; left_dissent -= 3; dvp_relation -= 12; dnvp_relation -= 15; z_relation -= 6; allies__suspicious = 2; coalition_dissent += 0.5;
 
 "Rudolf Hilferding, as Finance Minister, should lead Germany's delegation!" we declare. "He understands both economics and Germany's needs better than any banker."
 
@@ -70,7 +70,7 @@ Our left wing loves the symbolic gesture—an SPD Finance Minister dictating ter
 @demand_worker_consultation
 choose-if: left_strength > reformist_strength + center_strength and labor_strength >= 60
 unavailable-subtitle: [? if left_strength <= reformist_strength + center_strength: The left wing lacks the strength to push through such a radical demand. ?][? if labor_strength < 60: We need stronger trade union support to make this credible. ?]
-on-arrival: reparations_negotiation = "worker_veto"; labor_strength += 8; left_strength += 5; left_dissent -= 8; dvp_relation -= 10; z_relation -= 5; dnvp_relation -= 12; capital_strike_progress += 1; coalition_dissent += 1;
+on-arrival: reparation_negotiation = "worker_veto"; labor_strength += 8; left_strength += 5; left_dissent -= 8; dvp_relation -= 10; z_relation -= 5; dnvp_relation -= 12; capital_strike_progress += 1; coalition_dissent += 1;
 
 "Any reparations agreement must be submitted to the trade unions for approval before Germany signs!" we announce. "The working class will not accept terms negotiated without their consent!"
 
@@ -84,4 +84,4 @@ Still, we've drawn a line: Germany's workers will not be sacrificed on the altar
 
 The implications ripple outward. If workers can veto reparations agreements, what else might require trade union approval? Budgets? Trade deals? The balance of power in Weimar is shifting.
 
-[? if coalition_dissent > 15: The coalition is near collapse. Our partners may force us to choose between this demand and government participation. ?]
+[? if coalition_dissent > 2: The coalition is near collapse. Our partners may force us to choose between this demand and government participation. ?]
