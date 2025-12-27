@@ -192,6 +192,7 @@ if (Q.month_actions >= 1) {
     Q.investment_effect = (Q.supply_impulse || 0) * (1 - (Q.capital_pressure || 0) * 0.4);
     Q.consumption_multiplier = 1 + (Q.distribution_shift || 0) * 0.2;
     Q.total_demand *= Q.consumption_multiplier;
+    Q.budget = Math.round(Q.budget * 100) / 100;
 
     // === PASSIVE ECONOMIC DRIFT ===
 
@@ -437,9 +438,9 @@ if (Q.month_actions >= 1) {
     Q.distribution_shift = (Q.distribution_shift || 0) * Math.exp(-0.05 * Q.dt);
 
     // === CONSTRAINTS ===
-    Q.inflation = Math.max(-10, Math.min(99, Q.inflation));
+    Q.inflation = Math.max(-100, Math.min(99, Q.inflation));
     Q.unemployed = Math.max(0, Math.min(99, Q.unemployed));
-    Q.economic_growth = Math.max(-15, Math.min(99, Q.economic_growth));
+    Q.economic_growth = Math.max(-100, Math.min(99, Q.economic_growth));
     Q.inflation_expectations = Math.max(-5, Math.min(99, Q.inflation_expectations));
     Q.budget = Math.max(-50, Math.min(50, Q.budget));
     Q.capital_pressure = (Q.capital_pressure || 0) + Q.capital_drift;
