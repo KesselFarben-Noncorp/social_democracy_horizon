@@ -28,6 +28,23 @@ As with the Prussian state police, there are measures we can take to root out re
 
 Current interior police loyalty: [+ interior_police_loyalty : loyalty +]
 
+@investigate_far_right
+go-to: investigate_far_right_success if interior_police_loyalty >= 0.55; investigate_far_right_failure if interior_police_loyalty < 0.55
+
+@investigate_far_right_success
+on-arrival: investigate_far_right += 1; sa_strength -= 20; workers_nsdap -= 3; new_middle_nsdap -= 3; nazi_urgency += 1 if investigate_far_right == 2; nazi_urgency += 2 if investigate_far_right == 3; workers_nsdap -= 3 if investigate_far_right == 3; new_middle_nsdap -= 3 if investigate_far_right == 3; old_middle_nsdap -= 3 if investigate_far_right == 3; unemployed_spd -= 3 if investigate_far_right == 3; coup_progress -= 1 if coup_progress >= 7
+
+[? if investigate_far_right == 1 : We have discovered collusion between Hjalmar Schacht, president of the Reichsbank, and the Nazis. This is very useful information. ?]
+[? if investigate_far_right == 2 : We have discovered illegal arms smuggling by the SA, the Nazi paramilitary. ?]
+[? if investigate_far_right == 3 : We have discovered a secret cache of documents from the NSDAP detailing their plan to violently take over the country if they enter into power. This is an anti-constitutional plot, and will be publicized and persecuted. ?]
+[? if investigate_far_right > 3 : Of course the Nazis are doing crimes; everyone knows that. Now, we finally have proof. ?]
+
+[? if coup_progress >= 6: There are reports of an imminent coup by the far-right. We have attempted to disrupt some of these plans, but the threat is still present. ?]
+
+@investigate_far_right_failure
+
+Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
+
 @investigate_corruption
 go-to: investigate_corruption_success if interior_police_loyalty >= 0.5; investigate_corruption_failure if interior_police_loyalty < 0.5
 
@@ -130,66 +147,3 @@ Unfortunately, our investigations have failed to turn up anything. Rumors are th
 [? if investigate_corruption >= 2 : This is suspicious - our previous investigations were successful. There may be active obstruction within the security services, possibly by officials with business connections. ?]
 
 [? if interior_police_loyalty < 0.3 : The Interior Ministry's authority is clearly compromised. Without loyal police forces, even the most obvious corruption cannot be prosecuted. ?]
-
-@investigate_far_right
-go-to: investigate_far_right_success if interior_police_loyalty >= 0.55; investigate_far_right_failure if interior_police_loyalty < 0.55;
-
-@investigate_far_right_failure
-
-Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police
-
-@investigate_far_right_success
-on-arrival: investigate_far_right += 1; sa_strength -= 20; workers_nsdap -= 3; new_middle_nsdap -= 3; nazi_urgency += 1 if investigate_far_right == 2; nazi_urgency += 2 if investigate_far_right == 3; workers_nsdap -= 3 if investigate_far_right == 3; new_middle_nsdap -= 3 if investigate_far_right == 3; old_middle_nsdap -= 3 if investigate_far_right == 3; unemployed_nsdap -= 3 if investigate_far_right == 3; coup_progress -= 1 if coup_progress >= 7; workers_nsdap -= 4 if investigate_far_right == 4; new_middle_nsdap -= 4 if investigate_far_right == 4; old_middle_nsdap -= 4 if investigate_far_right == 4; sa_strength -= 30 if investigate_far_right == 4; reichswehr_loyalty += 0.03 if investigate_far_right == 4; pro_republic += 2 if investigate_far_right == 4; workers_nsdap -= 5 if investigate_far_right == 5; new_middle_nsdap -= 5 if investigate_far_right == 5; old_middle_nsdap -= 5 if investigate_far_right == 5; rural_nsdap -= 5 if investigate_far_right == 5; unemployed_nsdap -= 5 if investigate_far_right == 5; sa_strength -= 40 if investigate_far_right == 5; sa_banned = 1 if investigate_far_right == 5; nazi_urgency += 3 if investigate_far_right == 5; coup_progress += 2 if investigate_far_right == 5
-
-[? if investigate_far_right == 1 : We have discovered collusion between Hjalmar Schacht, president of the Reichsbank, and the Nazis. This is very useful information. ?]
-
-[? if investigate_far_right == 2 : We have discovered illegal arms smuggling by the SA, the Nazi paramilitary. ?]
-
-[? if investigate_far_right == 3 : We have discovered a secret cache of documents from the NSDAP detailing their plan to violently take over the country if they enter into power. This is an anti-constitutional plot, and will be publicized and persecuted. ?]
-
-[? if investigate_far_right == 4 : Our continued investigation has uncovered direct links between the Nazi leadership and elements within the Reichswehr. We have evidence of high-ranking officers providing training and equipment to the SA. Several officers have been relieved of duty, though this has created tension within the military. The scandal is damaging Nazi credibility among middle-class voters who believed in their "law and order" rhetoric. ?]
-
-[? if investigate_far_right == 5 : **BREAKTHROUGH**: We have infiltrated the highest levels of Nazi planning. Our agents have obtained detailed evidence of a coordinated plot involving industrialists, Junker aristocrats, and NSDAP leaders to overthrow the Republic through a combination of electoral manipulation and armed insurrection. The evidence is irrefutable - including signed documents, financial records, and recorded conversations.
-
-We have moved to ban the SA as a criminal organization. This is a major blow to Nazi street power, but Hitler is now cornered and desperate. Our intelligence suggests he may attempt a "final gamble" - either a premature coup attempt or a dramatic escalation of violence. We must be vigilant. ?]
-
-[? if investigate_far_right > 5 : We are maintaining surveillance on the Nazi conspiracy, but we have pushed as far as we can. Any further action risks provoking the violent confrontation we are trying to prevent. ?]
-
-[? if coup_progress >= 6: There are reports of an imminent coup by the far-right. We have attempted to disrupt some of these plans, but the threat is still present. ?]
-
-- @investigate_far_right_6: Continue investigating despite the risks.
-- @root: Return to main actions.
-
-@investigate_far_right_6
-choose-if: investigate_far_right == 5
-unavailable-subtitle: We have already pushed our investigations to the limit.
-
-Are we certain we want to continue? Our intelligence reports warn that further pressure on the Nazi leadership may trigger exactly the violent response we are trying to prevent. A cornered Hitler is unpredictable and dangerous.
-
-- @investigate_far_right_6_confirm: Yes, press forward. We must destroy this conspiracy completely.
-- @root: No, we have done enough for now.
-
-@investigate_far_right_6_confirm
-on-arrival: investigate_far_right += 1; nazi_urgency += 5; coup_progress += 5; sa_militancy += 0.3; nsdap_relation -= 50
-
-**CRITICAL INTELLIGENCE FAILURE**
-
-Our sixth investigation has gone catastrophically wrong. The Nazi leadership, already desperate and paranoid, has interpreted our continued pressure as preparation for mass arrests. Rather than wait to be destroyed piecemeal, they have chosen to strike now.
-
-Emergency reports are flooding in from across the country: SA units are mobilizing, weapons caches are being distributed, and Nazi operatives have seized control of several local police stations. This is it - the coup attempt we feared.
-
-The Republic is now in mortal danger.
-
-[? if reichswehr_loyalty >= 0.6 : Fortunately, our earlier efforts to expose Nazi-Reichswehr collusion have paid off. Most military commanders remain loyal to the constitutional government and are moving to suppress the uprising. ?]
-
-[? if reichswehr_loyalty < 0.6 and reichswehr_loyalty >= 0.4 : The Reichswehr's response is uncertain. Some units are moving to defend the Republic, but others are hesitating or even sympathizing with the conspirators. ?]
-
-[? if reichswehr_loyalty < 0.4 : The Reichswehr is not responding to government orders. Worse, some units appear to be coordinating with the Nazi insurgents. We may be facing a combined Nazi-military coup. ?]
-
-[? if sa_strength > 200 : The SA is still dangerously strong despite our efforts. This will be a bloody confrontation. ?]
-
-[? if sa_strength <= 200 and sa_strength > 100 : Our previous actions have weakened the SA, but they are still a serious threat. ?]
-
-[? if sa_strength <= 100 : The SA has been significantly weakened by our investigations. This gives us a fighting chance. ?]
-
-- @root: Face the crisis.
