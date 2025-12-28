@@ -291,27 +291,28 @@ if (Q.month_actions >= 1) {
     Q.dInflation += (Q.trade_pressure || 0) * 0.08;
     Q.dInflation += Q.passive_inflation;
 
-    // === DEFLATION EFFECTS (More severe than inflation but with diminishing returns) ===
+    // === DEFLATION EFFECTS (Strong dampening to prevent runaway) ===
     if (Q.inflation < 0) {
-        // Base effect - unemployment makes deflation worse
-        Q.dInflation -= 0.025 * (Q.unemployed / 20);
+        // Base effect - heavily dampened
+        Q.base_deflation_effect = 0.02 * (-Q.inflation) / (1 + Math.abs(Q.inflation) * 0.5);
+        Q.dInflation -= Q.base_deflation_effect * (Q.unemployed / 20);
         
-        // Moderate deflation penalties with diminishing returns
+        // Moderate deflation with STRONG dampening
         if (Q.inflation < -3) {
             Q.deflation_severity = Math.abs(Q.inflation + 3);
-            // Debt deflation spiral - but with diminishing impact
-            Q.deflation_debt_effect = 0.08 * Q.deflation_severity / (1 + Q.deflation_severity * 0.2);
+            // Much stronger dampening factor (0.5 instead of 0.2)
+            Q.deflation_debt_effect = Math.min(0.05 * Q.deflation_severity / (1 + Q.deflation_severity * 0.5), 0.3);
             Q.dInflation -= Q.deflation_debt_effect;
             
-            // Consumption deferral
-            Q.consumption_defer = 0.02 * Q.deflation_severity / (1 + Q.deflation_severity * 0.25);
+            // Consumption deferral - capped very low
+            Q.consumption_defer = Math.min(0.01 * Q.deflation_severity / (1 + Q.deflation_severity * 0.6), 0.15);
             Q.demand_impulse -= Q.consumption_defer;
         }
         
         if (Q.inflation < -6) {
             Q.severe_deflation = Math.abs(Q.inflation + 6);
-            // Financial stress - but capped
-            Q.banking_stress = Math.min(0.15 * Q.severe_deflation / (1 + Q.severe_deflation * 0.3), 0.3);
+            // Banking stress - heavily capped
+            Q.banking_stress = Math.min(0.08 * Q.severe_deflation / (1 + Q.severe_deflation * 0.8), 0.2);
             Q.capital_pressure += Q.banking_stress;
         }
     }
@@ -337,30 +338,31 @@ if (Q.month_actions >= 1) {
     Q.dUnemployment += Q.labor_churn;
     Q.dUnemployment += Q.structural_unemployment_drift;
 
-    // === DEFLATION UNEMPLOYMENT EFFECTS (Stronger but with diminishing returns) ===
+    // === DEFLATION UNEMPLOYMENT EFFECTS (Heavily dampened) ===
     if (Q.inflation < 0) {
-        // Base effect - wage rigidity causes real wage increase
-        Q.deflation_base_u = 0.08 * (-Q.inflation) / (1 + Math.abs(Q.inflation) * 0.15);
-        Q.dUnemployment += Q.deflation_base_u * (1 - Math.exp(-Q.unemployed / 15));
+        // Base effect with VERY strong dampening
+        Q.deflation_base_u = 0.05 * (-Q.inflation) / (1 + Math.abs(Q.inflation) * 0.6);
+        Q.deflation_base_u *= (1 - Math.exp(-Q.unemployed / 20));
+        Q.dUnemployment += Math.min(Q.deflation_base_u, 0.8);
         
-        // Severe deflation effects with caps
+        // Severe deflation - capped at reasonable levels
         if (Q.inflation < -5) {
             Q.severe_deflation_u = Math.abs(Q.inflation + 5);
-            Q.deflation_unemployment = 0.15 * Q.severe_deflation_u / (1 + Q.severe_deflation_u * 0.25);
-            Q.dUnemployment += Math.min(Q.deflation_unemployment, 1.5);
+            Q.deflation_unemployment = 0.08 * Q.severe_deflation_u / (1 + Q.severe_deflation_u * 0.7);
+            Q.dUnemployment += Math.min(Q.deflation_unemployment, 0.6);
         }
         
         if (Q.inflation < -8) {
             Q.extreme_deflation_u = Math.abs(Q.inflation + 8);
-            Q.depression_unemployment = 0.2 * Q.extreme_deflation_u / (1 + Q.extreme_deflation_u * 0.3);
-            Q.dUnemployment += Math.min(Q.depression_unemployment, 2.0);
+            Q.depression_unemployment = 0.10 * Q.extreme_deflation_u / (1 + Q.extreme_deflation_u * 0.8);
+            Q.dUnemployment += Math.min(Q.depression_unemployment, 0.5);
         }
     }
 
     Q.dUnemployment += (Math.random() - 0.5) * 2 * 0.015;
 
     // Hard cap on unemployment changes
-    Q.dUnemployment = Math.max(-5, Math.min(5, Q.dUnemployment));
+    Q.dUnemployment = Math.max(-3, Math.min(3, Q.dUnemployment));
 
     // === GROWTH DYNAMICS ===
     Q.dGrowth = 0;
@@ -375,47 +377,47 @@ if (Q.month_actions >= 1) {
     Q.dGrowth += Q.cycle_growth_effect;
     Q.dGrowth += Q.productivity_growth;
 
-    // High inflation drag (capped, symmetric)
+    // High inflation drag (capped)
     if (Q.inflation > 6) {
         Q.dGrowth -= Math.min(0.02 * (Q.inflation - 6), 3.0);
     }
 
-    // === DEFLATION DAMAGE (Stronger than inflation but with diminishing returns) ===
+    // === DEFLATION DAMAGE (Much more heavily dampened) ===
     if (Q.inflation < -2) {
         Q.deflation_severity = Math.abs(Q.inflation + 2);
         
-        // Base deflation drag - stronger than inflation but diminishing
-        Q.deflation_drag = 0.08 * Q.deflation_severity / (1 + Q.deflation_severity * 0.2);
-        Q.dGrowth -= Math.min(Q.deflation_drag, 2.5);
+        // Base deflation drag - MUCH stronger dampening (0.5 instead of 0.2)
+        Q.deflation_drag = 0.05 * Q.deflation_severity / (1 + Q.deflation_severity * 0.5);
+        Q.dGrowth -= Math.min(Q.deflation_drag, 1.2);
         
-        // Severe deflation effects
+        // Severe deflation effects - all heavily capped
         if (Q.inflation < -5) {
             Q.severe_deflation_g = Math.abs(Q.inflation + 5);
-            // Investment collapse and liquidity trap
-            Q.depression_effect = 0.12 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * 0.25);
-            Q.dGrowth -= Math.min(Q.depression_effect, 2.0);
+            // Depression effect - strong dampening (0.7 instead of 0.25)
+            Q.depression_effect = 0.08 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * 0.7);
+            Q.dGrowth -= Math.min(Q.depression_effect, 1.0);
             
-            // Investment pullback
-            Q.investment_collapse = 0.03 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * 0.3);
-            Q.supply_impulse -= Math.min(Q.investment_collapse, 0.5);
+            // Investment collapse - heavily capped
+            Q.investment_collapse = 0.015 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * 0.8);
+            Q.supply_impulse -= Math.min(Q.investment_collapse, 0.3);
             
-            // Trade disruption
-            Q.deflation_trade = 0.05 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * 0.3);
-            Q.trade_pressure += Math.min(Q.deflation_trade, 0.8);
+            // Trade disruption - heavily capped
+            Q.deflation_trade = 0.03 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * 0.8);
+            Q.trade_pressure += Math.min(Q.deflation_trade, 0.4);
         }
         
         if (Q.inflation < -8) {
             Q.catastrophic_deflation = Math.abs(Q.inflation + 8);
-            // Final catastrophic effect but capped
-            Q.deflation_catastrophe = 0.15 * Q.catastrophic_deflation / (1 + Q.catastrophic_deflation * 0.35);
-            Q.dGrowth -= Math.min(Q.deflation_catastrophe, 1.5);
-            Q.capital_pressure += Math.min(0.1, 0.1);
+            // Final effect - very strong dampening (0.9 instead of 0.35)
+            Q.deflation_catastrophe = 0.08 * Q.catastrophic_deflation / (1 + Q.catastrophic_deflation * 0.9);
+            Q.dGrowth -= Math.min(Q.deflation_catastrophe, 0.8);
+            Q.capital_pressure += Math.min(0.05, 0.05);
         }
     }
 
-    // Inflation volatility penalty (symmetric but smaller)
+    // Inflation volatility penalty
     Q.inflation_penalty = 0.005 * Math.pow(Math.abs(Q.inflation), 1.5) * 1.0;
-    Q.dGrowth -= Math.min(Q.inflation_penalty, 1.2);
+    Q.dGrowth -= Math.min(Q.inflation_penalty, 1.0);
 
     // Unemployment drag (diminishing)
     Q.unemployment_gap = Math.max(0, Q.unemployed - Q.NAIRU);
@@ -438,8 +440,8 @@ if (Q.month_actions >= 1) {
     Q.dGrowth -= Math.min((Q.capital_pressure || 0) * 0.12, 2.0);
     Q.dGrowth += (Math.random() - 0.5) * 2 * 0.02;
 
-    // Hard cap on growth changes
-    Q.dGrowth = Math.max(-8, Math.min(8, Q.dGrowth));
+    // Hard cap on growth changes - tighter
+    Q.dGrowth = Math.max(-5, Math.min(5, Q.dGrowth));
 
     // === ONGOING TAX POLICY EFFECTS ===
 
@@ -467,25 +469,25 @@ if (Q.month_actions >= 1) {
         if (Q.investment_chill > -0.01) Q.investment_chill = 0;
     }
 
-    // === EMERGENCY STABILIZERS AT EXTREMES ===
+    // === STRONGER EMERGENCY STABILIZERS ===
     
-    // Deflation floor bounce - emergency reflation
-    if (Q.inflation <= -7 && Q.inflation_expectations > Q.inflation) {
-        Q.emergency_reflation = 0.2 * (Q.inflation_expectations - Q.inflation);
+    // Deflation floor bounce - MUCH stronger
+    if (Q.inflation <= -6 && Q.inflation_expectations > Q.inflation) {
+        Q.emergency_reflation = 0.5 * (Q.inflation_expectations - Q.inflation);
         Q.dInflation += Q.emergency_reflation;
-        Q.demand_impulse += 0.15;
-        Q.price_pressure += 0.08;
+        Q.demand_impulse += 0.3;
+        Q.price_pressure += 0.15;
     }
     
-    // Growth floor - automatic stabilizers kick in
-    if (Q.economic_growth < -10) {
-        Q.stabilizer_boost = (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.05;
+    // Growth floor - stronger automatic stabilizers
+    if (Q.economic_growth < -8) {
+        Q.stabilizer_boost = (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.12;
         Q.dGrowth += Q.stabilizer_boost;
     }
     
-    // Unemployment ceiling - emergency relief reduces further increases
-    if (Q.unemployed > 30) {
-        Q.unemployment_stabilizer = -(Q.unemployed - 30) * 0.08;
+    // Unemployment ceiling - emergency relief
+    if (Q.unemployed > 25) {
+        Q.unemployment_stabilizer = -(Q.unemployed - 25) * 0.15;
         Q.dUnemployment += Q.unemployment_stabilizer;
     }
 
@@ -505,9 +507,9 @@ if (Q.month_actions >= 1) {
     Q.distribution_shift = (Q.distribution_shift || 0) * Math.exp(-0.05 * Q.dt);
 
     // === CONSTRAINTS ===
-    Q.inflation = Math.max(-15, Math.min(99, Q.inflation));
-    Q.unemployed = Math.max(0, Math.min(50, Q.unemployed));
-    Q.economic_growth = Math.max(-25, Math.min(25, Q.economic_growth));
+    Q.inflation = Math.max(-12, Math.min(99, Q.inflation));
+    Q.unemployed = Math.max(0, Math.min(45, Q.unemployed));
+    Q.economic_growth = Math.max(-15, Math.min(20, Q.economic_growth));
     Q.inflation_expectations = Math.max(-8, Math.min(99, Q.inflation_expectations));
     Q.budget = Math.max(-50, Math.min(50, Q.budget));
     Q.capital_pressure = Math.max(0, Math.min(1.0, Q.capital_pressure));
