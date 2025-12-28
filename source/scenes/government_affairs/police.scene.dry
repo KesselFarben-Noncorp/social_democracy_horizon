@@ -45,105 +45,18 @@ on-arrival: investigate_far_right += 1; sa_strength -= 20; workers_nsdap -= 3; n
 
 Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
 
+@This one lacks whatsover content. More content, like three steps?
+
+
 @investigate_corruption
 go-to: investigate_corruption_success if interior_police_loyalty >= 0.5; investigate_corruption_failure if interior_police_loyalty < 0.5
 
 @investigate_corruption_success
-on-arrival: investigate_corruption += 1; workers_spd += 5*(1-dissent) if investigate_corruption == 1; workers_spd += 4*(1-dissent) if investigate_corruption == 2; workers_spd += 6*(1-dissent) if investigate_corruption == 3; inflation -= 0.1 if inflation > 3 and investigate_corruption == 1; inflation -= 0.2 if inflation >= 8 and investigate_corruption >= 2; new_middle_spd += 3*(1-dissent) if investigate_corruption == 2; old_middle_spd += 2*(1-dissent) if investigate_corruption == 2; budget += 1 if investigate_corruption == 2; dvp_relation -= 3 if investigate_corruption == 2; z_relation += 2 if investigate_corruption == 2; new_middle_spd += 4*(1-dissent) if investigate_corruption == 3; old_middle_spd += 3*(1-dissent) if investigate_corruption == 3; budget += 2 if investigate_corruption == 3; dvp_relation -= 8 if investigate_corruption == 3; ddp_relation -= 4 if investigate_corruption == 3; capital_strike_progress += 2 if investigate_corruption == 3; coalition_dissent += 2 if investigate_corruption == 3 and in_grand_coalition; pro_republic += 2 if investigate_corruption == 3; economic_growth += 0.3 if investigate_corruption == 3
+on-arrival: investigate_corruption += 1; workers_spd += 5*(1-dissent); inflation -= 0.1 if inflation > 3; inflation -= 0.2 if inflation >= 8
 
-[? if investigate_corruption == 1 : **INVESTIGATION: FINANCIAL SECTOR FRAUD**
+Corruption in big business is rampant, of course. We have uncovered a number of scandals, and publicizing them brings new attention to the work of Interior Minister [+ interior_minister +], building up his popular appeal and that of the SPD.
 
-Our investigation into business corruption has uncovered systematic fraud in the banking sector. Several major banks have been manipulating currency exchanges and engaging in illegal speculation, contributing to economic instability and inflation. 
-
-Interior Minister [+ interior_minister +] has ordered the prosecution of mid-level bank officials. While the scandals don't reach the very top of the financial elite (yet), the revelations have shocked the public and vindicated our warnings about capitalist excess. The SPD's reputation as defenders of ordinary people against financial manipulation has been strengthened.
-
-However, the business community is watching nervously. Some warn that "political interference" in banking could harm economic confidence. ?]
-
-[? if investigate_corruption == 2 : **INVESTIGATION: THE INDUSTRIAL CARTELS**
-
-Building on our banking investigations, we have now exposed systematic price-fixing and anti-competitive practices by the major industrial cartels. The evidence is damning: secret agreements between steel producers, coal barons, and chemical manufacturers to artificially inflate prices while suppressing workers' wages.
-
-Most shocking is the discovery that some of these cartels have been deliberately restricting production to maintain high prices, even during economic hardship when more production could ease unemployment and lower costs for consumers.
-
-Interior Minister [+ interior_minister +] has seized cartel documents and imposed significant fines. The recovered funds are helping our budget situation. Even middle-class voters, who normally favor business interests, are outraged at being victimized by monopolistic practices. The Center Party has quietly expressed approval of our anti-corruption efforts.
-
-However, the DVP is furious. These are their donors and allies. Some business leaders are threatening a capital strike if we continue. ?]
-
-[? if investigate_corruption == 3 : **INVESTIGATION: THE CORRUPTION NETWORK EXPOSED**
-
-Our investigation has reached its climax. We have uncovered a sprawling corruption network linking major industrialists, bank directors, Junker landowners, and even some politicians. The evidence reveals:
-
-**Financial Crimes:**
-- Systematic tax evasion through shell companies and foreign accounts
-- Illegal payments to foreign accounts during the hyperinflation to profit from currency collapse
-- Fraudulent bankruptcy schemes to avoid paying workers and creditors
-
-**Political Corruption:**
-- Bribes paid to Reich and state officials to secure favorable contracts
-- Secret payments to right-wing parties and paramilitary groups (including the Stahlhelm and DNVP)
-- Attempts to manipulate government economic policy for private gain
-
-**The Human Cost:**
-- Evidence that some factory "accidents" were caused by safety violations to cut costs
-- Deliberate wage suppression agreements between employers
-- Blacklisting of union organizers across industries
-
-Interior Minister [+ interior_minister +] has become a national hero. Mass trials are beginning. Significant fines and recovered assets are flowing into the treasury. The evidence of business funding for right-wing paramilitaries has shocked middle-class voters and strengthened republican sentiment.
-
-**However, there are serious consequences:**
-- Business leaders are in open revolt against our government
-- Capital flight is accelerating - some industrialists are moving assets abroad
-- The DVP may leave any coalition we're in
-- Some warn this could trigger an economic crisis as business "goes on strike"
-
-Yet the alternative - allowing this corruption to continue - would be a betrayal of everything we stand for. The people are with us on this. ?]
-
-[? if investigate_corruption > 3 : We have thoroughly exposed the major corruption networks. Further investigations are yielding diminishing returns - the biggest scandals have been uncovered. ?]
-
-[? if capital_strike_progress >= 5 : **Warning**: Business circles are threatening coordinated action against the government if we continue these investigations. ?]
-
-- @investigate_corruption_aftermath: Consider the implications.
-- @root: Return to other matters.
-
-@investigate_corruption_aftermath
-choose-if: investigate_corruption >= 3
-
-The corruption investigations have fundamentally altered the political landscape. We have proven that the "captains of industry" are not the paragons of efficiency and virtue they claim to be, but rather a corrupt elite enriching themselves at the expense of the German people.
-
-This has strengthened our political position among workers and even portions of the middle class. But it has also made us powerful enemies in the business community.
-
-Some coalition partners are nervous. The bourgeois parties depend on business donations and worry about the economic consequences of antagonizing industry. Others argue that exposing corruption - regardless of who it offends - is fundamental to republican governance.
-
-What is our position going forward?
-
-- @corruption_continue_pressure: Maintain pressure on corrupt businesses. This is a fight we must win.
-- @corruption_compromise: Signal that the main investigations are complete. Time to rebuild business confidence.
-- @corruption_use_leverage: Use our evidence as leverage - businesses must accept reforms or face more revelations.
-- @root: We'll decide our approach as circumstances develop.
-
-@corruption_continue_pressure
-on-arrival: workers_spd += 3*(1-dissent); left_dissent -= 3; labor_dissent -= 2; dvp_relation -= 6; capital_strike_progress += 2; coalition_dissent += 2 if in_grand_coalition
-
-We will not back down. Corruption must be rooted out wherever it exists, regardless of the economic power of the perpetrators. Our base is energized by this principled stand, but business retaliation is intensifying.
-
-@corruption_compromise
-on-arrival: capital_strike_progress -= 2; dvp_relation += 4; coalition_dissent -= 1 if in_grand_coalition; left_dissent += 4; labor_dissent += 3; workers_spd -= 3
-
-We have made our point and recovered significant funds. It's time to restore normal business-government relations. The most egregious criminals have been prosecuted; further action risks economic disruption.
-
-Our left wing is furious - they see this as capitulation to capital just when we had them on the defensive.
-
-@corruption_use_leverage
-on-arrival: workers_spd += 2*(1-dissent); reformist_dissent -= 2; dvp_relation -= 2; capital_pressure -= 0.1; budget += 1
-
-We will use our evidence strategically. Business must accept certain reforms - better worker safety, higher wages, union recognition - or face continued investigation and prosecution. This is practical politics: we've gained leverage, now we use it.
-
-This pragmatic approach satisfies neither purists on the left nor their allies in business, but it may produce concrete gains for workers.
 
 @investigate_corruption_failure
 
 Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
-
-[? if investigate_corruption >= 2 : This is suspicious - our previous investigations were successful. There may be active obstruction within the security services, possibly by officials with business connections. ?]
-
-[? if interior_police_loyalty < 0.3 : The Interior Ministry's authority is clearly compromised. Without loyal police forces, even the most obvious corruption cannot be prosecuted. ?]
