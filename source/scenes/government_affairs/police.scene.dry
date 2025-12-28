@@ -33,29 +33,164 @@ Current interior police loyalty: [+ interior_police_loyalty : loyalty +]
 go-to: investigate_corruption_success if interior_police_loyalty >= 0.5; investigate_corruption_failure if interior_police_loyalty < 0.5
 
 @investigate_corruption_success
-on-arrival: investigate_corruption += 1; workers_spd += 5*(1-dissent); inflation -= 0.1 if inflation > 3; inflation -= 0.2 if inflation >= 8
+on-arrival: investigate_corruption += 1; workers_spd += 5*(1-dissent) if investigate_corruption == 1; workers_spd += 4*(1-dissent) if investigate_corruption == 2; workers_spd += 6*(1-dissent) if investigate_corruption == 3; inflation -= 0.1 if inflation > 3 and investigate_corruption == 1; inflation -= 0.2 if inflation >= 8 and investigate_corruption >= 2; new_middle_spd += 3*(1-dissent) if investigate_corruption == 2; old_middle_spd += 2*(1-dissent) if investigate_corruption == 2; budget += 1 if investigate_corruption == 2; dvp_relation -= 3 if investigate_corruption == 2; z_relation += 2 if investigate_corruption == 2; new_middle_spd += 4*(1-dissent) if investigate_corruption == 3; old_middle_spd += 3*(1-dissent) if investigate_corruption == 3; budget += 2 if investigate_corruption == 3; dvp_relation -= 8 if investigate_corruption == 3; ddp_relation -= 4 if investigate_corruption == 3; capital_strike_progress += 2 if investigate_corruption == 3; coalition_dissent += 2 if investigate_corruption == 3 and in_grand_coalition; pro_republic += 2 if investigate_corruption == 3; economic_growth += 0.3 if investigate_corruption == 3
 
-Corruption in big business is rampant, of course. We have uncovered a number of scandals, and publicizing them brings new attention to the work of Interior Minister [+ interior_minister +], building up his popular appeal and that of the SPD.
+[? if investigate_corruption == 1 : **INVESTIGATION: FINANCIAL SECTOR FRAUD**
 
+Our investigation into business corruption has uncovered systematic fraud in the banking sector. Several major banks have been manipulating currency exchanges and engaging in illegal speculation, contributing to economic instability and inflation. 
+
+Interior Minister [+ interior_minister +] has ordered the prosecution of mid-level bank officials. While the scandals don't reach the very top of the financial elite (yet), the revelations have shocked the public and vindicated our warnings about capitalist excess. The SPD's reputation as defenders of ordinary people against financial manipulation has been strengthened.
+
+However, the business community is watching nervously. Some warn that "political interference" in banking could harm economic confidence. ?]
+
+[? if investigate_corruption == 2 : **INVESTIGATION: THE INDUSTRIAL CARTELS**
+
+Building on our banking investigations, we have now exposed systematic price-fixing and anti-competitive practices by the major industrial cartels. The evidence is damning: secret agreements between steel producers, coal barons, and chemical manufacturers to artificially inflate prices while suppressing workers' wages.
+
+Most shocking is the discovery that some of these cartels have been deliberately restricting production to maintain high prices, even during economic hardship when more production could ease unemployment and lower costs for consumers.
+
+Interior Minister [+ interior_minister +] has seized cartel documents and imposed significant fines. The recovered funds are helping our budget situation. Even middle-class voters, who normally favor business interests, are outraged at being victimized by monopolistic practices. The Center Party has quietly expressed approval of our anti-corruption efforts.
+
+However, the DVP is furious. These are their donors and allies. Some business leaders are threatening a capital strike if we continue. ?]
+
+[? if investigate_corruption == 3 : **INVESTIGATION: THE CORRUPTION NETWORK EXPOSED**
+
+Our investigation has reached its climax. We have uncovered a sprawling corruption network linking major industrialists, bank directors, Junker landowners, and even some politicians. The evidence reveals:
+
+**Financial Crimes:**
+- Systematic tax evasion through shell companies and foreign accounts
+- Illegal payments to foreign accounts during the hyperinflation to profit from currency collapse
+- Fraudulent bankruptcy schemes to avoid paying workers and creditors
+
+**Political Corruption:**
+- Bribes paid to Reich and state officials to secure favorable contracts
+- Secret payments to right-wing parties and paramilitary groups (including the Stahlhelm and DNVP)
+- Attempts to manipulate government economic policy for private gain
+
+**The Human Cost:**
+- Evidence that some factory "accidents" were caused by safety violations to cut costs
+- Deliberate wage suppression agreements between employers
+- Blacklisting of union organizers across industries
+
+Interior Minister [+ interior_minister +] has become a national hero. Mass trials are beginning. Significant fines and recovered assets are flowing into the treasury. The evidence of business funding for right-wing paramilitaries has shocked middle-class voters and strengthened republican sentiment.
+
+**However, there are serious consequences:**
+- Business leaders are in open revolt against our government
+- Capital flight is accelerating - some industrialists are moving assets abroad
+- The DVP may leave any coalition we're in
+- Some warn this could trigger an economic crisis as business "goes on strike"
+
+Yet the alternative - allowing this corruption to continue - would be a betrayal of everything we stand for. The people are with us on this. ?]
+
+[? if investigate_corruption > 3 : We have thoroughly exposed the major corruption networks. Further investigations are yielding diminishing returns - the biggest scandals have been uncovered. ?]
+
+[? if capital_strike_progress >= 5 : **Warning**: Business circles are threatening coordinated action against the government if we continue these investigations. ?]
+
+- @investigate_corruption_aftermath: Consider the implications.
+- @root: Return to other matters.
+
+@investigate_corruption_aftermath
+choose-if: investigate_corruption >= 3
+
+The corruption investigations have fundamentally altered the political landscape. We have proven that the "captains of industry" are not the paragons of efficiency and virtue they claim to be, but rather a corrupt elite enriching themselves at the expense of the German people.
+
+This has strengthened our political position among workers and even portions of the middle class. But it has also made us powerful enemies in the business community.
+
+Some coalition partners are nervous. The bourgeois parties depend on business donations and worry about the economic consequences of antagonizing industry. Others argue that exposing corruption - regardless of who it offends - is fundamental to republican governance.
+
+What is our position going forward?
+
+- @corruption_continue_pressure: Maintain pressure on corrupt businesses. This is a fight we must win.
+- @corruption_compromise: Signal that the main investigations are complete. Time to rebuild business confidence.
+- @corruption_use_leverage: Use our evidence as leverage - businesses must accept reforms or face more revelations.
+- @root: We'll decide our approach as circumstances develop.
+
+@corruption_continue_pressure
+on-arrival: workers_spd += 3*(1-dissent); left_dissent -= 3; labor_dissent -= 2; dvp_relation -= 6; capital_strike_progress += 2; coalition_dissent += 2 if in_grand_coalition
+
+We will not back down. Corruption must be rooted out wherever it exists, regardless of the economic power of the perpetrators. Our base is energized by this principled stand, but business retaliation is intensifying.
+
+@corruption_compromise
+on-arrival: capital_strike_progress -= 2; dvp_relation += 4; coalition_dissent -= 1 if in_grand_coalition; left_dissent += 4; labor_dissent += 3; workers_spd -= 3
+
+We have made our point and recovered significant funds. It's time to restore normal business-government relations. The most egregious criminals have been prosecuted; further action risks economic disruption.
+
+Our left wing is furious - they see this as capitulation to capital just when we had them on the defensive.
+
+@corruption_use_leverage
+on-arrival: workers_spd += 2*(1-dissent); reformist_dissent -= 2; dvp_relation -= 2; capital_pressure -= 0.1; budget += 1
+
+We will use our evidence strategically. Business must accept certain reforms - better worker safety, higher wages, union recognition - or face continued investigation and prosecution. This is practical politics: we've gained leverage, now we use it.
+
+This pragmatic approach satisfies neither purists on the left nor their allies in business, but it may produce concrete gains for workers.
 
 @investigate_corruption_failure
 
 Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
 
+[? if investigate_corruption >= 2 : This is suspicious - our previous investigations were successful. There may be active obstruction within the security services, possibly by officials with business connections. ?]
+
+[? if interior_police_loyalty < 0.3 : The Interior Ministry's authority is clearly compromised. Without loyal police forces, even the most obvious corruption cannot be prosecuted. ?]
+
 @investigate_far_right
 go-to: investigate_far_right_success if interior_police_loyalty >= 0.55; investigate_far_right_failure if interior_police_loyalty < 0.55
 
 @investigate_far_right_success
-on-arrival: investigate_far_right += 1; sa_strength -= 20; workers_nsdap -= 3; new_middle_nsdap -= 3; nazi_urgency += 1 if investigate_far_right == 2; nazi_urgency += 2 if investigate_far_right == 3; workers_nsdap -= 3 if investigate_far_right == 3; new_middle_nsdap -= 3 if investigate_far_right == 3; old_middle_nsdap -= 3 if investigate_far_right == 3; unemployed_spd -= 3 if investigate_far_right == 3; coup_progress -= 1 if coup_progress >= 7
+on-arrival: investigate_far_right += 1; sa_strength -= 20; workers_nsdap -= 3; new_middle_nsdap -= 3; nazi_urgency += 1 if investigate_far_right == 2; nazi_urgency += 2 if investigate_far_right == 3; workers_nsdap -= 3 if investigate_far_right == 3; new_middle_nsdap -= 3 if investigate_far_right == 3; old_middle_nsdap -= 3 if investigate_far_right == 3; unemployed_nsdap -= 3 if investigate_far_right == 3; coup_progress -= 1 if coup_progress >= 7; workers_nsdap -= 4 if investigate_far_right == 4; new_middle_nsdap -= 4 if investigate_far_right == 4; old_middle_nsdap -= 4 if investigate_far_right == 4; sa_strength -= 30 if investigate_far_right == 4; reichswehr_loyalty += 0.03 if investigate_far_right == 4; pro_republic += 2 if investigate_far_right == 4; workers_nsdap -= 5 if investigate_far_right == 5; new_middle_nsdap -= 5 if investigate_far_right == 5; old_middle_nsdap -= 5 if investigate_far_right == 5; rural_nsdap -= 5 if investigate_far_right == 5; unemployed_nsdap -= 5 if investigate_far_right == 5; sa_strength -= 40 if investigate_far_right == 5; sa_banned = 1 if investigate_far_right == 5; nazi_urgency += 3 if investigate_far_right == 5; coup_progress += 2 if investigate_far_right == 5
 
 [? if investigate_far_right == 1 : We have discovered collusion between Hjalmar Schacht, president of the Reichsbank, and the Nazis. This is very useful information. ?]
+
 [? if investigate_far_right == 2 : We have discovered illegal arms smuggling by the SA, the Nazi paramilitary. ?]
+
 [? if investigate_far_right == 3 : We have discovered a secret cache of documents from the NSDAP detailing their plan to violently take over the country if they enter into power. This is an anti-constitutional plot, and will be publicized and persecuted. ?]
-[? if investigate_far_right > 3 : Of course the Nazis are doing crimes; everyone knows that. Now, we finally have proof. ?]
+
+[? if investigate_far_right == 4 : Our continued investigation has uncovered direct links between the Nazi leadership and elements within the Reichswehr. We have evidence of high-ranking officers providing training and equipment to the SA. Several officers have been relieved of duty, though this has created tension within the military. The scandal is damaging Nazi credibility among middle-class voters who believed in their "law and order" rhetoric. ?]
+
+[? if investigate_far_right == 5 : **BREAKTHROUGH**: We have infiltrated the highest levels of Nazi planning. Our agents have obtained detailed evidence of a coordinated plot involving industrialists, Junker aristocrats, and NSDAP leaders to overthrow the Republic through a combination of electoral manipulation and armed insurrection. The evidence is irrefutable - including signed documents, financial records, and recorded conversations.
+
+We have moved to ban the SA as a criminal organization. This is a major blow to Nazi street power, but Hitler is now cornered and desperate. Our intelligence suggests he may attempt a "final gamble" - either a premature coup attempt or a dramatic escalation of violence. We must be vigilant. ?]
+
+[? if investigate_far_right > 5 : We are maintaining surveillance on the Nazi conspiracy, but we have pushed as far as we can. Any further action risks provoking the violent confrontation we are trying to prevent. ?]
 
 [? if coup_progress >= 6: There are reports of an imminent coup by the far-right. We have attempted to disrupt some of these plans, but the threat is still present. ?]
 
+- @investigate_far_right_6: Continue investigating despite the risks.
+- @root: Return to main actions.
+
+@investigate_far_right_6
+choose-if: investigate_far_right == 5
+unavailable-subtitle: We have already pushed our investigations to the limit.
+
+Are we certain we want to continue? Our intelligence reports warn that further pressure on the Nazi leadership may trigger exactly the violent response we are trying to prevent. A cornered Hitler is unpredictable and dangerous.
+
+- @investigate_far_right_6_confirm: Yes, press forward. We must destroy this conspiracy completely.
+- @root: No, we have done enough for now.
+
+@investigate_far_right_6_confirm
+on-arrival: investigate_far_right += 1; nazi_urgency += 5; coup_progress += 5; sa_militancy += 0.3; nsdap_relation -= 50
+
+**CRITICAL INTELLIGENCE FAILURE**
+
+Our sixth investigation has gone catastrophically wrong. The Nazi leadership, already desperate and paranoid, has interpreted our continued pressure as preparation for mass arrests. Rather than wait to be destroyed piecemeal, they have chosen to strike now.
+
+Emergency reports are flooding in from across the country: SA units are mobilizing, weapons caches are being distributed, and Nazi operatives have seized control of several local police stations. This is it - the coup attempt we feared.
+
+The Republic is now in mortal danger.
+
+[? if reichswehr_loyalty >= 0.6 : Fortunately, our earlier efforts to expose Nazi-Reichswehr collusion have paid off. Most military commanders remain loyal to the constitutional government and are moving to suppress the uprising. ?]
+
+[? if reichswehr_loyalty < 0.6 and reichswehr_loyalty >= 0.4 : The Reichswehr's response is uncertain. Some units are moving to defend the Republic, but others are hesitating or even sympathizing with the conspirators. ?]
+
+[? if reichswehr_loyalty < 0.4 : The Reichswehr is not responding to government orders. Worse, some units appear to be coordinating with the Nazi insurgents. We may be facing a combined Nazi-military coup. ?]
+
+[? if sa_strength > 200 : The SA is still dangerously strong despite our efforts. This will be a bloody confrontation. ?]
+
+[? if sa_strength <= 200 and sa_strength > 100 : Our previous actions have weakened the SA, but they are still a serious threat. ?]
+
+[? if sa_strength <= 100 : The SA has been significantly weakened by our investigations. This gives us a fighting chance. ?]
+
+- @root: Face the crisis.
 
 @investigate_far_right_failure
 
-Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
+Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police
