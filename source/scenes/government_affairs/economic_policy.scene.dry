@@ -10,6 +10,9 @@ card-image: img/portraits/SchmidtRobert.jpg
 
 We have already formulated an economic plan. Now we have to implement it.
 
+- @schacht_continuation_limited
+- @schacht_continuation
+- @schacht_expansion
 - @wtb_3
 - @wtb_2
 - @wtb_2_deficit
@@ -23,6 +26,54 @@ We have already formulated an economic plan. Now we have to implement it.
 - @root: Do not implement the economic plan.
 - @easy_discard
 - @cancel_advisor_action
+
+
+@schacht_continuation
+title: Continue the Schacht Plan for economic recovery.
+subtitle: -2 budget. [? if schacht_plan_adopted = 1 : Continue industrial credit expansion and export-focused recovery. ?]
+unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 2 : We lack the necessary budget. ?]
+view-if: schacht_plan_adopted = 1
+choose-if: unemployed >= 6 and budget >= 2
+on-arrival: budget -= 2; unemployed -= 3; works_program += 1; economic_growth += 0.14; schacht_relation += 3; dvp_relation += 4; dnvp_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 3; labor_dissent += 2; nationalism += 1; fiscal_stance -= 0.12; demand_impulse += 0.12; supply_impulse += 0.22; capital_pressure -= 0.12;
+
+[? if schacht_plan_adopted = 1 : The Schacht Plan continues: the Reichsbank extends emergency credit to strategic industries—steel, chemicals, machinery. Export industries receive subsidized financing. Employment rises primarily in heavy industry. ?]
+
+The bourgeois press approves: "Responsible economic nationalism produces results." Hjalmar Schacht meets regularly with the Cabinet, his influence over policy growing. Industrial production rises, but critics note the benefits flow more to factory owners than workers.
+
+[? if left_strength > 30 : Our left wing grows increasingly uncomfortable. "We're implementing capitalist planning under a reactionary banker's direction," they complain. "Where are the workers' interests in all this?" ?]
+
+@schacht_continuation_limited
+title: Limited continuation of the Schacht Plan.
+subtitle: -1 budget. Reduced industrial support with lower impact.
+unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 1 : We lack the necessary budget. ?]
+view-if: schacht_plan_adopted = 1
+choose-if: unemployed >= 6 and budget >= 1
+on-arrival: budget -= 1; unemployed -= 2; works_program += 1; economic_growth += 0.08; schacht_relation += 1; dvp_relation += 2; old_middle_spd += 1*(1-dissent); left_dissent += 2; fiscal_stance -= 0.06; demand_impulse += 0.08; supply_impulse += 0.14; capital_pressure -= 0.08;
+
+We continue the Schacht Plan at reduced scale. Credit flows to fewer industries, employment gains are modest. Schacht expresses disappointment at our "half-measures," but the program proceeds.
+
+@schacht_expansion
+title: Expand the Schacht Plan with aggressive credit expansion.
+subtitle: -1 budget. Risk increased nationalist economics and Schacht's influence.
+unavailable-subtitle: [? if unemployed < 8 : The crisis isn't severe enough to justify expansion. ?] [? if budget < 1 : We lack the necessary budget. ?]
+view-if: schacht_plan_adopted = 1 and unemployed >= 8 and schacht_plan < 1 and schacht_plan > 0
+choose-if: budget >= 1
+on-arrival: budget -= 1; unemployed -= 4.5; works_program += 1; economic_growth += 0.20; schacht_relation += 8; dvp_relation += 6; dnvp_relation += 6; reichsbank_independent += 1; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 8; labor_dissent += 6; nationalism += 3; fiscal_stance -= 0.16; demand_impulse += 0.16; supply_impulse += 0.28; capital_pressure -= 0.18;
+
+We dramatically expand the Schacht Plan: massive credit injections to heavy industry, aggressive export subsidies, virtual abandonment of social spending priorities in favor of productive investment.
+
+Hjalmar Schacht is triumphant. "Finally, Germany acts decisively!" he declares. The Reichsbank's independence strengthens—increasingly, economic policy is made in Schacht's office, not the Cabinet.
+
+Unemployment falls rapidly, concentrated in male-dominated heavy industry. Export industries boom. But our left wing is furious: "We've become administrators of nationalist autarky! Schacht is the real Finance Minister, not our party!"
+
+[? if left_strength > 35 : The left faction threatens revolt. "We're implementing right-wing economics under socialist cover!" Emergency party conferences are demanded. ?]
+
+[? if schacht_relation >= 30 : Schacht's influence has grown dangerous. An unelected technocrat now effectively controls Germany's economic policy. Is this still democratic governance? ?]
+
+
+
+
+
 
 @wtb_3
 title: Third phase of the WTB-Plan...
