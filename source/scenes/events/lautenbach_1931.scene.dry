@@ -1,0 +1,91 @@
+title: The Lautenbach Memorandum
+subtitle: A Technocratic Alternative
+new-page: true
+view-if: year >= 1931 and month >= 9 and spd_in_government = 1 and bruning_austerity_accepted != 1 and lautenbach_proposed = 0
+tags: event, economics
+max-visits: 1
+on-arrival: lautenbach_proposed = 1; month_actions += 1
+face-image: img/portraits/LautenbachWilhelm.jpg
+
+= The Lautenbach Memorandum
+
+Wilhelm Lautenbach, a senior official in the Economics Ministry, has circulated a confidential memorandum arguing for a fundamental shift in economic policy.
+
+"Current deflationary policies are counterproductive," Lautenbach writes with careful technocratic language. "Government spending cuts reduce demand, which reduces production, which increases unemployment, which reduces demand further—a vicious cycle."
+
+The Lautenbach Plan proposes:
+
+**Credit Expansion**: Reichsbank creation of 2 billion marks in credit for productive investment
+**Public Works**: Major infrastructure projects financed through government bonds
+**Monetary Policy**: Abandonment of gold standard restrictions to enable reflation
+**Gradual Approach**: Phased implementation to avoid inflation fears
+
+Critically, Lautenbach frames this as technical economic management, not socialist ideology. He cites international economists, including preliminary work by J.M. Keynes. The plan emphasizes "productive credit creation" rather than "deficit spending"—terminology designed to reassure conservatives.
+
+The memorandum reaches the Cabinet. Reactions are predictably divided:
+
+[? if chancellor = "Brüning" : Chancellor Brüning dismisses it as "inflationary fantasy." ?]
+
+The DVP is skeptical but intrigued—at least it emphasizes production, not welfare.
+
+The Center Party is divided—economic moderates see merit, but fiscal conservatives resist.
+
+[? if schacht_relation >= 15 : Hjalmar Schacht reviews the plan with interest, noting similarities to his own thinking about credit expansion. ?]
+
+Our own party economists recognize elements of the WTB-Plan, but presented in more respectable technocratic dress. This might be politically viable where WTB wasn't.
+
+The question is whether the coalition will seriously consider Lautenbach's alternative:
+
+- @push_lautenbach: Strongly advocate for the Lautenbach Plan in coalition negotiations.
+- @support_cautiously: Express support but don't stake political capital on it.
+- @remain_neutral: Let the coalition decide without SPD pressure.
+
+@push_lautenbach
+choose-if: (wtb_adopted = 1 or crisis_urgency >= 5) and reformist_strength >= left_strength
+unavailable-subtitle: [? if wtb_adopted != 1 and crisis_urgency < 5 : The party hasn't built sufficient consensus for interventionist economics. ?] [? if reformist_strength < left_strength : The left faction would oppose this technocratic, non-socialist approach. ?]
+on-arrival: lautenbach_consideration = 1;
+go-to: lautenbach_adopted if (z_relation >= 45 and dvp_relation >= 40 and in_grand_coalition) or (z_relation >= 45 and ddp_relation >= 40 and in_weimar_coalition) or schacht_relation >= 25; lautenbach_rejected if ((z_relation < 45 or dvp_relation < 40) and in_grand_coalition) or ((z_relation >= 45 or ddp_relation >= 40) and in_grand_coalition))
+
+@lautenbach_adopted
+on-arrival: lautenbach_plan_active = 1; economic_plan = 5; budget -= 3; unemployed -= 3.5; economic_growth += 0.18; z_relation += 5; dvp_relation += 3; reformist_strength += 5; center_strength += 5; left_dissent += 5; workers_spd += 4*(1-dissent); new_middle_spd += 4*(1-dissent); old_middle_spd += 3*(1-dissent); pro_republic += 3; fiscal_stance -= 0.10; demand_impulse += 0.15; supply_impulse += 0.12; price_pressure += 0.05;
+
+After intensive negotiations, the coalition approves a modified Lautenbach Plan! The Reichsbank will extend 1.5 billion marks in credit (reduced from Lautenbach's proposed 2 billion). Major infrastructure projects will proceed. Monetary policy relaxes somewhat.
+
+It's not the full program—conservatives forced compromises—but it represents a fundamental shift from deflation to reflation. Government spending increases. Credit flows. Employment begins rising.
+
+The technocratic framing proved crucial. By avoiding "socialist" rhetoric and emphasizing productive investment, Lautenbach made intervention palatable to center-right parties. The DVP accepts what they would never accept from trade unions.
+
+Our reformist and center factions are pleased—this is pragmatic economic management that works. The left wing grumbles that it's "too timid" and "capitalist," but even they acknowledge it's better than Brüning's austerity.
+
+Most importantly, the economy responds. Unemployment declines. The deflationary spiral slows. Germany demonstrates that there are alternatives to austerity.
+
+[? if schacht_relation >= 25 : Hjalmar Schacht's support proved decisive. His endorsement of credit expansion gave the plan establishment credibility. ?]
+
+@lautenbach_rejected
+on-arrival: lautenbach_plan_rejected = 1; z_relation -= 3; dvp_relation -= 3; reformist_dissent += 5; crisis_urgency += 1;
+
+Despite our advocacy, the coalition rejects the Lautenbach Plan. The Center Party's fiscal conservatives prevail. The DVP fears "monetary experimentation." [? if chancellor = "Brüning" : Chancellor Brüning dismisses it as inflationary nonsense. ?]
+
+"Germany cannot afford financial adventures," they declare. Deflationary policies continue.
+
+Our reformists are frustrated—we had a workable alternative and the coalition refused it. The crisis deepens unnecessarily.
+
+[? if lautenbach_plan_rejected and year >= 1932 : Historians will note that Germany had the Lautenbach Plan available in 1931—a technically sound alternative to austerity—and chose not to implement it. ?]
+
+@support_cautiously
+on-arrival: lautenbach_supported = 1; reformist_strength += 2; z_relation += 2;
+
+We express support for the Lautenbach Plan in principle while avoiding making it a coalition-breaking issue. "The Economics Ministry has produced interesting ideas worth serious consideration," we state diplomatically.
+
+It's a safe position—we're on record supporting intervention without staking everything on it.
+
+The coalition discusses Lautenbach's memorandum but ultimately tables it. Without strong SPD pressure, the path of least resistance is continuing current policies.
+
+@remain_neutral
+on-arrival: center_dissent -= 2;
+
+We let the coalition decide on economic policy without SPD interference. "These are technical economic matters for experts to resolve," we say.
+
+The Lautenbach Plan receives no serious consideration. The coalition continues previous policies.
+
+Our centrist faction appreciates avoiding economic policy fights. But we've missed an opportunity to shape Germany's response to crisis.
