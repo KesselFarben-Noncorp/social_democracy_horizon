@@ -44,7 +44,7 @@ The question is whether the coalition will seriously consider Lautenbach's alter
 choose-if: (wtb_adopted = 1 or crisis_urgency >= 5) and reformist_strength >= left_strength
 unavailable-subtitle: [? if wtb_adopted != 1 and crisis_urgency < 5 : The party hasn't built sufficient consensus for interventionist economics. ?] [? if reformist_strength < left_strength : The left faction would oppose this technocratic, non-socialist approach. ?]
 on-arrival: lautenbach_consideration = 1;
-go-to: lautenbach_adopted if (z_relation >= 45 and dvp_relation >= 40 and in_grand_coalition) or (z_relation >= 45 and ddp_relation >= 40 and in_weimar_coalition) or schacht_relation >= 25; lautenbach_rejected if ((z_relation < 45 or dvp_relation < 40) and in_grand_coalition) or ((z_relation >= 45 or ddp_relation >= 40) and in_grand_coalition))
+go-to: lautenbach_adopted if (z_relation >= 45 and dvp_relation >= 40 and in_grand_coalition); lautenbach_adopted if (z_relation >= 45 and ddp_relation >= 40 and in_weimar_coalition) or schacht_relation >= 25; lautenbach_rejected if (z_relation < 45 or dvp_relation < 40) and in_grand_coalition; lautenbach_rejected if (z_relation < 45 or ddp_relation < 40) and in_weimar_coalition
 
 @lautenbach_adopted
 on-arrival: lautenbach_plan_active = 1; economic_plan = 5; budget -= 3; unemployed -= 3.5; economic_growth += 0.18; z_relation += 5; dvp_relation += 3; reformist_strength += 5; center_strength += 5; left_dissent += 5; workers_spd += 4*(1-dissent); new_middle_spd += 4*(1-dissent); old_middle_spd += 3*(1-dissent); pro_republic += 3; fiscal_stance -= 0.10; demand_impulse += 0.15; supply_impulse += 0.12; price_pressure += 0.05;
