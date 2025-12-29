@@ -1,0 +1,372 @@
+title: The Fascist Question
+subtitle: Who Leads the Brown Tide?
+new-page: true
+view-if: year >= 1930 and month >= 9 and nsdap_outcome != 0
+tags: event, nsdap
+max-visits: 1
+on-arrival: month_actions += 1
+
+= The Fascist Question
+
+[? if nsdap_outcome = "hitler_dominant" : The September 1930 Reichstag elections have delivered a political earthquake. The National Socialist German Workers' Party, unified under Adolf Hitler's absolute leadership, has surged from 12 seats to 107—the second-largest party in parliament. ?]
+
+[? if nsdap_outcome = "hitler_weakened" : The September 1930 Reichstag elections show significant Nazi gains, though internal tensions limit their breakthrough. The NSDAP wins 89 seats, making them a major force—but far from the juggernaut a unified movement might have achieved. ?]
+
+[? if nsdap_outcome = "strasser_dominant" : The September 1930 elections reveal a transformed Nazi movement. Under Gregor Strasser's leadership, the "National Socialist" party has pivoted sharply left economically while maintaining nationalist fervor. They win 78 seats, pulling working-class votes from both SPD and KPD. ?]
+
+[? if nsdap_outcome = "rohm_dominant" : The September 1930 elections show the SA's political arm winning 52 seats—significant, but the real story is on the streets. Ernst Röhm's brownshirts, now numbering over 100,000, are the true center of fascist power, not parliamentary seats. ?]
+
+[? if nsdap_outcome = "split" : The September 1930 elections reveal the consequences of Nazi fragmentation. Hitler's rump NSDAP wins 34 seats, Strasser's Black Front takes 28, and Röhm's SA-backed candidates claim 19. Together they would be formidable; divided, they're merely troublesome. ?]
+
+Our intelligence networks have been monitoring the fascist movement's evolution since the June 1929 crisis. Now, as the new Reichstag convenes, we must understand what we face:
+
+- @assess_hitler: What is Hitler's current position?
+- @assess_strasser: What is Strasser's current position?
+- @assess_rohm: What is Röhm's current position?
+- @assess_overall: What is the overall fascist threat?
+
+@assess_hitler
+go-to: hitler_triumphant if nsdap_outcome = "hitler_dominant"; hitler_consolidating if nsdap_outcome = "hitler_weakened"; hitler_diminished if nsdap_outcome = "strasser_dominant" or nsdap_outcome = "rohm_dominant"; hitler_marginalized if nsdap_outcome = "split"
+
+@hitler_triumphant
+on-arrival: hitler_power_level = 5; nazi_urgency += 3; workers_nsdap += 3; old_middle_nsdap += 5; new_middle_nsdap += 4; rural_nsdap += 4; unemployed_nsdap += 3; catholics_nsdap += 2; workers_dnvp -= 2; old_middle_dnvp -= 3; rural_dnvp -= 2; reichswehr_suspicious = 1;
+
+**Adolf Hitler: Undisputed Führer**
+
+Hitler has achieved what he sought since 1925: absolute, unchallengeable authority over a mass movement. The NSDAP is his instrument, disciplined and fanatically loyal.
+
+His electoral strategy has proven devastatingly effective. The Nazi breakthrough draws from every demographic: middle-class shopkeepers terrified of proletarianization, rural voters angry at agricultural depression, unemployed workers desperate for any solution, even some workers still employed but fearing the future.
+
+Hitler's propagandists have perfected their craft. Joseph Goebbels orchestrates rallies with theatrical precision. The message adapts to the audience: anti-capitalist to workers, anti-Marxist to the middle class, anti-Versailles to nationalists, anti-Semitic to all. The only constant is Hitler himself—the messianic leader who will save Germany.
+
+Critically, Hitler has made the NSDAP respectable to conservative elites. By suppressing Strasser's anti-capitalist elements and subordinating Röhm's SA to party discipline, he signals to Junkers and industrialists: "I am a safe bet. I will destroy the left, not capitalism."
+
+**Leadership succession**: Hitler has no designated successor—the cult of personality ensures the party is Hitler and Hitler is the party. If he died tomorrow, the NSDAP would likely fragment into warring factions. Rudolf Hess, Hermann Göring, and Gregor Strasser would all claim the mantle.
+
+**The threat**: This is the nightmare scenario. A unified, disciplined fascist movement under charismatic leadership, growing exponentially, now the second-largest party. Every election could double their strength. Conservative elites increasingly see Hitler as a potential coalition partner—someone who can be "tamed" and used to smash the left.
+
+Our analysts are blunt: If current trends continue, the NSDAP could win power through elections within two years.
+
+- @return_assess: Return to assessment.
+
+@hitler_consolidating
+on-arrival: hitler_power_level = 3; nazi_urgency += 2; workers_nsdap += 2; old_middle_nsdap += 3; new_middle_nsdap += 2; rural_nsdap += 3; unemployed_nsdap += 2; hitler_succession_crisis = 1;
+
+**Adolf Hitler: Dominant but Contested**
+
+Hitler remains the NSDAP's leader, but the June 1929 crisis revealed his authority is not absolute. Gregor Strasser controls significant organizational apparatus in northern Germany. Ernst Röhm's SA pursues semi-autonomous actions. Internal factions compete for influence.
+
+The electoral results reflect this tension. The Nazis gain substantially but not spectacularly—internal divisions drain energy that could go to campaigning. Strasser's faction emphasizes anti-capitalist themes that alienate middle-class voters Hitler courts. Röhm's SA violence frightens respectable conservatives.
+
+Still, Hitler remains the face of the movement. His oratory mesmerizes crowds. His political instincts remain sharp. He's learned to play factions against each other, preventing any single challenger from accumulating enough power to displace him.
+
+**Leadership dynamics**: If Hitler died or was incapacitated, a succession crisis would erupt immediately. Strasser has organizational strength; Göring has Hitler's favor; Hess has ideological purity; Röhm has armed men. The party would convulse with infighting—possibly splitting, possibly emerging with a new strongman.
+
+**The threat**: A serious but not existential danger. The Nazis are a major party, growing, but their internal tensions limit effectiveness. If economic crisis deepens, Hitler's faction-balancing might collapse—either fragmenting the party or forcing him to purge rivals and emerge stronger. The situation is unstable, trending upward for the Nazis but not inexorably.
+
+- @return_assess: Return to assessment.
+
+@hitler_diminished
+on-arrival: hitler_power_level = 1; nazi_urgency += 1; hitler_isolated = 1;
+
+**Adolf Hitler: Sidelined Leader**
+
+Hitler remains nominal head of the NSDAP in Bavaria and some southern regions, but he's been eclipsed. [? if nsdap_outcome = "strasser_dominant" : Gregor Strasser controls the party machinery and defines its ideology. ?] [? if nsdap_outcome = "rohm_dominant" : Ernst Röhm and the SA dominate the movement, treating Hitler as an outdated politician. ?]
+
+Hitler's supporters remain fanatically loyal—the Bavarian party organization, old fighters from the Beer Hall Putsch, true believers in the racial ideology. But they're a minority within the broader fascist movement now.
+
+Some observers note Hitler's frustration. He delivers speeches attacking [? if nsdap_outcome = "strasser_dominant" : "false socialism that panders to Marxist workers" ?] [? if nsdap_outcome = "rohm_dominant" : "street brawlers with no political vision" ?]. He claims only he understands how to win power. But fewer listen.
+
+**Leadership status**: Hitler is yesterday's man in many Nazi circles. The younger generation of activists rally to [? if nsdap_outcome = "strasser_dominant" : Strasser's anti-capitalist nationalism ?] [? if nsdap_outcome = "rohm_dominant" : Röhm's revolutionary militarism ?]. If Hitler died, his faction might dissolve entirely or persist as a small ideological sect.
+
+**The threat**: Hitler personally is no longer the main danger. But his displacement doesn't eliminate fascism—it just changes its face. [? if nsdap_outcome = "strasser_dominant" : Strasser's version might actually prove more appealing to desperate workers. ?] [? if nsdap_outcome = "rohm_dominant" : Röhm's SA represents a more immediate violent threat than electoral politics. ?]
+
+- @return_assess: Return to assessment.
+
+@hitler_marginalized
+on-arrival: hitler_power_level = 0; hitler_marginal = 1;
+
+**Adolf Hitler: Factional Leader**
+
+Hitler controls perhaps 35-40% of the original NSDAP membership—concentrated in Bavaria, among old fighters, and true believers in racial ideology. He retains the party name and some organizational infrastructure. His 34 Reichstag seats are nothing to dismiss.
+
+But he's now just one fascist leader among several. The "Führer principle" lies shattered. Hitler must compete for support, funds, and recruits with Strasser's Black Front and Röhm's SA movement.
+
+Some Hitler loyalists maintain he'll reunify the movement—"only the Führer can restore German greatness." Others have quietly drifted away, disillusioned that their messianic leader couldn't maintain control of his own party.
+
+Hitler himself oscillates between volcanic rage at the "traitors" who split the movement and cold calculation about how to rebuild. He focuses his shrunken organization on ideological purity—racial antisemitism, Lebensraum expansion, total rejection of Weimar democracy.
+
+**Leadership dynamics**: If Hitler died, his faction might collapse entirely or elect a successor from the true believers—perhaps Rudolf Hess or Julius Streicher. Either way, "Hitler's NSDAP" would likely become a small extremist sect rather than mass movement.
+
+**The threat**: Hitler is no longer the primary fascist danger, though 34 Reichstag seats and thousands of fanatical followers still matter. The real question is whether the splintered fascist movements will reunify—and under whose leadership.
+
+- @return_assess: Return to assessment.
+
+@assess_strasser
+go-to: strasser_triumphant if nsdap_outcome = "strasser_dominant"; strasser_rising if nsdap_outcome = "hitler_weakened"; strasser_sidelined if nsdap_outcome = "hitler_dominant" or nsdap_outcome = "rohm_dominant"; strasser_independent if nsdap_outcome = "split"
+
+@strasser_triumphant
+on-arrival: strasser_power_level = 5; nazi_urgency += 2; workers_nsdap += 5; unemployed_nsdap += 4; old_middle_nsdap -= 1; new_middle_nsdap -= 1; workers_spd -= 3; workers_kpd -= 2; old_middle_dnvp += 2; strasser_succession = 1;
+
+**Gregor Strasser: The National Socialist Revolutionary**
+
+Gregor Strasser has achieved what his brother Otto always advocated: a genuine fusion of nationalism and socialism. The "National Socialist" label now means something substantive, not just rhetorical.
+
+Strasser's movement emphasizes class struggle—but nationalist class struggle. "German workers against Jewish finance capital and Aryan plutocrats!" His propaganda attacks both Marxist internationalism and capitalist exploitation. The vision is corporatist: workers, farmers, and productive capitalists united in a national community, purged of "parasites."
+
+The electoral results show the strategy's effectiveness among workers. Traditional SPD and KPD voters, especially the unemployed, prove susceptible to nationalist socialism. Why support international proletarian solidarity when you're starving? Strasser offers immediate nationalist solutions: jobs through state mobilization, welfare for "Aryan" Germans, expropriation of "Jewish" wealth.
+
+Critically, Strasser has alienated conservative elites. Industrialists who might have funded Hitler flee from Strasser's anti-capitalist rhetoric. The DNVP denounces him as a "red fascist." This limits his resources but also his appeal to the middle classes, who fear he'll expropriate them too.
+
+**Leadership dynamics**: Strasser's authority rests on party organization and ideological coherence, not personal charisma. If he died, his brother Otto might succeed him, or another figure from the "left Nazi" faction like Joseph Goebbels (before his turn to Hitler worship). The movement would likely continue its ideological course.
+
+**Succession figures**: Otto Strasser (more radical), Joseph Goebbels (if he hadn't become Hitler's propagandist), various northern party functionaries who built the organization.
+
+**The threat**: Ideologically, this is potentially more dangerous than Hitler to working-class solidarity. Strasser offers everything socialism promises—economic justice, community, purpose—wrapped in nationalism and racism. Workers desperate from depression might not distinguish between socialist and "national socialist" if both promise jobs and dignity.
+
+However, Strasser's movement is less likely to gain elite support needed for a coalition government. His path to power would require genuine mass support, not backroom deals with Junkers and industrialists.
+
+- @return_assess: Return to assessment.
+
+@strasser_rising
+on-arrival: strasser_power_level = 3; strasser_faction_strong = 1;
+
+**Gregor Strasser: The Power Behind the Throne**
+
+Strasser remains officially subordinate to Hitler, but increasingly he's the organizational backbone of the NSDAP. Northern Germany—industrial, urban, working-class—is Strasser territory. Party functionaries there are loyal to him, not Hitler.
+
+Strasser's ideological influence grows. Nazi economic policy increasingly emphasizes anti-capitalist themes that make Bavarian conservatives uncomfortable. Hitler tolerates this because Strasser delivers: organizational efficiency, working-class recruits, electoral mobilization.
+
+But the tension is palpable. Hitler wants Nazi ideology to be whatever wins votes and attracts elite support. Strasser wants ideological consistency—genuine national socialism. The 1929 crisis was a warning shot. The succession question looms.
+
+**Leadership dynamics**: If Hitler were removed, Strasser would be the obvious successor—he has organizational control and significant faction loyalty. But Hitler's true believers would resist, possibly splitting the party.
+
+**The threat**: The Nazis gain working-class support through Strasser's efforts while Hitler provides charismatic leadership and elite outreach. It's an effective but unstable division of labor. Economic crisis could force a reckoning between Strasser's anti-capitalism and Hitler's pragmatism.
+
+- @return_assess: Return to assessment.
+
+@strasser_sidelined
+on-arrival: strasser_power_level = 1; strasser_marginalized = 1;
+
+**Gregor Strasser: Sidelined and Marginalized**
+
+Strasser remains in the NSDAP but his influence has been systematically destroyed. [? if nsdap_outcome = "hitler_dominant" : Hitler purged or sidelined Strasser's supporters after consolidating power in 1929. ?] [? if nsdap_outcome = "rohm_dominant" : Röhm's SA has no use for Strasser's organizational politics. ?]
+
+Strasser's anti-capitalist "socialism" has been definitively rejected by the movement's leadership. His northern organization has been brought to heel or disbanded. His brother Otto has been expelled entirely.
+
+Some Strasser loyalists persist—party functionaries who believe in genuine national socialism, working-class Nazis who joined because of anti-capitalist promises. But they're a marginal faction now, without power or prospects.
+
+**Leadership status**: Strasser is politically finished within the dominant fascist movement. If he died, his handful of supporters might disperse or defect to other parties.
+
+**The threat**: Strasser himself is no longer dangerous, but his marginalization means the Nazi movement is more purely under [? if nsdap_outcome = "hitler_dominant" : Hitler's strategic pragmatism ?] [? if nsdap_outcome = "rohm_dominant" : Röhm's violent militarism ?]. That may be better or worse for the Republic depending on circumstances.
+
+- @return_assess: Return to assessment.
+
+@strasser_independent
+on-arrival: strasser_power_level = 4; black_front_active = 1; workers_nsdap -= 2; workers_spd -= 2; workers_kpd -= 2; unemployed_nsdap -= 1; unemployed_spd -= 1; unemployed_kpd -= 1; black_front_support = 30;
+
+**Gregor Strasser: The Black Front Alternative**
+
+Strasser's "Black Front" has emerged as a distinct political force. With 28 Reichstag seats and growing street presence, it represents a genuine third position between Marxist socialism and capitalist reaction.
+
+The Black Front's ideology is internally contradictory but emotionally powerful: revolutionary nationalism, anti-capitalist economics, racist populism, corporatist organization. Strasser attacks "Jewish finance" and "Aryan plutocrats" equally. He promises workers both economic justice and national greatness.
+
+Electorally, the Black Front pulls from everywhere: disaffected SPD workers who want nationalism, KPD members who want anti-capitalism without internationalism, small NSDAP voters who preferred the "socialist" element. It's a coalition of the alienated.
+
+**Organizational strength**: Strasser brought substantial party infrastructure when he split—northern Germany membership lists, experienced functionaries, established networks. The Black Front is less a new party than a transplanted faction.
+
+**Leadership structure**: Strasser leads, but his brother Otto and other "left Nazi" ideologues influence policy. It's more collective than Hitler's movement, but Strasser remains the dominant figure.
+
+**Succession**: If Strasser died, Otto would likely succeed him, perhaps making the movement even more radical. Alternatively, leadership struggles could fragment the Black Front.
+
+**The threat**: The Black Front is simultaneously less and more dangerous than unified Nazism. Less dangerous because it's smaller and lacks elite support. More dangerous because its anti-capitalist nationalism might prove more appealing to desperate workers than either SPD internationalism or KPD Stalinism.
+
+Critically, Strasser's break with Hitler means fascism now comes in multiple flavors. We can't simply oppose "the Nazis"—we face a spectrum of nationalist authoritarian movements.
+
+- @return_assess: Return to assessment.
+
+@assess_rohm
+go-to: rohm_triumphant if nsdap_outcome = "rohm_dominant"; rohm_powerful if nsdap_outcome = "hitler_weakened"; rohm_subordinate if nsdap_outcome = "hitler_dominant" or nsdap_outcome = "strasser_dominant"; rohm_independent if nsdap_outcome = "split"
+
+@rohm_triumphant
+on-arrival: rohm_power_level = 5; sa_dominance = 1; unemployed_nsdap += 6; workers_nsdap += 3; old_middle_nsdap -= 2; new_middle_nsdap -= 2; sa_strength += 15; reichswehr_loyalty -= 10; coup_progress += 3; paramilitarism += 2;
+
+**Ernst Röhm: The SA Ascendant**
+
+Ernst Röhm has achieved his vision: the Sturmabteilung is no longer a party auxiliary but the core of the fascist movement. The SA now numbers over 100,000 men—armed, organized, and contemptuous of democratic politics.
+
+Röhm's ideology is straightforward revolutionary militarism. Parliamentary politics is weakness. Elections are bourgeois games. Real power comes from organized violence. The SA will become Germany's true army, displacing the Reichswehr's aristocratic officers with combat-hardened revolutionaries.
+
+The 52 Reichstag seats are almost irrelevant to Röhm—he views them as a propaganda platform, not a path to power. The real story is on the streets: SA units controlling neighborhoods, intimidating opponents, creating zones of effective fascist authority outside democratic structures.
+
+**Recruitment**: The SA swells with unemployed young men—brutalized by war, destroyed by depression, offered nothing by the Republic. Röhm gives them uniforms, community, purpose, and permission for violence. Many are genuine ideological fascists; others just want to belong to something and hurt the people they blame for their misery.
+
+**Relationship with elites**: Catastrophic. Industrialists are terrified of Röhm's "second revolution" rhetoric. The Reichswehr views the SA as an illegitimate rival and potential enemy. Conservative politicians who might have tolerated Hitler's parliamentary fascism want nothing to do with Röhm's revolutionary militia.
+
+**Leadership structure**: Röhm rules the SA through personal loyalty networks and military hierarchy. Regional SA commanders have significant autonomy. It's organized like an army, not a political party.
+
+**Succession**: If Röhm died, succession would be contested among SA regional commanders. Likely candidates include Edmund Heines, August Schneidhuber, or Viktor Lutze. The SA might fragment into competing militias or unite under a strongman.
+
+**The threat**: This is the most immediately dangerous scenario in one sense—armed fascist militia openly contemptuous of democracy, capable of street violence and possibly putsch. But it's also potentially easier to suppress: the Reichswehr and police can defeat an armed rebellion. What they couldn't stop is Hitler's legal path to power.
+
+The Republic faces a stark choice: crush the SA through state force (risking civil war) or tolerate its growth (risking fascist domination of civil society).
+
+- @return_assess: Return to assessment.
+
+@rohm_powerful
+on-arrival: rohm_power_level = 3; sa_autonomous = 1; sa_strength += 8; reichswehr_tension += 5;
+
+**Ernst Röhm: The Autonomous Warlord**
+
+Röhm controls the SA with increasing independence from Hitler's political leadership. Officially, the SA serves the party. In practice, Röhm pursues his own agenda: building the SA into a revolutionary army, preparing for an eventual "second revolution" that will sweep aside both the Weimar Republic and conservative reaction.
+
+Hitler tolerates this because he needs the SA—the brownshirts provide electoral intimidation, create atmospherics of power, and deter left-wing paramilitaries. But the relationship is tense. Hitler wants controlled violence; Röhm wants revolutionary catharsis.
+
+**SA growth**: The SA expands rapidly, especially among the unemployed. By 1930, it numbers 60,000-80,000 men. They're increasingly well-organized, with regional commands, training programs, and military discipline.
+
+**Reichswehr concern**: Military intelligence views Röhm's SA with alarm. The Reichswehr will not tolerate a rival armed force. If the SA grows much larger, a confrontation becomes inevitable.
+
+**Leadership dynamics**: If Hitler tried to rein in Röhm, the result might be SA rebellion against party authority—what happened in 1929 nearly repeated. If Hitler embraced Röhm's vision, conservative support would evaporate. Hitler is trapped managing an unstable equilibrium.
+
+**The threat**: The SA under Röhm's semi-autonomous control represents a growing paramilitary danger. Not yet capable of overthrowing the state, but increasingly capable of dominating streets, intimidating opponents, and creating conditions for future putsch.
+
+- @return_assess: Return to assessment.
+
+@rohm_subordinate
+on-arrival: rohm_power_level = 1; sa_controlled = 1;
+
+**Ernst Röhm: The Subordinated Commander**
+
+Röhm remains SA chief, but [? if nsdap_outcome = "hitler_dominant" : Hitler has definitively subordinated the brownshirts to party political strategy. ?] [? if nsdap_outcome = "strasser_dominant" : Strasser has brought the SA under organizational control, using it for political intimidation rather than revolutionary preparation. ?]
+
+The 1929 crisis was a warning to Röhm: the SA serves the movement's leadership, not the reverse. Röhm publicly affirmed subordination and has adhered to it, though his frustration is evident.
+
+The SA still grows—now approaching 40,000 men—but its role is limited to electoral support: providing security at rallies, intimidating opponents, creating visual spectacle of fascist strength. Röhm's dreams of the SA as Germany's revolutionary army are deferred.
+
+**Relationship with leadership**: Tense but functional. Röhm wants more autonomy; [? if nsdap_outcome = "hitler_dominant" : Hitler ?] [? if nsdap_outcome = "strasser_dominant" : Strasser ?] wants reliable tool. The compromise is that Röhm gets resources and recruits, but not independence.
+
+**Succession**: If Röhm died or was purged, another SA commander would be appointed—someone more reliably subordinate to party authority. The SA would continue as electoral muscle, not revolutionary force.
+
+**The threat**: The SA remains dangerous as an electoral intimidation tool and potential nucleus for future violence, but it's not currently an autonomous threat. This is the least dangerous Röhm scenario for the Republic.
+
+- @return_assess: Return to assessment.
+
+@rohm_independent
+on-arrival: rohm_power_level = 4; sa_independent_force = 1; sa_strength += 12; unemployed_nsdap += 4; unemployed_other += 2; reichswehr_loyalty -= 8; coup_progress += 2;
+
+**Ernst Röhm: The Independent Warlord**
+
+When the Nazi party fractured, Röhm declared the SA independent from political movements entirely. "The SA serves the revolution, not politicians," he announced. With perhaps 70,000 brownshirts owing personal loyalty to him, Röhm has become a warlord commanding a private army.
+
+The 19 SA-backed Reichstag deputies are fig leaf respectability. The real power is street control. SA units dominate working-class neighborhoods in major cities, collecting "protection" money, intimidating political opponents, effectively governing territories outside state authority.
+
+**Ideology**: Röhm's "ideology" is simplistic revolutionary militarism. Germany must be remade through violence. Weakness—democracy, liberalism, Marxism—must be destroyed. Strength—military discipline, national unity, racial purity—must be imposed. The SA will be the instrument.
+
+**Recruitment**: The SA offers unemployed young men everything they lack: structure, purpose, community, power, and permission for violence. Many joined originally for Nazi ideology; others for camaraderie; some just for the chance to hurt people they hate. Now they're loyal to the SA itself, not any political program.
+
+**Relationship with state**: Officially illegal (surely some SA ban is in effect), but too large to suppress without military action. The police avoid SA territories. The Reichswehr monitors with alarm, knowing a confrontation may be coming.
+
+**Relationship with other fascists**: Contemptuous. Röhm denounces Hitler's diminished NSDAP as "talkers," Strasser's Black Front as "red socialists in brown shirts." The SA is the pure expression of fascist will-to-power.
+
+**Succession**: If Röhm died, the SA might fragment into regional militias under different commanders, or might unite under a successor strongman. The SA's organizational structure suggests it would persist even without Röhm, though potentially divided.
+
+**The threat**: An armed fascist militia numbering in the tens of thousands, contemptuous of democracy, preparing for violent revolution. This is civil war material. The Republic must either crush the SA militarily or watch it grow until it can challenge state authority directly.
+
+- @return_assess: Return to assessment.
+
+@assess_overall
+go-to: fascism_unified if nsdap_outcome = "hitler_dominant"; fascism_contested if nsdap_outcome = "hitler_weakened"; fascism_transformed if nsdap_outcome = "strasser_dominant"; fascism_militarized if nsdap_outcome = "rohm_dominant"; fascism_fractured if nsdap_outcome = "split"
+
+@fascism_unified
+on-arrival: fascist_threat_level = 5;
+
+**The Unified Fascist Threat**
+
+Our assessment is grim: Germany faces a unified, disciplined, rapidly-growing fascist movement under charismatic leadership. The NSDAP has 107 Reichstag seats and momentum. Every election could double their strength.
+
+Hitler has achieved what Mussolini achieved in Italy: a mass movement combining nationalist appeals, anti-Marxist violence, and middle-class respectability. Conservative elites increasingly see Hitler as a potential coalition partner—someone who can destroy the left while preserving capitalism.
+
+**Electoral trajectory**: If current trends continue, the NSDAP could be the largest party by 1932. Coalition government including Nazis becomes plausible. Presidential appointment of Hitler becomes thinkable.
+
+**Street power**: The SA, while subordinate to party discipline, still provides intimidation and violence. Republican rallies face brownshirt attacks. Trade union offices are vandalized. Left-wing activists are beaten. The SA is too large for police to control.
+
+**Elite support**: Industrialists and Junkers are increasingly open to Hitler. He's suppressed the anti-capitalist elements, signaled willingness to destroy unions and KPD, and promises "order." The flow of money from business to NSDAP is increasing.
+
+**Ideological appeal**: Nazi propaganda has perfected the art of promising everything to everyone. To workers: jobs and dignity. To middle class: protection from proletarianization. To farmers: debt relief and rural revival. To nationalists: revision of Versailles. To racists: elimination of "Jewish influence." It's contradictory but emotionally powerful.
+
+**Our vulnerabilities**: The SPD is trapped. If we tolerate conservative governments, we implement their unpopular policies and lose working-class support. If we refuse, we enable presidential dictatorship. Either way, the Nazis benefit as anti-system outsiders promising radical change.
+
+**The path forward**: We face an existential threat. Every month Hitler isn't stopped, he grows stronger. But stopping him requires either forming effective anti-fascist coalitions (can we work with KPD? Can we maintain bourgeois coalition?) or using state power against Nazi movement (politically dangerous, possibly ineffective).
+
+The Republic is in mortal danger.
+
+@fascism_contested
+on-arrival: fascist_threat_level = 3;
+
+**The Contested Fascist Threat**
+
+The Nazi movement is significant and growing, but internal tensions limit its effectiveness. Hitler leads, but uneasily. Strasser controls organizational power in the north. Röhm's SA pursues semi-autonomous goals. The NSDAP has 89 seats—major, but not overwhelming.
+
+**Opportunities**: The Nazi internal divisions create openings. If economic crisis deepens, the tensions between Hitler's pragmatism, Strasser's anti-capitalism, and Röhm's militarism might fracture the movement. We should investigate ways to exploit these divisions.
+
+**Threats**: Alternatively, crisis might force Hitler to purge rivals and emerge stronger. Or it might cause Strasser or Röhm to seize control, changing the fascist movement's character but not eliminating it.
+
+**Elite response**: Conservative elites are divided on Nazis. Some see potential; others worry about instability. The NSDAP is not yet respectable enough for easy coalition, but not marginal enough to ignore.
+
+**Our strategy**: We have time, but not much. The Nazis are growing, contested growth is still growth. We need to simultaneously combat Nazi electoral appeal, expose their internal contradictions, strengthen republican institutions, and prevent economic collapse that feeds extremism.
+
+The Republic is in serious danger, but not yet mortal danger.
+
+@fascism_transformed
+on-arrival: fascist_threat_level = 4; strasser_national_socialism = 1;
+
+**The Transformed Fascist Threat**
+
+Gregor Strasser has succeeded in making "National Socialism" mean something substantive: revolutionary nationalism with genuine anti-capitalist economics. The movement's 78 seats and growing working-class support represent a different threat than Hitler's version.
+
+**Ideological danger**: Strasser's movement is potentially more dangerous to working-class solidarity than Hitler's. It offers everything socialism promises—economic justice, community, dignity—wrapped in nationalism and racism. Workers desperate from depression might not distinguish carefully between SPD internationalism and Strasser's nationalist "socialism."
+
+**Elite reaction**: Conservative industrialists and Junkers are fleeing from Strasser, seeing him as potentially more dangerous than the KPD. This limits his resources but also his respectability. Strasser is unlikely to gain power through elite coalition—his path requires genuine mass support.
+
+**Street dynamics**: The SA under Strasser is an intimidation tool, not an autonomous revolutionary force. Less immediately dangerous than Röhm's version, but still capable of violence.
+
+**Our vulnerabilities**: The SPD's internationalism and rejection of nationalism is a vulnerability against Strasser. Workers suffering from unemployment may respond to "Germany first" appeals. Our strongest defense is emphasizing class solidarity over national chauvinism—but that's hard when economic crisis makes everyone desperate.
+
+**The path forward**: We must aggressively combat nationalist appeals to workers while also delivering tangible economic relief. If we're seen as internationalist ideologues indifferent to German workers' immediate suffering, Strasser wins converts. If we're seen as nationalist sellouts, we betray our principles.
+
+The Republic faces serious danger from a new form of fascism that targets our base directly.
+
+@fascism_militarized
+on-arrival: fascist_threat_level = 4; sa_threat_primary = 1;
+
+**The Militarized Fascist Threat**
+
+Ernst Röhm's SA dominance means Germany faces fascism in its purest form: organized political violence contemptuous of democratic procedures. The 52 Reichstag seats matter less than 100,000+ brownshirts on the streets.
+
+**Immediate danger**: The SA represents a near-term threat of putsch or civil war. Röhm is preparing for violent overthrow of the Republic, not electoral conquest. This is more immediately dangerous than Hitler's parliamentary strategy—but also potentially easier to defeat militarily.
+
+**State response options**: The Reichswehr and police could suppress the SA through force—they have superior firepower and training. But that risks civil war, Nazi martyrdom, and conservative elite backlash ("Why does the Republic attack nationalists instead of communists?").
+
+The Republic faces an armed fascist militia that grows stronger monthly. Choosing the right response is critical—and there are no good options.
+@fascism_fractured
+on-arrival: fascist_threat_level = 2; fascism_divided = 1; hitler_nsdap_seats = 34; black_front_seats = 28; sa_political_seats = 19;
+
+= The Fractured Fascist Threat
+                                                                                    
+The fascist movement has splintered into competing factions: Hitler's rump NSDAP (34 seats), Strasser's Black Front (28 seats), and Röhm's SA-backed politicians (19 seats). Combined they'd be formidable—81 seats and significant street presence. Divided, they're weakened.
+Internal competition: The three factions spend as much energy fighting each other as opposing the Republic. Hitler denounces Strasser as a "socialist traitor." Strasser calls Hitler a "capitalist tool." Röhm dismisses both as "talkers." They compete for recruits, resources, and ideological territory.
+
+We have perhaps 12-18 months before the situation clarifies. Either fascism consolidates around a winning faction, or we use this time to strengthen the Republic enough to survive whatever comes next.
+This is our chance. We cannot waste it.
+                                                                                    
+@conclude: Conclude the assessment.
+                                                                                    
+@conclude
+                                                                                    
+The intelligence briefing concludes. Our analysts have provided their assessment of the fascist threat in its various forms. Now the question becomes: what will we do about it?
+[? if fascist_threat_level >= 4 : The threat is severe and immediate. Every month of inaction increases the danger. ?]
+[? if fascist_threat_level == 3 : The threat is serious but not yet overwhelming. We have time to act, but not much. ?]
+[? if fascist_threat_level == 2 : The threat is manageable for now, but could escalate rapidly if conditions change. ?]
+The fate of the Republic may depend on our next moves.
+                                                                                    
+@return_assess
