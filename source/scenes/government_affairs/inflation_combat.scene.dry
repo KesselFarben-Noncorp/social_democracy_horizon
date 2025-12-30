@@ -1,0 +1,134 @@
+title: Combat Inflation
+new-page: true
+is-card: true
+tags: govt_affairs, economics, cabinet
+view-if: inflation >= 6 and inflation_control_timer = 0
+on-arrival: month_actions += 1; inflation_control_timer = 6
+card-image: img/inflation.jpg
+frequency: 200
+
+= Combat Inflation
+
+Inflation has reached [+ inflation +]%, raising concerns about price stability and erosion of savings. Memories of 1923's hyperinflation still haunt Germany—even moderate inflation triggers public anxiety.
+
+[? if inflation >= 8 : The situation is approaching crisis levels. Prices rise visibly week to week. Workers demand wage increases to keep pace. The middle class sees their savings evaporate. ?]
+
+[? if inflation >= 6 and inflation < 8 : Inflation is uncomfortably high. The Reichsbank is under pressure to act. Business groups demand monetary tightening. ?]
+
+[? if inflation >= 4 and inflation < 6 : Inflation is elevated but manageable. Still, preventive action might be wise before it accelerates. ?]
+
+What measures should we take to control inflation?
+
+- @monetary_tightening: Support Reichsbank monetary tightening.
+- @fiscal_austerity: Implement fiscal austerity measures.
+- @wage_price_controls: Impose temporary wage and price controls.
+- @tax_increases: Raise taxes to reduce demand.
+- @reduce_stimulus: Scale back stimulus programs.
+- @do_nothing: Accept current inflation levels as cost of full employment.
+
+@monetary_tightening
+on-arrival: economic_growth -= 0.3; unemployed += 1.5; inflation -= 1.2; reichsbank_independent += 1; dvp_relation += 5; z_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); workers_spd -= 2; left_dissent += 5; fiscal_stance += 0.08; demand_impulse -= 0.15; price_pressure -= 0.20;
+
+We publicly support the Reichsbank's monetary tightening measures. Interest rates rise. Credit contracts. The money supply tightens.
+
+Inflation begins declining as demand cools. The middle class—terrified of currency instability—breathes easier. Business groups approve of "responsible monetary policy."
+
+But the side effects are real: growth slows, unemployment ticks upward, workers face harder economic conditions. The classic trade-off: price stability at the cost of jobs.
+
+[? if unemployment >= 10 : With unemployment already high, monetary tightening adds to workers' misery. Our base questions our priorities. ?]
+
+[? if left_strength > 35 : The left wing protests: "We finally achieve full employment and immediately sacrifice workers to protect bourgeois savings!" ?]
+
+@fiscal_austerity
+choose-if: budget <= 0 or inflation >= 6
+unavailable-subtitle: [? if budget > 0 and inflation < 6 : The budget is already balanced; austerity would be excessive. ?]
+on-arrival: budget += 2; economic_growth -= 0.4; unemployed += 2; inflation -= 1.0; works_program -= 1 if works_program > 0; dvp_relation += 6; z_relation += 5; old_middle_spd += 3*(1-dissent); workers_spd -= 4; unemployed_spd -= 5; left_dissent += 10; labor_dissent += 8; pro_republic -= 2; fiscal_stance += 0.12; demand_impulse -= 0.20; price_pressure -= 0.15;
+
+"Fiscal discipline is necessary to combat inflation," we announce. Government spending is cut. Public works programs are scaled back. Budget deficits narrow or turn to surplus.
+
+The fiscal contraction reduces aggregate demand, bringing inflation down. Creditors and savers approve. The bourgeois parties praise our "economic maturity."
+
+But the human cost is significant: rising unemployment, reduced government services, abandoned infrastructure projects. Workers who benefited from stimulus now face layoffs.
+
+[? if works_program > 3 : We're dismantling the very programs that brought Germany out of Depression. The irony is bitter. ?]
+
+Our working-class base feels betrayed: "We implemented recovery only to abandon it the moment prices rise!"
+
+[? if bruning_austerity_accepted = 1 : We swore we'd never repeat Brüning's mistake. Now we're imposing austerity again—this time to fight inflation instead of deflation, but workers suffer either way. ?]
+
+@wage_price_controls
+choose-if: left_strength >= 30 or labor_strength >= 55
+unavailable-subtitle: [? if left_strength < 30 and labor_strength < 55 : We lack the strength to impose direct price controls against business resistance. ?]
+on-arrival: inflation -= 0.8; economic_growth -= 0.15; capital_strike_progress += 2; dvp_relation -= 10; dnvp_relation -= 12; old_middle_spd -= 3; workers_spd += 2*(1-dissent); left_strength += 3; labor_strength += 3; price_pressure -= 0.30; distribution_shift -= 0.03;
+
+"We will impose temporary wage and price controls to break the inflationary spiral!" we announce. Government boards will approve price increases. Wages will be regulated to prevent spiraling.
+
+It's direct intervention in market mechanisms—anathema to liberal economics but potentially effective at controlling inflation without unemployment costs.
+
+Inflation moderates as price increases are blocked. Workers appreciate that unemployment doesn't rise—jobs are protected while prices stabilize.
+
+But business is apoplectic: "Socialist price controls destroy market efficiency!" Capital strike threats intensify. The DVP and DNVP denounce "command economy measures."
+
+[? if capital_strike_progress >= 5 : Business resistance is severe. Investment declines, production disruptions occur. Controls are only effective if we can enforce them against business obstruction. ?]
+
+The middle class is ambivalent: they like stable prices but distrust government "interference" in markets. Controls might work temporarily, but can they last?
+
+[? if inflation >= 8 : At this level of inflation, controls risk creating black markets and shortages as sellers evade price caps. ?]
+
+@tax_increases
+choose-if: spd_in_government = 1
+unavailable-subtitle: [? if spd_in_government != 1 : We must be in government to implement tax policy. ?]
+on-arrival: inflation -= 0.6; budget += 2; economic_growth -= 0.2; workers_spd -= 3; new_middle_spd -= 2; old_middle_spd -= 4 if old_middle >= 40; old_middle_spd += 2 if old_middle < 40; dvp_relation -= 5 if progressive_taxes = 1; dvp_relation += 2 if progressive_taxes != 1; coalition_dissent += 1; fiscal_stance += 0.10; demand_impulse -= 0.12;
+
+We raise taxes to reduce demand and combat inflation. [? if progressive_taxes = 1 : The burden falls primarily on upper incomes and corporate profits. ?][? if progressive_taxes != 1 : The tax increases are broadly distributed, including consumption taxes. ?]
+
+Tax increases reduce disposable income, moderating demand and thus inflation. The budget improves as revenue rises. Inflation begins declining.
+
+[? if progressive_taxes = 1 : Progressive taxation protects workers while extracting anti-inflationary resources from the wealthy. Our base accepts the trade-off. But business and upper-middle class voters resent the burden. The DVP protests "class warfare taxation." ?]
+
+[? if progressive_taxes != 1 : Broad-based tax increases include consumption taxes that hit workers. They face both price increases AND tax increases—a double squeeze. Our base is unhappy. ?]
+
+The fiscal approach has the advantage of combating inflation while improving budget balance—but it's politically costly. Everyone dislikes paying more taxes.
+
+@reduce_stimulus
+view-if: (wtb_implemented >= 1 or schacht_plan_adopted = 1 or lautenbach_plan_active = 1 or wagemann_plan_active = 1 or moderate_plan_progress >= 1)
+on-arrival: inflation -= 0.7; economic_growth -= 0.25; unemployed += 1; works_program -= 1 if works_program > 0; left_dissent += 8; labor_dissent += 5; reformist_dissent += 3; fiscal_stance += 0.08; demand_impulse -= 0.15; supply_impulse -= 0.08;
+
+[? if wtb_implemented >= 1 : "The WTB-Plan has achieved its goal of ending unemployment," we announce. "Now we must moderate the program to prevent inflation." ?]
+
+[? if schacht_plan_adopted = 1 : "The Schacht Plan's credit expansion must be scaled back now that recovery is achieved," we state. ?]
+
+[? if lautenbach_plan_active = 1 or wagemann_plan_active = 1 or moderate_plan_progress >= 1 : "Our economic stimulus programs have succeeded. Now we must prevent overheating by reducing their scale." ?]
+
+Stimulus spending is reduced. Public works continue but at lower intensity. Credit expansion moderates. The economy cools.
+
+Inflation declines as demand pressures ease. The program achieved its recovery goal—perhaps it's natural to scale back success?
+
+But our left wing and labor unions are furious: "We fought for these programs against enormous opposition. Now we're abandoning them the moment they work?"
+
+The political optics are terrible: stimulus for capital's benefit during crisis, austerity when workers finally benefit. Even if economically rational, it reinforces class bias narratives.
+
+[? if wtb_implemented >= 3 : The WTB-Plan's architects—Woytinsky, Tarnow, Baade—issue public statements criticizing the rollback. "Inflation is a manageable problem. Unemployment was a catastrophe. Don't confuse the two." ?]
+
+@do_nothing
+choose-if: left_strength >= 35 or inflation <= 6
+unavailable-subtitle: [? if left_strength < 35 and inflation > 6 : The party lacks conviction to accept high inflation, especially at dangerous levels. ?]
+on-arrival: inflation += 0.3; old_middle_spd -= 3; new_middle_spd -= 2; catholics_spd -= 2; dvp_relation -= 8; z_relation -= 5; dnvp_relation -= 10; reichsbank_independent += 2; left_strength += 3; workers_spd += 2*(1-dissent); price_pressure += 0.05;
+
+"Inflation of [+ inflation +]% is the price of full employment," we declare. "After years of deflationary misery and mass unemployment, moderate inflation is a tolerable cost for economic security."
+
+We refuse to sacrifice jobs and growth to protect savers and creditors. Workers have income. Factories are running. Germany is recovering. Why would we voluntarily return to stagnation?
+
+Our working-class base appreciates the priorities: jobs over price stability. The left wing is satisfied—finally, we're not reflexively accepting bourgeois economic orthodoxy.
+
+But the consequences accumulate:
+
+The middle class grows anxious as savings erode. Creditors and bondholders lose real value. The elderly on fixed incomes suffer. The Reichsbank publicly criticizes government "irresponsibility."
+
+[? if inflation >= 6 : At this level, inflation begins feeding on itself. Expectations shift. Workers demand larger wage increases. Businesses raise prices preemptively. The spiral accelerates. ?]
+
+[? if inflation >= 8 : Memories of 1923 resurface. Even workers who benefit from employment fear runaway inflation. Political stability requires some response. ?]
+
+The bourgeois parties denounce our "tolerance of currency debasement." Our middle-class support erodes. The question is whether we're managing a trade-off or losing control?
+
+[? if reichsbank_independent >= 5 : The Reichsbank may act unilaterally to tighten monetary policy, overriding government priorities. We're losing control over economic policy to unelected technocrats. ?]
