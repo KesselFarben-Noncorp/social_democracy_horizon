@@ -1,0 +1,418 @@
+title: The Inflation Crisis
+subtitle: The Government Responds
+new-page: true
+view-if: inflation >= 8 and spd_in_government = 0 and inflation_crisis_event = 0
+tags: event, economics
+on-arrival: inflation_crisis_event = 1; month_actions += 1
+face-image: img/crisis.jpg
+
+= The Inflation Crisis
+
+Inflation has surged to [+ inflation +]%, triggering economic anxiety across Germany. Prices rise visibly week to week. Workers demand wage increases to keep pace. The middle class watches their savings erode. Memories of 1923's hyperinflation—though this is far less severe—haunt public consciousness.
+
+[? if spd_toleration = 1 : We are tolerating the government from opposition, watching as they grapple with the crisis we warned about. ?]
+
+[? if spd_toleration = 0 : From opposition, we observe the government's response to inflation, unable to directly shape policy but positioned to critique—and potentially benefit from—their choices. ?]
+
+The question is how the government will respond. Different parties controlling economic policy lead to very different approaches:
+
+- @observe_response: Observe how the government handles the crisis.
+
+@observe_response
+on-arrival: {!
+// Determine who controls economic policy
+// Priority: Finance Minister party, then Chancellor party, then largest coalition party
+
+var policy_party = "";
+
+if (Q.finance_minister_party && Q.finance_minister_party !== "I") {
+    policy_party = Q.finance_minister_party;
+} else if (Q.chancellor_party) {
+    policy_party = Q.chancellor_party;
+} else if (Q.in_grand_coalition) {
+    policy_party = "Z"; // Center Party usually dominant in Grand Coalition
+} else {
+    policy_party = "Z"; // Default to Center
+}
+
+Q.inflation_policy_party = policy_party;
+!}
+go-to: dvp_response if inflation_policy_party = "DVP"; z_response if inflation_policy_party = "Z"; ddp_response if inflation_policy_party = "DDP"; dnvp_response if inflation_policy_party = "DNVP"; papen_response if chancellor = "Papen"; schleicher_response if chancellor = "Schleicher"; bruning_response if chancellor = "Brüning"
+
+@dvp_response
+on-arrival: inflation -= 2; economic_growth -= 0.7; unemployed += 3; budget += 2; old_middle_dvp += 4; new_middle_dvp += 3; workers_spd += 3; unemployed_spd += 4; workers_kpd += 2; old_middle_spd -= 2; dvp_relation += 5; capital_strike_progress -= 1; fiscal_stance += 0.20; demand_impulse -= 0.25; price_pressure -= 0.30;
+
+**DVP-Led Response: Business Orthodoxy**
+
+The DVP-controlled Finance Ministry implements a classically liberal response: monetary tightening, fiscal restraint, and full support for Reichsbank independence.
+
+"Markets must be allowed to correct naturally," Finance Minister [? if finance_minister : [+ finance_minister +] ?][? if not finance_minister : the DVP appointee ?] announces. "Government interference only prolongs instability."
+
+The Reichsbank dramatically raises interest rates. Credit contracts. Government spending is modestly reduced. Tax increases fall primarily on consumption rather than wealth or corporate profits.
+
+**The Results:**
+
+Inflation declines significantly. Business confidence rises. The middle class—particularly property owners and creditors—breathes easier as their assets stabilize in value.
+
+But unemployment rises sharply. Workers face a double squeeze: higher prices followed by job losses and wage cuts. The economic pain falls disproportionately on labor.
+
+**Our Response:**
+
+From opposition, we thunder against "class-biased economics." "The DVP protects bourgeois savings while workers lose jobs!" Our rallies emphasize that inflation could have been fought without mass unemployment.
+
+Working-class voters drift toward us and the KPD. The DVP's support solidifies among property owners but erodes among workers. The class divide in German politics deepens.
+
+[? if spd_toleration = 1 : We face a dilemma: withdraw toleration over the policy (triggering government crisis) or accept it while criticizing from within. The party debates whether complicity or confrontation serves workers better. ?]
+
+- @accept_dvp_policy: Grudgingly accept the policy as economically necessary.
+- @oppose_dvp_policy: Publicly oppose the policy and its class bias.
+- @withdraw_toleration: Withdraw toleration over this issue (if applicable).
+
+@z_response
+on-arrival: inflation -= 1.5; economic_growth -= 0.4; unemployed += 2; budget += 1; catholics_z += 3; old_middle_z += 3; workers_spd += 2; unemployed_spd += 2; old_middle_spd -= 1; z_relation += 3; fiscal_stance += 0.15; demand_impulse -= 0.18; price_pressure -= 0.20;
+
+**Center Party Response: Cautious Moderation**
+
+The Center Party-controlled government implements a moderate anti-inflation program: fiscal discipline combined with limited social protection.
+
+[? if chancellor = "Brüning" : Chancellor Brüning's approach is predictably orthodox but slightly less harsh than his earlier austerity—he's learned some lessons. ?]
+
+The policy includes: modest spending cuts, selective tax increases (including some on wealth), Reichsbank coordination, but preservation of core social insurance.
+
+"We must balance price stability with social cohesion," the Finance Ministry states. "Catholic social teaching demands responsibility to all classes."
+
+**The Results:**
+
+Inflation moderates but doesn't collapse as dramatically as under pure business orthodoxy. Unemployment rises but not catastrophically. The middle class gets partial relief; workers face some pain but not devastation.
+
+It's the classic Center Party approach: split the difference, protect core constituencies (Catholic workers and middle class), avoid extremes.
+
+**Our Response:**
+
+We criticize the policy as insufficient but struggle to generate outrage. It's not egregiously class-biased, just timid. "The Center Party manages decline rather than building prosperity," we argue, but it's a harder case to make.
+
+Our support grows modestly among workers hurt by the mild recession, but the Center's moderation prevents the massive working-class defection that DVP orthodoxy would cause.
+
+[? if spd_toleration = 1 : The policy is tolerable—literally. Most party members accept continuing toleration, though some argue we should demand more pro-worker adjustments. ?]
+
+- @accept_z_policy: Accept the Center's moderate approach.
+- @demand_modifications: Demand more worker-friendly modifications.
+- @oppose_z_policy: Oppose as insufficient protection for workers.
+
+@ddp_response
+on-arrival: inflation -= 1.8; economic_growth -= 0.5; unemployed += 2.5; budget += 1.5; new_middle_ddp += 4; old_middle_ddp += 2; workers_spd += 3; new_middle_spd += 2; ddp_relation += 4; pro_republic += 2; fiscal_stance += 0.18; demand_impulse -= 0.20; price_pressure -= 0.25;
+
+**DDP Response: Progressive Liberalism**
+
+The DDP-controlled Finance Ministry implements liberal economic orthodoxy but with progressive features: monetary discipline combined with progressive taxation and constitutional propriety.
+
+"We will fight inflation through responsible policy that respects both economic law and social justice," the DDP Finance Minister announces. "Markets need stability, but burden-sharing must be fair."
+
+The policy: Reichsbank tightening, fiscal consolidation, but tax increases weighted toward wealth and corporate profits rather than consumption. Spending cuts avoid gutting social programs. Democratic process is scrupulously observed.
+
+**The Results:**
+
+Inflation declines substantially. The middle class—particularly educated professionals—approves of the "rational, principled" approach. Business grumbles about progressive taxation but accepts the overall framework.
+
+Unemployment rises moderately. Workers face economic pain but appreciate that the burden is shared somewhat more equitably than under pure business orthodoxy.
+
+**Our Response:**
+
+We're in an awkward position. The DDP's response is economically orthodox but procedurally democratic and somewhat progressive in burden-sharing. We can't easily paint them as class enemies.
+
+"Liberal economics still sacrifices workers to price stability," we argue, "even when dressed in progressive language." But it's a nuanced critique that struggles for traction.
+
+Our support grows among workers hurt by recession, but many appreciate the DDP's fairness in burden-sharing. The DDP gains among educated middle class who value competent, principled governance.
+
+[? if spd_toleration = 1 : Most party members accept continuing toleration. The DDP isn't ideal but they're governing within democratic norms with some social conscience. ?]
+
+- @praise_ddp_fairness: Acknowledge the relatively fair burden-sharing.
+- @critique_ddp_priorities: Critique the priority of price stability over employment.
+- @propose_alternative: Propose our own anti-inflation approach for contrast.
+
+@dnvp_response
+on-arrival: inflation -= 2.5; economic_growth -= 1.0; unemployed += 4; budget += 3; rural_dnvp += 4; old_middle_dnvp += 5; workers_spd += 5; unemployed_spd += 6; workers_kpd += 3; unemployed_kpd += 4; dnvp_relation -= 5; nationalism += 2; fiscal_stance += 0.25; demand_impulse -= 0.30; price_pressure -= 0.35; capital_pressure += 0.1;
+
+**DNVP Response: Reactionary Discipline**
+
+The DNVP-controlled government implements harsh deflationary policy with nationalist rhetoric: severe austerity, wage suppression, and explicit priority of creditor interests.
+
+"Germany's honor demands sound currency!" the DNVP Finance Minister declares. "Workers must accept sacrifice for national economic strength. Versailles reparations have weakened us—we cannot tolerate internal inflation as well!"
+
+The policy is brutal: deep spending cuts (especially social programs), regressive tax increases, active suppression of wage demands, maximum Reichsbank independence. The rhetoric frames inflation as moral failure and working-class restraint as patriotic duty.
+
+**The Results:**
+
+Inflation is crushed through sheer economic violence. The currency stabilizes. Creditors, large landowners, and conservative business interests are delighted.
+
+But unemployment soars. Wages are driven down through government intervention. Social programs are gutted. The economic pain falls almost entirely on workers while property owners benefit from restored currency value.
+
+**Our Response:**
+
+We unleash full opposition: "The DNVP imposes class warfare disguised as economic policy! Workers are sacrificed to protect Junker estates and industrial profits!"
+
+This is a clear class conflict. Our rallies overflow with workers furious at reactionary economics. But the KPD also surges: "The SPD warned you! Democracy serves capital!"
+
+Working-class support for republican parties declines as DNVP policy validates extremist critiques. The DNVP itself gains among rural conservatives and nationalists who approve of "discipline" and "traditional values."
+
+[? if spd_toleration = 1 : Toleration is politically impossible. The party demands withdrawal. ?]
+
+- @mass_opposition: Launch mass opposition campaign against DNVP policy.
+- @ally_with_unions: Coordinate with ADGB for resistance.
+- @parliamentary_obstruction: Use parliamentary tactics to obstruct policy.
+
+@papen_response
+view-if: chancellor = "Papen"
+on-arrival: inflation -= 2.2; economic_growth -= 0.8; unemployed += 3.5; budget += 2.5; old_middle_dnvp += 4; rural_dnvp += 3; workers_spd += 4; unemployed_spd += 5; workers_kpd += 3; dnvp_relation += 5; hindenburg_relation += 5; pro_republic -= 3; coup_progress += 1; fiscal_stance += 0.22; demand_impulse -= 0.28; reichsbank_independent += 1;
+
+**Papen's "Cabinet of Barons" Response: Authoritarian Economics**
+
+Chancellor von Papen's presidential cabinet—the "Cabinet of Barons," unelected aristocrats governing through Article 48 emergency decrees—implements inflation control without democratic consultation.
+
+"We will restore German financial honor through executive authority," Papen announces with aristocratic hauteur. "Parliamentary dithering has ended. Decisive government acts."
+
+Emergency decrees impose: severe spending cuts, regressive taxation, wage controls (downward only), corporate tax relief, and explicit subordination of employment goals to price stability.
+
+**The Results:**
+
+Inflation declines sharply. The propertied classes applaud the "strong government." Hindenburg praises Papen's "Prussian discipline."
+
+But unemployment rises dramatically. Democratic procedure is bypassed. Workers see aristocrats imposing economic pain through decree while remaining insulated from consequences.
+
+**Our Response:**
+
+"Presidential dictatorship now includes economic dictatorship!" we thunder. "Unelected barons impoverish workers while protecting their own estates!"
+
+But we're powerless. Article 48 bypasses parliament. Papen governs with Hindenburg's backing and Reichswehr support. We can protest but not prevent.
+
+Working-class radicalization accelerates. Democratic legitimacy erodes. Some workers conclude democratic opposition is futile—perhaps the KPD's revolutionary rhetoric makes sense? Others turn to Nazi promises to "smash the system."
+
+The Republic's crisis deepens. Economic policy is now explicitly divorced from democratic control.
+
+[? if spd_toleration = 1 : We never formally granted toleration to Papen—he governs through presidential decree regardless of parliamentary support. ?]
+
+- @demand_reichstag_vote: Demand Reichstag vote on economic decree.
+- @coordinate_opposition: Coordinate opposition with other democratic parties.
+- @prepare_resistance: Begin preparing for possible extra-legal resistance.
+
+@schleicher_response
+view-if: chancellor = "Schleicher"
+on-arrival: inflation -= 1.6; economic_growth -= 0.3; unemployed += 1.5; old_middle_spd += 2; new_middle_spd += 2; workers_spd += 1; reichswehr_loyalty += 3; z_relation -= 3; dnvp_relation -= 5; fiscal_stance += 0.12; demand_impulse -= 0.15; price_pressure -= 0.18;
+
+**Schleicher's "Social General" Response: Pragmatic Authoritarianism**
+
+General von Schleicher, the "social general" governing through presidential authority, implements a surprisingly moderate anti-inflation program—by authoritarian standards.
+
+"Germany needs social peace for national strength," Schleicher announces. "Inflation must be controlled, but not through class warfare that breeds extremism."
+
+The policy uses presidential decrees but with more social consideration than Papen: moderate fiscal consolidation, limited tax increases, coordination with trade unions (surprisingly), preservation of basic social programs, and rhetoric about "national solidarity."
+
+**The Results:**
+
+Inflation moderates without catastrophic unemployment. Workers face some hardship but not devastation. The middle class gets partial relief.
+
+Schleicher is trying to build a "crossfront" coalition that includes labor—using authoritarian means for semi-social-democratic ends. It's constitutionally dubious but economically less harsh than pure reaction.
+
+**Our Response:**
+
+We're conflicted. Schleicher's economics are more worker-friendly than Papen or DNVP, but he's still a general governing through decree, not democratic process.
+
+"Benevolent authoritarianism is still authoritarianism," we argue. "Today Schleicher protects workers. Tomorrow, what if a different general doesn't?"
+
+But some workers appreciate Schleicher's pragmatism. Some trade unionists quietly cooperate. The party debates whether procedural democracy or substantive worker welfare matters more.
+
+[? if labor_strength >= 55 : The ADGB is divided between constitutional principle and appreciation for Schleicher's labor-friendliness. ?]
+
+- @cautious_cooperation: Cautiously explore cooperation on economic policy.
+- @principled_opposition: Oppose on constitutional grounds regardless of policy content.
+- @conditional_support: Support specific policies while criticizing authoritarian method.
+
+@bruning_response
+view-if: chancellor = "Brüning"
+on-arrival: inflation -= 2.0; economic_growth -= 0.6; unemployed += 2.8; budget += 2; catholics_z += 2; old_middle_z += 3; workers_spd += 3; unemployed_spd += 4; workers_kpd += 2; z_relation += 3; fiscal_stance += 0.20; demand_impulse -= 0.22; price_pressure -= 0.25;
+
+**Brüning's Response: Familiar Austerity**
+
+Chancellor Brüning responds to inflation the same way he responded to deflation: austerity, discipline, and orthodox economics. The irony is not lost on observers.
+
+"Fiscal responsibility requires spending restraint regardless of economic conditions," Brüning states with characteristic cold logic. "Germany demonstrated discipline during deflation. We must maintain it during inflation."
+
+Emergency decrees impose spending cuts, tax increases (partially progressive this time), and full Reichsbank independence. It's Brüning being Brüning—mathematical economics divorced from human cost.
+
+**The Results:**
+
+Inflation declines substantially. The middle class appreciates consistency—at least Brüning's orthodoxy is predictable. Creditors are satisfied.
+
+But unemployment rises significantly. Workers who suffered through Brüning's deflationary austerity now suffer through his inflationary austerity. The man offers only economic pain, regardless of the specific crisis.
+
+**Our Response:**
+
+"Brüning has learned nothing!" we declare. "Whether deflation or inflation, his answer is always worker sacrifice!"
+
+Our critique lands harder this time. Even some who accepted deflationary discipline question whether austerity is really appropriate when fighting inflation—orthodox economics seems to demand contraction regardless of circumstances.
+
+Working-class support for Brüning evaporates. Even Center Party workers grow disillusioned. The man's economic rigidity is destroying his political base.
+
+[? if bruning_austerity_accepted = 1 : Those in our party who accepted Brüning's earlier austerity now question that decision. "We enabled this!" ?]
+
+- @demand_bruning_resignation: Call for Brüning's resignation over failed economic policy.
+- @offer_alternative: Present our own economic program as alternative.
+- @focus_on_elections: Use economic failure to position for next election.
+
+# === RESPONSE OPTIONS ===
+
+@accept_dvp_policy
+on-arrival: dvp_relation += 3; left_dissent += 8; labor_dissent += 5; workers_spd -= 2;
+
+We grudgingly accept the DVP's economic policy as technically sound, even if socially harsh. "Inflation must be controlled," we acknowledge, "though we would have distributed the burden more fairly."
+
+Our left wing and labor base are disgusted: "We legitimize bourgeois economics!" But some reformists argue pragmatism requires acknowledging economic reality.
+
+@oppose_dvp_policy
+on-arrival: dvp_relation -= 8; left_dissent -= 5; labor_dissent -= 3; workers_spd += 3; workers_kpd -= 1;
+
+"The DVP's policy is class warfare disguised as economics!" we declare. "Inflation can be fought without mass unemployment!"
+
+We launch opposition campaigns, hold worker rallies, and present alternative policies emphasizing employment protection. Our base is energized, though we cannot actually change policy from opposition.
+
+@withdraw_toleration
+view-if: spd_toleration = 1
+choose-if: left_strength >= 35
+unavailable-subtitle: [? if left_strength < 35 : The party lacks conviction to force a government crisis over this. ?]
+on-arrival: spd_toleration = 0; government_crisis = 1; dvp_relation -= 15; left_dissent -= 10; coalition_dissent += 5;
+
+"We withdraw toleration!" we announce. "We will not enable a government that impoverishes workers!"
+
+A government crisis erupts. New elections or coalition formations loom. We've taken a principled stand—but have we created conditions for something worse?
+
+@accept_z_policy
+on-arrival: z_relation += 3; center_strength += 3; left_dissent += 3;
+
+We accept the Center Party's moderate approach as imperfect but tolerable. "It could be worse," we note, though our left wing grumbles about low standards.
+
+@demand_modifications
+view-if: spd_toleration = 1
+on-arrival: z_relation -= 3; unemployed -= 0.5; workers_spd += 2;
+go-to: z_modifications_accepted if z_relation >= 45; z_modifications_rejected if z_relation < 45
+
+@z_modifications_accepted
+on-arrival: z_relation += 2; labor_strength += 3;
+
+The Center Party accepts some modifications: slightly lower spending cuts, marginally better social program protection. It's not transformative but shows our toleration carries leverage.
+
+@z_modifications_rejected
+on-arrival: z_relation -= 5; left_dissent += 5;
+
+The Center Party rejects our demands. "Take it or leave it." We're reminded that toleration gives influence, not control.
+
+@oppose_z_policy
+on-arrival: z_relation -= 5; left_dissent -= 3; workers_spd += 2;
+
+We oppose the policy as insufficient worker protection, positioning ourselves as the genuine party of labor even when unable to change outcomes.
+
+@praise_ddp_fairness
+on-arrival: ddp_relation += 5; left_dissent += 5; new_middle_spd += 2;
+
+"The DDP's approach, while orthodox, at least distributes burdens fairly," we acknowledge. "Progressive taxation reflects social conscience."
+
+Our left wing protests "legitimizing liberal economics," but educated workers appreciate the acknowledgment of fairness.
+
+@critique_ddp_priorities
+on-arrival: ddp_relation -= 3; left_dissent -= 3; workers_spd += 2;
+
+"Even progressive liberalism prioritizes property over people," we argue. "Employment should come before price stability."
+
+We maintain clear ideological distinction while acknowledging the DDP governs within democratic norms.
+
+@propose_alternative
+on-arrival: reformist_strength += 5; workers_spd += 3; economic_plan = 7;
+
+We present our own anti-inflation program emphasizing employment protection: targeted price controls, progressive taxation, selective spending cuts avoiding social programs.
+
+It's an alternative vision that may influence future debates even if not implemented now.
+
+@mass_opposition
+on-arrival: dnvp_relation -= 10; workers_spd += 5; workers_kpd += 2; left_strength += 5; pro_republic += 2;
+
+We launch mass rallies, coordinate with unions, and mobilize working-class opposition. "The DNVP's class warfare must be resisted!"
+
+The opposition is energizing but also reveals our limited power—we can protest but not prevent reactionary economics when in opposition.
+
+@ally_with_unions
+on-arrival: labor_strength += 8; workers_spd += 4; dnvp_relation -= 8; capital_strike_progress += 2;
+
+We coordinate closely with ADGB, organizing joint opposition to DNVP policy. Trade unions become primary resistance vehicle.
+
+Worker solidarity strengthens, but business retaliates with capital strikes and lockouts. Class conflict intensifies.
+
+@parliamentary_obstruction
+on-arrival: dnvp_relation -= 12; reichstag_position += 5;
+
+We use every parliamentary tool: filibusters, procedural motions, coalition-building with other opposition parties. It's democratic resistance within constitutional bounds.
+
+We slow DNVP implementation but cannot stop decree-based governance. Still, we demonstrate parliamentary opposition retains relevance.
+
+@demand_reichstag_vote
+on-arrival: hindenburg_relation -= 5; pro_republic += 3; coup_progress += 1;
+
+"Article 48 requires Reichstag approval!" we demand. "Presidential decrees on fundamental economic policy must face democratic vote!"
+
+Papen ignores us—but we've forced constitutional confrontation. Either the Reichstag reasserts authority or admits irrelevance.
+
+@coordinate_opposition
+on-arrival: z_relation += 3; ddp_relation += 5; pro_republic += 4;
+
+We reach across party lines to coordinate democratic opposition to authoritarian economics. Even the Center Party and DDP, usually cautious, join protests against decree government.
+
+A pro-republican coalition forms—but can parliamentary opposition stop presidential rule?
+
+@prepare_resistance
+choose-if: rb_militancy >= 0.25 or left_strength >= 45
+unavailable-subtitle: [? if rb_militancy < 0.25 and left_strength < 45 : We lack the strength or paramilitary capacity for this. ?]
+on-arrival: coup_progress += 3; reichswehr_loyalty -= 5; left_strength += 8; rb_militancy += 0.05;
+
+We quietly begin preparing Reichsbanner for possible extra-legal resistance. If democracy dies through economic decree, what options remain?
+
+It's a dangerous path—but is accepting authoritarian economics any safer?
+
+@cautious_cooperation
+on-arrival: reichswehr_loyalty += 3; left_dissent += 10; reformist_dissent += 5; pro_republic -= 2; workers_spd += 2;
+
+We cautiously explore cooperation with Schleicher on economic policy while maintaining constitutional objections to decree government.
+
+"We can work with the general on worker-friendly economics while insisting democracy must return," we argue. But are we legitimizing authoritarianism?
+
+@principled_opposition
+on-arrival: left_dissent -= 8; pro_republic += 4; reichswehr_loyalty -= 3;
+
+"Democracy cannot be suspended even for good policy," we declare. "Schleicher's economics may be moderate, but his methods are authoritarian. We oppose both."
+
+It's constitutionally principled but politically risky—do workers care more about procedure or outcomes?
+
+@conditional_support
+on-arrival: reformist_strength += 5; labor_strength += 3; left_dissent += 5;
+
+We support specific Schleicher policies protecting workers while consistently criticizing decree government. "Good policy, wrong method."
+
+It's nuanced positioning that tries to preserve both worker welfare and constitutional principle—but satisfies neither purists nor pragmatists fully.
+
+@demand_bruning_resignation
+on-arrival: z_relation -= 10; hindenburg_relation -= 5; left_strength += 5; workers_spd += 4;
+
+"Brüning has failed economically and politically!" we declare. "His resignation is necessary for Germany's recovery!"
+
+The Center Party defensively rallies around their Chancellor, but even they recognize his political capital is exhausted.
+
+@offer_alternative
+on-arrival: reformist_strength += 5; economic_plan = 8; workers_spd += 3; pro_republic += 2;
+
+We present a comprehensive alternative program: inflation control through progressive means, employment protection, targeted interventions. "There is a better way!"
+
+It positions us as the party with solutions, not just criticism—ready to govern when opportunity arises.
+
+@focus_on_elections
+on-arrival: workers_spd += 3; unemployed_spd += 3; z_relation -= 3;
+
+We use Brüning's economic failure as primary campaign theme. "They've tried orthodox economics. It failed in deflation, it's failing in inflation. Germany needs new leadership!"
+
+Economic policy becomes our main electoral weapon for the next campaign.
