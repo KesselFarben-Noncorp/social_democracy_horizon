@@ -821,12 +821,13 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'kpd':
-                    Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor, 0.25);
+                    Q.soc_adj_kpd = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj_kpd * Q.street_pressure_factor, 0.25);
                     break;
                 case 'sapd':
                     if (Q.sapd_formed === 1) {
-                        Q.ideology_factor = Q.random_factor(Q.socialism_factor * (Q.unrest_factor * 0.3) * Q.soc_adj, 0.25);
+                        Q.soc_adj_sapd = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism) * 0.7;
+                        Q.ideology_factor = Q.random_factor(Q.socialism_factor * (Q.unrest_factor * 0.3) * Q.soc_adj_sapd, 0.25);
                         };
                     break;
                 case 'spd':
