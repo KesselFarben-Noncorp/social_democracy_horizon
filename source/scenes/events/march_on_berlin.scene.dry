@@ -118,6 +118,7 @@ go-to: new_elections_braun_2 if nsdap_normalized + dnvp_normalized >= 0.5 and fa
 The fascists reject our offer of free and fair elections. They are demanding that President [+ president +] dismisses the current government and appoints Hitler chancellor. [? if far_right_coalition >= 50 : They claim that since the far-right coalition has the majority in the Reichstag, they are constitutionally justified in appointing the chanellor. Unfortunately, their argument is not exactly wrong. ?]
 
 - @braun_appoints_hitler
+- @braun_appoints_seldte
 - @fight
 
 @new_elections_braun_2
@@ -154,7 +155,14 @@ go-to: accept
 
 We have resigned our positions in the government.
 
+@braun_appoints_seldte
+title: We cannot do anything but appoint Seldte as the chancellor.
+view-if: president == "Braun"
+choose-if: dnvp_normalized >= 0.4 or (sh_strength > 300 and sh_militancy > 0.65)
+unavailable-subtitle: There is no way President [+ president +] could do such a blatantly undemocratic act.
+on-arrival: chancellor = "Seldte"; chancellor_party = "DNVP"; spd_in_government = 0, martial_law_state = 1
 
+Threatened with a civil war, and unwilling to fight anymore, President [+ president +] dismisses the current government and appoints Seldte of DNVP as chancellor. Today, everything changes.
 
 @braun_appoints_hitler
 title: We cannot do anything but appoint Hitler chancellor.
