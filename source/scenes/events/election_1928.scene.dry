@@ -128,8 +128,6 @@ if (Q.kpd_relation >= 30) {
     Q.weimar_coalition += Q.sapd_r;
 }
 
-Q.leverage = Q.spd_r;
-
 Q.grand_coalition_failed = 0;
 // Reset government and ministers... Based on Brüning's 1930 govt
 Q.coalition_dissent = 0;
@@ -658,7 +656,7 @@ Who should be chancellor?
 @braun_chancellor_new
 subtitle: This will reduce our leverage in the ministries.
 view-if: not historical_mode or not spd_prussia
-on-arrival: leverage -= 10; chancellor = "Braun"; chancellor_party = "SPD"
+on-arrival: leverage -= 10; chancellor = "Braun"; chancellor_party = "SPD"; Q.leverage = Q.spd_r;
 go-to: ministries
 
 We have assembled a new coalition under Otto Braun.
@@ -676,7 +674,7 @@ The Center Party leader, Joseph Joos, clearly sees the threat from the ascension
 
 @unity_government_2
 title: Accept the offer!
-on-arrival: chancellor = "Wirth"; chancellor_party = "Z"; spd_in_government = 1; in_grand_coalition = 1; in_unity_government = 1; leverage = 15; z_relation += 5; dvp_relation += 4
+on-arrival: chancellor = "Wirth"; chancellor_party = "Z"; spd_in_government = 1; in_grand_coalition = 1; in_unity_government = 1; leverage = 15; z_relation += 5; dvp_relation += 4; Q.leverage = Q.spd_r;
 achievement: constitutional_coalition
 go-to: ministries
 
