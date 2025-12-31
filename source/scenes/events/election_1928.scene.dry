@@ -930,8 +930,268 @@ We have won the vote of no confidence, and are currently ruling under an SPD min
 title: We can form a Weimar Coalition.
 subtitle: SPD + Z + [+ ddp_name +] [? if sapd_formed and kpd_relation >= 30 : + SAPD toleration ?] ([+ weimar_coalition +]%)
 view-if: weimar_coalition >= 50
-on-arrival: leverage += 5; leverage += 5 if z_party_leader == "Joos"; in_weimar_coalition = 1; spd_in_government = 1; in_popular_front = 0; in_left_front = 0; foreign_minister_party = "Z"; interior_minister_party = "Z"; justice_minister_party = ddp_name; labor_minister_party = "Z"; reichswehr_minister_party = "I"; economic_minister_party = ddp_name; finance_minister_party = "Z"; agriculture_minister_party = "Z"; foreign_minister = "Wirth"; interior_minister = "Wirth"; justice_minister = "Koch-Weser"; labor_minister = "Stegerwald"; reichswehr_minister = "Groener"; economic_minister = "Dietrich"; finance_minister = "Köhler"; agriculture_minister = "Hermes"; workers_dnvp -= 6;
+on-arrival: {!
+    Q.leverage += 5; 
+    Q.leverage += 5 if Q.z_party_leader == "Joos"; 
+    Q.in_weimar_coalition = 1; 
+    Q.spd_in_government = 1; 
+    Q.in_popular_front = 0; 
+    Q.in_left_front = 0;
+    Q.workers_dnvp -= 6;
+    
+    // === CALCULATE COALITION PARTY LEVERAGE ===
+    
+    // SPD leverage already calculated (player earns through actions)
+    // Default SPD leverage from this coalition formation
+    var spd_leverage = Q.leverage || 5;
+    
+    // Z (Center Party) leverage based on:
+    // - Reichstag seats (they're usually largest or second largest)
+    // - Relation with SPD
+    // - Party leader (Joos more cooperative = less demanding)
+    var z_leverage = 15; // Base leverage as major party
+    z_leverage += Math.floor(Q.z_relation / 10); // Up to +10 for good relations
+    z_leverage -= 3 if Q.z_party_leader == "Joos"; // Joos less demanding
+    z_leverage += 3 if Q.z_party_leader == "Kaas"; // Kaas more assertive
+    z_leverage = Math.max(8, Math.min(25, z_leverage)); // Cap between 8-25
+    
+    // DDP leverage based on:
+    // - Smaller party, less leverage
+    // - But necessary for coalition majority
+    // - Relation with SPD
+    var ddp_leverage = 8; // Base leverage as smaller party
+    ddp_leverage += Math.floor(Q.ddp_relation / 15); // Up to +6 for good relations
+    ddp_leverage += 2 if Q.weimar_coalition < 55; // More leverage if coalition is tight
+    ddp_leverage = Math.max(5, Math.min(15, ddp_leverage)); // Cap between 5-15
+    
+    // Total leverage points in coalition
+    var total_leverage = spd_leverage + z_leverage + ddp_leverage;
+    
+    // === MINISTRY ALLOCATION ===
+    // Each party gets number of ministries proportional to leverage
+    // 8 ministries total (Foreign, Interior, Justice, Labor, Economic, Finance, Agriculture, Reichswehr)
+    // Reichswehr often stays independent
+    
+    var available_ministries = 7; // Excluding Reichswehr
+    
+    // Calculate how many ministries each party gets
+    var spd_ministries = Math.round((spd_leverage / total_leverage) * available_ministries);
+    var z_ministries = Math.round((z_leverage / total_leverage) * available_ministries);
+    var ddp_ministries = Math.round((ddp_leverage / total_leverage) * available_ministries);
+    
+    // Adjust for rounding errors - ensure total equals available ministries
+    var assigned_total = spd_ministries + z_ministries + ddp_ministries;
+    if (assigned_total > available_ministries) {
+        // Remove from party with most ministries
+        if (spd_ministries >= z_ministries && spd_ministries >= ddp_ministries) {
+            spd_ministries--;
+        } else if (z_ministries >= ddp_ministries) {
+            z_ministries--;
+        } else {
+            ddp_ministries--;
+        }
+    } else if (assigned_total < available_ministries) {
+        // Add to party with highest leverage remainder
+        var spd_remainder = (spd_leverage / total_leverage) * available_ministries - spd_ministries;
+        var z_remainder = (z_leverage / total_leverage) * available_ministries - z_ministries;
+        var ddp_remainder = (ddp_leverage / total_leverage) * available_ministries - ddp_ministries;
+        
+        if (spd_remainder >= z_remainder && spd_remainder >= ddp_remainder) {
+            spd_ministries++;
+        } else if (z_remainder >= ddp_remainder) {
+            z_ministries++;
+        } else {
+            ddp_ministries++;
+        }
+    }
+    
+    // === MINISTRY PRIORITY LISTS ===
+    // Each party has preferred ministries in order of importance
+    
+    // SPD priorities (player will get to choose from their allocation)
+    var spd_priority = ["labor", "interior", "finance", "justice", "economic", "foreign", "agriculture"];
+    
+    // Z priorities (traditional Center Party interests)
+    var z_priority = ["foreign", "labor", "interior", "agriculture", "justice", "finance", "economic"];
+    
+    // DDP priorities (liberal focus)
+    var ddp_priority = ["justice", "economic", "interior", "finance", "foreign", "labor", "agriculture"];
+    
+    // === ALLOCATION PROCESS ===
+    // Highest leverage party picks first, then second, then third
+    // Continue in rounds until all ministries assigned
+    
+    var ministry_assignments = {
+        foreign: null,
+        interior: null,
+        justice: null,
+        labor: null,
+        economic: null,
+        finance: null,
+        agriculture: null,
+        reichswehr: "I" // Always independent
+    };
+    
+    var party_allocations = [
+        {party: "SPD", leverage: spd_leverage, remaining: spd_ministries, priority: spd_priority},
+        {party: "Z", leverage: z_leverage, remaining: z_ministries, priority: z_priority},
+        {party: Q.ddp_name, leverage: ddp_leverage, remaining: ddp_ministries, priority: ddp_priority}
+    ];
+    
+    // Sort by leverage (highest first)
+    party_allocations.sort((a, b) => b.leverage - a.leverage);
+    
+    // Allocation rounds - continue until all parties have their ministries
+    var max_rounds = 10; // Safety limit
+    var round = 0;
+    
+    while (round < max_rounds) {
+        var any_allocated = false;
+        
+        for (var i = 0; i < party_allocations.length; i++) {
+            var party_data = party_allocations[i];
+            
+            if (party_data.remaining > 0) {
+                // Find this party's highest priority available ministry
+                for (var j = 0; j < party_data.priority.length; j++) {
+                    var ministry = party_data.priority[j];
+                    
+                    if (ministry_assignments[ministry] === null) {
+                        // Assign this ministry to the party
+                        ministry_assignments[ministry] = party_data.party;
+                        party_data.remaining--;
+                        any_allocated = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (!any_allocated) break; // All allocated or no more available
+        round++;
+    }
+    
+    // === SET MINISTRY PARTIES ===
+    Q.foreign_minister_party = ministry_assignments.foreign || "I";
+    Q.interior_minister_party = ministry_assignments.interior || "I";
+    Q.justice_minister_party = ministry_assignments.justice || "I";
+    Q.labor_minister_party = ministry_assignments.labor || "I";
+    Q.economic_minister_party = ministry_assignments.economic || "I";
+    Q.finance_minister_party = ministry_assignments.finance || "I";
+    Q.agriculture_minister_party = ministry_assignments.agriculture || "I";
+    Q.reichswehr_minister_party = "I";
+    
+    // === ASSIGN ACTUAL MINISTERS BASED ON PARTY ===
+    
+    // Foreign Ministry
+    if (Q.foreign_minister_party == "Z") {
+        Q.foreign_minister = "Wirth";
+    } else if (Q.foreign_minister_party == Q.ddp_name) {
+        Q.foreign_minister = "Koch-Weser";
+    } else if (Q.foreign_minister_party == "SPD") {
+        Q.foreign_minister = "Müller"; // Player will choose in separate menu
+    } else {
+        Q.foreign_minister = "Unbesetzt";
+    }
+    
+    // Interior Ministry
+    if (Q.interior_minister_party == "Z") {
+        Q.interior_minister = "Wirth";
+    } else if (Q.interior_minister_party == Q.ddp_name) {
+        Q.interior_minister = "Koch-Weser";
+    } else if (Q.interior_minister_party == "SPD") {
+        Q.interior_minister = "Severing";
+    } else {
+        Q.interior_minister = "Unbesetzt";
+    }
+    
+    // Justice Ministry
+    if (Q.justice_minister_party == "Z") {
+        Q.justice_minister = "Bredt";
+    } else if (Q.justice_minister_party == Q.ddp_name) {
+        Q.justice_minister = "Koch-Weser";
+    } else if (Q.justice_minister_party == "SPD") {
+        Q.justice_minister = "Radbruch";
+    } else {
+        Q.justice_minister = "Unbesetzt";
+    }
+    
+    // Labor Ministry
+    if (Q.labor_minister_party == "Z") {
+        Q.labor_minister = "Stegerwald";
+    } else if (Q.labor_minister_party == Q.ddp_name) {
+        Q.labor_minister = "Dietrich";
+    } else if (Q.labor_minister_party == "SPD") {
+        Q.labor_minister = "Wissell";
+    } else {
+        Q.labor_minister = "Unbesetzt";
+    }
+    
+    // Economic Ministry
+    if (Q.economic_minister_party == "Z") {
+        Q.economic_minister = "Bredt";
+    } else if (Q.economic_minister_party == Q.ddp_name) {
+        Q.economic_minister = "Dietrich";
+    } else if (Q.economic_minister_party == "SPD") {
+        Q.economic_minister = "Hilferding";
+    } else {
+        Q.economic_minister = "Unbesetzt";
+    }
+    
+    // Finance Ministry
+    if (Q.finance_minister_party == "Z") {
+        Q.finance_minister = "Köhler";
+    } else if (Q.finance_minister_party == Q.ddp_name) {
+        Q.finance_minister = "Dietrich";
+    } else if (Q.finance_minister_party == "SPD") {
+        Q.finance_minister = "Hilferding";
+    } else {
+        Q.finance_minister = "Unbesetzt";
+    }
+    
+    // Agriculture Ministry
+    if (Q.agriculture_minister_party == "Z") {
+        Q.agriculture_minister = "Hermes";
+    } else if (Q.agriculture_minister_party == Q.ddp_name) {
+        Q.agriculture_minister = "Dietrich";
+    } else if (Q.agriculture_minister_party == "SPD") {
+        Q.agriculture_minister = "Dietrich"; // SPD rarely takes agriculture
+    } else {
+        Q.agriculture_minister = "Unbesetzt";
+    }
+    
+    // Reichswehr - always independent
+    Q.reichswehr_minister = "Groener";
+    
+    // === STORE FOR DISPLAY ===
+    Q.spd_ministry_count = spd_ministries;
+    Q.z_ministry_count = z_ministries;
+    Q.ddp_ministry_count = ddp_ministries;
+    
+    Q.spd_coalition_leverage = spd_leverage;
+    Q.z_coalition_leverage = z_leverage;
+    Q.ddp_coalition_leverage = ddp_leverage;
+!}
 achievement: weimar_coalition
+
+The Weimar Coalition is formed!
+
+**Ministry Distribution:**
+- SPD: [+ spd_ministry_count +] ministries (Leverage: [+ spd_coalition_leverage +])
+- Center Party: [+ z_ministry_count +] ministries (Leverage: [+ z_coalition_leverage +])
+- [+ ddp_name +]: [+ ddp_ministry_count +] ministries (Leverage: [+ ddp_coalition_leverage +])
+
+**Cabinet Composition:**
+- Foreign Ministry: [+ foreign_minister_party +] ([+ foreign_minister +])
+- Interior Ministry: [+ interior_minister_party +] ([+ interior_minister +])
+- Justice Ministry: [+ justice_minister_party +] ([+ justice_minister +])
+- Labor Ministry: [+ labor_minister_party +] ([+ labor_minister +])
+- Economic Ministry: [+ economic_minister_party +] ([+ economic_minister +])
+- Finance Ministry: [+ finance_minister_party +] ([+ finance_minister +])
+- Agriculture Ministry: [+ agriculture_minister_party +] ([+ agriculture_minister +])
+- Reichswehr Ministry: Independent (Groener)
+
+[? if foreign_minister_party == "I" or interior_minister_party == "I" or justice_minister_party == "I" : Some ministries remain unfilled and will operate under civil service administration. ?]
 
 We have enough votes to form a "Weimar Coalition" government consisting of the SPD, Center (Z) and Democratic ([+ ddp_name +]) parties! This has been our preferred governing coalition since 1919.
 
