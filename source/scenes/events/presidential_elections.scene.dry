@@ -1,0 +1,1081 @@
+title: Presidential Election
+subtitle: The presidential term has ended
+new-page: true
+view-if: (year - last_presidential_election >= 8 or president_term_ended) and month = 3 and not presidential_election_active
+on-arrival: presidential_election_active = 1; round = 0; last_presidential_election = year;
+max-visits: 999
+tags: event
+
+= Presidential Election
+
+[? if president : The term of President [+ president +] has ended. ?][? if not president : Germany requires a new president. ?]
+
+Presidential elections will be held. If no candidate receives a majority in the first round, the top two candidates will advance to a runoff election.
+
+All major parties are preparing their candidates for the race.
+
+- @party_candidates: Who are the candidates?
+
+@party_candidates
+on-arrival: {!
+    // === INITIALIZE VARIABLES ===
+    Q.is_unity_candidate = 0;
+    Q.is_cultural_candidate = 0;
+    
+    // Reset all candidate variables
+    var all_candidates = ["Hitler", "Göring", "Goring", "Seldte", "Westarp", "Eckener", "Adenauer", 
+                          "Kaas", "Gessler", "Stresemann", "Thälmann", "Thalmann", "Münzenberg", 
+                          "Munzenberg", "Braun", "Schumacher", "Juchacz", "Einstein", "Mann", 
+                          "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer"];
+    for (var i = 0; i < all_candidates.length; i++) {
+        Q[all_candidates[i] + '_bonus'] = 0;
+        Q[all_candidates[i] + '_running'] = 0;
+    }
+    
+    // === NSDAP (NAZIS) ===
+    if (Q.hitler_dead) {
+        Q.nsdap_candidate = "Goebbels";
+    } else if (Q.hitler_deported) {
+        Q.nsdap_candidate = "Göring";
+    } else {
+        Q.nsdap_candidate = "Hitler";
+    }
+    
+    // === DNVP (NATIONALISTS) ===
+    if (Q.dnvp_line === 1) {
+        // Moderate nationalist line
+        Q.dnvp_candidate = "Westarp";
+    } else if (Q.dnvp_banned) {
+        // If banned, no candidate
+        Q.dnvp_candidate = null;
+    } else if (Q.dnvp_relation_nsdap >= 60) {
+        // Strong Nazi alliance
+        Q.dnvp_candidate = Q.nsdap_candidate;
+    } else if (Q.dnvp_relation_nsdap >= 40 && Q.nsdap_r >= Q.dnvp_r) {
+        // Moderate Nazi alliance, Nazis stronger
+        Q.dnvp_candidate = Q.nsdap_candidate;
+    } else {
+        // Independent DNVP candidate
+        Q.dnvp_candidate = "Seldte";
+    }
+    
+    // === KPD (COMMUNISTS) ===
+    if (Q.kpd_banned) {
+        Q.kpd_candidate = null;
+    } else if (Q.kpd_party_leader === "Conciliators") {
+        Q.kpd_candidate = "Münzenberg";
+    } else if (Q.kpd_party_leader === "Thälmann") {
+        Q.kpd_candidate = "Thälmann";
+    } else {
+        Q.kpd_candidate = "Thälmann"; // Default
+    }
+    
+    // === Z (CENTER PARTY) ===
+    // Will be set after SPD chooses, as they might support unity candidate
+    Q.z_candidate = null;
+    if (Q.z_party_leader === "Kaas") {
+        Q.z_default_candidate = "Kaas";
+    } else if (Q.z_party_leader === "Joos") {
+        Q.z_default_candidate = "Adenauer";
+    } else if (Q.z_party_leader === "Brüning") {
+        Q.z_default_candidate = "Brüning";
+    } else {
+        Q.z_default_candidate = "Adenauer";
+    }
+    
+    // === BVP (BAVARIAN PEOPLE'S PARTY) ===
+    // Will follow Z or go independent
+    Q.bvp_candidate = null;
+    Q.bvp_default_candidate = "Schäffer"; // Franz Schäffer, BVP leader
+    
+    // === DVP (PEOPLE'S PARTY) ===
+    if (!Q.stresemann_dead && Q.year <= 1929) {
+        Q.dvp_default_candidate = "Stresemann";
+    } else if (Q.dvp_relation >= 45) {
+        Q.dvp_default_candidate = null; // Will support unity/SPD
+    } else {
+        Q.dvp_default_candidate = "Gessler";
+    }
+    Q.dvp_candidate = null;
+    
+    // === DDP/DStP (DEMOCRATS) ===
+    if (Q.ddp_relation >= 40) {
+        Q.ddp_default_candidate = null; // Will support unity/SPD
+    } else {
+        Q.ddp_default_candidate = "Gessler";
+    }
+    Q.ddp_candidate = null;
+    
+    // === SAPD (SOCIALIST WORKERS' PARTY) ===
+    if (Q.sapd_formed) {
+        if (Q.kpd_relation >= 60 && Q.spd_sapd_relation < 40) {
+            Q.sapd_candidate = Q.kpd_candidate;
+        } else {
+            Q.sapd_candidate = "Rosenfeld"; // Default SAPD candidate
+        }
+    } else {
+        Q.sapd_candidate = null;
+    }
+    
+    // === OTHER PARTIES ===
+    Q.other_candidate = "Seldte"; // Conservative default
+!}
+
+The parties are preparing their candidates:
+
+**Far Right:**
+- NSDAP: [+ nsdap_candidate +]
+[? if dnvp_candidate and dnvp_candidate != nsdap_candidate : - DNVP: [+ dnvp_candidate +] ?]
+[? if dnvp_candidate == nsdap_candidate : - DNVP: Supporting [+ nsdap_candidate +] ?]
+
+**Left:**
+[? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
+[? if sapd_candidate and sapd_candidate != kpd_candidate : - SAPD: [+ sapd_candidate +] ?]
+
+**Center/Liberal Parties:**
+- Center (Z): To be determined
+- BVP: To be determined
+- [+ ddp_name +]: To be determined
+- DVP: To be determined
+
+**SPD:**
+We must choose our candidate and strategy.
+
+- @spd_candidate_menu: Choose our candidate.
+
+@spd_candidate_menu
+
+Who should represent the SPD in this election?
+
+- @eckener_r1: Propose Hugo Eckener as a unity candidate for the Weimar Coalition.
+- @adenauer_r1: Support the Center Party's candidate.
+- @gessler_r1: Support an independent liberal candidate.
+- @thalmann_r1: Support the KPD candidate (if relations are good).
+- @munzenberg_r1: Support the KPD candidate (if relations are good).
+- @braun_r1: Nominate Otto Braun.
+- @schumacher_r1: Nominate Kurt Schumacher.
+- @juchacz_r1: Nominate Marie Juchacz.
+- @cultural_figure: Nominate a nonpartisan cultural figure.
+
+@eckener_r1
+subtitle: -1 resource - A unity candidate could unite the democratic parties.
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
+choose-if: resources >= 1
+on-arrival: spd_candidate = "Eckener"; is_unity_candidate = 1; resources -= 1;
+go-to: finalize_candidates
+
+We have convinced Hugo Eckener, the renowned Zeppelin captain, to run as a unity candidate representing the democratic republic.
+
+@adenauer_r1
+subtitle: Supporting the Center Party candidate.
+on-arrival: spd_candidate = z_default_candidate; z_relation += 4; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+We will support the Center Party's candidate, [+ z_default_candidate +], in the spirit of coalition unity.
+
+@gessler_r1
+subtitle: Supporting an independent liberal.
+on-arrival: spd_candidate = "Gessler"; ddp_relation += 4; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+We will support Otto Gessler, a liberal independent who can appeal across party lines.
+
+@thalmann_r1
+view-if: kpd_candidate = "Thälmann"
+choose-if: kpd_relation >= 50 and reformist_strength < left_strength
+unavailable-subtitle: [? if kpd_relation < 50 : Relations with KPD not good enough. ?][? if reformist_strength >= left_strength : The reformists block this. ?]
+subtitle: This will cause major dissent in the party.
+
+Supporting Thälmann is deeply unpopular. Are we certain?
+
+- @support_thalmann: Yes, support Thälmann.
+- @spd_candidate_menu: Choose someone else.
+
+@support_thalmann
+on-arrival: spd_candidate = "Thälmann"; kpd_relation += 5; reformist_dissent += 10; center_dissent += 6; labor_dissent += 5; neorevisionist_dissent += 10; catholics_spd -= 5; new_middle_spd -= 5; old_middle_spd -= 5; rural_spd -= 5; ddp_relation -= 8; dvp_relation -= 15; z_relation -= 10; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+We have endorsed Ernst Thälmann of the KPD.
+
+@munzenberg_r1
+view-if: kpd_candidate = "Münzenberg"
+choose-if: kpd_relation >= 40 and reformist_strength < left_strength
+unavailable-subtitle: [? if kpd_relation < 40 : Relations with KPD not good enough. ?][? if reformist_strength >= left_strength : The reformists block this. ?]
+subtitle: Less controversial than Thälmann, but still unpopular.
+on-arrival: spd_candidate = "Münzenberg"; kpd_relation += 5; reformist_dissent += 5; ddp_relation -= 3; dvp_relation -= 5; z_relation -= 5; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+We have endorsed Willi Münzenberg of the KPD.
+
+@braun_r1
+subtitle: -2 resources
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?][? if braun_campaign != 0 or not spd_prussia : Braun no longer wants to run. ?]
+choose-if: braun_campaign = 0 and spd_prussia and resources >= 2
+on-arrival: spd_candidate = "Braun"; resources -= 2; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+We have convinced Otto Braun to run for president.
+
+@schumacher_r1
+subtitle: -2 resources
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?]
+choose-if: resources >= 2
+on-arrival: spd_candidate = "Schumacher"; resources -= 2; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+Kurt Schumacher will be our candidate - a war hero and rising star of the party.
+
+@juchacz_r1
+subtitle: -2 resources - The first woman candidate for president!
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?]
+view-if: womens_rights >= 6 and family_law >= 2 and womens_work >= 2 and welfare > 0
+choose-if: resources >= 2
+on-arrival: spd_candidate = "Juchacz"; resources -= 2; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+Marie Juchacz will be our candidate - a historic moment for women's rights!
+
+@cultural_figure
+view-if: presidential_powers >= 1 and pro_republic >= 60 and pacifism >= 3
+subtitle: A symbol of the new Germany...
+
+Since presidential powers have been reduced, we could nominate a nonpartisan figure from culture or science.
+
+- @einstein_r1: Albert Einstein, physicist.
+- @mann_r1: Heinrich Mann, writer.
+- @ossietzky_r1: Carl von Ossietzky, journalist.
+- @spd_candidate_menu: Choose a political candidate instead.
+
+@einstein_r1
+subtitle: -2 resources
+view-if: science >= 2 and kwg_research >= 1 and (major_curriculum = "scientific" or minor_curriculum = "scientific")
+choose-if: resources >= 2
+on-arrival: spd_candidate = "Einstein"; resources -= 2; is_unity_candidate = 0; is_cultural_candidate = 1;
+go-to: finalize_candidates
+
+Albert Einstein, Nobel laureate and symbol of scientific progress, will be our candidate.
+
+@mann_r1
+subtitle: -2 resources
+view-if: kpd_relation >= 50
+choose-if: resources >= 2
+on-arrival: spd_candidate = "Mann"; resources -= 2; is_unity_candidate = 0; is_cultural_candidate = 1;
+go-to: finalize_candidates
+
+Heinrich Mann, the renowned novelist, will be our candidate.
+
+@ossietzky_r1
+subtitle: -2 resources
+view-if: weltbuhne_dropped = 1
+choose-if: resources >= 2
+on-arrival: spd_candidate = "Ossietzky"; resources -= 2; is_unity_candidate = 0; is_cultural_candidate = 1;
+go-to: finalize_candidates
+
+Carl von Ossietzky, the pacifist journalist, will be our candidate.
+
+@finalize_candidates
+on-arrival: {!
+    // === FINALIZE OTHER PARTIES' CANDIDATES BASED ON SPD CHOICE ===
+    
+    var ddp_name_var = Q.ddp_name || "DDP";
+    
+    // === Z (CENTER PARTY) ===
+    if (Q.is_unity_candidate && (Q.spd_candidate === "Eckener" || Q.spd_candidate === Q.z_default_candidate)) {
+        // Join unity candidate
+        if (Q.z_relation >= 40 || (Q.z_relation >= 25 && Q.z_party_leader === "Joos")) {
+            Q.z_candidate = Q.spd_candidate;
+            if (Q.z_relation < 40) {
+                Q.Seldte_bonus += 2.5; // BVP breaks away
+            }
+        } else {
+            Q.z_candidate = Q.z_default_candidate;
+        }
+    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.spd_candidate === "Juchacz" || Q.is_cultural_candidate) {
+        // SPD running own candidate
+        if (Q.spd_candidate === "Juchacz") {
+            // Higher threshold for supporting woman candidate
+            if (Q.z_relation >= 60 || (Q.z_relation >= 45 && Q.z_party_leader === "Joos")) {
+                Q.z_candidate = Q.spd_candidate;
+            } else {
+                Q.z_candidate = Q.z_default_candidate;
+            }
+        } else {
+            // Regular SPD candidate
+            if (Q.z_relation >= 55 || (Q.z_relation >= 40 && Q.z_party_leader === "Joos")) {
+                Q.z_candidate = Q.spd_candidate;
+                if (Q.z_relation < 40) {
+                    Q.Seldte_bonus += 2.5; // BVP breaks away
+                }
+            } else {
+                Q.z_candidate = Q.z_default_candidate;
+            }
+        }
+    } else if (Q.spd_candidate === Q.kpd_candidate) {
+        // SPD supporting KPD - Z definitely runs own
+        Q.z_candidate = Q.z_default_candidate;
+    } else if (Q.spd_candidate === "Gessler") {
+        // SPD supporting liberal
+        if (Q.z_relation >= 35) {
+            Q.z_candidate = "Gessler";
+        } else {
+            Q.z_candidate = Q.z_default_candidate;
+        }
+    } else {
+        Q.z_candidate = Q.z_default_candidate;
+    }
+    
+    // === BVP (BAVARIAN PEOPLE'S PARTY) ===
+    if (Q.z_candidate === Q.spd_candidate && Q.z_relation < 40) {
+        // Conservative BVP breaks with Z
+        if (Q.dnvp_candidate === "Seldte" || Q.dnvp_candidate === "Westarp") {
+            Q.bvp_candidate = Q.dnvp_candidate;
+        } else {
+            Q.bvp_candidate = Q.bvp_default_candidate;
+        }
+    } else if (Q.z_candidate === Q.kpd_candidate) {
+        // Never follow Z to support communists
+        Q.bvp_candidate = Q.bvp_default_candidate;
+    } else if (Q.z_candidate && Q.z_relation >= 25) {
+        // Follow Z lead
+        Q.bvp_candidate = Q.z_candidate;
+    } else {
+        // Independent
+        Q.bvp_candidate = Q.bvp_default_candidate;
+    }
+    
+    // === DVP (PEOPLE'S PARTY) ===
+    if (Q.dvp_default_candidate === "Stresemann") {
+        Q.dvp_candidate = "Stresemann";
+    } else if (Q.is_unity_candidate && Q.dvp_relation >= 40 && Q.spd_candidate !== Q.kpd_candidate) {
+        Q.dvp_candidate = Q.spd_candidate;
+    } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate && Q.dvp_relation >= 30) {
+        Q.dvp_candidate = Q.z_candidate;
+    } else if (Q.spd_candidate === "Juchacz") {
+        // Less likely to support woman candidate
+        if (Q.dvp_relation >= 60) {
+            Q.dvp_candidate = Q.spd_candidate;
+        } else {
+            Q.dvp_candidate = Q.dvp_default_candidate || "Gessler";
+        }
+    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate) {
+        if (Q.dvp_relation >= 50) {
+            Q.dvp_candidate = Q.spd_candidate;
+        } else {
+            Q.dvp_candidate = Q.dvp_default_candidate || "Gessler";
+        }
+    } else {
+        Q.dvp_candidate = Q.dvp_default_candidate || "Gessler";
+    }
+    
+    // === DDP/DStP (DEMOCRATS) ===
+    if (Q.is_unity_candidate && Q.ddp_relation >= 30 && Q.spd_candidate !== Q.kpd_candidate) {
+        Q.ddp_candidate = Q.spd_candidate;
+    } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate && Q.ddp_relation >= 25) {
+        Q.ddp_candidate = Q.z_candidate;
+    } else if (Q.spd_candidate === "Juchacz") {
+        if (Q.ddp_relation >= 50) {
+            Q.ddp_candidate = Q.spd_candidate;
+        } else {
+            Q.ddp_candidate = Q.ddp_default_candidate || "Gessler";
+        }
+    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate) {
+        if (Q.ddp_relation >= 40) {
+            Q.ddp_candidate = Q.spd_candidate;
+        } else {
+            Q.ddp_candidate = Q.ddp_default_candidate || "Gessler";
+        }
+    } else {
+        Q.ddp_candidate = Q.ddp_default_candidate || "Gessler";
+    }
+    
+    // === SAPD ===
+    if (Q.sapd_formed) {
+        if (Q.sapd_candidate === Q.kpd_candidate && Q.spd_candidate === Q.kpd_candidate) {
+            // United left
+            Q.sapd_candidate = Q.kpd_candidate;
+        } else if (Q.spd_sapd_relation >= 50 && Q.left_strength >= 40) {
+            Q.sapd_candidate = Q.spd_candidate;
+        } else {
+            Q.sapd_candidate = Q.sapd_candidate || "Rosenfeld";
+        }
+    }
+!}
+go-to: r1_finalized
+
+The candidates have been finalized:
+
+**Far Right:**
+- NSDAP: [+ nsdap_candidate +]
+[? if dnvp_candidate and dnvp_candidate != nsdap_candidate : - DNVP: [+ dnvp_candidate +] ?]
+[? if dnvp_candidate == nsdap_candidate : - DNVP: Supporting [+ nsdap_candidate +] ?]
+
+**Left:**
+[? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
+[? if sapd_candidate and sapd_candidate != kpd_candidate and sapd_candidate != spd_candidate : - SAPD: [+ sapd_candidate +] ?]
+[? if sapd_candidate == spd_candidate : - SAPD: Supporting [+ spd_candidate +] ?]
+
+**Center/Liberal:**
+- SPD: [+ spd_candidate +]
+[? if z_candidate and z_candidate != spd_candidate : - Center (Z): [+ z_candidate +] ?]
+[? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
+[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate : - BVP: [+ bvp_candidate +] ?]
+[? if bvp_candidate == spd_candidate : - BVP: Supporting [+ spd_candidate +] ?]
+[? if ddp_candidate and ddp_candidate != spd_candidate and ddp_candidate != z_candidate : - [+ ddp_name +]: [+ ddp_candidate +] ?]
+[? if ddp_candidate == spd_candidate : - [+ ddp_name +]: Supporting [+ spd_candidate +] ?]
+[? if dvp_candidate and dvp_candidate != spd_candidate and dvp_candidate != z_candidate and dvp_candidate != ddp_candidate : - DVP: [+ dvp_candidate +] ?]
+[? if dvp_candidate == spd_candidate : - DVP: Supporting [+ spd_candidate +] ?]
+
+- @r1_menu: Continue to first round.
+
+@r1_menu
+view-if: round = 0
+
+Before the first round begins, we can try to convince other parties to change their support.
+
+- @convince_z_unity: Try to convince the Center Party.
+- @convince_ddp_unity: Try to convince the [+ ddp_name +].
+- @convince_dvp_unity: Try to convince the DVP.
+- @convince_kpd_spd: Try to convince the KPD.
+- @round_1: Proceed to first round voting.
+
+@convince_z_unity
+title: Convince the Center Party to support [+ spd_candidate +].
+view-if: z_candidate != spd_candidate and spd_candidate != kpd_candidate
+max-visits: 1
+
+- @pay_z: Offer resources (-2 resources).
+- @r1_menu: Never mind.
+
+@pay_z
+choose-if: resources >= 2
+subtitle: -2 resources
+unavailable-subtitle: Not enough resources.
+on-arrival: resources -= 2; z_candidate = spd_candidate; bvp_candidate = spd_candidate if bvp_candidate == z_candidate; Seldte_bonus += 2.5 if z_relation < 40;
+go-to: r1_menu
+
+With our resources, the Center is convinced to support [+ spd_candidate +].
+
+@convince_ddp_unity
+title: Convince the [+ ddp_name +] to support [+ spd_candidate +].
+view-if: ddp_candidate != spd_candidate and spd_candidate != kpd_candidate
+max-visits: 1
+on-arrival: ddp_candidate = spd_candidate if ddp_relation >= 30;
+go-to: r1_menu
+
+[? if ddp_candidate == spd_candidate : The [+ ddp_name +] agrees to support [+ spd_candidate +]! ?]
+[? if ddp_candidate != spd_candidate : The [+ ddp_name +] refuses to change their support. ?]
+
+@convince_dvp_unity
+title: Convince the DVP to support [+ spd_candidate +].
+view-if: dvp_candidate != spd_candidate and spd_candidate != kpd_candidate
+max-visits: 1
+on-arrival: dvp_candidate = spd_candidate if dvp_relation >= 40;
+go-to: r1_menu
+
+[? if dvp_candidate == spd_candidate : The DVP agrees to support [+ spd_candidate +]! ?]
+[? if dvp_candidate != spd_candidate : The DVP refuses to change their support. ?]
+
+@convince_kpd_spd
+title: Convince the KPD to support [+ spd_candidate +].
+view-if: kpd_candidate != spd_candidate and spd_candidate != nsdap_candidate and spd_candidate != dnvp_candidate
+choose-if: spd_votes >= kpd_votes
+unavailable-subtitle: The KPD is more popular than us.
+max-visits: 1
+
+The KPD might be convinced to support [+ spd_candidate +].
+
+- @kpd_resources: Use resources (-3 resources).
+- @kpd_relations: Use our good relations.
+- @r1_menu: Never mind.
+
+@kpd_resources
+view-if: kpd_relation >= 50
+choose-if: resources >= 3
+subtitle: -3 resources
+unavailable-subtitle: Not enough resources.
+on-arrival: resources -= 3; kpd_candidate = spd_candidate; sapd_candidate = spd_candidate;
+go-to: r1_menu
+
+The KPD now supports [+ spd_candidate +]!
+
+@kpd_relations
+view-if: kpd_relation >= 60 or (kpd_party_leader == "Conciliators" and kpd_relation >= 45)
+unavailable-subtitle: Relations not good enough.
+on-arrival: kpd_candidate = spd_candidate; sapd_candidate = spd_candidate;
+go-to: r1_menu
+
+The KPD now supports [+ spd_candidate +]!
+
+@round_1
+on-arrival: round = 1;
+go-to: election_algorithm
+set-jump: post_r1
+
+@post_r1
+on-arrival: {!
+    // === CALCULATE ROUND 1 RESULTS ===
+    
+    var candidate_descs = {
+        Hitler: "Adolf Hitler (NSDAP)",
+        Göring: "Hermann Göring (NSDAP)",
+        Goring: "Hermann Göring (NSDAP)",
+        Goebbels: "Joseph Goebbels (NSDAP)",
+        Seldte: "Franz Seldte (DNVP/Stahlhelm)",
+        Westarp: "Kuno von Westarp (DNVP)",
+        Eckener: "Hugo Eckener (Unity)",
+        Adenauer: "Konrad Adenauer (Z)",
+        Kaas: "Ludwig Kaas (Z)",
+        Brüning: "Heinrich Brüning (Z)",
+        Bruning: "Heinrich Brüning (Z)",
+        Gessler: "Otto Gessler (Liberal)",
+        Stresemann: "Gustav Stresemann (DVP)",
+        Thälmann: "Ernst Thälmann (KPD)",
+        Thalmann: "Ernst Thälmann (KPD)",
+        Münzenberg: "Willi Münzenberg (KPD)",
+        Munzenberg: "Willi Münzenberg (KPD)",
+        Braun: "Otto Braun (SPD)",
+        Schumacher: "Kurt Schumacher (SPD)",
+        Juchacz: "Marie Juchacz (SPD)",
+        Einstein: "Albert Einstein (Independent)",
+        Mann: "Heinrich Mann (Independent)",
+        Ossietzky: "Carl von Ossietzky (Independent)",
+        Rosenfeld: "Kurt Rosenfeld (SAPD)",
+        Schäffer: "Franz Schäffer (BVP)",
+        Schaffer: "Franz Schäffer (BVP)"
+    };
+    
+    // Mark running candidates
+    for (var k in candidate_descs) {
+        Q[k + '_running'] = 0;
+    }
+    
+    // Aggregate votes
+    var candidate_votes = {};
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'other'];
+    
+    for (var i = 0; i < parties.length; i++) {
+        var party = parties[i];
+        var supported_candidate = Q[party + '_candidate'];
+        
+        if (!supported_candidate) continue;
+        
+        // Normalize candidate name
+        supported_candidate = supported_candidate.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        Q[supported_candidate + '_running'] = 1;
+        
+        // Get party vote share
+        var party_votes = Q[party + '_r'] || Q[party + '_votes'] || 0;
+        
+        // Aggregate to candidate
+        if (candidate_votes[supported_candidate]) {
+            candidate_votes[supported_candidate] += party_votes;
+        } else {
+            candidate_votes[supported_candidate] = party_votes;
+        }
+    }
+    
+    // Apply bonuses
+    for (var k in candidate_votes) {
+        if (Q[k + '_bonus']) {
+            candidate_votes[k] += Q[k + '_bonus'] / 100;
+        }
+    }
+    
+    // Find winner and check for majority
+    var total_votes = 0;
+    Q.winner = "";
+    Q.winner_votes = 0;
+    Q.has_majority = 0;
+    
+    for (var k in candidate_votes) {
+        total_votes += candidate_votes[k];
+        if (candidate_votes[k] > Q.winner_votes) {
+            Q.winner = k;
+            Q.winner_votes = candidate_votes[k];
+        }
+    }
+    
+    // Convert to percentages and find top 2
+    var candidates_array = [];
+    for (var k in candidate_votes) {
+        var pct = Math.round(1000 * candidate_votes[k] / total_votes) / 10;
+        Q[k + '_votes'] = pct;
+        Q[k + '_votes_disp'] = pct.toFixed(1);
+        candidates_array.push({name: k, votes: candidate_votes[k], pct: pct});
+    }
+    
+    candidates_array.sort(function(a, b)
+    candidates_array.sort(function(a, b) { return b.votes - a.votes; });
+    
+    Q.round1_winner = candidates_array[0].name;
+    Q.round1_runner_up = candidates_array.length > 1 ? candidates_array[1].name : null;
+    Q.round1_winner_votes = candidates_array[0].pct;
+    Q.round1_runner_up_votes = candidates_array.length > 1 ? candidates_array[1].pct : 0;
+    
+    // Check for majority
+    Q.has_majority = Q.round1_winner_votes >= 50;
+    
+    Q.winner_votes = Q.round1_winner_votes;
+    Q.winner_votes_disp = Q.winner_votes.toFixed(1);
+    Q.winner_desc = candidate_descs[Q.winner];
+!}
+go-to: r1_results
+
+@r1_results
+go-to: election_end if has_majority; r2_start if not has_majority
+
+**First Round Results:**
+
+[? if Hitler_running : Hitler - [+ Hitler_votes_disp +]% ?]
+[? if Goring_running : Göring - [+ Goring_votes_disp +]% ?]
+[? if Goebbels_running : Goebbels - [+ Goebbels_votes_disp +]% ?]
+[? if Seldte_running : Seldte - [+ Seldte_votes_disp +]% ?]
+[? if Westarp_running : Westarp - [+ Westarp_votes_disp +]% ?]
+[? if Thalmann_running : Thälmann - [+ Thalmann_votes_disp +]% ?]
+[? if Munzenberg_running : Münzenberg - [+ Munzenberg_votes_disp +]% ?]
+[? if Adenauer_running : Adenauer - [+ Adenauer_votes_disp +]% ?]
+[? if Kaas_running : Kaas - [+ Kaas_votes_disp +]% ?]
+[? if Bruning_running : Brüning - [+ Bruning_votes_disp +]% ?]
+[? if Gessler_running : Gessler - [+ Gessler_votes_disp +]% ?]
+[? if Stresemann_running : Stresemann - [+ Stresemann_votes_disp +]% ?]
+[? if Eckener_running : Eckener - [+ Eckener_votes_disp +]% ?]
+[? if Braun_running : Braun - [+ Braun_votes_disp +]% ?]
+[? if Schumacher_running : Schumacher - [+ Schumacher_votes_disp +]% ?]
+[? if Juchacz_running : Juchacz - [+ Juchacz_votes_disp +]% ?]
+[? if Einstein_running : Einstein - [+ Einstein_votes_disp +]% ?]
+[? if Ossietzky_running : Ossietzky - [+ Ossietzky_votes_disp +]% ?]
+[? if Mann_running : Mann - [+ Mann_votes_disp +]% ?]
+[? if Rosenfeld_running : Rosenfeld - [+ Rosenfeld_votes_disp +]% ?]
+[? if Schaffer_running : Schäffer - [+ Schaffer_votes_disp +]% ?]
+
+@r2_start
+on-arrival: {!
+    // === ROUND 2 CONSOLIDATION ===
+    
+    var finalists = [Q.round1_winner, Q.round1_runner_up];
+    
+    // Ideological blocks for consolidation logic
+    var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
+    var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
+    var center_left = ["Eckener", "Gessler", "Stresemann"];
+    var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
+    var center_right = ["Schäffer", "Schaffer", "Westarp"];
+    var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
+    var cultural = ["Einstein", "Mann", "Ossietzky"];
+    
+    function isInBlock(candidate, block) {
+        return block.indexOf(candidate) !== -1;
+    }
+    
+    function getIdeologicalDistance(candidate1, candidate2) {
+        var blocks = [far_left, left, cultural, center_left, center, center_right, far_right];
+        var pos1 = -1, pos2 = -1;
+        
+        for (var i = 0; i < blocks.length; i++) {
+            if (isInBlock(candidate1, blocks[i])) pos1 = i;
+            if (isInBlock(candidate2, blocks[i])) pos2 = i;
+        }
+        
+        return Math.abs(pos1 - pos2);
+    }
+    
+    // === FAR-RIGHT CONSOLIDATION ===
+    // NSDAP and DNVP always consolidate in round 2
+    if (Q.nsdap_candidate !== Q.dnvp_candidate) {
+        var nsdap_in_runoff = finalists.indexOf(Q.nsdap_candidate) !== -1;
+        var dnvp_in_runoff = finalists.indexOf(Q.dnvp_candidate) !== -1;
+        
+        if (nsdap_in_runoff && !dnvp_in_runoff) {
+            Q.dnvp_candidate = Q.nsdap_candidate;
+            Q.other_candidate = Q.nsdap_candidate;
+        } else if (dnvp_in_runoff && !nsdap_in_runoff) {
+            Q.nsdap_candidate = Q.dnvp_candidate;
+        } else if (!nsdap_in_runoff && !dnvp_in_runoff) {
+            // Both eliminated, support whoever is closest ideologically
+            var nsdap_votes = Q[Q.nsdap_candidate + '_votes'] || 0;
+            var dnvp_votes = Q[Q.dnvp_candidate + '_votes'] || 0;
+            
+            if (nsdap_votes > dnvp_votes) {
+                // NSDAP had more votes, they choose
+                if (isInBlock(finalists[0], far_right) || isInBlock(finalists[0], center_right)) {
+                    Q.nsdap_candidate = finalists[0];
+                    Q.dnvp_candidate = finalists[0];
+                } else if (isInBlock(finalists[1], far_right) || isInBlock(finalists[1], center_right)) {
+                    Q.nsdap_candidate = finalists[1];
+                    Q.dnvp_candidate = finalists[1];
+                } else {
+                    // Both finalists are left-wing, reluctantly pick less-left
+                    Q.nsdap_candidate = finalists[0];
+                    Q.dnvp_candidate = finalists[0];
+                }
+            } else {
+                // DNVP chooses
+                if (isInBlock(finalists[0], far_right) || isInBlock(finalists[0], center_right) || isInBlock(finalists[0], center)) {
+                    Q.dnvp_candidate = finalists[0];
+                    Q.nsdap_candidate = finalists[0];
+                } else {
+                    Q.dnvp_candidate = finalists[1];
+                    Q.nsdap_candidate = finalists[1];
+                }
+            }
+        }
+    }
+    
+    // === OTHER PARTIES CONSOLIDATE ===
+    
+    // Function to pick closest finalist
+    function pickClosestFinalist(current_candidate, party_ideology_priority) {
+        if (finalists.indexOf(current_candidate) !== -1) {
+            return current_candidate; // Already in runoff
+        }
+        
+        // Pick based on ideological priority
+        for (var i = 0; i < party_ideology_priority.length; i++) {
+            var preferred_block = party_ideology_priority[i];
+            
+            for (var j = 0; j < finalists.length; j++) {
+                if (isInBlock(finalists[j], preferred_block)) {
+                    return finalists[j];
+                }
+            }
+        }
+        
+        // Fallback: pick closest by distance
+        var dist0 = getIdeologicalDistance(current_candidate, finalists[0]);
+        var dist1 = getIdeologicalDistance(current_candidate, finalists[1]);
+        
+        return dist0 <= dist1 ? finalists[0] : finalists[1];
+    }
+    
+    // === SPD ===
+    Q.spd_candidate = pickClosestFinalist(Q.spd_candidate, [left, cultural, center_left, center, far_left]);
+    
+    // === Z (CENTER) ===
+    if (Q.z_party_leader === "Kaas") {
+        // Right-wing Z
+        Q.z_candidate = pickClosestFinalist(Q.z_candidate, [center, center_right, center_left, far_right]);
+    } else {
+        // Moderate Z
+        Q.z_candidate = pickClosestFinalist(Q.z_candidate, [center, center_left, left, center_right]);
+    }
+    
+    // === BVP ===
+    Q.bvp_candidate = pickClosestFinalist(Q.bvp_candidate, [center_right, center, far_right, center_left]);
+    
+    // === DVP ===
+    Q.dvp_candidate = pickClosestFinalist(Q.dvp_candidate, [center_left, center, center_right, left]);
+    
+    // === DDP ===
+    Q.ddp_candidate = pickClosestFinalist(Q.ddp_candidate, [center_left, center, left, cultural]);
+    
+    // === KPD ===
+    Q.kpd_candidate = pickClosestFinalist(Q.kpd_candidate, [far_left, left, cultural]);
+    
+    // === SAPD ===
+    if (Q.sapd_formed) {
+        Q.sapd_candidate = pickClosestFinalist(Q.sapd_candidate, [left, far_left, cultural, center_left]);
+    }
+    
+    // === OTHER ===
+    Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
+!}
+
+**Second Round**
+
+No candidate achieved a majority. The top two candidates advance to the runoff:
+
+1. [+ round1_winner +] - [+ round1_winner_votes +]%
+2. [+ round1_runner_up +] - [+ round1_runner_up_votes +]%
+
+All other parties must now choose which of these two to support.
+
+[? if nsdap_candidate == dnvp_candidate and nsdap_candidate != round1_winner and nsdap_candidate != round1_runner_up : The far-right parties have consolidated behind [+ nsdap_candidate +]. ?]
+
+- @r2_menu: What should we do?
+
+@r2_menu
+
+We can try to shift support before the final vote.
+
+- @r2_switch_spd: Change our own support (if possible).
+- @r2_convince: Try to convince other parties.
+- @r2_vote: Proceed to the final vote.
+
+@r2_switch_spd
+view-if: spd_candidate != round1_winner and spd_candidate != round1_runner_up
+
+Our candidate was eliminated. We are currently supporting [+ spd_candidate +]. Should we switch?
+
+- @switch_to_finalist: Switch to the other finalist.
+- @r2_menu: Keep our current support.
+
+@switch_to_finalist
+on-arrival: {!
+    // Switch SPD support to the other finalist
+    if (Q.spd_candidate === Q.round1_winner) {
+        Q.spd_candidate = Q.round1_runner_up;
+    } else {
+        Q.spd_candidate = Q.round1_winner;
+    }
+    
+    // Check if other parties follow
+    if (Q.z_candidate === Q.spd_candidate && Q.z_relation < 40) {
+        Q.z_relation -= 10; // Alienate Z
+    }
+    if (Q.ddp_candidate === Q.spd_candidate && Q.ddp_relation < 35) {
+        Q.ddp_relation -= 8;
+    }
+!}
+go-to: r2_menu
+
+We have switched our support to [+ spd_candidate +].
+
+@r2_convince
+
+- @convince_z_r2: Try to convince the Center Party.
+- @convince_ddp_r2: Try to convince the [+ ddp_name +].
+- @convince_dvp_r2: Try to convince the DVP.
+- @convince_kpd_r2: Try to convince the KPD.
+- @r2_menu: Back.
+
+@convince_z_r2
+view-if: z_candidate != spd_candidate
+max-visits: 1
+
+- @pay_z_r2: Offer resources (-2 resources).
+- @r2_convince: Back.
+
+@pay_z_r2
+choose-if: resources >= 2 and z_relation >= 35
+subtitle: -2 resources
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?][? if z_relation < 35 : Relations not good enough. ?]
+on-arrival: resources -= 2; z_candidate = spd_candidate; bvp_candidate = spd_candidate if bvp_candidate == z_candidate;
+go-to: r2_convince
+
+The Center Party now supports [+ spd_candidate +]!
+
+@convince_ddp_r2
+view-if: ddp_candidate != spd_candidate
+max-visits: 1
+on-arrival: ddp_candidate = spd_candidate if ddp_relation >= 35;
+go-to: r2_convince
+
+[? if ddp_candidate == spd_candidate : The [+ ddp_name +] now supports [+ spd_candidate +]! ?]
+[? if ddp_candidate != spd_candidate : The [+ ddp_name +] refuses. ?]
+
+@convince_dvp_r2
+view-if: dvp_candidate != spd_candidate
+max-visits: 1
+on-arrival: dvp_candidate = spd_candidate if dvp_relation >= 45;
+go-to: r2_convince
+
+[? if dvp_candidate == spd_candidate : The DVP now supports [+ spd_candidate +]! ?]
+[? if dvp_candidate != spd_candidate : The DVP refuses. ?]
+
+@convince_kpd_r2
+view-if: kpd_candidate != spd_candidate
+choose-if: kpd_relation >= 55
+unavailable-subtitle: Relations not good enough.
+max-visits: 1
+on-arrival: kpd_candidate = spd_candidate; sapd_candidate = spd_candidate;
+go-to: r2_convince
+
+The KPD now supports [+ spd_candidate +]!
+
+@r2_vote
+on-arrival: round = 2;
+go-to: election_algorithm
+set-jump: post_r2
+
+@post_r2
+on-arrival: {!
+    // === CALCULATE ROUND 2 RESULTS ===
+    
+    var candidate_votes = {};
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'other'];
+    
+    for (var i = 0; i < parties.length; i++) {
+        var party = parties[i];
+        var supported_candidate = Q[party + '_candidate'];
+        
+        if (!supported_candidate) continue;
+        
+        supported_candidate = supported_candidate.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        
+        var party_votes = Q[party + '_r'] || Q[party + '_votes'] || 0;
+        
+        if (candidate_votes[supported_candidate]) {
+            candidate_votes[supported_candidate] += party_votes;
+        } else {
+            candidate_votes[supported_candidate] = party_votes;
+        }
+    }
+    
+    // Apply bonuses
+    for (var k in candidate_votes) {
+        if (Q[k + '_bonus']) {
+            candidate_votes[k] += Q[k + '_bonus'] / 100;
+        }
+    }
+    
+    // Find winner
+    var total_votes = 0;
+    Q.winner = "";
+    Q.winner_votes = 0;
+    
+    for (var k in candidate_votes) {
+        total_votes += candidate_votes[k];
+        if (candidate_votes[k] > Q.winner_votes) {
+            Q.winner = k;
+            Q.winner_votes = candidate_votes[k];
+        }
+    }
+    
+    Q.winner_votes = Math.round(1000 * Q.winner_votes / total_votes) / 10;
+    Q.winner_votes_disp = Q.winner_votes.toFixed(1);
+    
+    var candidate_descs = {
+        Hitler: "Adolf Hitler (NSDAP)",
+        Göring: "Hermann Göring (NSDAP)",
+        Goring: "Hermann Göring (NSDAP)",
+        Goebbels: "Joseph Goebbels (NSDAP)",
+        Seldte: "Franz Seldte (DNVP)",
+        Westarp: "Kuno von Westarp (DNVP)",
+        Eckener: "Hugo Eckener",
+        Adenauer: "Konrad Adenauer (Z)",
+        Kaas: "Ludwig Kaas (Z)",
+        Brüning: "Heinrich Brüning (Z)",
+        Bruning: "Heinrich Brüning (Z)",
+        Gessler: "Otto Gessler",
+        Stresemann: "Gustav Stresemann (DVP)",
+        Thälmann: "Ernst Thälmann (KPD)",
+        Thalmann: "Ernst Thälmann (KPD)",
+        Münzenberg: "Willi Münzenberg (KPD)",
+        Munzenberg: "Willi Münzenberg (KPD)",
+        Braun: "Otto Braun (SPD)",
+        Schumacher: "Kurt Schumacher (SPD)",
+        Juchacz: "Marie Juchacz (SPD)",
+        Einstein: "Albert Einstein",
+        Mann: "Heinrich Mann",
+        Ossietzky: "Carl von Ossietzky",
+        Rosenfeld: "Kurt Rosenfeld (SAPD)",
+        Schäffer: "Franz Schäffer (BVP)",
+        Schaffer: "Franz Schäffer (BVP)"
+    };
+    
+    Q.winner_desc = candidate_descs[Q.winner];
+!}
+go-to: election_end
+
+**Final Results:**
+
+[+ winner_desc +] has won the presidency with [+ winner_votes_disp +]% of the vote!
+
+@election_end
+on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
+go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"
+
+[+ winner_desc +] is now President of Germany.
+
+@hitler_victory
+on-arrival: chancellor = "Hitler"; chancellor_party = "NSDAP"
+
+The Nazis waste no time consolidating power. [? if president != "Hitler" : The new president immediately appoints Hitler as chancellor. ?][? if president = "Hitler" : Hitler appoints himself chancellor. ?]
+
+[? if presidential_powers >= 1 : However, we have limited presidential powers through constitutional reform... ?][? if presidential_powers = 0 : With full presidential powers at his disposal, Hitler moves to reshape Germany. ?]
+
+- @game_over
+
+@seldte_victory
+on-arrival: chancellor = "Hitler"; chancellor_party = "NSDAP"
+
+With Seldte's victory, the far-right consolidates. [? if not hitler_deported : He appoints Hitler as chancellor. ?][? if hitler_deported : He overturns Hitler's deportation and appoints him chancellor. ?]
+
+- @game_over
+
+@thalmann_victory
+go-to: thalmann_democrat if presidential_powers; thalmann_civil_war if not presidential_powers
+
+@thalmann_civil_war
+on-arrival: kpd_relation += 20
+
+Thälmann moves to consolidate power. The far-right launches a coup attempt. Civil war looms...
+
+- @game_over
+
+@thalmann_democrat
+on-arrival: kpd_relation += 10
+
+Despite fears, Thälmann respects constitutional limits. Germany has a Communist president, but democracy endures.
+
+- @game_over
+
+@munzenberg_victory
+achievement: rote_millionar
+on-arrival: kpd_relation += 10
+
+Willi Münzenberg becomes president. The "Red Millionaire" promises to respect democratic institutions.
+
+- @game_over
+
+@eckener_win
+achievement: zeppelin_kapitan
+
+Hugo Eckener, the Zeppelin captain, becomes president - a symbol of German technical achievement and republican unity.
+
+- @game_over
+
+@juchacz_win
+achievement: wahlrechts
+
+Historic! Marie Juchacz becomes the world's first elected female president!
+
+- @game_over
+
+@bundesrepublik_win
+achievement: bundesrepublik
+go-to: nazis_lose
+
+A new era begins with [+ winner_desc +] as president.
+
+@einstein_victory
+achievement: republik_der_wissenschaft
+
+Albert Einstein becomes president - science and reason triumph!
+
+- @game_over
+
+@cultural_victory
+
+[+ winner_desc +] becomes president, representing Germany's cultural and intellectual achievements.
+
+- @game_over
+
+@z_victory
+
+The Center Party's candidate becomes president, strengthening Catholic political power.
+
+- @game_over
+
+@bvp_victory
+
+The Bavarian People's Party achieves a surprising victory, with regional interests now in the presidency.
+
+- @game_over
+
+@sapd_victory
+
+The SAPD achieves an unexpected victory! The socialist split has paid off.
+
+- @game_over
+
+@nazis_lose
+
+The Nazis have been defeated. The far-right coalition collapses into infighting and bankruptcy. Democracy survives another challenge.
+
+- @game_over
+
+@game_over
+go-to: root
+
+The presidential election concludes. Germany's future remains to be written...
