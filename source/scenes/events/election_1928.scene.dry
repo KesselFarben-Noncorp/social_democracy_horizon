@@ -569,18 +569,308 @@ go-to: right_coalition_2
 
 
 @right_coalition_2
+title: A Right Coalition can form.
+subtitle: Z + DVP + DNVP [? if bvp_in_government : + BVP ?] ([+ right_coalition +]%)
 unavailable-subtitle: The DNVP is not interested in a coalition with the Center.
 view-if: right_coalition >= 50
 choose-if: year < 1929 or dnvp_line != 3
-on-arrival: spd_in_government = 0; chancellor = "Brüning"; chancellor_party = "Z"; foreign_minister_party = "DVP"; interior_minister_party = "DNVP"; justice_minister_party = "DNVP"; labor_minister_party = "Z"; reichswehr_minister_party = "I"; economic_minister_party = "DVP"; finance_minister_party = "Z"; agriculture_minister_party = "DNVP"; in_right_coalition = 1; spd_toleration = 1
+on-arrival: {!
+    Q.bvp_in_government = 1;
+    Q.in_right_coalition = 1; 
+    Q.spd_toleration = 1;
+    Q.spd_in_government = 0;
+    Q.in_popular_front = 0;
+    Q.in_left_front = 0;
+    Q.workers_dnvp -= 6;
+    Q.chancellor_party = "Z";
+    Q.chancellor = "Brüning";
+    
+    // === CALCULATE COALITION PARTY LEVERAGE ===
+    
+    // Z (Center Party) - Usually leads right coalitions
+    var z_leverage = 20; // Largest party in right coalition
+    z_leverage += Math.floor(Q.z_relation / 12);
+    if (Q.z_party_leader === "Joos") z_leverage -= 3; // Joos prefers left
+    if (Q.z_party_leader === "Kaas") z_leverage += 5; // Kaas comfortable with right
+    if (Q.z_party_leader === "Marx") z_leverage += 3; // Marx traditional right-center
+    z_leverage = Math.max(12, Math.min(30, z_leverage));
+    
+    // DVP - Business party, key to right coalitions
+    var dvp_leverage = 15; // Strong business backing
+    dvp_leverage += Math.floor(Q.dvp_relation / 10);
+    if (Q.capital_strike_progress >= 3) dvp_leverage += 5; // Business pressure
+    if (Q.dvp_relation < 25) dvp_leverage -= 3; // Poor relations
+    if (Q.stresemann_dead && Q.year >= 1929) dvp_leverage -= 2; // Leadership crisis
+    dvp_leverage = Math.max(8, Math.min(25, dvp_leverage));
+    
+    // DNVP - Nationalist right, demands much
+    var dnvp_leverage = 12; // Significant party
+    dnvp_leverage += Math.floor(Q.dnvp_relation / 15);
+    if (Q.dnvp_line === 1) dnvp_leverage += 5; // Moderate DNVP = more cooperative
+    if (Q.dnvp_line === 3) dnvp_leverage += 8; // Hugenberg DNVP = very demanding
+    if (Q.nationalism >= 5) dnvp_leverage += 3; // Nationalist climate favors them
+    dnvp_leverage = Math.max(8, Math.min(25, dnvp_leverage));
+    
+    // BVP - Bavarian particularists (if in coalition)
+    var bvp_leverage = 0;
+    if (Q.bvp_in_government) {
+        bvp_leverage = 8; // Smaller regional party
+        bvp_leverage += Math.floor(Q.bvp_relation / 15);
+        if (Q.right_coalition < 55) bvp_leverage += 3; // Kingmaker bonus
+        bvp_leverage = Math.max(5, Math.min(15, bvp_leverage));
+    }
+    
+    var total_leverage = z_leverage + dvp_leverage + dnvp_leverage + bvp_leverage;
+    var available_ministries = 7;
+    
+    // Calculate ministry allocation
+    var z_ministries = Math.round((z_leverage / total_leverage) * available_ministries);
+    var dvp_ministries = Math.round((dvp_leverage / total_leverage) * available_ministries);
+    var dnvp_ministries = Math.round((dnvp_leverage / total_leverage) * available_ministries);
+    var bvp_ministries = 0;
+    if (Q.bvp_in_government) {
+        bvp_ministries = Math.round((bvp_leverage / total_leverage) * available_ministries);
+    }
+    
+    // Adjust for rounding errors
+    var assigned_total = z_ministries + dvp_ministries + dnvp_ministries + bvp_ministries;
+    while (assigned_total > available_ministries) {
+        // Remove from party with most
+        if (z_ministries >= dvp_ministries && z_ministries >= dnvp_ministries && z_ministries >= bvp_ministries) {
+            z_ministries--;
+        } else if (dvp_ministries >= dnvp_ministries && dvp_ministries >= bvp_ministries) {
+            dvp_ministries--;
+        } else if (dnvp_ministries >= bvp_ministries) {
+            dnvp_ministries--;
+        } else {
+            bvp_ministries--;
+        }
+        assigned_total--;
+    }
+    
+    while (assigned_total < available_ministries) {
+        // Add to party with highest leverage
+        if (z_leverage >= dvp_leverage && z_leverage >= dnvp_leverage && z_leverage >= bvp_leverage) {
+            z_ministries++;
+        } else if (dvp_leverage >= dnvp_leverage && dvp_leverage >= bvp_leverage) {
+            dvp_ministries++;
+        } else if (dnvp_leverage >= bvp_leverage) {
+            dnvp_ministries++;
+        } else {
+            bvp_ministries++;
+        }
+        assigned_total++;
+    }
+    
+    // === MINISTRY PRIORITY LISTS ===
+    
+    // Z priorities (traditional Catholic concerns)
+    var z_priority = ["foreign", "interior", "labor", "justice", "agriculture", "finance", "economic"];
+    
+    // DVP priorities (business interests)
+    var dvp_priority = ["finance", "economic", "foreign", "justice", "interior", "agriculture", "labor"];
+    
+    // DNVP priorities (nationalist and agricultural)
+    var dnvp_priority = ["agriculture", "interior", "finance", "foreign", "economic", "justice", "labor"];
+    
+    // BVP priorities (Bavarian interests)
+    var bvp_priority = ["agriculture", "justice", "interior", "labor", "economic", "finance", "foreign"];
+    
+    // === ALLOCATION PROCESS ===
+    var ministry_assignments = {
+        foreign: null,
+        interior: null,
+        justice: null,
+        labor: null,
+        economic: null,
+        finance: null,
+        agriculture: null,
+        reichswehr: "I"
+    };
+    
+    var party_allocations = [
+        {party: "Z", leverage: z_leverage, remaining: z_ministries, priority: z_priority},
+        {party: "DVP", leverage: dvp_leverage, remaining: dvp_ministries, priority: dvp_priority},
+        {party: "DNVP", leverage: dnvp_leverage, remaining: dnvp_ministries, priority: dnvp_priority}
+    ];
+    
+    if (Q.bvp_in_government) {
+        party_allocations.push({party: "BVP", leverage: bvp_leverage, remaining: bvp_ministries, priority: bvp_priority});
+    }
+    
+    party_allocations.sort(function(a, b) { return b.leverage - a.leverage; });
+    
+    var max_rounds = 10;
+    var round = 0;
+    
+    while (round < max_rounds) {
+        var any_allocated = false;
+        
+        for (var i = 0; i < party_allocations.length; i++) {
+            var party_data = party_allocations[i];
+            
+            if (party_data.remaining > 0) {
+                for (var j = 0; j < party_data.priority.length; j++) {
+                    var ministry = party_data.priority[j];
+                    
+                    if (ministry_assignments[ministry] === null) {
+                        ministry_assignments[ministry] = party_data.party;
+                        party_data.remaining--;
+                        any_allocated = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if (!any_allocated) break;
+        round++;
+    }
+    
+    // === SET MINISTRY PARTIES ===
+    Q.foreign_minister_party = ministry_assignments.foreign || "I";
+    Q.interior_minister_party = ministry_assignments.interior || "I";
+    Q.justice_minister_party = ministry_assignments.justice || "I";
+    Q.labor_minister_party = ministry_assignments.labor || "I";
+    Q.economic_minister_party = ministry_assignments.economic || "I";
+    Q.finance_minister_party = ministry_assignments.finance || "I";
+    Q.agriculture_minister_party = ministry_assignments.agriculture || "I";
+    Q.reichswehr_minister_party = "I";
+    
+    // === ASSIGN ACTUAL MINISTERS BASED ON PARTY ===
+    
+    // Foreign Ministry
+    if (Q.foreign_minister_party === "Z") {
+        Q.foreign_minister = "Stresemann"; // If DVP available, otherwise Curtius
+    } else if (Q.foreign_minister_party === "DVP") {
+        Q.foreign_minister = "Stresemann";
+    } else if (Q.foreign_minister_party === "DNVP") {
+        Q.foreign_minister = "Westarp";
+    } else if (Q.foreign_minister_party === "BVP") {
+        Q.foreign_minister = "Held";
+    } else {
+        Q.foreign_minister = "Unbesetzt";
+    }
+    
+    // Interior Ministry
+    if (Q.interior_minister_party === "Z") {
+        Q.interior_minister = "Wirth";
+    } else if (Q.interior_minister_party === "DVP") {
+        Q.interior_minister = "Scholz";
+    } else if (Q.interior_minister_party === "DNVP") {
+        Q.interior_minister = "Hergt";
+    } else if (Q.interior_minister_party === "BVP") {
+        Q.interior_minister = "Gürtner";
+    } else {
+        Q.interior_minister = "Unbesetzt";
+    }
+    
+    // Justice Ministry
+    if (Q.justice_minister_party === "Z") {
+        Q.justice_minister = "Bredt";
+    } else if (Q.justice_minister_party === "DVP") {
+        Q.justice_minister = "Heinze";
+    } else if (Q.justice_minister_party === "DNVP") {
+        Q.justice_minister = "Schiele";
+    } else if (Q.justice_minister_party === "BVP") {
+        Q.justice_minister = "Gürtner";
+    } else {
+        Q.justice_minister = "Unbesetzt";
+    }
+    
+    // Labor Ministry
+    if (Q.labor_minister_party === "Z") {
+        Q.labor_minister = "Stegerwald";
+    } else if (Q.labor_minister_party === "DVP") {
+        Q.labor_minister = "Brauns";
+    } else if (Q.labor_minister_party === "DNVP") {
+        Q.labor_minister = "Schiele";
+    } else if (Q.labor_minister_party === "BVP") {
+        Q.labor_minister = "Stützel";
+    } else {
+        Q.labor_minister = "Unbesetzt";
+    }
+    
+    // Economic Ministry
+    if (Q.economic_minister_party === "Z") {
+        Q.economic_minister = "Bredt";
+    } else if (Q.economic_minister_party === "DVP") {
+        Q.economic_minister = "Curtius";
+    } else if (Q.economic_minister_party === "DNVP") {
+        Q.economic_minister = "Schiele";
+    } else if (Q.economic_minister_party === "BVP") {
+        Q.economic_minister = "Held";
+    } else {
+        Q.economic_minister = "Unbesetzt";
+    }
+    
+    // Finance Ministry
+    if (Q.finance_minister_party === "Z") {
+        Q.finance_minister = "Köhler";
+    } else if (Q.finance_minister_party === "DVP") {
+        Q.finance_minister = "Moldenhauer";
+    } else if (Q.finance_minister_party === "DNVP") {
+        Q.finance_minister = "Schiele";
+    } else if (Q.finance_minister_party === "BVP") {
+        Q.finance_minister = "Krausneck";
+    } else {
+        Q.finance_minister = "Unbesetzt";
+    }
+    
+    // Agriculture Ministry
+    if (Q.agriculture_minister_party === "Z") {
+        Q.agriculture_minister = "Hermes";
+    } else if (Q.agriculture_minister_party === "DVP") {
+        Q.agriculture_minister = "Schiele";
+    } else if (Q.agriculture_minister_party === "DNVP") {
+        Q.agriculture_minister = "Schiele";
+    } else if (Q.agriculture_minister_party === "BVP") {
+        Q.agriculture_minister = "Wutzlhofer";
+    } else {
+        Q.agriculture_minister = "Unbesetzt";
+    }
+    
+    Q.reichswehr_minister = "Groener";
+    
+    // === STORE FOR DISPLAY ===
+    Q.z_ministry_count = z_ministries;
+    Q.dvp_ministry_count = dvp_ministries;
+    Q.dnvp_ministry_count = dnvp_ministries;
+    Q.bvp_ministry_count = bvp_ministries;
+    
+    Q.z_coalition_leverage = z_leverage;
+    Q.dvp_coalition_leverage = dvp_leverage;
+    Q.dnvp_coalition_leverage = dnvp_leverage;
+    Q.bvp_coalition_leverage = bvp_leverage;
+!}
 
-Even though the DNVP is very reluctant to participate in such a coalition, they still accede to President Hindenburg's wishes. Thus, a majority center-right coalition is formed, with Brüning as chancellor.
+A Right Coalition forms! SPD will tolerate from opposition.
+
+**Ministry Distribution:**
+- Center Party: [+ z_ministry_count +] ministries (Leverage: [+ z_coalition_leverage +])
+- DVP: [+ dvp_ministry_count +] ministries (Leverage: [+ dvp_coalition_leverage +])
+- DNVP: [+ dnvp_ministry_count +] ministries (Leverage: [+ dnvp_coalition_leverage +])
+[? if bvp_in_government : - BVP: [+ bvp_ministry_count +] ministries (Leverage: [+ bvp_coalition_leverage +]) ?]
+
+**Cabinet Composition:**
+- Foreign Ministry: [+ foreign_minister_party +] ([+ foreign_minister +])
+- Interior Ministry: [+ interior_minister_party +] ([+ interior_minister +])
+- Justice Ministry: [+ justice_minister_party +] ([+ justice_minister +])
+- Labor Ministry: [+ labor_minister_party +] ([+ labor_minister +])
+- Economic Ministry: [+ economic_minister_party +] ([+ economic_minister +])
+- Finance Ministry: [+ finance_minister_party +] ([+ finance_minister +])
+- Agriculture Ministry: [+ agriculture_minister_party +] ([+ agriculture_minister +])
+- Reichswehr Ministry: Independent (Groener)
+
+[? if foreign_minister_party == "I" or interior_minister_party == "I" or justice_minister_party == "I" : Some ministries remain unfilled and will operate under civil service administration. ?]
+
+The SPD watches from opposition as the right-wing coalition forms without us..
 
 
 
 @no_majority
 title: There is no clear governing majority.
-view-if: weimar_coalition < 50 and (grand_coalition < 50 or grand_coalition_failed == 1) and president = "Hindenburg" and far_right_coalition < 50 or (far_right_coalition >= 50 and dnvp_line = 1)
+view-if: weimar_coalition < 50 and (grand_coalition < 50 or grand_coalition_failed == 1) and president = "Hindenburg" and far_right_coalition < 50 and (far_right_coalition >= 50 and dnvp_line = 1)
 on-arrival: no_majority_elections += 1
 go-to: no_majority_bruning if chancellor = "Brüning" or chancellor = "Wirth"; no_majority_papen if chancellor = "Papen" and no_majority_papen_elections == 0; no_majority_papen_2 if chancellor == "Papen" and no_majority_papen_elections > 0; no_majority_schleicher if chancellor = "Schleicher"; no_majority_spd if chancellor_party = "SPD" or chancellor == "Marx"
 
