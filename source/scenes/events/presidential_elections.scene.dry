@@ -604,8 +604,10 @@ on-arrival: {!
         candidates_array.push({name: k, votes: candidate_votes[k], pct: pct});
     }
     
-    candidates_array.sort(function(a, b)
-    candidates_array.sort(function(a, b) { return b.votes - a.votes; });
+    // Sort by votes descending
+    candidates_array.sort(function(a, b) {
+        return b.votes - a.votes;
+    });
     
     Q.round1_winner = candidates_array[0].name;
     Q.round1_runner_up = candidates_array.length > 1 ? candidates_array[1].name : null;
