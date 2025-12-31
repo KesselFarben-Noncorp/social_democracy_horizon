@@ -118,7 +118,7 @@ Q.left_coalition = Q.spd_r + Q.kpd_r + Q.sapd_r;
 Q.popular_front_coalition = Q.spd_r + Q.kpd_r + Q.z_r + Q.ddp_r + Q.sapd_r;
 Q.anti_democratic_coalition = Q.kpd_r + Q.nsdap_r + Q.dnvp_r;
 // aka everyone except nazi, kpd, dnvp
-Q.neo_weimar_coalition = Q.spd_r + Q.ddp_r + Q.z_r + Q.dvp_r + Q.other_r;
+Q.neo_weimar_coalition = Q.spd_r + Q.ddp_r + Q.z_r + Q.dvp_r + Q.other_r + Q.bvp_r;
 // Hitler + Right-wing parties (only comes into effect if you've alienated Z too badly)
 Q.hitler_right_coalition = Q.z_r + Q.dnvp_r + Q.nsdap_r;
 // Progressive coalition isn't going to be implemented as a distinct coalition but it's the coalition that lets you pass improved women's rights/gay rights
@@ -289,7 +289,7 @@ go-to: coalition_menu
 
 {!<tr><td><div class="box" style='background-color:#000'> </div> !} Z: {!</td><td>!} [+ z_r +]% {!</td><td>!} [+ str_change_z +] {!</td></tr>!}
 
-{!<tr><td><div class="box" style='background-color:#69A2BE'> </div> !} BVP: {!</td><td>!} [+ bvp_r +]{!</td><td>!} 0 {!</td></tr>!}
+{!<tr><td><div class="box" style='background-color:#69A2BE'> </div> !} BVP: {!</td><td>!} [+ bvp_r +]{!</td><td>!} [+ str_change_bvp +] {!</td></tr>!}
 
 {!<tr><td><div class="box" style='background-color:#D5AC27'> </div> !} DVP: {!</td><td>!} [+ dvp_r +]% {!</td><td>!} [+ str_change_dvp +] {!</td></tr>!}
  
@@ -302,13 +302,21 @@ go-to: coalition_menu
 
 **Potential coalitions:**
 
+Left Coalition (SPD + KPD [? if sapd_formed = 1: + SAPD ?]): [+ left_coalition +]%
+
+Progressive Coalition (SPD + [+ ddp_name +] + KPD [? if sapd_formed = 1: + SAPD ?]): [+ progressive_coalition +]%
+
 Weimar Coalition (SPD + Z + [+ ddp_name +]): [+ weimar_coalition +]%
 
 Grand Coalition (SPD + Z + BVP + [+ ddp_name +] + DVP): [+ grand_coalition +]%
 
 Bourgeois Coalition (Z + BVP + [+ ddp_name +] + DVP + Others): [+ bourgeois_coalition +]%
 
+Center-right Coalition (Z + [+ ddp_name +] + DVP + Other + DNVP + BVP): [+ center_right_coalition +]%
+
 Right-wing Coalition (Z + BVP + DVP + Others + DNVP): [+ right_coalition +]%
+
+Far-right Coalition (DNVP + NSDAP): [+ far_right_coalition +]%
 
 [? if nazi_urgency <= 1 and nsdap_r >= 15 : The rapid rise in NSDAP votes is extremely worrying. Many had believed that the party was moribund; now, some of us consider it to be the greatest threat to democracy in Germany. ?]
 
