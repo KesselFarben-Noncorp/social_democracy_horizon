@@ -930,6 +930,7 @@ We have won the vote of no confidence, and are currently ruling under an SPD min
 title: We can form a Weimar Coalition.
 subtitle: SPD + Z + [+ ddp_name +] [? if sapd_formed and kpd_relation >= 30 : + SAPD toleration ?] ([+ weimar_coalition +]%)
 view-if: weimar_coalition >= 50
+achievement: weimar_coalition
 on-arrival: {!
     Q.leverage += 5; 
     Q.leverage += 5 if Q.z_party_leader == "Joos"; 
@@ -938,6 +939,7 @@ on-arrival: {!
     Q.in_popular_front = 0; 
     Q.in_left_front = 0;
     Q.workers_dnvp -= 6;
+    !}
     
     // === CALCULATE COALITION PARTY LEVERAGE ===
     
@@ -1171,8 +1173,6 @@ on-arrival: {!
     Q.spd_coalition_leverage = spd_leverage;
     Q.z_coalition_leverage = z_leverage;
     Q.ddp_coalition_leverage = ddp_leverage;
-!}
-achievement: weimar_coalition
 
 The Weimar Coalition is formed!
 
