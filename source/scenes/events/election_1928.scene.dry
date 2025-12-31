@@ -1260,7 +1260,7 @@ on-arrival: {!
     if (Q.z_party_leader === "Kaas") z_leverage += 3; // Right-wing, more assertive
    
     // === BVP MODIFIERS ===
-    bvp_leverage += Math.floor(Q.bvp_relation / 15);
+    bvp_leverage += Math.floor(Q.z_relation / 15);
     if (Q.z_party_leader === "Kaas") bvp_leverage += 2; // Allied with right-Z
    
     // === DDP MODIFIERS ===
@@ -1716,7 +1716,7 @@ on-arrival: {!
     // Base leverage from Reichstag seats
     var spd_leverage = Math.max(Q.spd_r || Q.spd_votes, 15);
     var z_leverage = Math.max(Q.z_r || Q.z_votes, 12); // Z leads, higher floor
-    var bvp_leverage = Math.max(Q.bvp_r || Q.bvp_votes, 5);
+    var bvp_leverage = Math.max(Q.z_r / 5 || Q.z_votes, 5);
     var ddp_leverage = Math.max(Q.ddp_r || Q.ddp_votes, 5);
     var dvp_leverage = Math.max(Q.dvp_r || Q.dvp_votes, 8);
    
