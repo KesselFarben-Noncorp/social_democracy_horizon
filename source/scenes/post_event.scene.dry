@@ -793,6 +793,7 @@ if (Q.month_actions >= 1) {
         spd:   Q.pro_republic * 1.5,           // mass party, high elasticity
         ddp:   Q.pro_republic * 1.3,
         z:     Q.pro_republic * 1.4,           // confessional catch-all
+        bvp:   Q.pro_republic * 1.1,
         other: ((Q.nationalism + Q.pro_republic) / 3) * 1.3
     };
 
@@ -838,6 +839,9 @@ if (Q.month_actions >= 1) {
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
                     break;
+                case 'bvp':
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.2 * (1 + Q.catholics/200 + Q.rural/100), 0.15);
+                    break;
                 case 'z':
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
                     break;
@@ -848,7 +852,7 @@ if (Q.month_actions >= 1) {
                     Q.ideology_factor = Q.random_factor(Q.dvp_right_shift ? Q.nationalism_factor * (1 + Q.unrest_factor*0.1) : Q.pro_republic_factor * 0.9, 0.15);
                     break;
                 case 'other':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/5 * (1 + Q.unrest_factor*0.1), 0.2);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/4.7 * (1 + Q.unrest_factor*0.1), 0.2);
                     break;
                 default:
                     Q.ideology_factor = Q.random_factor(1, 0.1);
