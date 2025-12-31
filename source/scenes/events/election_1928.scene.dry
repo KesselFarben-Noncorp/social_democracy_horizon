@@ -941,22 +941,45 @@ on-arrival: {!
     Q.workers_dnvp -= 6;
     
     // === CALCULATE COALITION PARTY LEVERAGE ===
-    
-    var spd_leverage = Q.leverage;
-    
-    // Z (Center Party) leverage
-    var z_leverage = 15;
-    z_leverage += Math.floor(Q.z_relation / 10);
-    if (Q.z_party_leader === "Joos") z_leverage -= 3;
-    if (Q.z_party_leader === "Kaas") z_leverage += 3;
-    z_leverage = Math.max(8, Math.min(25, z_leverage));
-    
-    // DDP leverage
-    var ddp_leverage = 8;
+
+    // Base leverage from Reichstag seats (normalized votes * 100 = percentage)
+    var spd_leverage = Math.max(Q.spd_r || Q.spd_votes, 15); // Floor of 15
+    var z_leverage = Math.max(Q.z_r || Q.z_votes, 8);         // Floor of 8
+    var ddp_leverage = Math.max(Q.ddp_r || Q.ddp_votes, 5);   // Floor of 5
+
+    // === SPD MODIFIERS ===
+    spd_leverage += Q.leverage || 0; // Your existing leverage variable
+    if (Q.chancellor_party === "SPD") spd_leverage += 5;
+    if (Q.president === "Braun") spd_leverage += 3;
+
+    // === Z (CENTER) MODIFIERS ===
+    z_leverage += Math.floor(Q.z_relation / 10); // Good relations = more leverage
+    if (Q.z_party_leader === "Joos") z_leverage += 3; // Pro-coalition leader
+    if (Q.z_party_leader === "Kaas") z_leverage -= 5; // Anti-coalition leader
+    if (Q.chancellor_party === "Z") z_leverage += 5;
+
+    // === DDP MODIFIERS ===
     ddp_leverage += Math.floor(Q.ddp_relation / 15);
-    if (Q.weimar_coalition < 55) ddp_leverage += 2;
-    ddp_leverage = Math.max(5, Math.min(15, ddp_leverage));
-    
+    if (Q.weimar_coalition < 55) ddp_leverage += 3; // Kingmaker bonus when coalition is narrow
+    if (Q.chancellor_party === Q.ddp_name) ddp_leverage += 5;
+
+    // === APPLY CAPS AND FLOORS ===
+    // Floor: Always get at least 1 ministry worth of leverage (≈14% = 1/7 ministries)
+    var min_leverage_for_one_ministry = 14;
+
+    spd_leverage = Math.max(spd_leverage, min_leverage_for_one_ministry);
+    z_leverage = Math.max(z_leverage, min_leverage_for_one_ministry);
+    ddp_leverage = Math.max(ddp_leverage, min_leverage_for_one_ministry);
+
+    // Cap: No party can have more than 60% of total leverage (ensures distribution)
+    var total_leverage_precap = spd_leverage + z_leverage + ddp_leverage;
+    var max_leverage = total_leverage_precap * 0.6;
+
+    if (spd_leverage > max_leverage) spd_leverage = max_leverage;
+    if (z_leverage > max_leverage) z_leverage = max_leverage;
+    if (ddp_leverage > max_leverage) ddp_leverage = max_leverage;
+
+    // Recalculate total after caps
     var total_leverage = spd_leverage + z_leverage + ddp_leverage;
     var available_ministries = 7;
     
