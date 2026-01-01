@@ -13,6 +13,7 @@ In our media and campaign materials, who should we consider as our main opponent
 
 - @anti_dem: <span style="color:#FF3333;"><b>The anti-democratic parties</b></span> of the far right and left - the KPD, NSDAP, and DNVP.
 - @far_right: <span style="color:#FF6600;"><b>The far right</b></span> - the NSDAP and DNVP.
+- @dnvp: <span style="color:##032944;"><b>The DNVP alone</b></span> .
 - @nsdap: <span style="color:#CC0000;"><b>The NSDAP alone</b></span>.
 - @kpd: <span style="color:#FF3333;"><b>The KPD</b></span>.
 - @bourgeois: <span style="color:#66CCFF;"><b>The bourgeois parties</b></span> - the Center and DVP.
@@ -28,6 +29,11 @@ Attacking the far right and left is popular among all but the left wing of our p
 on-arrival: enemies = "far right"; left_strength += 5; left_dissent -= 5; workers_nsdap -= 2 if workers_nsdap < 20; workers_dnvp -= 4
 
 Attacking the far right is popular among the entire party, although the left considers the bourgeois parties just as dangerous, while the right criticizes our lack of response to the KPD. Our bourgeois coalition partners are skeptical of our commitment to anti-communism.
+
+@dnvp
+on-arrival: enemies: "DNVP"; workers_dnvp *= 0.89; old_middle_dnvp *= 0.97; new_middle_dnvp *= 0.93; rural_dnvp * 0.98; dnvp_relation -= 3; dnvp_relation -= 5 if dnvp_line = 1; bvp_relation -= 3
+
+Our anti Nationalist-Monarchist rhetoric calls out this party on their faults and fundamental believes as the reasoning of inability to co-operate in the questions of the coalitionship and government affairs!
 
 @nsdap
 on-arrival: enemies = "NSDAP"; neorevisionist_strength += 5; nazi_urgency += 1 if nazi_urgency > 0; workers_nsdap -= 4 if nazi_urgency > 0; workers_spd -= 1 if nazi_urgency <= 0
@@ -49,4 +55,10 @@ view-if: sandbox = 1
 on-arrival: enemies = "DVP"; left_strenght += 1; dvp_relation -= 7; z_relation -= 2; ddp_relation -= 3; old_middle_spd -= 2; coalition_dissent += 0.5; workers_dvp -= 3; new_middle_dvp -= 1; reformist_dissent += 4; kpd_relation += 1; dnvp_relation -= 2 if dnvp_line = 1
 
 Our anti-industrialist propaganda seeks to undermine the DVP and our relationship with them!
+
+@bvp
+view-if: sandbox = 1
+on-arrival: enemies = "BVP"; bvp_relation -= 5; z_relation -= 3; old_middle_bvp *= 0.99; workers_bvp *= 0.90; rural_bvp *= 0.98; new_middle_bvp *= 0.95; unemployed_bvp *= 0.80;
+
+We concentrated on attacking BVP over their conservatism and obstructionism.
 
