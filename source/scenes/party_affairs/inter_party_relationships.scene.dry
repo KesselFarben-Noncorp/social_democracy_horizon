@@ -16,6 +16,7 @@ The SPD cannot govern alone yet. Lacking an electoral majority, we need support 
 - @center: Strengthen bonds with <span style="color:#FF6699;"><b>Catholic Center Party</b></span>.
 - @kpd: Repair relationships with the <span style="color:#FF3333;"><b>Communist Party</b></span>.
 - @dnvp: Reconciling with the <span style="color:#000000;"><b>DNVP</b></span> on some issues for republic stability.
+- @wp: Make amendments with Middle Class Party/WP/Economical Party.
 - @spd_alone: SPD can stand alone for now.
 - @easy_discard
 
@@ -39,7 +40,7 @@ One stumbling block for KPD relations is our history of conflict from 1918-1919.
 - @no_history: No apology needed.
 
 @yes_history
-on-arrival: reformist_dissent += 12; reformist_strength -= 2; neorevisionist_dissent += 5; left_dissent -= 6; left_strength += 5; kpd_rectified_history = 1; z_relation -= 6; dvp_relation -= 6; ddp_relation -= 4; kpd_relation += 8*(1-dissent); coalition_dissent += 1
+on-arrival: reformist_dissent += 12; reformist_strength -= 2; neorevisionist_dissent += 5; left_dissent -= 6; left_strength += 5; kpd_rectified_history = 1; z_relation -= 6; bvp_relation -= 7; wp_relation -= 3; dvp_relation -= 6; dnvp_relation -= 4; ddp_relation -= 4; kpd_relation += 8*(1-dissent); coalition_dissent += 1
 
 By acknowledging past wrongs, expelling Noske, and commemorating victims, relations with the <span style="color:#FF3333;"><b>KPD</b></span> improve. Tensions rise with moderates, reformists, and conservative parties.
 
@@ -66,17 +67,17 @@ on-arrival: resources -= 1; z_relation += 2 if z_party_leader == "Joos"
 go-to: center_op if z_in_government = 1 and spd_in_government = 0 and chancellor != "Brüning"; center_coalition if spd_in_government = 1 and z_in_government = 1; center_bruning if chancellor = "Brüning"
 
 @center_op
-on-arrival: z_relation += 4*(1 - dissent)
+on-arrival: z_relation += 4*(1 - dissent); bvp_relation += 6 * dissent
 
 We are in opposition, but good-will-building continues with the <span style="color:#FF6699;"><b>Center Party</b></span>.
 
 @center_coalition
-on-arrival: z_relation += 8*(1 - dissent)
+on-arrival: z_relation += 8*(1 - dissent); bvp_relation += 6 * dissent
 
 As coalition partners, relations improve naturally.
 
 @center_bruning
-on-arrival: z_relation += 6*(1 - dissent)
+on-arrival: z_relation += 6*(1 - dissent); bvp_relation += 6 * dissent
 
 The <span style="color:#FF6699;"><b>Brüning</b></span> semi-autocratic regime complicates building friendly relations, but it is possible.
 
@@ -85,7 +86,7 @@ subtitle: <span style="color:#66CCFF;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: resources -= 1; ddp_relation += 5*(1 - dissent)
-go-to: dvp_stresemann if stresemann_dead = 0; dvp_loss if stresemann_dead = 1 and dvp_votes >= 3; dvp_moribund if dvp_votes <= 3
+go-to: dvp_stresemann if stresemann_dead = 0; dvp_loss if stresemann_dead = 1 and dvp_votes >= 3; dvp_moribund if dvp_votes <= 3 or ddp_votes <= 3
 
 The <span style="color:#66CCFF;"><b>[+ ddp_name +]</b></span> has been one of our closest allies in the Republic.
 
@@ -113,6 +114,15 @@ on-arrival: resources -= 1; dnvp_relation += 3*(1 - dissent); dnvp_relation += 1
 We attempted reconciliation with the <span style="color:#000000;"><b>DNVP</b></span>, staying distant on core issues due to inherent contradictions.
 
 [? if dnvp_line = 1: DNVP is more friendly after the victory of Republican General Fraction amongst DNVP, but this does not mean in any way anything but simple cooperation to keep radicals out of the bay. ?]
+
+@wp
+subtitle: <span style="color:#000000;">-1 resources</span>
+view-if: sandbox = 1
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources
+on-arrival: resources -= 1; wp_relation += 5*(1 - dissent); new_middle_wp -= 1; old_middle_wp -= 1; inflation += 0.1 if old_middle_wp <= 5; left_dissent += 2 if left_strength >= 50
+
+We attempted amendments with the party of the Middle Class representators, hoping to seek some sort of understanding with hopefully redeemable party. However, middle classes disapprove decision by WP to dialog with us.
 
 @spd_alone
 
