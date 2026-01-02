@@ -788,6 +788,7 @@ if (Q.month_actions >= 1) {
         nsdap: (Q.nationalism * 1.25) + (Q.unrest_factor * 3.2),          // extremist, limited elasticity
         dnvp: Q.dnvp_line === 1  ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8)  : Q.nationalism * 1.35,
         dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
+        wp:    Q.pro_republic * 1.15 + (Q.inflation * 0.2)
         kpd:   Q.socialism * 1.25,             // extremist left, limited elasticity
         sapd:  Q.socialism * 1.05,
         spd:   Q.pro_republic * 1.5,           // mass party, high elasticity
@@ -838,6 +839,9 @@ if (Q.month_actions >= 1) {
                      break;
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
+                    break;
+                case 'wp':
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.15 + (Q.inflation * 0.2) - (Q.unemployed * 0.05) + (Q.old_middle + Q.new_middle * 0.2)), 0.15);
                     break;
                 case 'bvp':
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.2 * (1 + Q.catholics/200 + Q.rural/100), 0.15);
