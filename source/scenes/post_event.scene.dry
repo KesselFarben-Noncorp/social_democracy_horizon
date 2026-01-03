@@ -703,7 +703,10 @@ if (Q.month_actions >= 1) {
     };
 
     // Dynamic factors with randomness
-    Q.unrest_factor       = Q.random_factor(Math.max(Q.unemployed/10, 1), 0.4);
+    Q.unrest_factor = Q.random_factor(
+      Math.max(Q.unemployed / 10, 1) * Math.max(Q.inflation / 5, 0),
+      0.4
+    );
     Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/50, 0.5), 1.5), 0.15);
     Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/50, 0.5), 1.5), 0.15);
     Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
@@ -807,7 +810,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 1.1) * (Q.unrest_factor * 3.1) * Q.nat_dom * Q.street_pressure_factor, 0.25);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 1.1) * (Q.unrest_factor * 3.7) * Q.nat_dom * Q.street_pressure_factor, 0.25);
                     break;
                 case 'dnvp':
                     if (Q.dnvp_line === 1) {
@@ -841,7 +844,7 @@ if (Q.month_actions >= 1) {
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
                     break;
                 case 'wp':
-                    Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.15 + (Q.inflation * 0.09) - (Q.unemployed * 0.05) + ((Q.old_middle + Q.new_middle) * 0.05)), 0.15);
+                    Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.15 + (Q.inflation * 0.09) - (Q.unemployed * 0.07) + ((Q.old_middle + Q.new_middle) * 0.05)), 0.15);
                     break;
                 case 'bvp':
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.2 * (1 + Q.catholics/200 + Q.rural/100), 0.15);
