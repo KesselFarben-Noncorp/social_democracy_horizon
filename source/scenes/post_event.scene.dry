@@ -734,10 +734,6 @@ if (Q.month_actions >= 1) {
         Q.rb_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
     }
 
-    // Government actions (if applicable)
-    if (Q.sa_banned) Q.sa_strength -= Math.max(0, Q.random_factor(Q.sa_strength * 0.1, 0.2));
-    if (Q.rfb_banned) Q.rfb_strength -= Math.max(0, Q.random_factor(Q.rfb_strength * 0.1, 0.2));
-
     // Ensure bounds
     Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
     Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 10000);
