@@ -707,6 +707,7 @@ if (Q.month_actions >= 1) {
       Math.max(Q.unemployed / 10, 1) * Math.max(Q.inflation / 5, 0),
       0.4
     );
+
     Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/50, 0.5), 1.5), 0.15);
     Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/50, 0.5), 1.5), 0.15);
     Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
@@ -716,24 +717,26 @@ if (Q.month_actions >= 1) {
     Q.soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
 
     // Paramilitary growth
-    Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);
-    Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
-    Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
-    Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
-
-    // Decay factors
+    Q.sa_strength  = (Q.sa_strength || 0) + Q.random_factor(Q.unrest_factor/12, 0.3);
+    Q.sh_strength  = (Q.sh_strength || 0) + Q.random_factor(Q.unrest_factor/18, 0.3);
+    Q.rfb_strength = (Q.rfb_strength || 0) + Q.random_factor(Q.unrest_factor/18, 0.3);
+    Q.rb_strength  = (Q.rb_strength || 0) + Q.random_factor(Q.unrest_factor/20, 0.3);
+    
+    // Decay factors (with safety checks)
     Q.stability_decay = Math.max(0, (0.6 - Q.unrest_factor)) * 10;
-    Q.prosperity_factor = Math.max(0, 1 - Q.inflation/100 - Q.unemployed/50) * 3;
+    Q.prosperity_factor = Math.max(0, 1 - (Q.inflation || 0)/100 - (Q.unemployed || 0)/50) * 3;
 
-    // Apply natural decay
-    Q.sa_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.sh_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.rfb_strength -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.rb_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    // Apply natural decay (only if values are positive)
+    if (Q.stability_decay > 0 || Q.prosperity_factor > 0) {
+        Q.sa_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
+        Q.sh_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
+        Q.rfb_strength -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
+        Q.rb_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
+    }
 
     // Government actions (if applicable)
-    if (Q.sa_banned) Q.sa_strength -= Q.random_factor(Q.sa_strength * 0.1, 0.2);
-    if (Q.rfb_banned) Q.rfb_strength -= Q.random_factor(Q.rfb_strength * 0.1, 0.2);
+    if (Q.sa_banned) Q.sa_strength -= Math.max(0, Q.random_factor(Q.sa_strength * 0.1, 0.2));
+    if (Q.rfb_banned) Q.rfb_strength -= Math.max(0, Q.random_factor(Q.rfb_strength * 0.1, 0.2));
 
     // Ensure bounds
     Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
