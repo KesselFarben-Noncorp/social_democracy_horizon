@@ -703,10 +703,17 @@ if (Q.month_actions >= 1) {
     };
 
     // Dynamic factors with randomness
+    if (Q.inflation >= 0) {
+        Q.inflation_component = Q.inflation / 5;          // positive inflation
+    } else {
+        Q.inflation_component = Math.abs(Q.inflation) / 3; // deflation is worse
+    };
+
     Q.unrest_factor = Q.random_factor(
-      Math.max(Q.unemployed / 10, 1) * Math.max(Q.inflation / 5, 0),
+      Math.max(Q.unemployed / 10, 1) * (1 + Math.max(Q.inflation_component, 0)),
       0.4
     );
+
     Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/50, 0.5), 1.5), 0.15);
     Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/50, 0.5), 1.5), 0.15);
     Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
