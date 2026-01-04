@@ -721,18 +721,6 @@ if (Q.month_actions >= 1) {
     Q.sh_strength  = (Q.sh_strength || 0) + Q.random_factor(Q.unrest_factor/18, 0.3);
     Q.rfb_strength = (Q.rfb_strength || 0) + Q.random_factor(Q.unrest_factor/18, 0.3);
     Q.rb_strength  = (Q.rb_strength || 0) + Q.random_factor(Q.unrest_factor/20, 0.3);
-    
-    // Decay factors (with safety checks)
-    Q.stability_decay = Math.max(0, (0.6 - Q.unrest_factor)) * 10;
-    Q.prosperity_factor = Math.max(0, 1 - (Q.inflation || 0)/100 - (Q.unemployed || 0)/50) * 3;
-
-    // Apply natural decay (only if values are positive)
-    if (Q.stability_decay > 0 || Q.prosperity_factor > 0) {
-        Q.sa_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
-        Q.sh_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
-        Q.rfb_strength -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
-        Q.rb_strength  -= Math.max(0, Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25));
-    }
 
     // Ensure bounds
     Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
