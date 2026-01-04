@@ -1,0 +1,304 @@
+@comintern_congress_1928
+title: The Sixth Comintern Congress
+subtitle: Moscow Debates Communist Strategy
+new-page: true
+view-if: year = 1928 and month = 8
+tags: event, kpd, international
+max-visits: 1
+on-arrival: comintern_congress_happened = 1; month_actions += 1
+face-image: img/portraits/Stalin.jpg
+
+= The Sixth Comintern Congress
+
+The Communist International convenes in Moscow to determine global communist strategy. The German Question looms large: how should communists relate to social democrats in the face of rising fascism?
+
+**The Soviet Leadership Debate:**
+
+Stalin's faction argues for the "Third Period" doctrine: capitalism is entering terminal crisis, revolution is imminent, and social democrats are the main obstacle—"social fascists" who must be defeated before genuine revolution can occur.
+
+Bukharin's moderate faction counters that fascism is the immediate threat, requiring tactical cooperation with social democrats despite ideological differences. "The enemy's enemy can be a temporary ally," they argue.
+
+The outcome will be determined partly by Soviet internal politics, but also by **recent German developments**:
+
+[? if kpd_relation >= 50 : The SPD's attempts at cooperation with the KPD are noted. Some in Moscow question whether "social fascism" applies to a party reaching out to communists. ?]
+
+[? if kpd_relation < 30 : The SPD's hostility to communists reinforces Stalin's narrative that social democrats are class enemies. ?]
+
+[? if in_grand_coalition or in_weimar_coalition : The SPD's coalition with bourgeois parties is cited as proof of their betrayal of the working class. ?]
+
+[? if in_popular_front or in_left_front : The SPD's left-wing coalition is causing confusion in Moscow—this doesn't fit the "social fascist" narrative. ?]
+
+[? if nazi_urgency >= 5 : The Nazi threat in Germany is undeniable. Some Moscow delegates argue this changes calculations. ?]
+
+[? if reichswehr_loyalty <= 30 : Recent German military hostility to the SPD suggests the "social fascist" label may be inaccurate. ?]
+
+[? if communist_coalition >= 5 : German communist-SPD cooperation initiatives are creating pressure for Moscow to reconsider doctrine. ?]
+
+The Congress debates intensely. The decision will shape communist strategy worldwide, but especially in Germany.
+
+- @observe_congress: Observe the Congress outcome
+
+@observe_congress
+on-arrival: {!
+    // === CALCULATE FACTORS INFLUENCING CONGRESS ===
+    
+    var stalin_strength = 60; // Base Stalin dominance (historical)
+    var bukharin_strength = 40; // Base moderate faction
+    
+    // === GERMAN FACTORS THAT INFLUENCE SOVIET DEBATE ===
+    
+    // SPD-KPD Relations
+    if (Q.kpd_relation >= 60) {
+        bukharin_strength += 15; // Cooperation working = moderate argument
+        stalin_strength -= 10;
+    } else if (Q.kpd_relation <= 20) {
+        stalin_strength += 10; // SPD hostility = validates hardline
+        bukharin_strength -= 5;
+    }
+    
+    // SPD Coalition Choices
+    if (Q.in_grand_coalition || Q.in_weimar_coalition) {
+        stalin_strength += 12; // "Proof" of bourgeois collaboration
+        bukharin_strength -= 8;
+    }
+    if (Q.in_popular_front || Q.in_left_front) {
+        bukharin_strength += 10; // Left coalition = complicates narrative
+        stalin_strength -= 8;
+    }
+    
+    // Communist Coalition Building (player efforts)
+    if (Q.communist_coalition >= 2) {
+        bukharin_strength += 12; // Real united front emerging
+        stalin_strength -= 10;
+    }
+    
+    // Nazi Threat Level
+    if (Q.nazi_urgency >= 4) {
+        bukharin_strength += 15; // Undeniable fascist danger
+    } else if (Q.nazi_urgency >= 2) {
+        bukharin_strength += 8;
+    } else if (Q.nazi_urgency <= 2) {
+        stalin_strength += 5; // No immediate threat = ideological purity wins
+    }
+
+
+    if (Q.socialism >= 40) {
+        bukharin_strength += 3;
+        stalin_strength += 6;
+    } else if (Q.socialism <= 30) {
+        bukharin_strength += 7;
+        stalin_strength += 2;
+    }
+
+    if (Q.left_strength > 1 && Q.left_dissent < 60) {
+        bukharin_strength += (left_strength - left_dissent) * 0.5;
+    }
+
+    if (Q.reformist_strength > 1 && Q.reformist_dissent < 60) {
+        stalin_strength += (reformist_strength - reformist_dissent) * 0.5;
+    }
+    
+    // Reichswehr/State Relations
+    if (Q.reichswehr_loyalty <= 25) {
+        bukharin_strength += 5; // Military hostility to SPD = not "social fascist"
+    }
+    
+    // Prussian Government (SPD controls state power)
+    if (Q.prussian_government === "SPD" && Q.prussian_police_loyalty >= 65) {
+        stalin_strength += 8; // SPD controls repressive apparatus = "social fascist"
+    }
+    
+    // Economic Policy (if SPD implemented pro-worker policies)
+    if (Q.wtb_implemented >= 2 || Q.nationalization_progress >= 2) {
+        bukharin_strength += 8; // SPD doing left economics = harder to call fascist
+    }
+    
+    // Historical momentum (Stalin was winning internally)
+    stalin_strength += 10; // Stalin's political position strengthening
+    
+    // Random factor (historical contingency)
+    var random_factor = Math.random() * 20 - 10; // +/- 10
+    stalin_strength += random_factor;
+    bukharin_strength -= random_factor;
+    
+    // === DETERMINE OUTCOME ===
+    var total_strength = stalin_strength + bukharin_strength;
+    var stalin_percent = (stalin_strength / total_strength) * 100;
+    
+    if (stalin_percent >= 70) {
+        Q.comintern_line = "class_against_class"; // Full hardline
+        Q.social_fascism_doctrine = 100;
+    } else if (stalin_percent >= 55) {
+        Q.comintern_line = "modified_hardline"; // Hardline but with some flexibility
+        Q.social_fascism_doctrine = 70;
+    } else if (stalin_percent >= 45) {
+        Q.comintern_line = "pragmatic_center"; // Balanced approach
+        Q.social_fascism_doctrine = 40;
+    } else {
+        Q.comintern_line = "united_front"; // Moderate line wins
+        Q.social_fascism_doctrine = 20;
+    }
+!}
+go-to: class_against_class if comintern_line = "class_against_class"; modified_hardline if comintern_line = "modified_hardline"; pragmatic_center if comintern_line = "pragmatic_center"; united_front if comintern_line = "united_front"
+
+// ================================================
+// OUTCOME 1: CLASS AGAINST CLASS (Historical)
+// ================================================
+
+@class_against_class
+on-arrival: kpd_relation -= 15; communist_coalition = 0; kpd_hostile = 1; workers_kpd += 3; workers_spd -= 2; unemployed_kpd += 4; left_dissent += 5;
+
+**Congress Outcome: "Class Against Class"**
+
+Stalin's hardline triumphs completely. The Sixth Comintern Congress declares the world has entered the "Third Period"—capitalism's final crisis. All reformist parties are redefined as "social fascists," enemies of the working class who must be defeated before genuine revolution can occur.
+
+The resolution states: *"Social democracy is objectively the moderate wing of fascism. The fight against social democracy is therefore a prerequisite for successful struggle against fascism."*
+
+**Impact on Germany:**
+
+The KPD immediately implements the new line. Ernst Thälmann purges moderates within the party. All cooperation with the SPD—even against Nazis—is denounced as "betrayal of the working class."
+
+KPD propaganda now attacks the SPD as viciously as it attacks the NSDAP, sometimes more so. "Strike the fascists wherever they appear—in the SA uniform or the SPD card!" becomes a common slogan.
+
+[? if kpd_relation >= 50 : Our attempts at building left unity are shattered. KPD members who worked with us are expelled or disciplined. ?]
+
+[? if in_popular_front or in_left_front : Our left-wing coalition becomes impossible to maintain. The KPD withdraws all cooperation. ?]
+
+The German working class faces rising Nazi terror while the two workers' parties treat each other as enemies. Some workers, disgusted by sectarian infighting, drift away from both parties.
+
+[? if nazi_urgency >= 5 : As brownshirts rampage through the streets, communists and social democrats fight each other instead of the common enemy. History will judge this moment harshly. ?]
+
+- @accept_doctrine: We cannot change Moscow's decision
+- @protest_doctrine: Publicly protest the Comintern line
+
+@accept_doctrine
+on-arrival: left_dissent += 5; reformist_dissent += 3;
+
+We acknowledge the Comintern's decision while maintaining our own course. "The KPD has chosen their path. We choose ours: defending democracy against fascism, with or without communist support."
+
+Our left wing is bitter: "We reached out, and Moscow slapped our hand away."
+
+@protest_doctrine
+choose-if: left_strength >= 40 or communist_coalition >= 7
+unavailable-subtitle: [? if left_strength < 40 and communist_coalition < 7 : The party lacks the conviction or track record to challenge Moscow. ?]
+on-arrival: kpd_relation -= 5; left_dissent -= 5; pro_republic += 2; workers_spd += 2;
+
+"The Comintern's 'social fascism' doctrine is a catastrophic error that will enable Nazi victory!" we declare publicly. "We call on German communists to ignore Moscow and unite against the real fascists!"
+
+It's a bold denunciation of Soviet authority. The KPD denounces us even more viciously, but some communist workers privately agree. Our own base appreciates the clarity: we're not social fascists, we're anti-fascists.
+
+[? if kpd_relation >= 50 : A few KPD dissidents quietly maintain contact, defying party discipline. ?]
+
+// ================================================
+// OUTCOME 2: MODIFIED HARDLINE
+// ================================================
+
+@modified_hardline
+on-arrival: kpd_relation -= 8; workers_kpd += 2; workers_spd -= 1; unemployed_kpd += 2;
+
+**Congress Outcome: "Modified Hardline"**
+
+Stalin's faction prevails, but not completely. The "Class Against Class" doctrine is adopted, but with qualifications that provide tactical flexibility.
+
+The resolution condemns social democracy as the "main social support of the bourgeoisie" but stops short of the "social fascism" label. Local communist parties are instructed to prioritize independent working-class organization but may engage in "tactical maneuvers" where fascist danger is acute.
+
+**Impact on Germany:**
+
+The KPD adopts a hostile but not entirely rigid stance toward the SPD. Official cooperation is banned, but local pragmatic arrangements against Nazi violence are tolerated if framed as "united front from below" (approaching SPD workers, not the party).
+
+Thälmann enforces discipline but allows more flexibility than pure hardline would permit. The atmosphere is tense but not completely frozen.
+
+[? if kpd_relation >= 50 : Our relationship with the KPD chills significantly, but informal contacts continue. ?]
+
+[? if communist_coalition >= 5 : Existing left cooperation becomes more difficult but not impossible. ?]
+
+It's not the united front we hoped for, but neither is it complete sectarian warfare. The working-class movement remains divided, but not irrevocably hostile.
+
+- @work_within_limits: Work within these constraints
+
+@work_within_limits
+on-arrival: communist_coalition -= 3; left_dissent += 3;
+
+We acknowledge the new reality. Left unity will be harder, but not impossible. We'll seek cooperation where the KPD permits it, and proceed alone where they don't.
+
+// ================================================
+// OUTCOME 3: PRAGMATIC CENTER
+// ================================================
+
+@pragmatic_center
+on-arrival: kpd_relation += 5; workers_kpd += 1; workers_spd += 1; left_strength += 3;
+
+**Congress Outcome: "Pragmatic Approach"**
+
+The Sixth Congress produces a surprisingly balanced resolution. While emphasizing communist independence and criticizing social democratic reformism, it explicitly acknowledges the fascist danger and permits tactical cooperation.
+
+The resolution states: *"Communist parties must maintain ideological independence while recognizing that in countries facing fascist threats, temporary tactical cooperation with social democratic workers—though not their leadership—may be necessary for defensive purposes."*
+
+**Impact on Germany:**
+
+The KPD receives permission for pragmatic anti-fascist cooperation. While maintaining criticism of SPD policies, the KPD can work with social democrats against Nazi violence and in defense of working-class organizations.
+
+Thälmann grumbles about "opportunism" but accepts the line. Moderate KPD members are relieved—they've seen the Nazi threat up close and know sectarian purity is suicidal.
+
+[? if kpd_relation >= 50 : Our efforts at building left unity can continue and even expand. ?]
+
+[? if communist_coalition >= 5 : Existing cooperation is validated and can deepen. ?]
+
+The German working-class movement remains divided by ideology, but united by necessity against the fascist threat. It's an imperfect arrangement, but far better than sectarian warfare.
+
+- @seize_opportunity: Seize this opportunity for united front
+
+@seize_opportunity
+on-arrival: communist_coalition += 3; left_dissent -= 5; workers_kpd += 2; workers_spd += 2;
+
+"The Comintern has opened the door—we must walk through it!" We immediately propose concrete anti-fascist cooperation with the KPD: joint defense of working-class neighborhoods, coordinated strike actions, and unified opposition to Nazi violence.
+
+The left wing is energized. Finally, the communist parties can unite against fascism!
+
+// ================================================
+// OUTCOME 4: UNITED FRONT (Unlikely)
+// ================================================
+
+@united_front
+on-arrival: kpd_relation += 15; communist_coalition += 5; workers_kpd += 3; workers_spd += 3; unemployed_kpd += 2; unemployed_spd += 2; left_strength += 8; pro_republic += 3; nazi_urgency -= 1;
+
+**Congress Outcome: "United Front Strategy"**
+
+In a stunning upset, Bukharin's moderate faction prevails over Stalin's hardliners. The Sixth Congress endorses a "United Front" strategy for countries facing fascist threats.
+
+The resolution declares: *"Where fascism threatens to destroy the working-class movement, communist parties must prioritize anti-fascist unity over ideological purity. Cooperation with social democratic parties and trade unions is not betrayal but tactical necessity."*
+
+**Impact on Germany:**
+
+The KPD is instructed to prioritize anti-fascist cooperation over sectarian competition. Thälmann, though personally skeptical, implements the line. The KPD approaches the SPD for systematic cooperation.
+
+"We have ideological differences," KPD statements acknowledge, "but facing Nazi terror, the working class must stand united. We propose concrete cooperation: joint defense of trade union offices, coordinated strikes, unified opposition to fascist violence."
+
+[? if kpd_relation >= 50 : Our years of outreach have paid off. The united front we've sought is finally possible. ?]
+
+[? if communist_coalition >= 5 : Existing cooperation can now become formal and systematic. ?]
+
+The German working-class movement can face the Nazi threat with united strength. Social democrats and communists maintain separate organizations and ideologies, but present a common front against fascism.
+
+This is the opportunity we've waited for. The question is whether we can seize it effectively.
+
+- @embrace_united_front: Embrace the united front opportunity
+- @cautious_cooperation: Proceed cautiously with cooperation
+
+@embrace_united_front
+on-arrival: in_left_front = 1; communist_coalition += 8; left_strength += 12; workers_kpd += 5; workers_spd += 5; center_dissent += 8; reformist_dissent += 10; pro_republic += 5;
+
+"The united front is not betrayal—it's survival!" we declare. "We accept the KPD's offer of systematic cooperation against fascism!"
+
+Formal structures are established: joint defense committees, coordinated strike actions, unified anti-fascist propaganda. The Reichsbanner and RFB (communist paramilitary) coordinate rather than clash.
+
+Our center and reformist factions are deeply uncomfortable: "Are we becoming a communist party?" But the left wing and working-class base are energized. Finally, the workers' parties unite!
+
+The Nazi threat now faces a united working-class opposition. Whether this proves sufficient remains to be seen—but at least the working class isn't fighting itself.
+
+@cautious_cooperation
+on-arrival: communist_coalition += 3; left_dissent += 5; center_strength += 3;
+
+"We welcome cooperation against fascism while maintaining our independent democratic-socialist identity," we state carefully. Limited joint actions are organized, but we resist full merger of efforts.
+
+Our moderate factions are relieved—cooperation without absorption. But some on the left feel we're wasting the historic opportunity.
