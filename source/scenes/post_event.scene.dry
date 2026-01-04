@@ -905,10 +905,10 @@ if (Q.month_actions >= 1) {
     Q.prosperity_factor = Math.max(0, 1 - Q.inflation/100 - Q.unemployed/50) * 3;
 
     // Apply natural decay
-    Q.sa_strength  = Q.sa_strength - Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.sh_strength  = Q.sh_strength - Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.rfb_strength = Q.rfb_strength - Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.rb_strength  = Q.rb_strength - Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    Q.sa_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    Q.sh_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    Q.rfb_strength -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    Q.rb_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
 
     Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
     Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 10000);
