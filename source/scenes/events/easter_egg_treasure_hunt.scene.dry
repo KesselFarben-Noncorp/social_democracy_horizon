@@ -1,0 +1,28 @@
+title: The Treasure Hunter (Easter Egg)
+tags: event
+priority: 2
+view-if: east_relation >= 5 and year >= 1931 and resources >= 3
+max-visits: 1
+
+A Russian émigré claims to know the location of the legendary Amber Room and other Tsarist treasures hidden during the revolution. For resources and support, he'll recover them for Germany.
+
+- @treasure_hunt: Fund the expedition (-3 resources).
+- @treasure_refuse: Probably a con artist.
+
+@treasure_hunt
+achievement: bernsteinzimmer
+on-arrival: resources -= 3; treasure_hunt = 1;
+go-to: treasure_check
+
+@treasure_check
+on-arrival: {!
+    Q.treasure_found = Math.random() > 0.6;
+!}
+go-to: treasure_success if treasure_found; treasure_failure if not treasure_found;
+
+@treasure_success
+on-arrival: resources += 8; pro_republic += 3; east_relation += 10;
+
+The treasure is real! The Amber Room and other priceless artifacts are recovered. We sell some to fund social programs, donate others to museums, and return some to Russia as a gesture of goodwill.
+
+Germany is amazed. The SPD found lost treasures.
