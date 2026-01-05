@@ -24,9 +24,9 @@ What operations should we conduct?
 - @intel_penetrate: Penetrate enemy organizations (-3 resources).
 - @intel_counterspy: Counterintelligence sweep (-2 resources).
 - @intel_mysterious: Investigate strange reports (-2 resources) [? if intelligence_network >= 1 : (???) ?]
-- @intel_upgrade
-- @intel_upgrade_4
-- @intel_upgrade_5
+- @intel_upgrade: [? if intelligence_network = 2 and intelligence_can_upgrade_3 : Professionalize the network (-5 resources) ?]
+- @intel_upgrade_4: [? if intelligence_network = 3 and intelligence_can_upgrade_4 : Elite operations (-7 resources) ?]
+- @intel_upgrade_5: [? if intelligence_network = 4 and intelligence_can_upgrade_5 : Beyond the veil (-10 resources) ?]
 - @root: Not now.
 - @easy_discard
 
@@ -44,6 +44,8 @@ We recruit additional operatives:
 
 **Operatives: [+ intelligence_operatives +]**
 
+- @root: Continue operations.
+
 @intel_tech
 subtitle: -3 resources - Modern equipment
 choose-if: resources >= 3 and intelligence_tech = 0
@@ -59,6 +61,8 @@ We invest in modern surveillance technology:
 
 Our technical capabilities are now modern.
 
+- @root: Continue operations.
+
 @intel_expand
 subtitle: -2 resources - New regional cell
 choose-if: resources >= 2 and intelligence_coverage < 5
@@ -72,6 +76,8 @@ We establish a new regional intelligence cell:
 [? if intelligence_coverage = 5 : East Prussia - complete national coverage ?]
 
 **Coverage: [+ intelligence_coverage +]/5**
+
+- @root: Continue operations.
 
 @intel_penetrate
 subtitle: -3 resources - Infiltrate enemy groups (risky)
@@ -111,12 +117,14 @@ on-arrival: {!
         Q.penetration_result = "failure";
     }
 !}
-go-to: intel_penetrate_success if penetration_result = "success"; intel_penetrate_fail if penetration_result = "failure";
+go-to: intel_penetrate_success if penetration_result = "success"; intel_penetrate_fail if penetration_result = "failure"
 
 @intel_penetrate_fail
 on-arrival: intelligence_operatives -= 3; nazi_suspicion += 1;
 
 **Failure.** Three operatives are compromised. We extract two, but one is captured and beaten. The Nazis know we're watching.
+
+- @root: Continue operations.
 
 @intel_penetrate_success
 on-arrival: nazi_intelligence += 2; kpd_intelligence += 1; intelligence_achievements += 1;
@@ -144,7 +152,7 @@ on-arrival: {!
     var find_chance = 30 + (Q.intelligence_tech ? 20 : 0) + Q.intelligence_operatives;
     Q.spies_found = find_chance >= 50 || Math.random() * 100 < find_chance;
 !}
-go-to: intel_spies_found if spies_found; intel_no_spies if not spies_found;
+go-to: intel_spies_found if spies_found; intel_no_spies if not spies_found
 
 @intel_spies_found
 on-arrival: kpd_relation -= 5; moscow_intelligence = 0; internal_security += 1;
@@ -152,6 +160,8 @@ on-arrival: kpd_relation -= 5; moscow_intelligence = 0; internal_security += 1;
 We discover KPD agents reporting to Moscow. They're quietly removed.
 
 [? if kpd_relation >= 60 : The Conciliators in the KPD actually warned us about these Moscow loyalists. ?]
+
+- @root: Continue operations.
 
 @intel_no_spies
 
@@ -176,6 +186,8 @@ This is outside normal intelligence work, but... intriguing.
 
 **Unlocked:** Path to secret/occult content
 
+- @root: Continue operations.
+
 @intel_check_upgrade_2
 on-arrival: {!
     Q.intelligence_can_upgrade_3 = Q.intelligence_operatives >= 20 && 
@@ -183,7 +195,7 @@ on-arrival: {!
                                     Q.intelligence_funding >= 10 &&
                                     Q.intelligence_achievements >= 1;
 !}
-go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3; root if not intelligence_can_upgrade_3;
+go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3; root if not intelligence_can_upgrade_3
 
 @intel_upgrade_available_3
 
@@ -199,8 +211,10 @@ Requirements met:
 
 The upgrade option will appear next time.
 
+- @root: Continue operations.
+
 @intel_upgrade
-subtitle: -5 resources - Establish professional service. [? if intelligence_network = 2 and intelligence_can_upgrade_3 : Professionalize the network (-5 resources) ?]
+subtitle: -5 resources - Establish professional service
 view-if: intelligence_can_upgrade_3 = 1 and intelligence_network = 2
 choose-if: resources >= 5
 unavailable-subtitle: Need 5 resources.
@@ -222,8 +236,10 @@ You establish a true intelligence agency:
 - Advanced investigations
 - **Can pursue deeper mysteries**
 
+- @root: Continue operations.
+
 @intel_upgrade_4
-subtitle: -7 resources - Elite operations unit. [? if intelligence_network = 3 and intelligence_can_upgrade_4 : Elite operations (-7 resources) ?]
+subtitle: -7 resources - Elite operations unit
 view-if: intelligence_network = 3 and intelligence_operatives >= 30 and (nazi_intelligence >= 3 or kpd_intelligence >= 3 or anomalies_discovered = 1)
 choose-if: resources >= 7
 unavailable-subtitle: [? if resources < 7 : Need 7 resources. ?][? if intelligence_operatives < 30 : Need 30+ operatives. ?][? if nazi_intelligence < 3 and kpd_intelligence < 3 and anomalies_discovered = 0 : Need proven intelligence achievements. ?]
@@ -247,8 +263,10 @@ You establish elite capabilities:
 
 **Unlocks:** All secret content accessible
 
+- @root: Continue operations.
+
 @intel_upgrade_5
-subtitle: -10 resources - Beyond the veil (FINAL) - [? if intelligence_network = 4 and intelligence_can_upgrade_5 : Beyond the veil (-10 resources) ?]
+subtitle: -10 resources - Beyond the veil (FINAL)
 view-if: intelligence_network = 4 and intelligence_operatives >= 60 and (occult_contact = 1 or ufo_investigation = 1 or time_traveler = 1 or tesla_in_germany = 1)
 choose-if: resources >= 10
 unavailable-subtitle: [? if resources < 10 : Need 10 resources. ?][? if intelligence_operatives < 60 : Need 60+ operatives. ?][? if occult_contact = 0 and ufo_investigation = 0 and time_traveler = 0 and tesla_in_germany = 0 : Must have encountered unexplained phenomena. ?]
@@ -268,3 +286,5 @@ You've created something unprecedented: an intelligence service that investigate
 **Warning:** Some knowledge cannot be unlearned.
 
 **Unlocks:** ALL easter eggs, maximum tier mysteries
+
+- @root: Continue operations.
