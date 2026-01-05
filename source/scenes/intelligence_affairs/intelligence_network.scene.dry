@@ -84,9 +84,21 @@ We attempt to place agents inside enemy organizations...
 
 @intel_penetrate_roll
 on-arrival: {!
-    var success_chance = 40 + Q.intelligence_operatives + (Q.intelligence_tech ? 10 : 0);
-    if (Q.intelligence_coverage >= 3) success_chance += 10;
-    Q.penetration_success = success_chance >= 60 || Math.random() * 100 < success_chance;
+    var chance = 40;
+
+    chance += Q.intelligence_operatives;
+
+    if (Q.intelligence_tech == 1) {
+        chance += 10;
+    }
+
+    if (Q.intelligence_coverage >= 3) {
+        chance += 10;
+    }
+
+    if (chance > 95) chance = 95;
+
+    Q.penetration_success = (Math.random() * 100) < chance;
 !}
 go-to: intel_penetrate_success if penetration_success; intel_penetrate_fail if not penetration_success;
 
