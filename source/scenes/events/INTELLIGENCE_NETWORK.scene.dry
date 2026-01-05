@@ -1,0 +1,54 @@
+title: The Intelligence Proposal
+new-page: true
+tags: event
+view-if: intelligence_network = 0 and year >= 1935 and secret_mode = 1 and (interior_minister_party = "SPD" or spd_prussia) and intelligence_proposal_seen = 0
+on-arrival: intelligence_proposal_seen = 1;
+max-visits: 1
+
+Wilhelm Zaisser, SPD security expert, requests a private meeting.
+
+**"Comrades, we're fighting blind. The Nazis have their networks, the Communists have Moscow's agents, the Reichswehr has military intelligence. We need our own capability."**
+
+He proposes establishing a covert intelligence network:
+- Dedicated operatives
+- Surveillance capabilities  
+- Counterintelligence
+- Information gathering
+
+**Requirements:**
+- 3 resources for initial setup
+- Control of Interior Ministry or Prussia
+- Loyal security forces to draw personnel from
+
+The reformists object: *"This sounds like a secret police!"*
+
+The left counters: *"The fascists won't hesitate. We need intelligence or we die."*
+
+- @intel_found: Establish the intelligence network.
+- @intel_delay: Not yet - this is too risky.
+
+@intel_found
+choose-if: resources >= 3 and (prussian_police_loyalty >= 0.80 or reichswehr_loyalty >= 0.50)
+unavailable-subtitle: [? if resources < 3 : Need 3 resources. ?][? if prussian_police_loyalty < 0.80 and reichswehr_loyalty < 0.50 : Need loyal security forces (Police 80+ or Reichswehr 50+). ?]
+on-arrival: resources -= 3; intelligence_network = 1; intelligence_operatives = 10; intelligence_funding = 3; intelligence_coverage = 1; reformist_dissent += 8; center_dissent += 5; intelligence_timer = 6;
+
+**Intelligence Network Level 1 Established**
+
+You've founded a small intelligence apparatus operating from:
+[? if spd_prussia : - Prussian Interior Ministry ?]
+[? if interior_minister_party = "SPD" : - Reich Interior Ministry ?]
+- Trusted police acting as informants
+- 10 dedicated operatives
+- Basic surveillance equipment
+
+**Current Capabilities:**
+- Basic counterintelligence
+- Monitoring extremist groups
+- Cannot yet access deep secrets
+
+**New Feature Unlocked:** Intelligence cards will now appear periodically.
+
+@intel_delay
+on-arrival: intelligence_delayed = 1;
+
+You decline to establish the network. Perhaps later, when conditions are better...
