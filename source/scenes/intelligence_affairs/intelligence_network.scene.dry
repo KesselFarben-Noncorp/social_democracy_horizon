@@ -90,6 +90,11 @@ on-arrival: {!
 !}
 go-to: intel_penetrate_success if penetration_success; intel_penetrate_fail if not penetration_success;
 
+@intel_penetrate_fail
+on-arrival: intelligence_operatives -= 3; nazi_suspicion += 1;
+
+**Failure.** Three operatives are compromised. We extract two, but one is captured and beaten. The Nazis know we're watching.
+
 @intel_penetrate_success
 on-arrival: nazi_intelligence += 2; kpd_intelligence += 1; intelligence_achievements += 1;
 go-to: intel_check_upgrade_2
@@ -101,11 +106,6 @@ go-to: intel_check_upgrade_2
 - DNVP organizations
 
 We now receive regular enemy intelligence.
-
-@intel_penetrate_fail
-on-arrival: intelligence_operatives -= 3; nazi_suspicion += 1;
-
-**Failure.** Three operatives are compromised. We extract two, but one is captured and beaten. The Nazis know we're watching.
 
 @intel_counterspy
 subtitle: -2 resources - Find spies in our ranks
