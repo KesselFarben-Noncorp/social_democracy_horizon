@@ -16,7 +16,11 @@ go-to: treasure_check
 
 @treasure_check
 on-arrival: {!
-    Q.treasure_found = Math.random() > 0.6;
+    if (Math.random() > 0.6) {
+        Q.treasure_found = 1; // or true, depending on your needs
+    } else {
+        Q.treasure_found = 0; // or false
+    }
 !}
 go-to: treasure_success if treasure_found; treasure_failure if not treasure_found;
 
