@@ -84,23 +84,34 @@ We attempt to place agents inside enemy organizations...
 
 @intel_penetrate_roll
 on-arrival: {!
-    var chance = 40;
+    // === BASELINE ===
+    var penetration_strength = 40;
 
-    chance += Q.intelligence_operatives;
+    // Operatives matter most
+    penetration_strength += Q.intelligence_operatives;
 
+    // Technical support
     if (Q.intelligence_tech == 1) {
-        chance += 10;
+        penetration_strength += 10;
     }
 
+    // Network depth
     if (Q.intelligence_coverage >= 3) {
-        chance += 10;
+        penetration_strength += 10;
     }
 
-    if (chance > 95) chance = 95;
+    // Random operational friction (+/- 15)
+    var random_factor = Math.random() * 30 - 15;
+    penetration_strength += random_factor;
 
-    Q.penetration_success = (Math.random() * 100) < chance;
+    // === DETERMINE OUTCOME ===
+    if (penetration_strength >= 70) {
+        Q.penetration_result = "success";
+    } else {
+        Q.penetration_result = "failure";
+    }
 !}
-go-to: intel_penetrate_success if penetration_success; intel_penetrate_fail if not penetration_success;
+go-to: intel_penetrate_success if penetration_result = "success"; intel_penetrate_fail if penetration_result = "failure";
 
 @intel_penetrate_fail
 on-arrival: intelligence_operatives -= 3; nazi_suspicion += 1;
@@ -112,7 +123,9 @@ on-arrival: nazi_intelligence += 2; kpd_intelligence += 1; intelligence_achievem
 go-to: intel_check_upgrade_2
 
 **Success!** We've placed operatives inside:
-- NSDAP local branches
+- NSDAP local branch
+
+es
 - SA units  
 - KPD cells
 - DNVP organizations
