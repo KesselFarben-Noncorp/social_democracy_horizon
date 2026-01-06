@@ -77,10 +77,12 @@
   };
 
   window.enableBg = function() {
-      window.dendryUI.disable_bg = false;
-      window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
-      window.dendryUI.saveSettings();
-  };
+    if (window.dendryUI.crt_mode) return;
+
+    window.dendryUI.disable_bg = false;
+    window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
+    window.dendryUI.saveSettings();
+};
 
   window.disableAnimate = function() {
       window.dendryUI.animate = false;
@@ -149,14 +151,20 @@
       window.dendryUI.saveSettings();
   };
   window.enableCRTMode = function() {
-      window.dendryUI.crt_mode = true; 
-      window.dendryUI.dark_mode = false;
-      window.dendryUI.retro_mode = false;
-      document.body.classList.remove('dark-mode');
-      document.body.classList.remove('retro-mode');
-      document.body.classList.add('crt-mode');
-      window.dendryUI.saveSettings();
-  };
+    window.dendryUI.crt_mode = true; 
+    window.dendryUI.dark_mode = false;
+    window.dendryUI.retro_mode = false;
+
+    document.body.classList.remove('dark-mode');
+    document.body.classList.remove('retro-mode');
+    document.body.classList.add('crt-mode');
+
+    // Disable engine backgrounds entirely
+    window.dendryUI.disable_bg = true;
+    document.body.style.backgroundImage = 'none';
+
+    window.dendryUI.saveSettings();
+};
 
   // populates the checkboxes in the options view
   window.populateOptions = function() {
@@ -215,13 +223,18 @@
   // This function runs on a new page. Right now, this auto-saves.
   window.onNewPage = function() {
     var scene = window.dendryUI.dendryEngine.state.sceneId;
+
+    if (window.dendryUI.crt_mode) {
+        document.body.style.backgroundImage = 'none';
+    }
+
     if (scene != 'root' && !window.justLoaded) {
         window.dendryUI.autosave();
     }
     if (window.justLoaded) {
         window.justLoaded = false;
     }
-  };
+};
 
   // TODO: have some code for tabbed sidebar browsing.
   window.updateSidebar = function() {
@@ -290,10 +303,17 @@
 
   window.onload = function() {
     window.dendryUI.loadSettings({show_portraits: false});
+
     if (window.dendryUI.dark_mode) {
         document.body.classList.add('dark-mode');
     }
+    if (window.dendryUI.crt_mode) {
+        document.body.classList.add('crt-mode');
+        window.dendryUI.disable_bg = true;
+        document.body.style.backgroundImage = 'none';
+    }
+
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per 6 months.";
-  };
+};
 
 }());
