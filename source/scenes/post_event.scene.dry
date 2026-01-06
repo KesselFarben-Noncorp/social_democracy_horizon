@@ -804,6 +804,7 @@ if (Q.month_actions >= 1) {
         wp: (Q.pro_republic * 1.15) + (Q.inflation * 0.12),
         kpd:   Q.socialism * 1.25,             // extremist left, limited elasticity
         sapd:  Q.socialism * 1.05,
+        srpd:  (Q.socialism * 1.01) + (Q.rb_strength * 0.001) + (Q.pro_republic * 1.50),
         spd:   Q.pro_republic * 1.5,           // mass party, high elasticity
         ddp:   Q.pro_republic * 1.3,
         z:     Q.pro_republic * 1.4,           // confessional catch-all
@@ -846,6 +847,14 @@ if (Q.month_actions >= 1) {
                         Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism / Q.nationalism);
                         Q.ideology_factor = Q.random_factor(
                            Q.socialism_factor * Q.unrest_factor * 0.3 * Q.soc_adj,
+                           0.25
+                        );
+                     }
+                     break;
+                case 'srpd':
+                    if (Q.srpd_formed === 1) {
+                        Q.ideology_factor = Q.random_factor(
+                           (Q.pro_republic * 0.98) + (Q.rb_strength * 0.0002) ,
                            0.25
                         );
                      }
