@@ -2,7 +2,7 @@ title: Streetfighting
 new-page: true
 is-card: true
 on-arrival: streetfighting_timer = 6; month_actions += 1; rb_militarization_cost = 2 if rb_militancy > 0.1 else rb_militarization_cost = 1; rb_militarization_cost = 3 if rb_militancy > 0.25; strife += 1
-view-if: (year >= 1930 and sa_strength >= 150 and streetfighting_timer == 0 and not return_to_normalcy) or (sandbox = 1 and streetfighting_timer == 0)
+view-if: (year >= 1930 and (sa_strength >= 150 or sh_strength > 400 or rfb_strength > 100) and streetfighting_timer == 0 and not return_to_normalcy) or (sandbox = 1 and streetfighting_timer == 0)
 card-image: img/blutmai_2.jpg
 tags: party_affairs; antifascism
 
@@ -52,7 +52,7 @@ on-arrival: rb_militancy += 0.05; sa_strength += 50; prussian_police_training +=
 The loyal sections of the Prussian police can help train the Reichsbanner.
 
 @peace
-on-arrival: rb_militancy -= 0.02; rb_strength -= 50; pacifism += 1
+on-arrival: rb_militancy -= 0.02; rb_strength -= 50; pacifism += 1; neorevisionist_dissent += 5
 
 By not fighting, the strength of the Reichsbanner atrophies. Pacifists in the party are gaining the upper hand.
 
@@ -60,6 +60,6 @@ By not fighting, the strength of the Reichsbanner atrophies. Pacifists in the pa
 choose-if: kpd_relation >= 45
 view-if: kpd_truce == 0
 unavailable-subtitle: The KPD is not interested.
-on-arrival: kpd_truce = 1; kpd_relation += 5; rfb_strength += 50; rb_strength += 50; sa_strength += 50;
+on-arrival: kpd_truce = 1; kpd_relation += 5; rfb_strength += 50; rb_strength += 50; sa_strength += 50; neorevisionist_dissent += 8
 
 We have made at least a temporary truce with the KPD, so that our respective paramilitaries will stop fighting.
