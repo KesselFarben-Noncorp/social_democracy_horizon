@@ -125,14 +125,22 @@
   };
 
   window.enableLightMode = function() {
-      window.dendryUI.dark_mode = false;
-      window.dendryUI.retro_mode = false;
-      window.dendryUI.crt_mode = false;
-      document.body.classList.remove('dark-mode');
-      document.body.classList.remove('crt-mode');
-      document.body.classList.remove('retro-mode');
-      window.dendryUI.saveSettings();
-  };
+    window.dendryUI.dark_mode = false;
+    window.dendryUI.retro_mode = false;
+    window.dendryUI.crt_mode = false;
+
+    document.body.classList.remove('dark-mode');
+    document.body.classList.remove('crt-mode');
+    document.body.classList.remove('retro-mode');
+
+    // Restore scene background
+    var bg = window.dendryUI.dendryEngine.state.bg;
+    if (bg && !window.dendryUI.disable_bg) {
+        window.dendryUI.setBg(bg);
+    }
+
+    window.dendryUI.saveSettings();
+};
   window.enableDarkMode = function() {
       window.dendryUI.dark_mode = true;
       window.dendryUI.retro_mode = false;
@@ -151,7 +159,7 @@
       window.dendryUI.saveSettings();
   };
   window.enableCRTMode = function() {
-    window.dendryUI.crt_mode = true; 
+    window.dendryUI.crt_mode = true;
     window.dendryUI.dark_mode = false;
     window.dendryUI.retro_mode = false;
 
@@ -159,8 +167,7 @@
     document.body.classList.remove('retro-mode');
     document.body.classList.add('crt-mode');
 
-    // Disable engine backgrounds entirely
-    window.dendryUI.disable_bg = true;
+    // Mask background visually ONLY
     document.body.style.backgroundImage = 'none';
 
     window.dendryUI.saveSettings();
@@ -309,7 +316,6 @@
     }
     if (window.dendryUI.crt_mode) {
         document.body.classList.add('crt-mode');
-        window.dendryUI.disable_bg = true;
         document.body.style.backgroundImage = 'none';
     }
 
