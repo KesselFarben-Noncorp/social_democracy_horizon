@@ -22,7 +22,6 @@ on-arrival: {!
     if (!Q.dues_rural) { Q.dues_rural = 1; }
     if (!Q.dues_catholics) { Q.dues_catholics = 1; }
     
-    Q.fundraising_timer = 24; 
     Q.month_actions += 1;
 !}
 frequency: 300
@@ -61,7 +60,7 @@ What is our fundraising strategy?
 @collect_standard
 view-if: fundraising_timer <= 0
 subtitle: +[+ total_projected +] resources
-on-arrival: resources += total_projected;
+on-arrival: resources += total_projected; fundraising_timer = 24
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
@@ -138,7 +137,7 @@ go-to: adjust_dues_menu
 Unemployed dues increased. This is seen as tone-deaf to their suffering. The Left wing protests vocally.
 
 @unemployed_decrease
-choose-if: dues_unemployed > 1
+choose-if: dues_unemployed > -1
 unavailable-subtitle: Already at minimum rate.
 on-arrival: dues_unemployed -= 1; unemployed_spd += 3; labor_dissent -= 3;
 go-to: adjust_dues_menu
@@ -146,7 +145,7 @@ go-to: adjust_dues_menu
 Unemployed dues reduced. A gesture of solidarity with those struggling most.
 
 @unemployed_waive
-choose-if: dues_unemployed > 0
+choose-if: dues_unemployed > 1
 on-arrival: dues_unemployed = 0; unemployed_spd += 8; labor_dissent -= 8; left_dissent -= 5; workers_spd += 2;
 go-to: adjust_dues_menu
 
@@ -259,7 +258,8 @@ We launch a special fundraising drive, appealing to members' commitment and seek
 @fundraising_drive_roll
 on-arrival: {!
     // Base success depends on party strength and faction unity
-    var drive_strength = 12;
+    fundraising_timer = 24
+    var drive_strength = 10;
     drive_strength += Q.spd_r * 2; // Party strength
     drive_strength -= Q.labor_dissent * 0.5;
     drive_strength -= Q.reformist_dissent * 0.5;
@@ -290,7 +290,7 @@ The campaign generates [+ bonus_income +] additional resources.
 
 @austerity
 subtitle: Reduce party operating expenses
-on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5;
+on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5; fundraising_timer = 24
 
 The party leadership implements austerity:
 - Reduce headquarters staff
@@ -305,7 +305,7 @@ We save 3 resources but reformists and centrists complain about reduced effectiv
 @wealthy_donors
 view-if: fundraising_timer <= 0
 subtitle: Seek large donations from sympathetic wealthy individuals
-on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3;
+on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3; fundraising_timer = 24
 
 We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 5 resources.
 
