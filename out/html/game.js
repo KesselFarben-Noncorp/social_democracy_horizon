@@ -77,12 +77,10 @@
   };
 
   window.enableBg = function() {
-    if (window.dendryUI.crt_mode) return;
-
-    window.dendryUI.disable_bg = false;
-    window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
-    window.dendryUI.saveSettings();
-};
+      window.dendryUI.disable_bg = false;
+      window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
+      window.dendryUI.saveSettings();
+  };
 
   window.disableAnimate = function() {
       window.dendryUI.animate = false;
@@ -125,22 +123,14 @@
   };
 
   window.enableLightMode = function() {
-    window.dendryUI.dark_mode = false;
-    window.dendryUI.retro_mode = false;
-    window.dendryUI.crt_mode = false;
-
-    document.body.classList.remove('dark-mode');
-    document.body.classList.remove('crt-mode');
-    document.body.classList.remove('retro-mode');
-
-    // Restore scene background
-    var bg = window.dendryUI.dendryEngine.state.bg;
-    if (bg && !window.dendryUI.disable_bg) {
-        window.dendryUI.setBg(bg);
-    }
-
-    window.dendryUI.saveSettings();
-};
+      window.dendryUI.dark_mode = false;
+      window.dendryUI.retro_mode = false;
+      window.dendryUI.crt_mode = false;
+      document.body.classList.remove('dark-mode');
+      document.body.classList.remove('crt-mode');
+      document.body.classList.remove('retro-mode');
+      window.dendryUI.saveSettings();
+  };
   window.enableDarkMode = function() {
       window.dendryUI.dark_mode = true;
       window.dendryUI.retro_mode = false;
@@ -166,9 +156,6 @@
     document.body.classList.remove('dark-mode');
     document.body.classList.remove('retro-mode');
     document.body.classList.add('crt-mode');
-
-    // Mask background visually ONLY
-    document.body.style.backgroundImage = 'none';
 
     window.dendryUI.saveSettings();
 };
@@ -230,18 +217,13 @@
   // This function runs on a new page. Right now, this auto-saves.
   window.onNewPage = function() {
     var scene = window.dendryUI.dendryEngine.state.sceneId;
-
-    if (window.dendryUI.crt_mode) {
-        document.body.style.backgroundImage = 'none';
-    }
-
     if (scene != 'root' && !window.justLoaded) {
         window.dendryUI.autosave();
     }
     if (window.justLoaded) {
         window.justLoaded = false;
     }
-};
+  };
 
   // TODO: have some code for tabbed sidebar browsing.
   window.updateSidebar = function() {
@@ -310,16 +292,10 @@
 
   window.onload = function() {
     window.dendryUI.loadSettings({show_portraits: false});
-
     if (window.dendryUI.dark_mode) {
         document.body.classList.add('dark-mode');
     }
-    if (window.dendryUI.crt_mode) {
-        document.body.classList.add('crt-mode');
-        document.body.style.backgroundImage = 'none';
-    }
-
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per 6 months.";
-};
+  };
 
 }());
