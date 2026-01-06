@@ -93,6 +93,15 @@ body.crt-mode {
     --unavailable-bg-color: transparent;
 
     font-family: "VT323", "Courier New", monospace;
+
+    /* Phosphor glow + slight bloom */
+    text-shadow:
+        0 0 1px rgba(51,255,102,0.9),
+        0 0 4px rgba(51,255,102,0.5),
+        0 0 8px rgba(51,255,102,0.25);
+
+    /* Brightness instability */
+    animation: crt-flicker 8s infinite;
 }
 
 /* Frame styling */
@@ -100,16 +109,10 @@ body.crt-mode #content,
 body.crt-mode .tools {
     border: 2px solid var(--border-color);
     background: var(--bg-color);
+    animation: crt-jitter 6s infinite linear;
 }
 
-/* Subtle CRT glow */
-body.crt-mode {
-    text-shadow:
-        0 0 2px rgba(51, 255, 102, 0.6),
-        0 0 6px rgba(51, 255, 102, 0.3);
-}
-
-/* Optional scanlines (very subtle) */
+/* Scanlines */
 body.crt-mode::before {
     content: "";
     position: fixed;
@@ -117,12 +120,43 @@ body.crt-mode::before {
     pointer-events: none;
     background: repeating-linear-gradient(
         to bottom,
-        rgba(255,255,255,0.02),
-        rgba(255,255,255,0.02) 1px,
+        rgba(255,255,255,0.015),
+        rgba(255,255,255,0.015) 1px,
         rgba(0,0,0,0.02) 2px
     );
-    mix-blend-mode: overlay;
+    opacity: 0.35;
+    z-index: 9999;
 }
+
+/* Edge falloff (vignette) */
+body.crt-mode::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0,0,0,0) 60%,
+        rgba(0,0,0,0.25) 100%
+    );
+    z-index: 9998;
+}
+
+/* Electron beam jitter */
+@keyframes crt-jitter {
+    0%   { transform: translateX(0); }
+    50%  { transform: translateX(0.15px); }
+    100% { transform: translateX(0); }
+}
+
+/* Power fluctuation flicker */
+@keyframes crt-flicker {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.985; }
+    100% { opacity: 1; }
+}
+
+
 
 header, #content, footer {
   color: var(--text-color);
