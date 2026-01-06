@@ -25,31 +25,35 @@ Whether or not we are in an electoral campaign, the party is always trying to br
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: workers_spd += 6*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1
+on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1; workers_spd *= 0.98 if welfare <= 0; workers_spd -= (socialism / 90) if peoples_party = 1
 
 We have increased our campaigning among workers.
 [? if unemployed >= 15: High unemployment makes our campaign more difficult. ?]
 [? if wtb_adopted = 1: Adopting the WTB plan gives us a new rallying point to attract labor support. ?]
+[? if welfare < 0: Absence of the welfare program has impacted negatively our ability to campaign amongst workers. ?]
+[? if peoples/party > 0: As a people's party, increased socialist moods will heavily sabotage our campaign. ?]
 
 @new_middle
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: new_middle_spd += 6*(1-dissent); new_middle_spd -= 4 if socialism <= 49 and peoples_party == 0; resources -= 1; peoples_party_support += 1;
+on-arrival: new_middle_spd += 6*(1-dissent); new_middle_spd -= 4 if socialism <= 49 and peoples_party == 0; resources -= 1; peoples_party_support += 1; new_middle_spd *= - (upper_tax_rates * 2)
 
 We have increased our campaigning among the new middle class.
 [? if socialism <= 49 and peoples_party == 0: Antipathy toward socialism in this group makes our campaign more difficult. ?]
 [? if peoples_party > 0: As a people's party, we have an easier time gaining middle-class support. ?]
+[? if upper_tax_rates > 0: Taxes impacting new mittlestand has decreased effectiveness of our campaign. ?]
 
 @old_middle
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1
+on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1; old_middle_spd *= - (upper_tax_rates * 2)
 
 We have increased our campaigning among the old middle class.
 [? if nationalism >= 51 and peoples_party == 0: High nationalism among this group makes campaigning difficult. ?]
 [? if peoples_party > 0: As a people's party, it is now easier to increase support among them. ?]
+[? if upper_tax_rates > 0: Taxes impacting old mittlestand has decreased effectiveness of our campaign. ?]
 
 @rural
 subtitle: -1 resources
@@ -77,9 +81,11 @@ subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 view-if: peoples_party == 1
-on-arrival: catholics_spd += 6*(1-dissent); resources -= 1
+on-arrival: catholics_spd += 6*(1-dissent); resources -= 1; catholics_spd *= 1.03 if reichskonkordat = 1;  catholics_spd *= 1.01 if prussian_concordat = 1
 
 We have increased our campaigning among Catholics.
+[if reichskonkordat = 1: Signing the Concordat between Reich and Pope has gathered us major popularity amongst the catholics. ?]
+[if prussian_concordat = 1: Signing the Prussian Concordate (and Pope) has gathered us major popularity amongst the catholics of the Prussia. ?]
 
 @finish_game
 view-if: sandbox = 1
