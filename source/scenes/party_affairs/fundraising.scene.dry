@@ -5,8 +5,8 @@ on-arrival: {!
     // Calculate base income from each demographic
     Q.workers_income = Math.floor(Q.workers_spd * Q.dues_workers * 0.01 * (1 - Q.labor_dissent * 0.005));
     Q.unemployed_income = Math.floor(Q.unemployed_spd * Q.dues_unemployed * 0.01 * (1 - Q.labor_dissent * 0.005));
-    Q.new_middle_income = Math.floor(Q.new_middle_spd * Q.dues_new_middle * 0.01 * (1 - Q.reformist_dissent * 0.005));
-    Q.old_middle_income = Math.floor(Q.old_middle_spd * Q.dues_old_middle * 0.01 * (1 - Q.center_dissent * 0.005));
+    Q.new_middle_income = Math.floor(Q.new_middle_spd * Q.dues_new_middle * 0.02 * (1 - Q.reformist_dissent * 0.005));
+    Q.old_middle_income = Math.floor(Q.old_middle_spd * Q.dues_old_middle * 0.02 * (1 - Q.center_dissent * 0.005));
     Q.rural_income = Math.floor(Q.rural_spd * Q.dues_rural * 0.01 * (1 - Q.center_dissent * 0.005));
     Q.catholics_income = Math.floor(Q.catholics_spd * Q.dues_catholics * 0.01 * (1 - Q.center_dissent * 0.005));
     
@@ -250,9 +250,8 @@ Catholic dues reduced. This eases tensions with our religious members.
 
 @fundraising_drive
 subtitle: Intensive fundraising campaign
-choose-if: month_actions >= 1
+view-if fundraising_timer <= 0
 unavailable-subtitle: Not enough actions remaining.
-on-arrival: month_actions -= 1;
 go-to: fundraising_drive_roll
 
 We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
@@ -260,7 +259,7 @@ We launch a special fundraising drive, appealing to members' commitment and seek
 @fundraising_drive_roll
 on-arrival: {!
     // Base success depends on party strength and faction unity
-    var drive_strength = 30;
+    var drive_strength = 12;
     drive_strength += Q.spd_r * 2; // Party strength
     drive_strength -= Q.labor_dissent * 0.5;
     drive_strength -= Q.reformist_dissent * 0.5;
@@ -283,9 +282,9 @@ on-arrival: {!
 
 The campaign generates [+ bonus_income +] additional resources.
 
-[? if bonus_income >= 12 : Excellent response! Members dug deep for the cause. ?]
-[? if bonus_income >= 8 and bonus_income < 12 : Good results. Members showed solid commitment. ?]
-[? if bonus_income < 8 : Modest returns. Perhaps members are stretched thin or dissatisfied. ?]
+[? if bonus_income >= 18 : Excellent response! Members dug deep for the cause. ?]
+[? if bonus_income >= 12 and bonus_income < 18 : Good results. Members showed solid commitment. ?]
+[? if bonus_income < 12 : Modest returns. Perhaps members are stretched thin or dissatisfied. ?]
 
 - @root: Continue.
 
