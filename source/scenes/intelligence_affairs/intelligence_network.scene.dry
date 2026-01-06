@@ -3,90 +3,98 @@ new-page: true
 is-card: true
 tags: intel_affairs
 view-if: intelligence_proposal_seen = 1 and intelligence_timer <= 0
-on-arrival: intelligence_timer = 6; month_actions += 0.5;
+on-arrival: {!
+    // Silent background check for upgrade availability
+    Q.intelligence_can_upgrade_3 = Q.intelligence_operatives >= 20 && 
+                                    Q.intelligence_coverage >= 3 && 
+                                    Q.intelligence_funding >= 10 &&
+                                    Q.intelligence_achievements >= 1;
+    intelligence_timer = 6;
+!}
 frequency: 200
 card-image: img/info.jpg
+go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3
 
 = Intelligence Operations
 
-Wilhelm Zaisser reports on current network status:
+Minister Zaisser submits his quarterly intelligence assessment:
 
-**Intelligence Network Level [+ intelligence_network +]**
-- Operatives: [+ intelligence_operatives +]
-- Coverage: [+ intelligence_coverage +]/5 regions
-- Total Funding Invested: [+ intelligence_funding +]
+**Intelligence Service Status - Classification Level [+ intelligence_network +]**
+- Personnel Strength: [+ intelligence_operatives +]
+- Operational Coverage: [+ intelligence_coverage +]/5 regions
+- Cumulative Budget Allocation: [+ intelligence_funding +] resources
 
-What operations should we conduct?
+The Interior Ministry requests authorization for the following operations:
 
-- @intel_recruit: Recruit more operatives (-2 resources).
-- @intel_tech: Invest in surveillance technology (-3 resources).
-- @intel_expand: Expand regional coverage (-2 resources).
-- @intel_penetrate: Penetrate enemy organizations (-3 resources).
-- @intel_counterspy: Counterintelligence sweep (-2 resources).
-- @intel_mysterious: Investigate strange reports (-2 resources) [? if intelligence_network >= 1 : (???) ?]
-- @intel_upgrade: [? if intelligence_network = 2 and intelligence_can_upgrade_3 : Professionalize the network (-5 resources) ?]
-- @intel_upgrade_4: [? if intelligence_network = 3 and intelligence_can_upgrade_4 : Elite operations (-7 resources) ?]
-- @intel_upgrade_5: [? if intelligence_network = 4 and intelligence_can_upgrade_5 : Beyond the veil (-10 resources) ?]
-- @root: Not now.
+- @intel_recruit: Personnel expansion (-2 resources).
+- @intel_tech: Technical modernization program (-3 resources).
+- @intel_expand: Regional network extension (-2 resources).
+- @intel_penetrate: Hostile organization infiltration (-3 resources).
+- @intel_counterspy: Internal security sweep (-2 resources).
+- @intel_mysterious: Investigation of anomalous reports (-2 resources) [? if intelligence_network >= 1 : (Classification Restricted) ?]
+- @intel_upgrade: [? if intelligence_network = 2 and intelligence_can_upgrade_3 : Service professionalization initiative (-5 resources) ?]
+- @intel_upgrade_4: [? if intelligence_network = 3 and intelligence_can_upgrade_4 : Elite operations authorization (-7 resources) ?]
+- @intel_upgrade_5: [? if intelligence_network = 4 and intelligence_can_upgrade_5 : Special classification clearance (-10 resources) ?]
+- @root: Defer approval.
 - @easy_discard
 
 @intel_recruit
-subtitle: -2 resources - Expand personnel
+subtitle: -2 resources - Expand operational personnel
 choose-if: resources >= 2
-unavailable-subtitle: Need 2 resources.
+unavailable-subtitle: Insufficient budgetary allocation.
 on-arrival: resources -= 2; intelligence_operatives += 5; intelligence_funding += 2;
 
-We recruit additional operatives:
-- Former police officers
-- Trusted party members
-- Surveillance specialists
-- Linguists for intercepts
+The recruitment program has been authorized. Personnel acquisition includes:
+- Former law enforcement officials
+- Vetted party functionaries
+- Technical surveillance specialists
+- Foreign language experts
 
-**Operatives: [+ intelligence_operatives +]**
+**Current Personnel Strength: [+ intelligence_operatives +]**
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_tech
-subtitle: -3 resources - Modern equipment
+subtitle: -3 resources - Procure modern equipment
 choose-if: resources >= 3 and intelligence_tech = 0
-unavailable-subtitle: [? if resources < 3 : Need 3 resources. ?][? if intelligence_tech = 1 : Already purchased. ?]
+unavailable-subtitle: [? if resources < 3 : Insufficient budgetary allocation. ?][? if intelligence_tech = 1 : Technical modernization already completed. ?]
 on-arrival: resources -= 3; intelligence_tech = 1; intelligence_funding += 3; intelligence_effectiveness += 1;
 
-We invest in modern surveillance technology:
-- Wire-tapping equipment
-- Photography gear
-- Radio interception
-- Code-breaking materials
-- Hidden microphones
+Technical modernization has been authorized. Procurement includes:
+- Telephone interception apparatus
+- Photographic surveillance equipment
+- Radio signal intercepts
+- Cryptanalysis materials
+- Miniaturized audio recording devices
 
-Our technical capabilities are now modern.
+The service's technical capabilities now meet modern standards.
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_expand
-subtitle: -2 resources - New regional cell
+subtitle: -2 resources - Establish additional regional cell
 choose-if: resources >= 2 and intelligence_coverage < 5
-unavailable-subtitle: [? if resources < 2 : Need 2 resources. ?][? if intelligence_coverage >= 5 : Already have full coverage. ?]
+unavailable-subtitle: [? if resources < 2 : Insufficient budgetary allocation. ?][? if intelligence_coverage >= 5 : National coverage already achieved. ?]
 on-arrival: resources -= 2; intelligence_coverage += 1; intelligence_funding += 2;
 
-We establish a new regional intelligence cell:
-[? if intelligence_coverage = 2 : Bavaria - Nazi heartland ?]
-[? if intelligence_coverage = 3 : Saxony - KPD stronghold ?]
-[? if intelligence_coverage = 4 : Rhineland - French border ?]
-[? if intelligence_coverage = 5 : East Prussia - complete national coverage ?]
+Regional expansion has been authorized:
+[? if intelligence_coverage = 2 : Bavaria - primary target: NSDAP monitoring ?]
+[? if intelligence_coverage = 3 : Saxony - primary target: KPD surveillance ?]
+[? if intelligence_coverage = 4 : Rhineland - primary target: border security ?]
+[? if intelligence_coverage = 5 : East Prussia - full national coverage achieved ?]
 
-**Coverage: [+ intelligence_coverage +]/5**
+**Current Coverage: [+ intelligence_coverage +]/5 regions**
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_penetrate
-subtitle: -3 resources - Infiltrate enemy groups (risky)
+subtitle: -3 resources - Deep infiltration operation (high-risk)
 choose-if: resources >= 3 and intelligence_operatives >= 15
-unavailable-subtitle: [? if resources < 3 : Need 3 resources. ?][? if intelligence_operatives < 15 : Need 15+ operatives. ?]
+unavailable-subtitle: [? if resources < 3 : Insufficient budgetary allocation. ?][? if intelligence_operatives < 15 : Insufficient personnel for operation. ?]
 on-arrival: resources -= 3; intelligence_funding += 3; penetration_attempt = 1;
 go-to: intel_penetrate_roll
 
-We attempt to place agents inside enemy organizations...
+Authorization granted for deep infiltration of hostile organizations. Operation commencing...
 
 @intel_penetrate_roll
 on-arrival: {!
@@ -122,30 +130,30 @@ go-to: intel_penetrate_success if penetration_result = "success"; intel_penetrat
 @intel_penetrate_fail
 on-arrival: intelligence_operatives -= 3; nazi_suspicion += 1;
 
-**Failure.** Three operatives are compromised. We extract two, but one is captured and beaten. The Nazis know we're watching.
+**Operation Status: COMPROMISED.** Three operatives have been exposed. Two successfully exfiltrated; one detained and subjected to interrogation by NSDAP security. Hostile awareness of our surveillance operations has increased.
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_penetrate_success
 on-arrival: nazi_intelligence += 2; kpd_intelligence += 1; intelligence_achievements += 1;
 go-to: intel_check_upgrade_2
 
-**Success!** We've placed operatives inside:
-- NSDAP local branches
-- SA units  
-- KPD cells
-- DNVP organizations
+**Operation Status: SUCCESS.** Agents successfully embedded within:
+- NSDAP regional administrative structures
+- SA (Sturmabteilung) paramilitary units
+- KPD organizational cells
+- DNVP party apparatus
 
-We now receive regular enemy intelligence.
+Regular intelligence product from hostile organizations is now flowing to headquarters.
 
 @intel_counterspy
-subtitle: -2 resources - Find spies in our ranks
+subtitle: -2 resources - Internal security screening
 choose-if: resources >= 2
-unavailable-subtitle: Need 2 resources.
+unavailable-subtitle: Insufficient budgetary allocation.
 on-arrival: resources -= 2; intelligence_funding += 2;
 go-to: intel_counterspy_roll
 
-We sweep our organization for infiltrators...
+Internal security sweep authorized. Counterintelligence investigation commencing...
 
 @intel_counterspy_roll
 on-arrival: {!
@@ -157,134 +165,130 @@ go-to: intel_spies_found if spies_found; intel_no_spies if not spies_found
 @intel_spies_found
 on-arrival: kpd_relation -= 5; moscow_intelligence = 0; internal_security += 1;
 
-We discover KPD agents reporting to Moscow. They're quietly removed.
+**Security Alert:** KPD intelligence operatives reporting to Comintern headquarters have been identified within the organization. Subjects have been discreetly removed from sensitive positions.
 
-[? if kpd_relation >= 60 : The Conciliators in the KPD actually warned us about these Moscow loyalists. ?]
+[? if kpd_relation >= 60 : Intelligence suggests the KPD Conciliator faction provided actionable intelligence regarding these Moscow-aligned operatives. ?]
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_no_spies
 
-We find no significant infiltration. Either we're clean, or they're very good.
+Internal security sweep completed. No significant hostile penetration detected. Assessment: either organizational security is intact, or hostile tradecraft exceeds detection capabilities.
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_mysterious
-subtitle: -2 resources - Anomalous phenomena (???)
+subtitle: -2 resources - Investigate anomalous intelligence (Classification Restricted)
 view-if: intelligence_network >= 1 and anomalies_discovered = 0
 choose-if: resources >= 2
-unavailable-subtitle: [? if resources < 2 : Need 2 resources. ?]
+unavailable-subtitle: [? if resources < 2 : Insufficient budgetary allocation. ?]
 on-arrival: resources -= 2; anomalies_discovered = 1; intelligence_funding += 2;
 
-Our agents report unusual intelligence:
-- Occult groups with political connections (Thule Society)
-- Soviet agents with impossible foreknowledge
-- Strange sightings over Germany
-- Unexplained phenomena
+Field operatives have submitted reports of phenomena outside normal intelligence parameters:
+- Political organizations with documented occult affiliations (Thule-Gesellschaft)
+- Soviet agents demonstrating inexplicable operational foreknowledge
+- Unidentified aerial phenomena over Reich territory
+- Events without rational explanation
 
-This is outside normal intelligence work, but... intriguing.
+These matters fall outside standard intelligence protocols, but warrant investigation.
 
-**Unlocked:** Path to secret/occult content
+**Classification Upgrade Authorized:** Access to restricted investigation files
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
-@intel_check_upgrade_2
-on-arrival: {!
-    Q.intelligence_can_upgrade_3 = Q.intelligence_operatives >= 20 && 
-                                    Q.intelligence_coverage >= 3 && 
-                                    Q.intelligence_funding >= 10 &&
-                                    Q.intelligence_achievements >= 1;
-!}
-go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3; root if not intelligence_can_upgrade_3
+go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3
 
 @intel_upgrade_available_3
+max-visits: 1
 
-**Intelligence Network Upgrade Available!**
 
-You've built a strong foundation. You can now professionalize the network into a true intelligence service.
+**Ministry Assessment: Service Reorganization Recommended**
 
-Requirements met:
-- 20+ operatives ✓
-- 3+ regional coverage ✓
-- 10+ funding investment ✓
-- Successful enemy penetration ✓
+Current operational capacity has exceeded initial organizational framework. The Interior Ministry recommends formal establishment of a professionalized intelligence service.
 
-The upgrade option will appear next time.
+Prerequisites satisfied:
+- Personnel strength ≥20 operatives ✓
+- Operational coverage ≥3 regions ✓
+- Cumulative investment ≥10 resources ✓
+- Successful hostile infiltration operations ✓
 
-- @root: Continue operations.
+Reorganization authorization will be available at next operations review.
+
+- @root: Continue operations review.
 
 @intel_upgrade
-subtitle: -5 resources - Establish professional service
+subtitle: -5 resources - Establish professional intelligence service
 view-if: intelligence_can_upgrade_3 = 1 and intelligence_network = 2
 choose-if: resources >= 5
-unavailable-subtitle: Need 5 resources.
+unavailable-subtitle: Insufficient budgetary allocation.
 on-arrival: resources -= 5; intelligence_network = 3; intelligence_professional = 1; reformist_dissent += 10;
 achievement: nachrichtendienst
 
-**Intelligence Network Level 3: Professional Service**
+**Authorization Granted: Intelligence Service Classification Level 3**
 
-You establish a true intelligence agency:
-- Secure headquarters
-- Professional training
-- Cryptography department
-- Foreign intelligence capability
-- Counterintelligence division
+The Interior Ministry has established a fully professionalized intelligence apparatus:
+- Secure headquarters facility established
+- Standardized tradecraft training program
+- Cryptographic analysis department
+- Foreign intelligence operations capability
+- Dedicated counterintelligence division
 
-**New Capabilities:**
-- Deep enemy penetration
-- International operations
-- Advanced investigations
-- **Can pursue deeper mysteries**
+**Enhanced Operational Capabilities:**
+- Deep penetration operations against hostile organizations
+- International intelligence collection
+- Advanced investigative methodologies
+- **Access to restricted investigation protocols**
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_upgrade_4
-subtitle: -7 resources - Elite operations unit
+subtitle: -7 resources - Authorize elite operations division
 view-if: intelligence_network = 3 and intelligence_operatives >= 30 and (nazi_intelligence >= 3 or kpd_intelligence >= 3 or anomalies_discovered = 1)
 choose-if: resources >= 7
-unavailable-subtitle: [? if resources < 7 : Need 7 resources. ?][? if intelligence_operatives < 30 : Need 30+ operatives. ?][? if nazi_intelligence < 3 and kpd_intelligence < 3 and anomalies_discovered = 0 : Need proven intelligence achievements. ?]
+unavailable-subtitle: [? if resources < 7 : Insufficient budgetary allocation. ?][? if intelligence_operatives < 30 : Insufficient personnel for elite operations. ?][? if nazi_intelligence < 3 and kpd_intelligence < 3 and anomalies_discovered = 0 : Insufficient operational achievements for authorization. ?]
 on-arrival: resources -= 7; intelligence_network = 4; intelligence_elite = 1;
 achievement: geheimdienst
 
-**Intelligence Network Level 4: Elite Service**
+**Authorization Granted: Intelligence Service Classification Level 4**
 
-You establish elite capabilities:
-- 50+ highly trained operatives
-- International spy network
-- Advanced tradecraft
-- **Special investigations unit for "unusual" matters**
-- Psychological operations
+The Interior Ministry has established elite operational capabilities:
+- Expanded personnel: 50+ highly trained operatives
+- International intelligence network
+- Advanced operational security protocols
+- **Special investigations unit for unconventional threats**
+- Psychological operations capability
 
-**New Capabilities:**
-- Counter-coup operations
-- Defensive/offensive capabilities
-- Enemy manipulation
-- **Investigation of occult and anomalous phenomena**
+**Enhanced Operational Capabilities:**
+- Counter-coup and internal security operations
+- Active and passive intelligence operations
+- Hostile organization manipulation
+- **Investigation of anomalous and unconventional phenomena**
 
-**Unlocks:** All secret content accessible
+**Security Clearance:** All restricted investigation files accessible
 
-- @root: Continue operations.
+- @root: Continue operations review.
 
 @intel_upgrade_5
-subtitle: -10 resources - Beyond the veil (FINAL)
+subtitle: -10 resources - Special classification authorization (MAXIMUM)
 view-if: intelligence_network = 4 and intelligence_operatives >= 60 and (occult_contact = 1 or ufo_investigation = 1 or time_traveler = 1 or tesla_in_germany = 1)
 choose-if: resources >= 10
-unavailable-subtitle: [? if resources < 10 : Need 10 resources. ?][? if intelligence_operatives < 60 : Need 60+ operatives. ?][? if occult_contact = 0 and ufo_investigation = 0 and time_traveler = 0 and tesla_in_germany = 0 : Must have encountered unexplained phenomena. ?]
+unavailable-subtitle: [? if resources < 10 : Insufficient budgetary allocation. ?][? if intelligence_operatives < 60 : Insufficient personnel for special operations. ?][? if occult_contact = 0 and ufo_investigation = 0 and time_traveler = 0 and tesla_in_germany = 0 : Must have documented contact with unexplained phenomena. ?]
 on-arrival: resources -= 10; intelligence_network = 5; intelligence_beyond = 1;
 achievement: jenseits_des_schleiers
 
-**Intelligence Network Level 5: Beyond the Veil**
+**Authorization Granted: Intelligence Service Classification Level 5**
 
-You've created something unprecedented: an intelligence service that investigates threats to reality itself.
+The Interior Ministry has authorized an unprecedented organizational structure: an intelligence service tasked with investigation of threats beyond conventional parameters.
 
-**Department X (Classified):**
-- Investigates anomalous phenomena
-- Studies unexplained technology
-- Tracks temporal/dimensional anomalies
-- Operates beyond normal protocols
+**Abteilung X (Maximum Classification):**
+- Investigation of anomalous phenomena
+- Analysis of unexplained technological capabilities
+- Monitoring of temporal/dimensional irregularities
+- Operations beyond standard protocols
 
-**Warning:** Some knowledge cannot be unlearned.
+**Security Notice:** Certain intelligence products may pose psychological hazards to reviewing personnel.
 
-**Unlocks:** ALL easter eggs, maximum tier mysteries
+**Security Clearance:** All investigation files accessible, including maximum classification materials
 
-- @root: Continue operations.
+- @root: Continue operations review.
+```
