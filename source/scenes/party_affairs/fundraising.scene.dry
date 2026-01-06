@@ -49,17 +49,19 @@ Breakdown by demographic:
 
 What is our fundraising strategy?
 
-- @collect_standard: Collect current dues ([+ total_projected +] resources).
+- @collect_standard: Collect current dues ([+ total_projected +] resources). [? if fundraising_timer > 0 : (Available in [+ fundraising_timer +] months) ?]
 - @adjust_dues: Adjust dues rates by demographic.
-- @fundraising_drive: Special fundraising campaign (-1 action, variable income).
-- @austerity: Party austerity measures (reduce operating costs).
-- @wealthy_donors: Seek donations from wealthy sympathizers.
+- @fundraising_drive: Special fundraising campaign (variable income). [? if fundraising_timer > 0 : (Available in [+ fundraising_timer +] months) ?]
+- @austerity: Party austerity measures (reduce operating costs). [? if fundraising_timer > 0 : (Available in [+ fundraising_timer +] months) ?]
+- @wealthy_donors: Seek donations from wealthy sympathizers. [? if fundraising_timer > 0 : (Available in [+ fundraising_timer +] months) ?]
 - @root: Defer decision.
 - @easy_discard
 
 @collect_standard
 view-if: fundraising_timer <= 0
 subtitle: +[+ total_projected +] resources
+choose-if: fundraising_timer <= 0
+unavailable-subtitle: [? if fundraising_timer > 0 : Cannot collect dues yet. Available in [+ fundraising_timer +] months. ?]
 on-arrival: resources += total_projected; fundraising_timer = 24
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
@@ -90,8 +92,7 @@ Current rates:
 - @adjust_old_middle: Adjust old middle class dues (current: [+ dues_old_middle +])
 - @adjust_rural: Adjust rural dues (current: [+ dues_rural +])
 - @adjust_catholics: Adjust Catholic dues (current: [+ dues_catholics +])
-- @collect_standard: Finalize and collect dues.
-- @root: Cancel changes.
+- @root: Done adjusting (changes take effect next collection).
 
 @adjust_workers
 
@@ -124,8 +125,8 @@ Worker dues reduced. Our working-class base appreciates the relief.
 Unemployed dues are currently [+ dues_unemployed +]. The unemployed have limited means.
 
 - @unemployed_increase: Increase to [+ dues_unemployed + 1 +] (exploitative?)
-- @unemployed_decrease: Decrease to [+ dues_unemployed - 1 +] [? if dues_unemployed <= 1 : (already at minimum) ?]
-- @unemployed_waive: Waive dues entirely (solidarity gesture)
+- @unemployed_decrease: Decrease to [+ dues_unemployed - 1 +] [? if dues_unemployed <= 0.5 : (already at minimum) ?]
+- @unemployed_waive: Waive dues entirely (solidarity gesture) [? if dues_unemployed <= 0 : (already waived) ?]
 - @adjust_dues_menu: Back
 
 @unemployed_increase
@@ -137,15 +138,16 @@ go-to: adjust_dues_menu
 Unemployed dues increased. This is seen as tone-deaf to their suffering. The Left wing protests vocally.
 
 @unemployed_decrease
-choose-if: dues_unemployed > -1
+choose-if: dues_unemployed > 0
 unavailable-subtitle: Already at minimum rate.
-on-arrival: dues_unemployed -= 1; unemployed_spd += 3; labor_dissent -= 3;
+on-arrival: dues_unemployed -= 0.5; unemployed_spd += 3; labor_dissent -= 3;
 go-to: adjust_dues_menu
 
 Unemployed dues reduced. A gesture of solidarity with those struggling most.
 
 @unemployed_waive
-choose-if: dues_unemployed > 1
+choose-if: dues_unemployed > 0
+unavailable-subtitle: [? if dues_unemployed <= 0 : Already waived. ?]
 on-arrival: dues_unemployed = 0; unemployed_spd += 8; labor_dissent -= 8; left_dissent -= 5; workers_spd += 2;
 go-to: adjust_dues_menu
 
@@ -210,7 +212,7 @@ Rural dues are currently [+ dues_rural +]. Farmers and rural workers have variab
 @rural_increase
 choose-if: dues_rural < 5
 unavailable-subtitle: Already at maximum rate.
-on-arrival: dues_rural += 1; rural_spd -= 3; center_dissent += 3;
+on-arrival: rural_spd += 1; rural_spd -= 3; center_dissent += 3;
 go-to: adjust_dues_menu
 
 Rural dues increased. Our limited rural base shrinks further.
@@ -250,7 +252,8 @@ Catholic dues reduced. This eases tensions with our religious members.
 @fundraising_drive
 subtitle: Intensive fundraising campaign
 view-if: fundraising_timer <= 0
-unavailable-subtitle: Not enough actions remaining.
+choose-if: fundraising_timer <= 0
+unavailable-subtitle: [? if fundraising_timer > 0 : Cannot launch another drive yet. Available in [+ fundraising_timer +] months. ?]
 on-arrival: fundraising_timer = 24;
 go-to: fundraising_drive_roll
 
@@ -290,6 +293,9 @@ The campaign generates [+ bonus_income +] additional resources.
 
 @austerity
 subtitle: Reduce party operating expenses
+view-if: fundraising_timer <= 0
+choose-if: fundraising_timer <= 0
+unavailable-subtitle: [? if fundraising_timer > 0 : Cannot implement austerity again yet. Available in [+ fundraising_timer +] months. ?]
 on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5; fundraising_timer = 24
 
 The party leadership implements austerity:
@@ -303,8 +309,10 @@ We save 3 resources but reformists and centrists complain about reduced effectiv
 - @root: Continue.
 
 @wealthy_donors
-view-if: fundraising_timer <= 0
 subtitle: Seek large donations from sympathetic wealthy individuals
+view-if: fundraising_timer <= 0
+choose-if: fundraising_timer <= 0
+unavailable-subtitle: [? if fundraising_timer > 0 : Cannot approach wealthy donors again yet. Available in [+ fundraising_timer +] months. ?]
 on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3; fundraising_timer = 24
 
 We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 5 resources.
