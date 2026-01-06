@@ -72,31 +72,58 @@ body.retro-mode .tools {
 }    
 
 body.crt-mode {
-    --bg-color: #0B0C1A;          /* deep midnight blue / black */
-    --content-bg-color: #111126;   /* slightly lighter for contrast */
-    --text-color: #33FF33;         /* neon green typical of old monitors */
-    --link-color: #FF33FF;         /* bright magenta for links */
-    --link-hover-color: rgba(255, 51, 255, 0.2);
-    --border-color: #66FFFF;       /* cyan for borders and accents */
-    --tab-bg-color: #1A1A3D;       /* dark blue tabs */
-    --tab-color: #444477;           /* muted blue for inactive tabs */
-    --tab-hover-color: #2A2A55;     /* hover slightly brighter */
-    --card-bg-color: #111126;      /* same as content background */
-    --card-border-color: #66FFFF; 
-    font-family: "Press Start 2P", monospace; /* cyan border for cards */
-    --unavailable-bg-color: rgba(0,255,0,0.05); /* subtle neon shading */
-    --unavailable-color: #8888AA;  /* faded pastel for disabled text */
+    /* Core phosphor palette */
+    --bg-color: #000000;
+    --content-bg-color: #000000;
+    --card-bg-color: #000000;
+
+    --text-color: #33ff66;        /* classic green phosphor */
+    --unavailable-color: #1f6633; /* dimmed phosphor */
+
+    --link-color: #66ff99;
+    --link-hover-color: #99ffbb;
+
+    --border-color: #228844;      /* dark green frame */
+    --card-border-color: #228844;
+
+    --tab-bg-color: #000000;
+    --tab-color: #000000;
+    --tab-hover-color: #000000;
+
+    --unavailable-bg-color: transparent;
+
+    font-family: "VT323", "Courier New", monospace;
 }
-body.crt-mode #content {
-  border-style: double;
-  border-width: 4px;
-  border-color: #888;
-}
+
+/* Frame styling */
+body.crt-mode #content,
 body.crt-mode .tools {
-  border-style: double;
-  border-width: 4px;
-  border-color: #888;
+    border: 2px solid var(--border-color);
+    background: var(--bg-color);
 }
+
+/* Subtle CRT glow */
+body.crt-mode {
+    text-shadow:
+        0 0 2px rgba(51, 255, 102, 0.6),
+        0 0 6px rgba(51, 255, 102, 0.3);
+}
+
+/* Optional scanlines (very subtle) */
+body.crt-mode::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.02),
+        rgba(255,255,255,0.02) 1px,
+        rgba(0,0,0,0.02) 2px
+    );
+    mix-blend-mode: overlay;
+}
+
 header, #content, footer {
   color: var(--text-color);
   max-width: 540px;
