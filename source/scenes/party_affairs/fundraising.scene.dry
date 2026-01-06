@@ -3,12 +3,13 @@ new-page: true
 view-if: fundraising_timer <= 12 and (not historical_mode)
 on-arrival: {!
     // Calculate base income from each demographic
-    Q.workers_income = Math.floor(Q.workers_spd * Q.dues_workers * 0.01 * (1 - Q.labor_dissent * 0.005));
-    Q.unemployed_income = Math.floor(Q.unemployed_spd * Q.dues_unemployed * 0.01 * (1 - Q.labor_dissent * 0.005));
-    Q.new_middle_income = Math.floor(Q.new_middle_spd * Q.dues_new_middle * 0.02 * (1 - Q.reformist_dissent * 0.005));
-    Q.old_middle_income = Math.floor(Q.old_middle_spd * Q.dues_old_middle * 0.02 * (1 - Q.center_dissent * 0.005));
-    Q.rural_income = Math.floor(Q.rural_spd * Q.dues_rural * 0.01 * (1 - Q.center_dissent * 0.005));
-    Q.catholics_income = Math.floor(Q.catholics_spd * Q.dues_catholics * 0.01 * (1 - Q.center_dissent * 0.005));
+    // Use Math.round() instead of Math.floor(), and increase multipliers
+    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 0.1 * (1 - Q.labor_dissent * 0.005));
+    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 0.1 * (1 - Q.labor_dissent * 0.005));
+    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.15 * (1 - Q.reformist_dissent * 0.005));
+    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.12 * (1 - Q.center_dissent * 0.005));
+    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.08 * (1 - Q.center_dissent * 0.005));
+    Q.catholics_income = Math.round(Q.catholics_spd * Q.dues_catholics * 0.1 * (1 - Q.center_dissent * 0.005));
     
     // Total projected income
     Q.total_projected = Q.workers_income + Q.unemployed_income + Q.new_middle_income + 
@@ -22,7 +23,7 @@ on-arrival: {!
     if (!Q.dues_rural) { Q.dues_rural = 1; }
     if (!Q.dues_catholics) { Q.dues_catholics = 1; }
     
-    Q.month_actions += 1;
+    Q.month_actions += 0.5;
 !}
 frequency: 300
 is-card: true
@@ -262,20 +263,20 @@ We launch a special fundraising drive, appealing to members' commitment and seek
 @fundraising_drive_roll
 on-arrival: {!
     // Base success depends on party strength and faction unity
-    var drive_strength = 10;
-    drive_strength += Q.spd_r * 2; // Party strength
-    drive_strength -= Q.labor_dissent * 0.5;
-    drive_strength -= Q.reformist_dissent * 0.5;
-    drive_strength -= Q.left_dissent * 0.5;
-    drive_strength -= Q.center_dissent * 0.5;
+    var drive_strength = 5; // Reduced from 10
+    drive_strength += Q.spd_r * 0.3; // Reduced from 2
+    drive_strength -= Q.labor_dissent * 0.3; // Reduced from 0.5
+    drive_strength -= Q.reformist_dissent * 0.3;
+    drive_strength -= Q.left_dissent * 0.3;
+    drive_strength -= Q.center_dissent * 0.3;
     
     // Economic conditions matter
-    if (Q.unemployed >= 20) drive_strength -= 15;
-    if (Q.unemployed >= 15) drive_strength -= 10;
+    if (Q.unemployed >= 20) drive_strength -= 8; // Reduced from 15
+    if (Q.unemployed >= 15) drive_strength -= 5; // Reduced from 10
     
-    // Roll
-    var bonus_income = Math.floor(drive_strength * 0.2 + Math.random() * 10);
-    if (bonus_income < 3) bonus_income = 3;
+    // Roll - simpler calculation
+    var bonus_income = Math.round(drive_strength + Math.random() * 5);
+    if (bonus_income < 2) bonus_income = 2;
     
     Q.bonus_income = bonus_income;
     Q.resources += bonus_income;
