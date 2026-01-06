@@ -4,12 +4,12 @@ view-if: fundraising_timer <= 12 and (not historical_mode)
 on-arrival: {!
     // Calculate base income from each demographic
     // Use Math.round() instead of Math.floor(), and increase multipliers
-    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 0.1 * (1 - Q.labor_dissent * 0.005));
-    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 0.1 * (1 - Q.labor_dissent * 0.005));
-    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.15 * (1 - Q.reformist_dissent * 0.005));
+    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 0.05 * (1 - Q.labor_dissent * 0.005));
+    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 0.05 * (1 - Q.labor_dissent * 0.005));
+    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.12 * (1 - Q.reformist_dissent * 0.005));
     Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.12 * (1 - Q.center_dissent * 0.005));
-    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.08 * (1 - Q.center_dissent * 0.005));
-    Q.catholics_income = Math.round(Q.catholics_spd * Q.dues_catholics * 0.1 * (1 - Q.center_dissent * 0.005));
+    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.04 * (1 - Q.center_dissent * 0.005));
+    Q.catholics_income = Math.round(Q.catholics_spd * Q.dues_catholics * 0.05 * (1 - Q.center_dissent * 0.005));
     
     // Total projected income
     Q.total_projected = Q.workers_income + Q.unemployed_income + Q.new_middle_income + 
@@ -255,7 +255,7 @@ subtitle: Intensive fundraising campaign
 view-if: fundraising_timer <= 0
 choose-if: fundraising_timer <= 0
 unavailable-subtitle: [? if fundraising_timer > 0 : Cannot launch another drive yet. Available in [+ fundraising_timer +] months. ?]
-on-arrival: fundraising_timer = 24;
+on-arrival: fundraising_timer = 36;
 go-to: fundraising_drive_roll
 
 We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
@@ -264,7 +264,7 @@ We launch a special fundraising drive, appealing to members' commitment and seek
 on-arrival: {!
     // Base success depends on party strength and faction unity
     var drive_strength = 5; // Reduced from 10
-    drive_strength += Q.spd_r * 0.3; // Reduced from 2
+    drive_strength += Q.spd_r * 0.2; // Reduced from 2
     drive_strength -= Q.labor_dissent * 0.6; // Reduced from 0.5
     drive_strength -= Q.reformist_dissent * 0.6;
     drive_strength -= Q.left_dissent * 0.6;
@@ -273,7 +273,9 @@ on-arrival: {!
     // Economic conditions matter
     if (Q.unemployed >= 20) drive_strength -= 8; // Reduced from 15
     if (Q.unemployed >= 15) drive_strength -= 5; // Reduced from 10
-    
+    if (Q.inflation >= 7) drive_strength -= 3;
+    if (Q.inflation >= 10) drive_strength -= 4;
+
     // Roll - simpler calculation
     var bonus_income = Math.round(drive_strength + Math.random() * 5);
     if (bonus_income < 2) bonus_income = 2;
