@@ -26,7 +26,7 @@ on-arrival: {!
     var all_candidates = ["Hitler", "Göring", "Goring", "Seldte", "Westarp", "Eckener", "Adenauer", 
                           "Kaas", "Gessler", "Stresemann", "Thälmann", "Thalmann", "Münzenberg", 
                           "Munzenberg", "Braun", "Schumacher", "Juchacz", "Einstein", "Mann", 
-                          "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", "Drewitz"];
+                          "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", "Drewitz", "Horsing"];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
         Q[all_candidates[i] + '_running'] = 0;
@@ -135,6 +135,18 @@ on-arrival: {!
     } else {
         Q.sapd_candidate = null;
     }
+
+    // === SRPD (SOCIAL REPUBLICANS) ===
+    if (Q.srpd_formed) {
+        if (Q.ddp_relation >= 60 && Q.z_relation >= 60) {
+            Q.srpd_candidate = Q.spd_candidate;
+        } else {
+            Q.srpd_candidate = "Horsing"; // Default SRPD candidate
+        }
+    } else {
+        Q.srpd_candidate = null;
+    }
+
     
     // === OTHER PARTIES ===
     Q.other_candidate = "Seldte"; // Conservative default
@@ -157,6 +169,7 @@ The parties are preparing their candidates:
 - [+ ddp_name +]: To be determined
 - DVP: To be determined
 - WP: To be determined
+[? if srpd_formed = 1: SRPD: To be determined ?]
 
 **SPD:**
 We must choose our candidate and strategy.
@@ -476,6 +489,15 @@ on-arrival: {!
             Q.sapd_candidate = Q.sapd_candidate || "Rosenfeld";
         }
     }
+
+    // === SRPD ===
+    if (Q.srpd_formed) {
+        if (Q.srpd_relation >= 50 && Q.left_strength < 40) {
+            Q.srpd_candidate = Q.spd_candidate;
+        } else {
+            Q.srpd_candidate = Q.srpd_candidate || "Horsing";
+        }
+    }
 !}
 go-to: r1_finalized
 
@@ -495,6 +517,8 @@ The candidates have been finalized:
 
 **Center/Liberal:**
 - SPD: [+ spd_candidate +]
+
+[? if srpd_formed = 1 and srpd_candidate : SRPD (Social Republicans): [+ srpd_candidate +] ?]
 
 [? if z_candidate and z_candidate != spd_candidate : - Center (Z): [+ z_candidate +] ?]
 [? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
@@ -629,7 +653,8 @@ on-arrival: {!
         Rosenfeld: "Kurt Rosenfeld (SAPD)",
         Schäffer: "Franz Schäffer (BVP)",
         Schaffer: "Franz Schäffer (BVP)",
-        Drewitz: "Max Drewitz (WP)"
+        Drewitz: "Max Drewitz (WP)",
+        Horsing: "Otto Hörsing (SRPD)"
     };
     
     // Mark running candidates
@@ -639,7 +664,7 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'wp', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'srpd', 'wp', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -738,6 +763,7 @@ go-to: election_end if has_majority; r2_start if not has_majority
 [? if Rosenfeld_running : Rosenfeld - [+ Rosenfeld_votes_disp +]% ?]
 [? if Schaffer_running : Schäffer - [+ Schaffer_votes_disp +]% ?]
 [? if Drewitz_running: "Max Drewitz - [+ Drewitz_votes_disp +]% ?]
+[? if Horsing_running: "Otto Hörsing - [+ Horsing_votes_disp +]% ?]
 
 @r2_start
 on-arrival: {!
@@ -748,7 +774,7 @@ on-arrival: {!
     // Ideological blocks for consolidation logic
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
-    var center_left = ["Eckener", "Gessler", "Stresemann"];
+    var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing"];
     var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
     var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
@@ -862,6 +888,12 @@ on-arrival: {!
     // === SAPD ===
     if (Q.sapd_formed) {
         Q.sapd_candidate = pickClosestFinalist(Q.sapd_candidate, [left, far_left, cultural, center_left]);
+    }
+
+    // SRPD
+
+    if (Q.srpd_formed) {
+        Q.srpd_candidate = pickClosestFinalist(Q.srpd_candidate, [center_left, center, center_right, left, far_left]);
     }
 
     // === WP (ECONOMIC PARTY) ===
@@ -985,7 +1017,7 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'wp' , 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'wp' , 'srpd', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -1054,7 +1086,8 @@ on-arrival: {!
         Rosenfeld: "Kurt Rosenfeld (SAPD)",
         Schäffer: "Franz Schäffer (BVP)",
         Schaffer: "Franz Schäffer (BVP)",
-        Drewitz: "Max Drewitz (WP)"
+        Drewitz: "Max Drewitz (WP)",
+        Horsing: "Otto Hörsing (SRPD)"
     };
     
     Q.winner_desc = candidate_descs[Q.winner];
@@ -1067,9 +1100,13 @@ go-to: election_end
 
 @election_end
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
-go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"
+go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz", srpd_victory if winner = "Horsing"
 
 [+ winner_desc +] is now President of Germany.
+
+@srpd_victory:
+
+Otto Hörsing has achieved the victory. Republic shall survive once more.
 
 @wp_victory
 
