@@ -1,7 +1,30 @@
 title: Fundraising
 new-page: true
-view-if: fundraising_timer <= 0 and (not historical_mode)
-on-arrival: fundraising_timer = 9; month_actions += 1
+view-if: fundraising_timer <= 12 and (not historical_mode)
+on-arrival: {!
+    // Calculate base income from each demographic
+    Q.workers_income = Math.floor(Q.workers_spd * Q.dues_workers * 0.01 * (1 - Q.labor_dissent * 0.005));
+    Q.unemployed_income = Math.floor(Q.unemployed_spd * Q.dues_unemployed * 0.01 * (1 - Q.labor_dissent * 0.005));
+    Q.new_middle_income = Math.floor(Q.new_middle_spd * Q.dues_new_middle * 0.01 * (1 - Q.reformist_dissent * 0.005));
+    Q.old_middle_income = Math.floor(Q.old_middle_spd * Q.dues_old_middle * 0.01 * (1 - Q.center_dissent * 0.005));
+    Q.rural_income = Math.floor(Q.rural_spd * Q.dues_rural * 0.01 * (1 - Q.center_dissent * 0.005));
+    Q.catholics_income = Math.floor(Q.catholics_spd * Q.dues_catholics * 0.01 * (1 - Q.center_dissent * 0.005));
+    
+    // Total projected income
+    Q.total_projected = Q.workers_income + Q.unemployed_income + Q.new_middle_income + 
+                        Q.old_middle_income + Q.rural_income + Q.catholics_income;
+    
+    // Initialize dues rates if not set
+    if (!Q.dues_workers) { Q.dues_workers = 1; }
+    if (!Q.dues_unemployed) { Q.dues_unemployed = 0.5; }
+    if (!Q.dues_new_middle) { Q.dues_new_middle = 2; }
+    if (!Q.dues_old_middle) { Q.dues_old_middle = 1; }
+    if (!Q.dues_rural) { Q.dues_rural = 1; }
+    if (!Q.dues_catholics) { Q.dues_catholics = 1; }
+    
+    Q.fundraising_timer = 24; 
+    Q.month_actions += 1;
+!}
 frequency: 300
 is-card: true
 card-image: img/poster_2.jpg
@@ -9,31 +32,284 @@ tags: party_affairs
 
 = Fundraising
 
-For better or for worse, the party cannot exist without money.
+The party's financial health depends on member contributions. Our current membership demographics and their dues rates determine our income.
 
-- @maintain: Maintain our current dues.
-- @reduce: Reduce dues.
-- @increase: Increase dues.
+**Current Quarterly Income Projection: [+ total_projected +] resources**
 
-@maintain
-subtitle: [+ dues +] resources gained.
-on-arrival: resources += dues;
+Breakdown by demographic:
+- Workers ([+ workers_spd +]%): [+ workers_income +] resources (dues rate: [+ dues_workers +])
+- Unemployed ([+ unemployed_spd +]%): [+ unemployed_income +] resources (dues rate: [+ dues_unemployed +])
+- New Middle Class ([+ new_middle_spd +]%): [+ new_middle_income +] resources (dues rate: [+ dues_new_middle +])
+- Old Middle Class ([+ old_middle_spd +]%): [+ old_middle_income +] resources (dues rate: [+ dues_old_middle +])
+- Rural ([+ rural_spd +]%): [+ rural_income +] resources (dues rate: [+ dues_rural +])
+- Catholics ([+ catholics_spd +]%): [+ catholics_income +] resources (dues rate: [+ dues_catholics +])
 
-We maintain our current dues.
+[? if labor_dissent >= 30 : **Warning:** High labor dissent is reducing collection rates among workers and unemployed. ?]
+[? if reformist_dissent >= 30 : **Warning:** High reformist dissent is reducing collection rates among new middle class. ?]
+[? if center_dissent >= 30 : **Warning:** High centrist dissent is reducing collection rates among old middle class, rural, and Catholic members. ?]
 
-@reduce
-subtitle: [+ dues - 1 +] resources gained.
-choose-if: dues > 1
-on-arrival: dues -= 1; resources += dues; left_dissent -= 8; center_dissent -= 8; reformist_dissent -= 8; labor_dissent -= 8; unemployed_spd += 5; workers_spd += 5;
+What is our fundraising strategy?
 
-Our current members appreciate this, but no one decides to join a party because of the low dues.
+- @collect_standard: Collect current dues ([+ total_projected +] resources).
+- @adjust_dues: Adjust dues rates by demographic.
+- @fundraising_drive: Special fundraising campaign (-1 action, variable income).
+- @austerity: Party austerity measures (reduce operating costs).
+- @wealthy_donors: Seek donations from wealthy sympathizers.
+- @root: Defer decision.
+- @easy_discard
 
-@increase
-subtitle: [+ dues + 1 +] resources gained. [? if unemployed >= 15 : Given the present economic situation, this may be painful. ?][? if dues >= 4 : Dues are already rather high; increasing them might reduce our membership. ?]
-on-arrival: dues += 1; resources += dues; workers_spd -= 3; unemployed_spd -= 3; workers_spd -= 10 if unemployed >= 15; unemployed_spd -= 10 if unemployed >= 15; workers_spd -= 3*dues if dues >= 5; unemployed_spd -= 3*dues if dues >= 5
-view-if: dues <= 5
+@collect_standard
+view-if: fundraising_timer <= 0
+subtitle: +[+ total_projected +] resources
+on-arrival: resources += total_projected;
 
-Our members grumble at this, and some of the less committed members leave. But now, we have access to additional resources. 
+Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
-[? if unemployed >= 15 : Because of the presently high unemployment, our members are feeling the extra burden hard. ?]
+[? if total_projected < 10 : The amount is concerning - we may need to expand our membership base or adjust rates. ?]
+[? if total_projected >= 20 : Our strong membership base provides healthy funding. ?]
 
+- @root: Continue.
+
+@adjust_dues
+subtitle: Modify dues rates by demographic group
+go-to: adjust_dues_menu
+
+We can adjust how much each demographic pays in membership dues. Higher rates generate more income but may drive members away or increase dissent.
+
+@adjust_dues_menu
+
+**Adjust Dues Rates:**
+
+Current rates:
+- Workers: [+ dues_workers +] | Unemployed: [+ dues_unemployed +]
+- New Middle: [+ dues_new_middle +] | Old Middle: [+ dues_old_middle +]
+- Rural: [+ dues_rural +] | Catholics: [+ dues_catholics +]
+
+- @adjust_workers: Adjust worker dues (current: [+ dues_workers +])
+- @adjust_unemployed: Adjust unemployed dues (current: [+ dues_unemployed +])
+- @adjust_new_middle: Adjust new middle class dues (current: [+ dues_new_middle +])
+- @adjust_old_middle: Adjust old middle class dues (current: [+ dues_old_middle +])
+- @adjust_rural: Adjust rural dues (current: [+ dues_rural +])
+- @adjust_catholics: Adjust Catholic dues (current: [+ dues_catholics +])
+- @collect_standard: Finalize and collect dues.
+- @root: Cancel changes.
+
+@adjust_workers
+
+Worker dues are currently [+ dues_workers +]. Workers are our core base.
+
+- @workers_increase: Increase to [+ dues_workers + 1 +] [? if unemployed >= 15 : (risky during unemployment crisis) ?]
+- @workers_decrease: Decrease to [+ dues_workers - 1 +] [? if dues_workers <= 1 : (already at minimum) ?]
+- @adjust_dues_menu: Back
+
+@workers_increase
+choose-if: dues_workers < 5
+unavailable-subtitle: [? if dues_workers >= 5 : Already at maximum rate. ?]
+on-arrival: dues_workers += 1; workers_spd -= 2; labor_dissent += 3; workers_spd -= 5 if unemployed >= 15; labor_dissent += 5 if unemployed >= 15;
+go-to: adjust_dues_menu
+
+Worker dues increased. Some members grumble about the burden.
+
+[? if unemployed >= 15 : The timing is poor - workers are already struggling with unemployment. ?]
+
+@workers_decrease
+choose-if: dues_workers > 1
+unavailable-subtitle: Already at minimum rate.
+on-arrival: dues_workers -= 1; workers_spd += 2; labor_dissent -= 3;
+go-to: adjust_dues_menu
+
+Worker dues reduced. Our working-class base appreciates the relief.
+
+@adjust_unemployed
+
+Unemployed dues are currently [+ dues_unemployed +]. The unemployed have limited means.
+
+- @unemployed_increase: Increase to [+ dues_unemployed + 1 +] (exploitative?)
+- @unemployed_decrease: Decrease to [+ dues_unemployed - 1 +] [? if dues_unemployed <= 1 : (already at minimum) ?]
+- @unemployed_waive: Waive dues entirely (solidarity gesture)
+- @adjust_dues_menu: Back
+
+@unemployed_increase
+choose-if: dues_unemployed < 3
+unavailable-subtitle: [? if dues_unemployed >= 3 : Already at maximum practical rate. ?]
+on-arrival: dues_unemployed += 1; unemployed_spd -= 5; labor_dissent += 5; left_dissent += 5;
+go-to: adjust_dues_menu
+
+Unemployed dues increased. This is seen as tone-deaf to their suffering. The Left wing protests vocally.
+
+@unemployed_decrease
+choose-if: dues_unemployed > 1
+unavailable-subtitle: Already at minimum rate.
+on-arrival: dues_unemployed -= 1; unemployed_spd += 3; labor_dissent -= 3;
+go-to: adjust_dues_menu
+
+Unemployed dues reduced. A gesture of solidarity with those struggling most.
+
+@unemployed_waive
+choose-if: dues_unemployed > 0
+on-arrival: dues_unemployed = 0; unemployed_spd += 8; labor_dissent -= 8; left_dissent -= 5; workers_spd += 2;
+go-to: adjust_dues_menu
+
+Unemployed members are now exempt from dues. This powerful act of solidarity resonates throughout the working class.
+
+@adjust_new_middle
+
+New middle class dues are currently [+ dues_new_middle +]. White-collar workers and professionals have higher incomes.
+
+- @new_middle_increase: Increase to [+ dues_new_middle + 1 +]
+- @new_middle_decrease: Decrease to [+ dues_new_middle - 1 +]
+- @adjust_dues_menu: Back
+
+@new_middle_increase
+choose-if: dues_new_middle < 5
+unavailable-subtitle: Already at maximum rate.
+on-arrival: dues_new_middle += 1; new_middle_spd -= 3; reformist_dissent += 4;
+go-to: adjust_dues_menu
+
+New middle class dues increased. Reformists complain this drives away educated supporters.
+
+@new_middle_decrease
+choose-if: dues_new_middle > 1
+unavailable-subtitle: Already at minimum rate.
+on-arrival: dues_new_middle -= 1; new_middle_spd += 3; reformist_dissent -= 3;
+go-to: adjust_dues_menu
+
+New middle class dues reduced. This makes membership more attractive to professionals.
+
+@adjust_old_middle
+
+Old middle class dues are currently [+ dues_old_middle +]. Shopkeepers and artisans have moderate means.
+
+- @old_middle_increase: Increase to [+ dues_old_middle + 1 +]
+- @old_middle_decrease: Decrease to [+ dues_old_middle - 1 +]
+- @adjust_dues_menu: Back
+
+@old_middle_increase
+choose-if: dues_old_middle < 5
+unavailable-subtitle: Already at maximum rate.
+on-arrival: dues_old_middle += 1; old_middle_spd -= 3; center_dissent += 4;
+go-to: adjust_dues_menu
+
+Old middle class dues increased. Traditional centrists feel squeezed.
+
+@old_middle_decrease
+choose-if: dues_old_middle > 1
+unavailable-subtitle: Already at minimum rate.
+on-arrival: dues_old_middle -= 1; old_middle_spd += 2; center_dissent -= 3;
+go-to: adjust_dues_menu
+
+Old middle class dues reduced. Shopkeepers and artisans appreciate the consideration.
+
+@adjust_rural
+
+Rural dues are currently [+ dues_rural +]. Farmers and rural workers have variable incomes.
+
+- @rural_increase: Increase to [+ dues_rural + 1 +]
+- @rural_decrease: Decrease to [+ dues_rural - 1 +]
+- @adjust_dues_menu: Back
+
+@rural_increase
+choose-if: dues_rural < 5
+unavailable-subtitle: Already at maximum rate.
+on-arrival: dues_rural += 1; rural_spd -= 3; center_dissent += 3;
+go-to: adjust_dues_menu
+
+Rural dues increased. Our limited rural base shrinks further.
+
+@rural_decrease
+choose-if: dues_rural > 1
+unavailable-subtitle: Already at minimum rate.
+on-arrival: dues_rural -= 1; rural_spd += 3; center_dissent -= 2;
+go-to: adjust_dues_menu
+
+Rural dues reduced. This makes the party more accessible to the countryside.
+
+@adjust_catholics
+
+Catholic dues are currently [+ dues_catholics +]. Catholic workers and middle class members.
+
+- @catholics_increase: Increase to [+ dues_catholics + 1 +]
+- @catholics_decrease: Decrease to [+ dues_catholics - 1 +]
+- @adjust_dues_menu: Back
+
+@catholics_increase
+choose-if: dues_catholics < 5
+unavailable-subtitle: Already at maximum rate.
+on-arrival: dues_catholics += 1; catholics_spd -= 3; center_dissent += 3;
+go-to: adjust_dues_menu
+
+Catholic dues increased. Some members feel targeted.
+
+@catholics_decrease
+choose-if: dues_catholics > 1
+unavailable-subtitle: Already at minimum rate.
+on-arrival: dues_catholics -= 1; catholics_spd += 3; center_dissent -= 2;
+go-to: adjust_dues_menu
+
+Catholic dues reduced. This eases tensions with our religious members.
+
+@fundraising_drive
+subtitle: Intensive fundraising campaign
+choose-if: month_actions >= 1
+unavailable-subtitle: Not enough actions remaining.
+on-arrival: month_actions -= 1;
+go-to: fundraising_drive_roll
+
+We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
+
+@fundraising_drive_roll
+on-arrival: {!
+    // Base success depends on party strength and faction unity
+    var drive_strength = 30;
+    drive_strength += Q.spd_r * 2; // Party strength
+    drive_strength -= Q.labor_dissent * 0.5;
+    drive_strength -= Q.reformist_dissent * 0.5;
+    drive_strength -= Q.left_dissent * 0.5;
+    drive_strength -= Q.center_dissent * 0.5;
+    
+    // Economic conditions matter
+    if (Q.unemployed >= 20) drive_strength -= 15;
+    if (Q.unemployed >= 15) drive_strength -= 10;
+    
+    // Roll
+    var bonus_income = Math.floor(drive_strength * 0.2 + Math.random() * 10);
+    if (bonus_income < 3) bonus_income = 3;
+    
+    Q.bonus_income = bonus_income;
+    Q.resources += bonus_income;
+!}
+
+**Fundraising Drive Results:**
+
+The campaign generates [+ bonus_income +] additional resources.
+
+[? if bonus_income >= 12 : Excellent response! Members dug deep for the cause. ?]
+[? if bonus_income >= 8 and bonus_income < 12 : Good results. Members showed solid commitment. ?]
+[? if bonus_income < 8 : Modest returns. Perhaps members are stretched thin or dissatisfied. ?]
+
+- @root: Continue.
+
+@austerity
+subtitle: Reduce party operating expenses
+on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5;
+
+The party leadership implements austerity:
+- Reduce headquarters staff
+- Cut publication budgets
+- Limit travel expenses
+- Defer facility maintenance
+
+We save 3 resources but reformists and centrists complain about reduced effectiveness.
+
+- @root: Continue.
+
+@wealthy_donors
+view-if: fundraising_timer <= 0
+subtitle: Seek large donations from sympathetic wealthy individuals
+on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3;
+
+We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 5 resources.
+
+The Left wing denounces this as selling out to capitalist interests. Workers question our commitment to class struggle. Reformists appreciate the pragmatism.
+
+- @root: Continue.
