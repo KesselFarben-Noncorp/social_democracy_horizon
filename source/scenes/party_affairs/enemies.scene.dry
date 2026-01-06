@@ -16,12 +16,15 @@ In our media and campaign materials, who should we consider as our main opponent
 - @dnvp: The DNVP alone.
 - @nsdap: The NSDAP alone.
 - @kpd: The KPD.
-- @bourgeois: The bourgeois parties – the Center and DVP.
+- @bourgeois: The bourgeois parties – the Center, DVP and WP.
 - @dvp: The DVP party.
+- @bvp: The BVP party.
+- @wp: The Economic party.
+- @ddp: The DDP party.
 - @easy_discard
 
 @anti_dem
-on-arrival: enemies = "anti-democratic parties"; center_strength += 5; reformist_strength += 5; left_dissent += 5; workers_kpd -= 2; workers_nsdap -= 2; workers_dnvp -= 2; kpd_relation -= 10
+on-arrival: enemies = "anti-democratic parties"; center_strength += 5; reformist_strength += 5; left_dissent += 5; workers_kpd -= 2; workers_nsdap -= 2; workers_dnvp -= 2; kpd_relation -= 7; dnvp_relation -= 5; nsdap_relation -= 6
 
 Attacking the far right and left is popular among all but the left wing of our party, who would prefer fighting the bourgeois parties. This might also hamper our ability to reconcile with the KPD in the future.
 
@@ -42,12 +45,12 @@ on-arrival: enemies = "NSDAP"; neorevisionist_strength += 5; nazi_urgency += 1 i
 [? if nazi_urgency > 0 and nsdap_r >= 10: The Nazis are the most urgent problem for us to deal with. ?]
 
 @kpd
-on-arrival: enemies = "KPD"; reformist_strength += 5; left_dissent += 8; reformist_dissent -= 5; kpd_relation -= 15; dvp_relation += 5; z_relation += 5; workers_kpd -= 4 if workers_kpd < 25
+on-arrival: enemies = "KPD"; reformist_strength += 5; left_dissent += 8; reformist_dissent -= 5; kpd_relation -= 10; dvp_relation += 5; z_relation += 5; workers_kpd -= 4 if workers_kpd < 25
 
 Attacking the KPD is supported by all but the most left-wing socialists and wins some approval among bourgeois parties. However, if we want to reconcile with the KPD, this may not be the best choice.
 
 @bourgeois
-on-arrival: enemies = "bourgeois parties"; left_strength += 8; left_dissent -= 5; dvp_relation -= 5; z_relation -= 5; kpd_relation += 5; reformist_dissent += 8; workers_z -= 3; workers_dvp -= 2; unemployed_dvp -= 5; new_middle_dvp -= 2; coalition_dissent += 1
+on-arrival: enemies = "bourgeois parties"; left_strength += 8; left_dissent -= 5; dvp_relation -= 5; z_relation -= 5; kpd_relation += 5; reformist_dissent += 8; workers_z -= 3; workers_dvp -= 2; unemployed_dvp -= 5; new_middle_dvp -= 2; coalition_dissent += 1; workers_wp *= 0.98
 
 Our anti-bourgeois rhetoric is popular among the left, but may make it harder to build coalitions necessary for future government.
 
@@ -59,6 +62,18 @@ Our anti-industrialist propaganda seeks to undermine the DVP and our relationshi
 
 @bvp
 view-if: sandbox = 1
-on-arrival: enemies = "BVP"; bvp_relation -= 5; z_relation -= 3; old_middle_bvp *= 0.99; workers_bvp *= 0.90; rural_bvp *= 0.98; new_middle_bvp *= 0.95; unemployed_bvp *= 0.80;
+on-arrival: enemies = "BVP"; bvp_relation -= 5; z_relation -= 3; old_middle_bvp *= 0.99; workers_bvp *= 0.95; rural_bvp *= 0.98; new_middle_bvp *= 0.95; unemployed_bvp *= 0.80;
 
 We concentrated on attacking the BVP over their conservatism and obstructionism.
+
+@wp
+view-if: sandbox = 1
+on-arrival: enemies: "WP"; wp_relation -= 6; dvp_relation -= 3 if dvp_relation < 40; old_middle_wp *= 0.99; new_middle_wp *= 0.99; workers_wp *= 0.97; unemployed_wp *= 0.95; rural_wp *= 0.98; catholics_wp * 0.97; inflation *= 0.99
+
+We attacked the Corporatist Economical Party over their connections with reactionaries, elites and industrialists under the facade of middle class party.
+
+@ddp
+view-if: sandbox = 1
+on-arrival: enemies: "DDP"; ddp_relation -= 8; dvp_relation -= 3 if dvp_relation < 40; old_middle_ddp *= 0.99; new_middle_ddp *= 0.98; workers_ddp *= 0.95; unemployed_ddp *= 0.94; rural_ddp *= 0.98; catholics_ddp * 0.97; reformist_dissent += 4; left_dissent -= 3; coalition_dissent += 1 if in_weimar_coalition
+
+We attacked the Corporatist Economical Party over their connections with reactionaries, elites and industrialists under the facade of middle class party.
