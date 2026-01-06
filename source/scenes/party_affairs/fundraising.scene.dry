@@ -251,6 +251,7 @@ Catholic dues reduced. This eases tensions with our religious members.
 subtitle: Intensive fundraising campaign
 view-if: fundraising_timer <= 0
 unavailable-subtitle: Not enough actions remaining.
+on-arrival: fundraising_timer = 24;
 go-to: fundraising_drive_roll
 
 We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
@@ -258,7 +259,6 @@ We launch a special fundraising drive, appealing to members' commitment and seek
 @fundraising_drive_roll
 on-arrival: {!
     // Base success depends on party strength and faction unity
-    fundraising_timer = 24;
     var drive_strength = 10;
     drive_strength += Q.spd_r * 2; // Party strength
     drive_strength -= Q.labor_dissent * 0.5;
