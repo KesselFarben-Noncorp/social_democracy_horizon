@@ -8,14 +8,15 @@ card-image: img/arbeiterbew.jpg
 #subtitle: Setting the party's ideological direction.
 
 = Questions of Ideology
-The SPD is torn between many ideological currents. What should be our primary ideological guidance for now?
-[? if ideology != 0: We have previously chosen a <span style="color:#FF6699;"><b>[+ ideology +]</b></span> ideology. Changing it will likely have drawbacks. ?]
 
-- @class_struggle: <span style="color:#FF3333;"><b>Class struggle</b></span> and preparing the proletariat for revolution are our primary goals.
-- @centrist: <span style="color:#66CCFF;"><b>Center Marxism</b></span> of Karl Kautsky remains the best way to resolve internal contradictions.
-- @labor: <span style="color:#99CC66;"><b>Trade union cooperation</b></span> to improve workers’ lives.
-- @reform: <span style="color:#FFCC66;"><b>Ethical socialism</b></span> following Bernstein, strengthening democracy and expanding the electorate.
-- @neorevisionist: <span style="color:#CC99FF;"><b>Neorevisionist</b></span> doctrine: stop the NSDAP!
+The SPD is torn between many ideological currents. What should be our primary ideological guidance for now?
+[? if ideology != 0: We have previously chosen a [+ ideology +] ideology. Changing it will likely have drawbacks. ?]
+
+- @class_struggle: Class struggle and preparing the proletariat for revolution are our primary goals.
+- @centrist: Center Marxism of Karl Kautsky remains the best way to resolve internal contradictions.
+- @labor: Trade union cooperation to improve workers’ lives.
+- @reform: Ethical socialism following Bernstein, strengthening democracy and expanding the electorate.
+- @neorevisionist: Neorevisionist doctrine: stop the NSDAP!
 - @easy_discard
 
 @class_struggle
@@ -23,34 +24,34 @@ on-arrival: {! if (Q.ideology && Q.ideology != "left") { Q.changed = 1; } !}
 go-to: changed if changed = 1
 on-departure: ideology = "left"; left_strength += 10; communist_coalition += 1; left_dissent -= 5; z_relation -= 3; dvp_relation -= 5; nationalization_support += 1; kpd_relation += 3; socialism += 3
 
-The radical left of the party supports a course of <span style="color:#FF3333;"><b>class struggle</b></span>, and potential reconciliation with the Communists.
+The radical left of the party supports a course of class struggle and potential reconciliation with the Communists.
 
 @centrist
 on-arrival: {! if (Q.ideology && Q.ideology != "centrist") { Q.changed = 1; } !}
 go-to: changed if changed = 1
 on-departure: ideology = "centrist"; center_strength += 10; center_dissent -= 10; left_dissent -= 5; reformist_dissent -= 5
 
-The <span style="color:#66CCFF;"><b>Center Marxists</b></span> support a middle course: prepare for revolution while raising working-class consciousness.
+The Center Marxists support a middle course: prepare for revolution while raising working-class consciousness.
 
 @labor
 on-arrival: {! if (Q.ideology && Q.ideology != "labor") { Q.changed = 1; } !}
 go-to: changed if changed = 1
 on-departure: ideology = "labor"; labor_strength += 10; wtb_support += 1; labor_dissent -= 5; kpd_relation -= 3
 
-The <span style="color:#99CC66;"><b>labor wing</b></span> supports government participation to provide worker benefits and public works programs.
+The labor wing supports government participation to provide worker benefits and public works programs.
 
 @reform
 on-arrival: {! if (Q.ideology && Q.ideology != "reformist") { Q.changed = 1; } !}
 go-to: changed if changed = 1
 on-departure: ideology = "reformist"; reformist_strength += 10; democratization += 1; reformist_dissent -= 5; z_relation += 5; dvp_relation += 5; kpd_relation -= 8; moderate_plan_support += 1
 
-The <span style="color:#FFCC66;"><b>reformist wing</b></span> seeks to preserve the Republic and strengthen democratic coalitions.
+The reformist wing seeks to preserve the Republic and strengthen democratic coalitions.
 
 @neorevisionist
 view-if: emergency_state = 1
 on-arrival: ideology = "neorev"; neorevisionist_strength += 10; democratization += 1; neorevisionist_dissent -= 5; workers_spd += 1; workers_nsdap -= 1; rb_militancy += 0.02; rb_strength += 30
 
-The time has come! <span style="color:#CC99FF;"><b>Neorevisionist doctrine</b></span> against NSDAP will be applied.
+The time has come. Neorevisionist doctrine against the NSDAP will be applied.
 
 @changed
 on-arrival: left_dissent += 5; center_dissent += 5; labor_dissent += 5; reformist_dissent += 5
