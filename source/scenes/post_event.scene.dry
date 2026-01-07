@@ -908,6 +908,7 @@ if (Q.month_actions >= 1) {
     Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
     Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
     Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
+    Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
 
     // Decay factors
     Q.stability_decay = Math.max(0, (0.6 - Q.unrest_factor)) * 10;
@@ -918,11 +919,14 @@ if (Q.month_actions >= 1) {
     Q.sh_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
     Q.rfb_strength -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
     Q.rb_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    Q.jungdo_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+
 
     Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
     Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 10000);
     Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 10000);
     Q.rb_strength  = Math.min(Math.max(Q.rb_strength, 0), 10000);
+    Q.jungdo_strength  = Math.min(Math.max(Q.rb_strength, 0), 10000);
 
     // --- End Reworked Randomized Monthly Party Drift ---
 
