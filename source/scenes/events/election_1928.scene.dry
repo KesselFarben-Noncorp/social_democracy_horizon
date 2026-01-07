@@ -118,11 +118,16 @@ Q.left_coalition = Q.spd_r + Q.kpd_r + Q.sapd_r;
 Q.popular_front_coalition = Q.spd_r + Q.kpd_r + Q.z_r + Q.ddp_r + Q.sapd_r;
 Q.anti_democratic_coalition = Q.kpd_r + Q.nsdap_r + Q.dnvp_r;
 // aka everyone except nazi, kpd, dnvp
-Q.neo_weimar_coalition = Q.spd_r + Q.ddp_r + Q.z_r + Q.dvp_r + Q.other_r + Q.bvp_r;
+Q.neo_weimar_coalition = Q.spd_r + Q.ddp_r + Q.z_r + Q.dvp_r + Q.other_r + Q.bvp_r + Q.wp_r + Q.srpd_r
+Q.neo_weimar_coalition += Q.dnvp_r if dnvp_line = 1
 // Hitler + Right-wing parties (only comes into effect if you've alienated Z too badly)
 Q.hitler_right_coalition = Q.z_r + Q.dnvp_r + Q.nsdap_r;
 // Progressive coalition isn't going to be implemented as a distinct coalition but it's the coalition that lets you pass improved women's rights/gay rights
 Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.sapd_r;
+
+if (Q.dnvp_line = 1) {
+    Q.neo_weimar_coalition += Q.dnvp_r
+}
 
 if (Q.kpd_relation >= 30) {
     Q.weimar_coalition += Q.sapd_r;
@@ -1267,7 +1272,7 @@ We have assembled a new coalition under Otto Braun.
 
 @unity_government
 title: The Center Party offers a "Government of National Unity" under Chancellor Joseph Wirth.
-subtitle: SPD + Z + BVP + [+ ddp_name +] + DVP + Others ([+ neo_weimar_coalition +]%)
+subtitle: SPD + Z + BVP + [+ ddp_name +] + WP + DVP + Others ([+ neo_weimar_coalition +]%)
 view-if: z_party_leader == "Joos" and neo_weimar_coalition >= 50 and weimar_coalition < 50 and z_relation >= 10
 
 The Center Party leader, Joseph Joos, clearly sees the threat from the ascension of the anti-democratic extremist parties, and thus tries to negotiate a "Government of National Unity" to save the republic. This coalition would be led by Joseph Wirth, a left-leaning member of the Center Party and former chancellor, and would encompass all of the constitutional parties. Our role in this government might be limited, however.
@@ -1279,10 +1284,447 @@ The Center Party leader, Joseph Joos, clearly sees the threat from the ascension
 title: Accept the offer!
 on-arrival: chancellor = "Wirth"; chancellor_party = "Z"; spd_in_government = 1; in_grand_coalition = 1; in_unity_government = 1; leverage = 15; z_relation += 5; dvp_relation += 4
 achievement: constitutional_coalition
+on-arrival: {!
+    Q.spd_in_government = 1;
+    Q.spd_toleration = 0;
+    Q.in_grand_coalition = 1;
+   
+    // === CALCULATE COALITION PARTY LEVERAGE ===
+   
+    // Base leverage from Reichstag seats
+    var spd_leverage = Math.max(Q.spd_r || Q.spd_votes, 15);
+    var z_leverage = Math.max(Q.z_r || Q.z_votes, 12); // Z leads, higher floor
+    var bvp_leverage = Math.max(Q.bvp_r || Q.bvp_votes, 5);
+    var ddp_leverage = Math.max(Q.ddp_r || Q.ddp_votes, 5);
+    var dvp_leverage = Math.max(Q.dvp_r || Q.dvp_votes, 8);
+    var wp_leverage = Math.max(Q.wp_r || Q.wp_votes, 3);
+    var srpd_leverage = 0;
+    var dnvp_leverage = 0;
+    
+    // DNVP only included if moderate line
+    if (Q.dnvp_line === 1) {
+        dnvp_leverage = Math.max(Q.dnvp_r || Q.dnvp_votes, 10);
+    }
+
+    // SRPD
+    if (Q.srpd_formed === 1) {
+        var srpd_leverage = Math.max(Q.srpd_r || Q.srpd_votes, 2);
+    }
+   
+    // === SPD MODIFIERS ===
+    spd_leverage += Q.leverage || 0;
+    if (Q.president === "Braun") spd_leverage += 3;
+    if (Q.austerity >= 2) spd_leverage -= 5; // Reluctant to join after austerity
+   
+    // === Z (CENTER) MODIFIERS ===
+    z_leverage += 10; // Chancellor bonus
+    z_leverage += Math.floor(Q.z_relation / 10);
+    if (Q.z_party_leader === "Brüning" || Q.chancellor === "Brüning") z_leverage += 5;
+    if (Q.z_party_leader === "Kaas") z_leverage += 3; // Right-wing, more assertive
+   
+    // === BVP MODIFIERS ===
+    bvp_leverage += Math.floor(Q.bvp_relation / 25);
+    if (Q.z_party_leader === "Kaas") bvp_leverage += 2; // Allied with right-Z
+   
+    // === DDP MODIFIERS ===
+    ddp_leverage += Math.floor(Q.ddp_relation / 15);
+    if (Q.grand_coalition < 55) ddp_leverage += 2; // Kingmaker in narrow coalition
+   
+    // === DVP MODIFIERS ===
+    dvp_leverage += Math.floor(Q.dvp_relation / 10);
+    if (!Q.stresemann_dead) dvp_leverage += 3; // Stresemann's influence
+    if (Q.grand_coalition < 55) dvp_leverage += 3; // Critical for majority
+    
+    // === WP MODIFIERS ===
+    wp_leverage += Math.floor(Q.wp_relation / 20);
+    if (Q.electoral_system_proportional_1929) wp_leverage += 1; // Better representation
+    
+    // === SRPD MODIFIERS ===
+    srpd_leverage += Math.floor(Q.srpd_relation / 20);
+    if (Q.spd_prussia >= 3) srpd_leverage += 2; // Strong in Prussia
+    
+    // === DNVP MODIFIERS (if moderate) ===
+    if (Q.dnvp_line === 1) {
+        dnvp_leverage += Math.floor(Q.dnvp_relation / 10);
+        dnvp_leverage += 8; // Conservative weight in coalition
+        if (Q.grand_coalition < 55) dnvp_leverage += 5; // Very valuable for majority
+    }
+   
+    // === APPLY CAPS AND FLOORS ===
+    var coalition_size = 5; // Base: SPD, Z, BVP, DDP, DVP
+    if (wp_leverage > 0) coalition_size++;
+    if (srpd_leverage > 0) coalition_size++;
+    if (dnvp_leverage > 0) coalition_size++;
+    
+    var min_leverage_for_one_ministry = Math.max(8, 15 - coalition_size); // Smaller parties in large coalitions
+   
+    spd_leverage = Math.max(spd_leverage, min_leverage_for_one_ministry);
+    z_leverage = Math.max(z_leverage, min_leverage_for_one_ministry + 5); // Chancellor always strong
+    bvp_leverage = Math.max(bvp_leverage, 8); // Small but regional power
+    ddp_leverage = Math.max(ddp_leverage, min_leverage_for_one_ministry);
+    dvp_leverage = Math.max(dvp_leverage, min_leverage_for_one_ministry);
+    wp_leverage = Math.max(wp_leverage, 6); // Minor party
+    srpd_leverage = Math.max(srpd_leverage, 6); // Minor party
+    if (dnvp_leverage > 0) {
+        dnvp_leverage = Math.max(dnvp_leverage, min_leverage_for_one_ministry + 3); // Conservative weight
+    }
+   
+    // Cap: No party can have more than 45% in larger coalitions
+    var total_leverage_precap = spd_leverage + z_leverage + bvp_leverage + ddp_leverage + dvp_leverage + wp_leverage + srpd_leverage + dnvp_leverage;
+    var max_leverage = total_leverage_precap * (coalition_size >= 7 ? 0.40 : 0.50);
+   
+    if (spd_leverage > max_leverage) spd_leverage = max_leverage;
+    if (z_leverage > max_leverage) z_leverage = max_leverage;
+    if (bvp_leverage > max_leverage) bvp_leverage = max_leverage;
+    if (ddp_leverage > max_leverage) ddp_leverage = max_leverage;
+    if (dvp_leverage > max_leverage) dvp_leverage = max_leverage;
+    if (wp_leverage > max_leverage) wp_leverage = max_leverage;
+    if (srpd_leverage > max_leverage) srpd_leverage = max_leverage;
+    if (dnvp_leverage > max_leverage) dnvp_leverage = max_leverage;
+   
+    var total_leverage = spd_leverage + z_leverage + bvp_leverage + ddp_leverage + dvp_leverage + wp_leverage + srpd_leverage + dnvp_leverage;
+    var available_ministries = 7;
+   
+    // Calculate ministry allocation
+    var spd_ministries = Math.round((spd_leverage / total_leverage) * available_ministries);
+    var z_ministries = Math.round((z_leverage / total_leverage) * available_ministries);
+    var bvp_ministries = Math.round((bvp_leverage / total_leverage) * available_ministries);
+    var ddp_ministries = Math.round((ddp_leverage / total_leverage) * available_ministries);
+    var dvp_ministries = Math.round((dvp_leverage / total_leverage) * available_ministries);
+    var wp_ministries = Math.round((wp_leverage / total_leverage) * available_ministries);
+    var srpd_ministries = Math.round((srpd_leverage / total_leverage) * available_ministries);
+    var dnvp_ministries = Math.round((dnvp_leverage / total_leverage) * available_ministries);
+   
+    // Adjust for rounding errors
+    var assigned_total = spd_ministries + z_ministries + bvp_ministries + ddp_ministries + dvp_ministries + wp_ministries + srpd_ministries + dnvp_ministries;
+    while (assigned_total > available_ministries) {
+        // Remove from party with most ministries (excluding chancellor's party)
+        if (spd_ministries > z_ministries && spd_ministries > 0) {
+            spd_ministries--;
+        } else if (dnvp_ministries > 0 && dnvp_ministries >= dvp_ministries) {
+            dnvp_ministries--;
+        } else if (dvp_ministries > bvp_ministries && dvp_ministries > ddp_ministries && dvp_ministries > 0) {
+            dvp_ministries--;
+        } else if (ddp_ministries > 0) {
+            ddp_ministries--;
+        } else if (bvp_ministries > 0) {
+            bvp_ministries--;
+        } else if (wp_ministries > 0) {
+            wp_ministries--;
+        } else if (srpd_ministries > 0) {
+            srpd_ministries--;
+        }
+        assigned_total = spd_ministries + z_ministries + bvp_ministries + ddp_ministries + dvp_ministries + wp_ministries + srpd_ministries + dnvp_ministries;
+    }
+   
+    while (assigned_total < available_ministries) {
+        // Give to party with highest fractional remainder
+        var spd_remainder = (spd_leverage / total_leverage) * available_ministries - spd_ministries;
+        var z_remainder = (z_leverage / total_leverage) * available_ministries - z_ministries;
+        var bvp_remainder = (bvp_leverage / total_leverage) * available_ministries - bvp_ministries;
+        var ddp_remainder = (ddp_leverage / total_leverage) * available_ministries - ddp_ministries;
+        var dvp_remainder = (dvp_leverage / total_leverage) * available_ministries - dvp_ministries;
+        var wp_remainder = (wp_leverage / total_leverage) * available_ministries - wp_ministries;
+        var srpd_remainder = (srpd_leverage / total_leverage) * available_ministries - srpd_ministries;
+        var dnvp_remainder = (dnvp_leverage / total_leverage) * available_ministries - dnvp_ministries;
+       
+        var max_remainder = Math.max(spd_remainder, z_remainder, bvp_remainder, ddp_remainder, dvp_remainder, wp_remainder, srpd_remainder, dnvp_remainder);
+        
+        if (z_remainder === max_remainder) {
+            z_ministries++;
+        } else if (spd_remainder === max_remainder) {
+            spd_ministries++;
+        } else if (dnvp_remainder === max_remainder) {
+            dnvp_ministries++;
+        } else if (dvp_remainder === max_remainder) {
+            dvp_ministries++;
+        } else if (ddp_remainder === max_remainder) {
+            ddp_ministries++;
+        } else if (bvp_remainder === max_remainder) {
+            bvp_ministries++;
+        } else if (wp_remainder === max_remainder) {
+            wp_ministries++;
+        } else if (srpd_remainder === max_remainder) {
+            srpd_ministries++;
+        }
+        assigned_total = spd_ministries + z_ministries + bvp_ministries + ddp_ministries + dvp_ministries + wp_ministries + srpd_ministries + dnvp_ministries;
+    }
+   
+    // === MINISTRY PRIORITY LISTS ===
+    var spd_priority = ["labor", "interior", "justice", "finance", "economic", "foreign", "agriculture"];
+    var z_priority = ["interior", "foreign", "finance", "labor", "agriculture", "justice", "economic"];
+    var bvp_priority = ["agriculture", "justice", "interior", "economic", "finance", "foreign", "labor"];
+    var ddp_priority = ["justice", "economic", "finance", "interior", "foreign", "labor", "agriculture"];
+    var dvp_priority = ["economic", "finance", "foreign", "interior", "justice", "labor", "agriculture"];
+    var wp_priority = ["justice", "interior", "labor", "economic", "finance", "foreign", "agriculture"];
+    var srpd_priority = ["labor", "interior", "justice", "economic", "finance", "foreign", "agriculture"];
+    var dnvp_priority = ["agriculture", "finance", "foreign", "economic", "interior", "justice", "labor"];
+   
+    // === ALLOCATION PROCESS ===
+    var ministry_assignments = {
+        foreign: null,
+        interior: null,
+        justice: null,
+        labor: null,
+        economic: null,
+        finance: null,
+        agriculture: null,
+        reichswehr: "I"
+    };
+   
+    var party_allocations = [
+        {party: "SPD", leverage: spd_leverage, remaining: spd_ministries, priority: spd_priority},
+        {party: "Z", leverage: z_leverage, remaining: z_ministries, priority: z_priority},
+        {party: "BVP", leverage: bvp_leverage, remaining: bvp_ministries, priority: bvp_priority},
+        {party: Q.ddp_name || "DDP", leverage: ddp_leverage, remaining: ddp_ministries, priority: ddp_priority},
+        {party: "DVP", leverage: dvp_leverage, remaining: dvp_ministries, priority: dvp_priority},
+        {party: "WP", leverage: wp_leverage, remaining: wp_ministries, priority: wp_priority},
+        {party: "SRPD", leverage: srpd_leverage, remaining: srpd_ministries, priority: srpd_priority}
+    ];
+    
+    if (Q.dnvp_line === 1) {
+        party_allocations.push({party: "DNVP", leverage: dnvp_leverage, remaining: dnvp_ministries, priority: dnvp_priority});
+    }
+   
+    party_allocations.sort(function(a, b) { return b.leverage - a.leverage; });
+   
+    var max_rounds = 15;
+    var round = 0;
+   
+    while (round < max_rounds) {
+        var any_allocated = false;
+       
+        for (var i = 0; i < party_allocations.length; i++) {
+            var party_data = party_allocations[i];
+           
+            if (party_data.remaining > 0) {
+                for (var j = 0; j < party_data.priority.length; j++) {
+                    var ministry = party_data.priority[j];
+                   
+                    if (ministry_assignments[ministry] === null) {
+                        ministry_assignments[ministry] = party_data.party;
+                        party_data.remaining--;
+                        any_allocated = true;
+                        break;
+                    }
+                }
+            }
+        }
+       
+        if (!any_allocated) break;
+        round++;
+    }
+   
+    // === SET MINISTRY PARTIES ===
+    Q.foreign_minister_party = ministry_assignments.foreign || "I";
+    Q.interior_minister_party = ministry_assignments.interior || "I";
+    Q.justice_minister_party = ministry_assignments.justice || "I";
+    Q.labor_minister_party = ministry_assignments.labor || "I";
+    Q.economic_minister_party = ministry_assignments.economic || "I";
+    Q.finance_minister_party = ministry_assignments.finance || "I";
+    Q.agriculture_minister_party = ministry_assignments.agriculture || "I";
+    Q.reichswehr_minister_party = "I";
+   
+    // === ASSIGN ACTUAL MINISTERS ===
+    var ddp_name_var = Q.ddp_name || "DDP";
+   
+    // Foreign Ministry
+    if (Q.foreign_minister_party === "Z") {
+        Q.foreign_minister = "Curtius";
+    } else if (Q.foreign_minister_party === "DVP") {
+        Q.foreign_minister = "Stresemann";
+    } else if (Q.foreign_minister_party === "SPD") {
+        Q.foreign_minister = "Müller";
+    } else if (Q.foreign_minister_party === ddp_name_var) {
+        Q.foreign_minister = "Koch-Weser";
+    } else if (Q.foreign_minister_party === "BVP") {
+        Q.foreign_minister = "Curtius";
+    } else if (Q.foreign_minister_party === "WP") {
+        Q.foreign_minister = "Petersen";
+    } else if (Q.foreign_minister_party === "SRPD") {
+        Q.foreign_minister = "Müller";
+    } else if (Q.foreign_minister_party === "DNVP") {
+        Q.foreign_minister = "Hergt";
+    } else {
+        Q.foreign_minister = "Unbesetzt";
+    }
+   
+    // Interior Ministry
+    if (Q.interior_minister_party === "Z") {
+        Q.interior_minister = "Wirth";
+    } else if (Q.interior_minister_party === "SPD") {
+        Q.interior_minister = "Severing";
+    } else if (Q.interior_minister_party === "BVP") {
+        Q.interior_minister = "Schätzel";
+    } else if (Q.interior_minister_party === ddp_name_var) {
+        Q.interior_minister = "Koch-Weser";
+    } else if (Q.interior_minister_party === "DVP") {
+        Q.interior_minister = "Scholz";
+    } else if (Q.interior_minister_party === "WP") {
+        Q.interior_minister = "Petersen";
+    } else if (Q.interior_minister_party === "SRPD") {
+        Q.interior_minister = "Heilmann";
+    } else if (Q.interior_minister_party === "DNVP") {
+        Q.interior_minister = "Schiele";
+    } else {
+        Q.interior_minister = "Unbesetzt";
+    }
+   
+    // Justice Ministry
+    if (Q.justice_minister_party === "SPD") {
+        Q.justice_minister = "Radbruch";
+    } else if (Q.justice_minister_party === ddp_name_var) {
+        Q.justice_minister = "Koch-Weser";
+    } else if (Q.justice_minister_party === "Z") {
+        Q.justice_minister = "Bredt";
+    } else if (Q.justice_minister_party === "BVP") {
+        Q.justice_minister = "Gürtner";
+    } else if (Q.justice_minister_party === "DVP") {
+        Q.justice_minister = "Koch";
+    } else if (Q.justice_minister_party === "WP") {
+        Q.justice_minister = "Petersen";
+    } else if (Q.justice_minister_party === "SRPD") {
+        Q.justice_minister = "Radbruch";
+    } else if (Q.justice_minister_party === "DNVP") {
+        Q.justice_minister = "Hergt";
+    } else {
+        Q.justice_minister = "Unbesetzt";
+    }
+   
+    // Labor Ministry
+    if (Q.labor_minister_party === "SPD") {
+        Q.labor_minister = "Wissell";
+    } else if (Q.labor_minister_party === "Z") {
+        Q.labor_minister = "Stegerwald";
+    } else if (Q.labor_minister_party === "BVP") {
+        Q.labor_minister = "Stegerwald";
+    } else if (Q.labor_minister_party === ddp_name_var) {
+        Q.labor_minister = "Dietrich";
+    } else if (Q.labor_minister_party === "DVP") {
+        Q.labor_minister = "Moldenhauer";
+    } else if (Q.labor_minister_party === "WP") {
+        Q.labor_minister = "Petersen";
+    } else if (Q.labor_minister_party === "SRPD") {
+        Q.labor_minister = "Heilmann";
+    } else if (Q.labor_minister_party === "DNVP") {
+        Q.labor_minister = "Schiele";
+    } else {
+        Q.labor_minister = "Unbesetzt";
+    }
+   
+    // Economic Ministry
+    if (Q.economic_minister_party === "DVP") {
+        Q.economic_minister = "Curtius";
+    } else if (Q.economic_minister_party === ddp_name_var) {
+        Q.economic_minister = "Dietrich";
+    } else if (Q.economic_minister_party === "SPD") {
+        Q.economic_minister = "Hilferding";
+    } else if (Q.economic_minister_party === "Z") {
+        Q.economic_minister = "Bredt";
+    } else if (Q.economic_minister_party === "BVP") {
+        Q.economic_minister = "Bredt";
+    } else if (Q.economic_minister_party === "WP") {
+        Q.economic_minister = "Petersen";
+    } else if (Q.economic_minister_party === "SRPD") {
+        Q.economic_minister = "Hilferding";
+    } else if (Q.economic_minister_party === "DNVP") {
+        Q.economic_minister = "Schiele";
+    } else {
+        Q.economic_minister = "Unbesetzt";
+    }
+   
+    // Finance Ministry
+    if (Q.finance_minister_party === "DVP") {
+        Q.finance_minister = "Moldenhauer";
+    } else if (Q.finance_minister_party === "Z") {
+        Q.finance_minister = "Köhler";
+    } else if (Q.finance_minister_party === "SPD") {
+        Q.finance_minister = "Hilferding";
+    } else if (Q.finance_minister_party === ddp_name_var) {
+        Q.finance_minister = "Dietrich";
+    } else if (Q.finance_minister_party === "BVP") {
+        Q.finance_minister = "Schätzel";
+    } else if (Q.finance_minister_party === "WP") {
+        Q.finance_minister = "Petersen";
+    } else if (Q.finance_minister_party === "SRPD") {
+        Q.finance_minister = "Hilferding";
+    } else if (Q.finance_minister_party === "DNVP") {
+        Q.finance_minister = "Schiele";
+    } else {
+        Q.finance_minister = "Unbesetzt";
+    }
+   
+    // Agriculture Ministry
+    if (Q.agriculture_minister_party === "BVP") {
+        Q.agriculture_minister = "Fehr";
+    } else if (Q.agriculture_minister_party === "Z") {
+        Q.agriculture_minister = "Hermes";
+    } else if (Q.agriculture_minister_party === "SPD") {
+        Q.agriculture_minister = "Dietrich";
+    } else if (Q.agriculture_minister_party === "DVP") {
+        Q.agriculture_minister = "Schiele";
+    } else if (Q.agriculture_minister_party === ddp_name_var) {
+        Q.agriculture_minister = "Dietrich";
+    } else if (Q.agriculture_minister_party === "WP") {
+        Q.agriculture_minister = "Petersen";
+    } else if (Q.agriculture_minister_party === "SRPD") {
+        Q.agriculture_minister = "Heilmann";
+    } else if (Q.agriculture_minister_party === "DNVP") {
+        Q.agriculture_minister = "Schiele";
+    } else {
+        Q.agriculture_minister = "Unbesetzt";
+    }
+   
+    Q.reichswehr_minister = "Groener";
+   
+    // === STORE FOR DISPLAY ===
+    Q.spd_ministry_count = spd_ministries;
+    Q.z_ministry_count = z_ministries;
+    Q.bvp_ministry_count = bvp_ministries;
+    Q.ddp_ministry_count = ddp_ministries;
+    Q.dvp_ministry_count = dvp_ministries;
+    Q.wp_ministry_count = wp_ministries;
+    Q.srpd_ministry_count = srpd_ministries;
+    Q.dnvp_ministry_count = dnvp_ministries;
+   
+    Q.spd_coalition_leverage = spd_leverage;
+    Q.z_coalition_leverage = z_leverage;
+    Q.bvp_coalition_leverage = bvp_leverage;
+    Q.ddp_coalition_leverage = ddp_leverage;
+    Q.dvp_coalition_leverage = dvp_leverage;
+    Q.wp_coalition_leverage = wp_leverage;
+    Q.srpd_coalition_leverage = srpd_leverage;
+    Q.dnvp_coalition_leverage = dnvp_leverage;
+   
+    if (Q.leverage >= 25) Q.leverage = 25;
+!}
 go-to: ministries
 
 We have formed a new unity government of all the constitutional parties! We have a limited choice in ministries for this government.
 
+**Ministry Distribution:**
+- SPD: [+ spd_ministry_count +] ministries (Leverage: [+ spd_coalition_leverage +])
+- Center Party: [+ z_ministry_count +] ministries (Leverage: [+ z_coalition_leverage +])
+- [+ ddp_name +]: [+ ddp_ministry_count +] ministries (Leverage: [+ ddp_coalition_leverage +])
+- DVP: [+ dvp_ministry_count +] ministries (Leverage: [+ dvp_coalition_leverage +])
+- BVP: [+ bvp_ministry_count +] ministries (Leverage: [+ bvp_coalition_leverage +])
+[? if wp_ministry_count > 0 : - WP: [+ wp_ministry_count +] ministries (Leverage: [+ wp_coalition_leverage +]) ?]
+[? if srpd_coalition_leverage > 0 : - SRPD: [+ srpd_ministry_count +] ministries (Leverage: [+ srpd_coalition_leverage +]) ?]
+[? if dnvp_coalition_leverage > 0 : - DNVP: [+ dnvp_ministry_count +] ministries (Leverage: [+ dnvp_coalition_leverage +]) ?]
+
+**Cabinet Composition:**
+- Foreign Ministry: [+ foreign_minister_party +] ([+ foreign_minister +])
+- Interior Ministry: [+ interior_minister_party +] ([+ interior_minister +])
+- Justice Ministry: [+ justice_minister_party +] ([+ justice_minister +])
+- Labor Ministry: [+ labor_minister_party +] ([+ labor_minister +])
+- Economic Ministry: [+ economic_minister_party +] ([+ economic_minister +])
+- Finance Ministry: [+ finance_minister_party +] ([+ finance_minister +])
+- Agriculture Ministry: [+ agriculture_minister_party +] ([+ agriculture_minister +])
+- Reichswehr Ministry: Independent (Groener)
+
+[? if foreign_minister_party == "I" or interior_minister_party == "I" or justice_minister_party == "I" : Some ministries remain unfilled and will operate under civil service administration. ?]
+
+[? if dnvp_ministry_count > 0 : The moderate DNVP has joined the coalition, bringing conservative legitimacy but also tensions with the left wing. ?]
 
 @reject_unity_government
 on-arrival: z_relation -= 6; ddp_relation -= 6; dvp_relation -= 3
