@@ -43,8 +43,8 @@ We have enforced party discipline to reduce dissent across all factions.
 @whole_shuffle_wels
 title: Coalition Reshuffling
 subtitle: We re-shuffle the structure of our coalition.
-choose-if: advisor_action_timer = 0 and (chancellor == "Wels")
-unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?] [? if chancellor != "Wels" : Wels must be Chancellor or President. ?]
+choose-if: advisor_action_timer = 0 and spd_in_government = 1
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?] [? if spd_in_government = 0 : SPD is not in the government. ?]
 on-arrival: advisor_action_timer = 6; 
 go-to: election_1928.coalition_menu
 
