@@ -29,9 +29,6 @@ Reparations progress: [+ reparations_negotiation +]
 - @concordat_negotiate
 - @concordat
 - @tyrole
-# - @danzig_corridor
-# - @danzig_corridor_salvation
-# - @sudetenland
 - @support_austria
 - @support_austria_2
 - @root: Do not enact any policies for now.
@@ -155,7 +152,7 @@ This has reduced tensions within our government, and our party has gotten credit
 @expose
 title: Expose the secret rearmament plans of the previous foreign ministry!
 view-if: rearmament_exposed == 0
-on-arrival: west_relation += 2; poland_relation += 1; czech_relation += 2; nationalism -= 5*(1-dissent); pro_republic += 5*(1-dissent); coalition_dissent += 1; rearmament_exposed += 1; reparations_negotiation += 3; coup_progress += 2
+on-arrival: west_relation += 2; poland_relation += 1; czech_relation += 2; nationalism -= 5*(1-dissent); pro_republic += 5*(1-dissent); coalition_dissent += 1 if in_grand_coalition = 1; rearmament_exposed += 1; reparations_negotiation += 2; coup_progress += 2
 
 The previous foreign ministry, despite its benevolent and peaceful face, was secretly helping the Reichswehr to build up its forces, in contravention of the Treaty of Versailles.
 
@@ -187,93 +184,6 @@ unavailable-subtitle: [? if eu = 1: European Union supercedes our pact! ?] [? if
 on-arrival: sdapo_strength += 1; west_relation -= 2; eu_progress -= 1; reparations_negotiation -= 1; czech_relation += 2; hungary_relation += 2; austria_relation += 2; tyrole_signed = 1; foreign_policy_timer -= 2
 
 We may sign up the Tyrole - Danubian Non Aggression pact, promising to not fund German oriented organizations in South Tyrole or Austria and them promising to not assist own oriented Heimwehr or other fasci organizations, annexing Free City of Fiume or invading Balkan/Central European countries.
-
-@danzig_corridor
-title: Discuss the question of germans and german territory rights of Danzig and Polish Corridor.
-view-if: year > 1930 and danzig_progress < 2 
-choose-if: poland_relation >= 4 and west_relation >= 3
-subtitle: Polish representatives won't like aggressive policy and generally our current land returning policy. 
-unavailable-subtitle: [? if poland_relation < 4: Polish won't even bother to negotiate this question! ?] [? if west_relation < 3: Western Countries will not let us negotiate this out. ?]
-on-arrival: danzig_progress += 1; poland_relation -= 1
-
-[? if danzig_progress = 0: We begun our progress regarding the danzig corridor issue, seeking to restore some sort of control to East Prussia. ?] [? if danzig_progress > 0: Talks about Danzig continue. It all may depend on how strong we are, how good our relations are and basically how the situation is. ?]
-
-@danzig_corridor_salvation
-title: Negotiate out the Danzig Corridor!
-view-if: danzig_progress = 2 or danzig_question != 1 or danzig_question != -1
-choose-if: poland_relation > 4 
-unavailable-subtitle: Too low of relationships with Poland! Minimal requirement is 4.
-
-Polish under the Pilsudski are certainly not gonna work it out unless we provide them concessions or do it through other means. Heavily WIP, may not bother unless for some extra content.
-
-- @military_way
-- @peaceful_way
-- @european_way
-- @easy_discard
-- @cancel_advisor_action
-
-@military_way
-title: Threaten the polish with invasion! (Are we sure about it?)
-choose-if: reichswehr_strength > 140 and reichswehr_loyalty > 0.50 and poland_relation < 8 and eu = 0
-unavailable-subtitle: Our military is not powerful or loyal enough to initiate invasion!
-
-We are gonna do it through the occupation then, as we have no other means left.
-
-- @war
-- @retreat
-
-@war
-title: Polish do not step back! Occupation then.
-choose-if: reichswehr_loyalty < 0.60 or reichswehr_strength < 160
-unavailable-subtitle: Polish have retreated!
-on-arrival: poland_relation = -10; west_relation -= 5; left_dissent -= 25; center_dissent -= 10; labor_dissent -= 15; reformist_dissent -= 5; neorevisionist_dissent -= 20; reichswehr_loyalty += 0.10; danzig_question = 1; reichswehr_strength -= 25; dnvp_relation += 25
-
-@retreat
-title: Polish retreat back as they let us connect the Corridor!
-choose-if: reichswehr_loyalty > 0.60 and reichswehr_strength > 160 and resource >= 2
-unavailable-subtitle: Polish will not retreat back!
-on-arrival: poland_relation -= 8; danzig_question = 1; west_relation -= 5; left_dissent -= 19; center_dissent -= 8; labor_dissent -= 12; reformist_dissent -= 3; neorevisionist_dissent -= 15; dnvp_relation += 30
-
-@peaceful_way
-title: We can certainly negotiate it out!
-choose-if: budget > 2 and poland_relation > 4
-unavailable-subtitle: We do not have enough of budget!
-on-arrival: budget -= 2; danzig_question = 1; poland_relation += 3; eu_progress += 1; 
-
-@european_way
-title: Let the European Union negotiate out Danzig for us!
-choose-if: eu = 1
-unavailable-subtitle: There is no European Union or we are not integral part of it.
-
-Now we can let European Union decide what will be decided!
-
-- @joint_control
-- @transit
-- @ruled_out
-
-@joint_control
-title: Danzig is, as decided , is controlled jointly by Germany and Poland.
-choose-if: poland_relation >= 6 and (west_relation + hungary_relation + poland_relation + czech_relation + austria_relation) > 15
-unavailable-subtitle: [? if poland_relation < 6: Poland does not trust us with that task ?] [? if (west_relation + hungary_relation + poland_relation + czech_relation + austria_relation) <= 15: European Union members do not trust us with that task! ?]
-on-arrival: unemployed -= 1; danzig_question = -1
-
-@transit
-title: Danzig is, as decided , is transferred to Germany for definite time by treaty!
-choose-if: poland_relation >= 7 and (west_relation + hungary_relation + poland_relation + czech_relation + austria_relation) > 16
-unavailable-subtitle: [? if poland_relation < 7: Poland does not trust us with that task ?] [? if (west_relation + hungary_relation + poland_relation + czech_relation + austria_relation) <= 16: European Union members do not trust us with that task! ?]
-on-arrival: danzig_question = 1
-
-@ruled_out
-title: Poland retains the current status quo of Danzig Corridor.
-on-arrival: danzig_question = -1
-
-@sudetenland
-title: Our germans in the Sudetenland are vulnerable, we should certainly intervene in this situation!
-view-if: year >= 1932
-choose-if: czech_relation >= 3 and sudetenland_question = 0
-on-arrival: sudetenland_question = 1; budget += 2
-
-WIP. To not waste your time, get your budget of 2.
 
 @support_austria
 title: Diplomatically support Austrian democracy against the Dollfuß dictatorship.
@@ -316,3 +226,66 @@ A major component of the union is the free movement of people and goods across t
 Fascist Italy remains a problem, and the Soviet Union also lies outside the system. But for now, there is new hope for peace and prosperity throughout the continent.
 
 Question remains - who will lead the European Union?
+
+Three major thinkers propose competing frameworks:
+
+**Aristide Briand** (French): Diplomatic cooperation preserving national sovereignty. Gradual economic integration through treaties and conferences.
+
+**Richard Coudenhove-Kalergi** (Pan-European Union): Cultural and civilizational unity. Federal structure to defend European identity against external threats.
+
+**Altiero Spinelli** (Federalist): Bold democratic federation with shared sovereignty. Elected European Parliament and federal constitution.
+
+Germany's choice will shape European identity for decades.
+
+- @briand_europe: Support Briand's diplomatic pragmatism
+- @kalergi_europe: Support Coudenhove-Kalergi's Pan-Europa
+- @spinelli_europe: Support Spinelli's democratic federalism
+
+@briand_europe
+on-arrival: eu_identity = "briand"; z_relation += 5; dvp_relation += 5; nationalism -= 2; pacifism += 3;
+
+**The Briand Path: Diplomatic Pragmatism**
+
+Germany endorses Briand's vision: patient diplomacy, respect for sovereignty, gradual integration through economic cooperation and regular ministerial conferences.
+
+Europe will be built through trust and mutual benefit, not imposed structures. This is slow but stable.
+
+[? if z_relation >= 60 : The Center Party approves: "This respects national traditions and Catholic subsidiarity." ?]
+[? if left_strength >= 40 : The left is disappointed: "Too cautious! We need bold democratic federalism!" ?]
+
+- @root: The European project begins.
+
+@kalergi_europe
+on-arrival: eu_identity = "kalergi"; nationalism += 3; pacifism += 6; peoples_party_support += 3; reformist_dissent += 5; left_dissent += 5;
+
+**The Pan-European Path: Civilizational Unity**
+
+Germany endorses Coudenhove-Kalergi's vision: Europe as unified civilization with federal structures, cultural identity, and defense against external threats (USSR/USA).
+
+Pan-European institutes, federal parliament proposals, and European identity education will follow.
+
+[? if peoples_party_support >= 40 : Educated classes are enthusiastic about European cultural unity. ?]
+[? if left_strength >= 40 : The left is skeptical: "This is elitist romanticism. Where are the workers?" ?]
+
+[? if left_strength >= 30 or reformist_strength >= 40 : We can work to democratize this vision, making it inclusive rather than elitist. ?]
+
+- @root: The European project begins.
+
+@spinelli_europe
+on-arrival: eu_identity = "spinelli"; nationalism -= 6; pacifism += 10; pro_republic += 5; left_strength += 5; reformist_dissent += 10; z_relation -= 8; dvp_relation -= 8;
+
+**The Federalist Path: Democratic Superstate**
+
+Germany endorses Spinelli's radical vision: true federation with shared sovereignty, elected European Parliament, federal constitution, and European citizenship above national identity.
+
+This means a European Constituent Assembly, federal government, and transcending the nation-state system that caused the Great War.
+
+[? if left_strength >= 50 : The left is ecstatic: "International solidarity over nationalist division!" ?]
+[? if reformist_strength >= 40 : Reformists are alarmed: "We're abolishing German sovereignty!" ?]
+[? if nationalism >= 40 : Nationalists are furious: "Treason! Surrendering Germany to foreign control!" ?]
+
+This is bold and controversial—but could end nationalist wars forever.
+
+[? if reformist_strength >= 40 : We could adopt a more gradual federalist approach to reduce backlash. ?]
+
+- @root: The European project begins.
