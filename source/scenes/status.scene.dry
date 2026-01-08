@@ -18,8 +18,6 @@ if (Q.economic_growth) {
 
 [+ month : month +] [+ year +]
 
-Resources available: [+ resources +]
-
 SPD position: [? if spd_toleration : toleration ?][? if spd_in_government : in government - ?][? if spd_toleration == 0 and spd_in_government == 0 and spd_caretaker == 0 : opposition ?][? if spd_caretaker : caretaker government ?]
 [? if in_weimar_coalition and spd_in_government: Weimar Coalition ?][? if in_grand_coalition and spd_in_government: Grand Coalition ?][? if in_popular_front and spd_in_government: Popular Front ?][? if in_left_front and spd_in_government: Left Front ?][? if in_spd_majority and spd_in_government: SPD majority ?][? if in_minority_government and spd_in_government: minority government ?][? if in_emergency_government and spd_in_government: emergency government ?]
 
@@ -27,11 +25,11 @@ SPD position: [? if spd_toleration : toleration ?][? if spd_in_government : in g
 
 [? if spd_in_government and (in_left_front or in_popular_front): KPD coalition dissent: [+ kpd_coalition_dissent : coalition_dissent +] ?]
 
-Internal dissent: [+ dissent_percent : dissent +]
+Next election: [+ next_election_month : month +] [+ next_election_year +]
 
 = Government
 
-President: [+ president +]
+President: [+ president +] ([+ president_party +])
 
 Chancellor: [+ chancellor +] ([+ chancellor_party +])
 
@@ -64,15 +62,7 @@ Others: [+ other_r +]%
 
 [? if spd_in_government = 1 : Budget: [+ budget +] ?]
 
-Next election: [+ next_election_month : month +] [+ next_election_year +]
-
-= Economics
-
-Inflation: [+ inflation_2 +]%
-
-Unemployment: [+ unemployed_2 +]%
-
-Economic growth: [+ economic_growth_2 +]%
+Resources available: [+ resources +]
 
 
 
@@ -81,7 +71,6 @@ Economic growth: [+ economic_growth_2 +]%
 @politics
 
 = Inter-party Relations
-
 
 {!<span class="tooltip-text" title="Center Party">Z</span>!}: [+ z_relation : relationships +] [+ z_relation +]
 
@@ -101,6 +90,8 @@ Economic growth: [+ economic_growth_2 +]%
 
 = Internal Factions of the SPD
 
+Internal dissent: [+ dissent_percent : dissent +]
+
 {!<span class="tooltip-text" title="The Left is interested in radical, transformative policies and cooperation with the KPD.">Left</span>!} strength: [+ left_strength : strength +], dissent: [+ left_dissent : dissent +]
 
 {!<span class="tooltip-text" title="The Center is a faction of Center Marxists, between reform and revolution.">Center</span>!} strength: [+ center_strength : strength +], dissent: [+ center_dissent : dissent +]
@@ -110,6 +101,16 @@ Economic growth: [+ economic_growth_2 +]%
 {!<span class="tooltip-text" title="Reformists are pragmatic participants in government, and seek to expand the welfare state and defend democracy.">Reformist</span>!} strength: [+ reformist_strength : strength +], dissent: [+ reformist_dissent : dissent +]
 
 [? if neorevisionism > 0 : Neorevisionist strength: [+ neorevisionist_strength : strength +], dissent: [+ neorevisionist_dissent : dissent +] ?]
+
+= Support for the Forces
+
+Support for the Republic: [+ pro_republic_disp +]%
+
+Support for the Nationalism: [+ nationalism_disp +]% 
+
+Support for the Socialism: [+ socialism_disp +]%
+
+Support of the Pacifism: [+ pacifism_disp +]%
 
 
 @paramilitaries
@@ -213,16 +214,6 @@ Unemployed: SPD: [+ unemployed_spd_display +]%, Z: [+ unemployed_z_display +]%, 
 
 Catholics: SPD: [+ catholics_spd_display +]%, Z: [+ catholics_z_display +]%, BVP: [+ catholics_bvp_display +]%, KPD: [+ catholics_kpd_display +]%, [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ catholics_ddp_display +]%, DVP: [+ catholics_dvp_display +]%; WP: [+ catholics_wp_display +]%; DNVP: [+ catholics_dnvp_display +]%, NSDAP: [+ catholics_nsdap_display +]%, Others: [+ catholics_other_display +]% [? if sapd_formed: SAPD: [+ catholics_sapd_display +]% ?] [? if srpd_formed: SRPD: [+ catholics_srpd_display +]% ?]
 
-= Support for the Forces
-
-Support for the Republic: [+ pro_republic_disp +]%
-
-Support for the Nationalism: [+ nationalism_disp +]% 
-
-Support for the Socialism: [+ socialism_disp +]%
-
-Support of the Pacifism: [+ pacifism_disp +]%
-
 = Proportions of the social groups
 
 Workers: [+ workers +]
@@ -282,6 +273,14 @@ Relationship with Hungary: [+ hungary_relation +]
 [? if eu == 1 and eu_identity == "briand" : Leading Thought: European Pragmatism ?]
 
 = Economics
+
+Inflation: [+ inflation_2 +]%
+
+Unemployment: [+ unemployed_2 +]%
+
+Economic growth: [+ economic_growth_2 +]%
+
+= Economics Advanced
 
 Our fiscal stance: [+ fiscal_stance +]      
 
