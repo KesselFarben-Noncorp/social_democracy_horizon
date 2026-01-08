@@ -11,6 +11,7 @@ Juchacz is the founder of the Worker's Welfare, our mutual aid organization; her
 
 - @welfare
 - @organizing_women
+- @solidarity_network
 - @root: Return to main
 
 @welfare
@@ -32,3 +33,23 @@ on-arrival: womens_rights += 1; workers_spd += 4*(1-dissent); rural_spd += 3*(1-
 Juchacz's strategies for organizing women are aimed at working-class housewives, and acknowledge women's traditional household roles. We argue that our economic welfare programs will improve the livelihoods of women and their families.
 
 [? if spd_r < 50 : Unfortunately, women still disproportionately support the bourgeois parties. ?]
+
+@solidarity_network
+title: Solidarity Network
+subtitle: We will make the welfare self sustaining and beneficial.
+choose-if: advisor_action_timer == 0 and workers_aid >= 3
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if workers_aid < 3 : Need established Workers' Welfare (3+ aid levels). ?]
+on-arrival: {!
+    Q.advisor_action_timer = 6;
+    Q.solidarity_network_active = 1;
+    
+    // One-time resource gain
+    Q.resources += Q.workers_aid;
+    
+    // Permanent passive income boost
+    Q.dues_workers += 0.5;
+    Q.dues_unemployed += 0.25;
+!}
+
+Juchacz transforms Workers' Welfare into a mutual aid network. By transitioning from charity to self-sustenance through member contributions and cooperatives, we ensure the party's resources go further.
+Effect: Gain [+ workers_aid +] resources and a permanent increase to dues income.
