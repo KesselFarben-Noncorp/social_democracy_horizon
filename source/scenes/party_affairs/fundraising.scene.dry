@@ -10,14 +10,17 @@ on-arrival: {!
     if (!Q.dues_rural) { Q.dues_rural = 1; }
     if (!Q.dues_catholics) { Q.dues_catholics = 1; }
     
-    // Calculate base income from each demographic
-    // Use Math.round() instead of Math.floor(), and increase multipliers
-    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 0.03 * (1 - Q.labor_dissent * 0.005) + (Q.bonus_dues_workers * 2));
-    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 0.02 * (1 - Q.labor_dissent * 0.005) + (Q.bonus_dues_unemployed * 2));
-    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.08 * (1 - Q.reformist_dissent * 0.005));
-    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.08 * (1 - Q.center_dissent * 0.005));
-    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.03 * (1 - Q.center_dissent * 0.005));
-    Q.catholics_income = Math.round(Q.catholics_spd * Q.dues_catholics * 0.04 * (1 - Q.center_dissent * 0.005));
+    // Initialize bonus dues if not set
+    Q.bonus_dues_workers = Q.bonus_dues_workers || 0;
+    Q.bonus_dues_unemployed = Q.bonus_dues_unemployed || 0;
+    
+    // Calculate base income - multiply by 100 to account for decimal percentages
+    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 3 * (1 - Q.labor_dissent * 0.005) + Q.bonus_dues_workers * 2);
+    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 2 * (1 - Q.labor_dissent * 0.005) + Q.bonus_dues_unemployed * 2);
+    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 8 * (1 - Q.reformist_dissent * 0.005));
+    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 8 * (1 - Q.center_dissent * 0.005));
+    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 3 * (1 - Q.center_dissent * 0.005));
+    Q.catholics_income = Math.round(Q.catholics_spd * Q.dues_catholics * 4 * (1 - Q.center_dissent * 0.005));
     
     // Total projected income
     Q.total_projected = Q.workers_income + Q.unemployed_income + Q.new_middle_income + Q.old_middle_income + Q.rural_income + Q.catholics_income;
