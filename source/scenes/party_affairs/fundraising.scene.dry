@@ -15,8 +15,8 @@ on-arrival: {!
     Q.bonus_dues_unemployed = Q.bonus_dues_unemployed || 0;
     
     // Calculate base income - multiply by 100 to account for decimal percentages
-    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 3 * (1 - Q.labor_dissent * 0.005) + Q.bonus_dues_workers * 2);
-    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 2 * (1 - Q.labor_dissent * 0.005) + Q.bonus_dues_unemployed * 2);
+    Q.workers_income = Math.round((Q.workers_spd * Q.dues_workers * 3 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_workers * 2));
+    Q.unemployed_income = Math.round((Q.unemployed_spd * Q.dues_unemployed * 2 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_unemployed * 2));
     Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 8 * (1 - Q.reformist_dissent * 0.005));
     Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 8 * (1 - Q.center_dissent * 0.005));
     Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 3 * (1 - Q.center_dissent * 0.005));
