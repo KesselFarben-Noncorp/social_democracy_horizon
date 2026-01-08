@@ -3,11 +3,9 @@ new-page: true
 view-if: fundraising_timer <= 12 and (not historical_mode)
 on-arrival: {!
     // Calculate base income from each demographic
-    Q.bonus_dues_workers = 0.1 || 0;
-    Q.bonus_dues_unemployed = 0.05 || 0;
     // Use Math.round() instead of Math.floor(), and increase multipliers
-    Q.workers_income = Math.round(Q.workers_spd * (Q.dues_workers + Q.bonus_dues_workers) * 0.03 * (1 - Q.labor_dissent * 0.005));
-    Q.unemployed_income = Math.round(Q.unemployed_spd * (Q.dues_unemployed + Q.bonus_dues_unemployed) * 0.02 * (1 - Q.labor_dissent * 0.005));
+    Q.workers_income = Math.round(Q.workers_spd * Q.dues_workers * 0.03 * (1 - Q.labor_dissent * 0.005) + (bonus_dues_workers * 2));
+    Q.unemployed_income = Math.round(Q.unemployed_spd * Q.dues_unemployed * 0.02 * (1 - Q.labor_dissent * 0.005) + (bonus_dues_unemployed * 2));
     Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.08 * (1 - Q.reformist_dissent * 0.005));
     Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.08 * (1 - Q.center_dissent * 0.005));
     Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.03 * (1 - Q.center_dissent * 0.005));
