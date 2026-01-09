@@ -1375,10 +1375,13 @@ on-arrival: {!
 // COALITION FORMATION FAILED
 // ============================================
 
-// Pre-calculate formateur votes for display
-Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r'];
-
 Q.formation_round++;
+
+// Store the failed party name BEFORE moving to next
+Q.failed_formateur = Q.formateur;
+
+// Pre-calculate current formateur votes for display
+Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r'];
 
 // Find next viable formateur
 Q.next_formateur_found = 0;
@@ -1392,6 +1395,7 @@ for (var i = Q.formation_round - 1; i < Q.party_votes.length; i++) {
     if (Q.formation_attempts.indexOf(candidate) >= 0) continue; // Already tried
     
     Q.formateur = candidate;
+    Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r']; // Update votes for new formateur
     Q.next_formateur_found = 1;
     break;
 }
@@ -1404,7 +1408,7 @@ go-to: presidential_crisis if all_attempts_failed; next_formateur_attempt if not
 
 = Formation Attempt Failed
 
-**[+ formation_attempts[formation_attempts.length - 1] +] has failed to form a viable coalition.**
+**[+ failed_formateur +] has failed to form a viable coalition.**
 
 The mandate now passes to **[+ formateur +]** ([+ formateur_votes +]%).
 
