@@ -469,11 +469,16 @@ go-to: coalition_formation_start
 {!<tr><td><div class="box" style='background-color:#954B00'> </div> !} NSDAP: {!</td><td>!} [+ nsdap_r +]% {!</td><td>!} [+ str_change_nsdap +] {!</td></tr>!}
 {!</table>!}
 
+
 @coalition_formation_start
 on-arrival: {!
 // ============================================
 // BUILD PARTY LIST
 // ============================================
+
+Q.formatted_results = Q.party_votes.map(entry => {
+    return { party: entry.party, votes: entry.votes };
+});
 
 Q.party_votes = [
     {party:'KPD', votes:Q.kpd_r},
@@ -533,7 +538,7 @@ Q.formation_attempts=[];
 = Coalition Formation - [+ year +]
 
 **Election Results:**
-[? for entry in party_votes :
+[? for entry in formatted_results :
 - [+ entry.party +]: [+ entry.votes +]%
 ?]
 
@@ -829,8 +834,19 @@ if (Q.possible_coalitions.length === 0) {
 !}
 go-to: coalition_success if coalition_formed; coalition_failure if not coalition_formed
 
+
+
+
 @coalition_success
 on-arrival: {!
+
+Q.government_parties_display = Q.government_parties.map(party => {
+    return {
+        name: party,
+        votes: Q[party.toLowerCase() + '_r'].toFixed(1)
+    };
+});
+
 // ============================================
 // COALITION SUCCESSFULLY FORMED
 // ============================================
@@ -1005,7 +1021,7 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 **Chancellor:** [+ chancellor +] ([+ chancellor_party +])
 
 **Coalition Partners:**
-[? for party in government_parties : - **[+ party +]**: [+ Q[party + '_r'] +]% ?]
+[? for p in government_parties_display : - **[+ p.name +]**: [+ p.votes +]% ?]
 
 **Total Reichstag Support:** [+ coalition_votes +]%
 
@@ -1025,8 +1041,17 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 
 - @ministry_allocation: Proceed to ministry distribution
 
+
 @ministry_allocation
 on-arrival: {!
+Q.ministry_display_list = Q.government_parties.map(party => {
+    return {
+        name: party,
+        count: Q.ministry_allocation[party],
+        leverage: Q.ministry_leverage_rounded[party]
+    };
+});
+
 // ============================================
 // CALCULATE LEVERAGE FOR EACH PARTY
 // ============================================
@@ -1317,7 +1342,7 @@ for (var party in leverage) {
 **The [+ coalition_name +] has formed its cabinet:**
 
 **Ministries by Party:**
-[? for party in government_parties : {! - **[+ party +]** - [+ ministry_allocation[party] +] ministries (Leverage: [+ ministry_leverage_rounded[party] +]) !} ?]
+[? for item in ministry_display_list : - **[+ item.name +]** - [+ item.count +] ministries (Leverage: [+ item.leverage +]) ?]
 
 **Cabinet Appointments:**:
 - **Foreign Ministry:** [+ foreign_minister_party +] - [+ foreign_minister +]
@@ -1368,10 +1393,13 @@ Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r'];
 go-to: presidential_crisis if all_attempts_failed; next_formateur_attempt if not all_attempts_failed
 
 @next_formateur_attempt
+on-arrival: {!
+Q.last_failed_formateur = Q.formation_attempts[Q.formation_attempts.length - 1];
+!}
 
 = Formation Attempt Failed
 
-**[+ formation_attempts[formation_attempts.length - 1] +] has failed to form a viable coalition.**
+**[+ last_failed_formateur +] has failed to form a viable coalition.**
 
 The mandate now passes to **[+ formateur +]** ([+ formateur_votes +]%).
 
