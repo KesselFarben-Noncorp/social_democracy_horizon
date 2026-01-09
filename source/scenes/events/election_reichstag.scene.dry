@@ -326,22 +326,11 @@ Q.coalition_blocks = {
 // SPECIAL COALITION CONDITIONS
 // ============================================
 
-Q.special_conditions = {
-    // Popular Front requires conciliators
-    popular_front: Q.kpd_party_leader === "Conciliators" && Q.z_party_leader === "Joos",
-    
-    // Left Front requires good KPD relations
-    left_front: Q.communist_coalition >= 3 && Q.kpd_relation >= 50,
-    
-    // Unity Government requires crisis
-    unity_government: Q.nazi_urgency >= 6 || Q.pro_republic < 40,
-    
-    // Bourgeois coalition requires no SPD
-    bourgeois_only: Q.year >= 1929 || Q.spd_r < 25,
-    
-    // Right coalition requires moderate DNVP
-    right_coalition_viable: Q.dnvp_line !== 3 || Q.z_party_leader === "Kaas"
-};
+Q.popular_front_possible = (Q.kpd_party_leader === "Conciliators" && Q.z_party_leader === "Joos") ? 1 : 0;
+Q.left_front_possible = (Q.communist_coalition >= 3 && Q.kpd_relation >= 50) ? 1 : 0;
+Q.unity_government_possible = (Q.nazi_urgency >= 6 || Q.pro_republic < 40) ? 1 : 0;
+Q.bourgeois_only_possible = (Q.year >= 1929 || Q.spd_r < 25) ? 1 : 0;
+Q.right_coalition_viable = (Q.dnvp_line !== 3 || Q.z_party_leader === "Kaas") ? 1 : 0;
 
 var election_result = {'date': new Date(Q.year, Q.month - 1)};
 for (var party of Q.parties) {
@@ -1554,7 +1543,7 @@ The government crisis has been resolved, at least temporarily. [? if spd_tolerat
 @popular_front_special
 title: Attempt to form a Popular Front
 subtitle: SPD + KPD + Z + [+ ddp_name +] ([+ spd_r + kpd_r + z_r + ddp_r +]%)
-view-if: coalition_type = 'popular_front' and special_conditions.popular_front
+view-if: coalition_type = 'popular_front' and popular_front_possible = 1
 on-arrival: coup_progress += 2; in_popular_front = 1; kpd_relation += 10; z_relation += 10; pro_republic += 5
 achievement: volksfront
 
@@ -1569,7 +1558,7 @@ However, the right-wing views this as a betrayal. Coup attempts are likely.
 @left_front_special  
 title: Attempt to form a Left Front
 subtitle: SPD + KPD [? if sapd_formed : + SAPD ?] ([+ spd_r + kpd_r + (sapd_r or 0) +]%)
-view-if: coalition_type = 'left_front' and special_conditions.left_front
+view-if: coalition_type = 'left_front' and left_front_possible = 1
 on-arrival: coup_progress += 3; capital_strike_progress += 2; in_left_front = 1; kpd_relation += 15; reichswehr_loyalty -= 0.1
 achievement: einheitsfront
 
