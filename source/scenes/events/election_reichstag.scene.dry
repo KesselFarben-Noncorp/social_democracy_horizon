@@ -475,6 +475,13 @@ on-arrival: {!
 // BUILD LIST OF PARTIES BY VOTE SHARE
 // ============================================
 
+Q.partners_display = "";
+for (var i = 0; i < Q.government_parties.length; i++) {
+    var party = Q.government_parties[i];
+    var party_votes = Q[party.toLowerCase() + '_r'];
+    Q.partners_display += "- **" + party + "**: " + party_votes + "%\n";
+}
+
 Q.party_votes = [
     {party: 'KPD', votes: Q.kpd_r},
     {party: 'SPD', votes: Q.spd_r},
@@ -1615,10 +1622,14 @@ We have rejected the KPD's most radical demands. They are unhappy, but remain in
 @coalition_stability_check
 title: Coalition Stability
 view-if: government_parties.length >= 3
+on-arrival: {!
+    // Create comma-separated list of partners
+    Q.partners_list = Q.government_parties.join(', ');
+!}
 
 **Current Coalition:** [+ coalition_name +]
 
-**Partners:** [? for party in government_parties : [+ party +] ?]
+**Partners:** [+ partners_list +]
 
 **Reichstag Support:** [+ coalition_votes +]%
 
