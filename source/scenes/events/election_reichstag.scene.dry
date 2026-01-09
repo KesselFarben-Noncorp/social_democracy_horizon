@@ -1314,6 +1314,12 @@ Q.reichswehr_minister_party = 'I';
 // Store allocation for display
 Q.ministry_allocation = allocation;
 Q.ministry_leverage = leverage;
+
+// Pre-calculate rounded leverage for display
+Q.ministry_leverage_rounded = {};
+for (var party in leverage) {
+    Q.ministry_leverage_rounded[party] = Math.round(leverage[party]);
+}
 !}
 
 = Cabinet Formation Complete
@@ -1321,7 +1327,7 @@ Q.ministry_leverage = leverage;
 **The [+ coalition_name +] has formed its cabinet:**
 
 **Ministries by Party:**
-[? for party in government_parties : - **[+ party +]**: [+ ministry_allocation[party] +] ministries (Leverage: [+ Math.round(ministry_leverage[party]) +]) ?]
+[? for party in government_parties : - **[+ party +]**: [+ ministry_allocation[party] +] ministries (Leverage: [+ ministry_leverage_rounded[party] +]) ?]
 
 **Cabinet Appointments:**:
 - **Foreign Ministry:** [+ foreign_minister_party +] - [+ foreign_minister +]
