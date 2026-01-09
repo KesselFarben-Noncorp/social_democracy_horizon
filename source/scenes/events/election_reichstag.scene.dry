@@ -545,6 +545,10 @@ if (Q.president === "Hindenburg") {
 
 Q.formation_round = 1;
 Q.formation_attempts = [];
+
+if (Q.party_votes && Q.party_votes.length > 0) {
+    Q.first_party_votes = Q.party_votes[0].votes;
+}
 !}
 
 = Coalition Formation - [+ year +]
@@ -553,7 +557,7 @@ Q.formation_attempts = [];
 [? for entry in party_votes : - [+ entry.party +]: [+ entry.votes +]% ?]
 
 [? if president_interfered : President [+ president +] has designated **[+ formateur +]** to form a government, exercising presidential prerogative. ?]
-[? if not president_interfered : By constitutional tradition, **[+ formateur +]** ([+ party_votes[0].votes +]%) receives the mandate to form a government. ?]
+[? if not president_interfered : By constitutional tradition, **[+ formateur +]** ([+ first_party_votes +]%) receives the mandate to form a government. ?]
 
 - @begin_negotiations: Begin coalition negotiations
 
@@ -1372,6 +1376,8 @@ for (var i = Q.formation_round - 1; i < Q.party_votes.length; i++) {
 }
 
 Q.all_attempts_failed = !Q.next_formateur_found || Q.formation_round > Q.party_votes.length;
+
+Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r'];
 !}
 go-to: presidential_crisis if all_attempts_failed; next_formateur_attempt if not all_attempts_failed
 
@@ -1381,7 +1387,7 @@ go-to: presidential_crisis if all_attempts_failed; next_formateur_attempt if not
 
 **[+ formation_attempts[formation_attempts.length - 1] +] has failed to form a viable coalition.**
 
-The mandate now passes to **[+ formateur +]** ([+ Q[formateur.toLowerCase() + '_r'] +]%).
+The mandate now passes to **[+ formateur +]** ([+ formateur_votes +]%).
 
 [? if formation_round >= 3 : The political crisis deepens as multiple parties have failed to form a government. ?]
 
