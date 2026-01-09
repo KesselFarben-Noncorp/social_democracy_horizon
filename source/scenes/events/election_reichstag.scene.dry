@@ -606,7 +606,7 @@ function coalition_compatibility(parties) {
         if (parties[i] === formateur) continue;
         
         var rel = (Q.party_relations[formateur] && Q.party_relations[formateur][parties[i]]) || 0;
-        if (rel < 30) return -1; // Veto
+        if (rel < 10) return -1; // Veto
         total_rel += rel;
         count++;
     }
@@ -617,7 +617,7 @@ function coalition_compatibility(parties) {
             if (parties[i] === formateur || parties[j] === formateur) continue;
             
             var rel = (Q.party_relations[parties[i]] && Q.party_relations[parties[i]][parties[j]]) || 0;
-            if (rel < 25) return -1; // Mutual veto
+            if (rel < 5) return -1; // Mutual veto
             total_rel += rel;
             count++;
         }
