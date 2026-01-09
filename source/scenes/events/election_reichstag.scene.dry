@@ -543,6 +543,15 @@ if (Q.president === "Hindenburg") {
     Q.formateur = Q.party_votes[0].party;
 }
 
+// Pre-calculate election results display
+Q.election_results_list = "";
+for (var i = 0; i < Q.party_votes.length; i++) {
+    Q.election_results_list += "- " + Q.party_votes[i].party + ": " + Q.party_votes[i].votes + "%\n";
+}
+
+// Pre-calculate first party votes for display
+Q.first_party_votes = Q.party_votes[0].votes;
+
 Q.formation_round = 1;
 Q.formation_attempts = [];
 !}
@@ -550,10 +559,12 @@ Q.formation_attempts = [];
 = Coalition Formation - [+ year +]
 
 **Election Results:**
-[? for entry in party_votes : - [+ entry.party +]: [+ entry.votes +]% ?]
+
+[+ election_results_list +]
 
 [? if president_interfered : President [+ president +] has designated **[+ formateur +]** to form a government, exercising presidential prerogative. ?]
-[? if not president_interfered : By constitutional tradition, **[+ formateur +]** ([+ party_votes[0].votes +]%) receives the mandate to form a government. ?]
+
+[? if not president_interfered : By constitutional tradition, **[+ formateur +]** ([+ first_party_votes +]%) receives the mandate to form a government. ?]
 
 - @begin_negotiations: Begin coalition negotiations
 
@@ -845,6 +856,14 @@ on-arrival: {!
 // COALITION SUCCESSFULLY FORMED
 // ============================================
 
+// Pre-calculate coalition partners display
+Q.coalition_partners_list = "";
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var votes = Q[party.toLowerCase() + '_r'];
+    Q.coalition_partners_list += "- **" + party + "**: " + votes + "%\n";
+}
+
 var coalition = Q.chosen_coalition.parties;
 Q.government_parties = coalition;
 Q.coalition_votes = Q.chosen_coalition.votes;
@@ -1015,7 +1034,8 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 **Chancellor:** [+ chancellor +] ([+ chancellor_party +])
 
 **Coalition Partners:**
-[? for party in government_parties : - **[+ party +]**: [+ Q[party.toLowerCase() + '_r'] +]% ?]
+
+[+ coalition_partners_list +]
 
 **Total Reichstag Support:** [+ coalition_votes +]%
 
@@ -1040,6 +1060,13 @@ on-arrival: {!
 // ============================================
 // CALCULATE LEVERAGE FOR EACH PARTY
 // ============================================
+
+// Pre-calculate ministry display
+Q.ministry_display_list = "";
+for (var party in allocation) {
+    var rounded_leverage = Math.round(leverage[party]);
+    Q.ministry_display_list += "- **" + party + "**: " + allocation[party] + " ministries (Leverage: " + rounded_leverage + ")\n";
+}
 
 var coalition = Q.government_parties;
 var leverage = {};
@@ -1320,8 +1347,9 @@ Q.ministry_leverage = leverage;
 
 **The [+ coalition_name +] has formed its cabinet:**
 
-**Ministries by Party:**
-[? for party in government_parties : - **[+ party +]**: [+ ministry_allocation[party] +] ministries (Leverage: [+ Math.round(ministry_leverage[party]) +]) ?]
+**Ministries by Party:****Ministries by Party:**
+
+[+ ministry_display_list +]
 
 **Cabinet Appointments:**
 - **Foreign Ministry:** [+ foreign_minister_party +] - [+ foreign_minister +]
@@ -1346,6 +1374,9 @@ on-arrival: {!
 // ============================================
 // COALITION FORMATION FAILED
 // ============================================
+
+// Pre-calculate formateur votes for display
+Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r'];
 
 Q.formation_round++;
 
@@ -1375,7 +1406,7 @@ go-to: presidential_crisis if all_attempts_failed; next_formateur_attempt if not
 
 **[+ formation_attempts[formation_attempts.length - 1] +] has failed to form a viable coalition.**
 
-The mandate now passes to **[+ formateur +]** ([+ Q[formateur.toLowerCase() + '_r'] +]%).
+The mandate now passes to **[+ formateur +]** ([+ formateur_votes +]%).
 
 [? if formation_round >= 3 : The political crisis deepens as multiple parties have failed to form a government. ?]
 
@@ -1603,10 +1634,14 @@ We have rejected the KPD's most radical demands. They are unhappy, but remain in
 @coalition_stability_check
 title: Coalition Stability
 view-if: government_parties.length >= 3
+on-arrival: {!
+    // Create formatted list of partners
+    Q.partners_list = Q.government_parties.join(', ');
+!}
 
 **Current Coalition:** [+ coalition_name +]
 
-**Partners:** [? for party in government_parties : [+ party +] ?]
+**Partners:** [+ partners_list +]
 
 **Reichstag Support:** [+ coalition_votes +]%
 
