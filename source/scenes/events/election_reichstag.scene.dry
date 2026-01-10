@@ -836,6 +836,17 @@ if (Q.possible_coalitions.length === 0) {
     Q.chosen_coalition = Q.possible_coalitions[0];
     Q.coalition_formed = 1;
 }
+
+// After the 3-party coalition loop, add:
+if (formateur === 'SPD') {
+    console.log("SPD possible 3-party coalitions found: " + Q.possible_coalitions.length);
+    for (var x = 0; x < Q.possible_coalitions.length; x++) {
+        console.log("Coalition " + x + ": " + Q.possible_coalitions[x].parties.join(", ") + 
+                    " - Votes: " + Q.possible_coalitions[x].votes + 
+                    " - Compat: " + Q.possible_coalitions[x].compatibility);
+    }
+}
+
 !}
 go-to: coalition_success if coalition_formed; coalition_failure if not coalition_formed
 
