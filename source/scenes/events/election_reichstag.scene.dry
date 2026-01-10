@@ -576,7 +576,6 @@ function get_relation(party1, party2) {
     var rel1 = (Q.party_relations[party1] && Q.party_relations[party1][party2]) || 0;
     var rel2 = (Q.party_relations[party2] && Q.party_relations[party2][party1]) || 0;
     
-    // Use the average, or if one is missing, use the other
     if (rel1 > 0 && rel2 > 0) {
         return (rel1 + rel2) / 2;
     } else if (rel1 > 0) {
@@ -608,8 +607,6 @@ function can_partner(party1, party2) {
     if (is_blocked(party1, party2)) return false;
     
     var avg_rel = get_relation(party1, party2);
-    
-    // Lower threshold - many historical coalitions had poor relations
     return avg_rel >= 20;
 }
 
@@ -618,21 +615,23 @@ function coalition_compatibility(parties) {
     var total_rel = 0;
     var count = 0;
     
-    // Formateur relations with all partners
     for (var i = 0; i < parties.length; i++) {
         if (parties[i] === formateur) continue;
         
-        var rel = get_relation(formateur, parties[i]);
+        var rel = (Q.party_relations[formateur] && Q.party_relations[formateur][parties[i]]);
+        if (typeof rel === 'undefined') rel = 50;
+        if (rel < 30) return -1;
         total_rel += rel;
         count++;
     }
     
-    // Partners' relations with each other
     for (var i = 0; i < parties.length; i++) {
         for (var j = i + 1; j < parties.length; j++) {
             if (parties[i] === formateur || parties[j] === formateur) continue;
             
-            var rel = get_relation(parties[i], parties[j]);
+            var rel = (Q.party_relations[parties[i]] && Q.party_relations[parties[i]][parties[j]]);
+            if (typeof rel === 'undefined') rel = 50;
+            if (rel < 20) return -1;
             total_rel += rel;
             count++;
         }
@@ -828,10 +827,6 @@ function classify_coalition(parties) {
 if (Q.possible_coalitions.length === 0) {
     Q.coalition_formed = 0;
 } else {
-    // Sort by preferences:
-    // 1. Smallest size (easier to manage)
-    // 2. Highest compatibility (better relations)
-    // 3. Smallest majority (less wasted votes)
     Q.possible_coalitions.sort(function(a, b) {
         if (a.size !== b.size) return a.size - b.size;
         if (Math.abs(a.compatibility - b.compatibility) > 5) {
@@ -843,8 +838,123 @@ if (Q.possible_coalitions.length === 0) {
     Q.chosen_coalition = Q.possible_coalitions[0];
     Q.coalition_formed = 1;
 }
+
+// Check if SPD is in the chosen coalition
+Q.spd_in_chosen_coalition = Q.coalition_formed && 
+                            Q.chosen_coalition.parties.indexOf('SPD') >= 0;
+
+// Pre-calculate display if coalition exists
+if (Q.coalition_formed) {
+    Q.coalition_partners_list = "";
+    for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+        var party = Q.chosen_coalition.parties[i];
+        var votes = Q[party.toLowerCase() + '_r'];
+        Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
+    }
+}
 !}
-go-to: coalition_success if coalition_formed; coalition_failure if not coalition_formed
+go-to: player_coalition_review if spd_in_chosen_coalition and formateur != "SPD";
+       coalition_success if coalition_formed and not spd_in_chosen_coalition;
+       coalition_failure if not coalition_formed
+
+# ============================================
+# PLAYER REVIEWS COALITION INVITATION
+# ============================================
+
+@player_coalition_review
+
+= Coalition Invitation - [+ formateur +] Proposes Government
+
+**[+ formateur +] has successfully negotiated a coalition and invites the SPD to participate.**
+
+**Proposed Coalition:**
+
+[+ coalition_partners_list +]
+
+**Total Reichstag Support:** [+ chosen_coalition.votes +]%
+
+**Chancellor:** [+ formateur +] will provide the Chancellor.
+
+**What is our decision?**
+
+- @accept_coalition_invitation: Accept the invitation and join this coalition
+- @reject_coalition_invitation: Decline the invitation
+
+@accept_coalition_invitation
+on-arrival: spd_accepted_coalition = 1
+
+We accept the invitation to join this coalition government.
+
+- @coalition_success
+
+@reject_coalition_invitation
+
+= Declining Coalition Participation
+
+**Are you certain you want to decline this coalition?**
+
+**Consequences:**
+- [+ formateur +] will attempt to form a government without the SPD
+- We will sit in opposition
+- Relations with [+ formateur +] will worsen
+- The coalition may lack a majority and fail
+
+- @confirm_reject_coalition: Yes, decline the invitation
+- @accept_coalition_invitation: No, accept the coalition after all
+
+@confirm_reject_coalition
+on-arrival: {!
+// Worsen relations with formateur
+var formateur_lower = Q.formateur.toLowerCase();
+var relation_var = formateur_lower + '_relation';
+if (Q[relation_var] !== undefined) {
+    Q[relation_var] -= 5;
+}
+
+// Remove SPD from coalition
+Q.chosen_coalition.parties = Q.chosen_coalition.parties.filter(function(p) {
+    return p !== "SPD";
+});
+
+// Recalculate coalition votes
+var new_votes = 0;
+for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+    var party = Q.chosen_coalition.parties[i];
+    new_votes += Q[party.toLowerCase() + '_r'];
+}
+Q.chosen_coalition.votes = new_votes;
+
+// Check if coalition still viable
+Q.coalition_formed = new_votes >= 50;
+Q.spd_in_chosen_coalition = 0;
+
+// Political consequences
+Q.left_dissent += 10;
+Q.labor_dissent += 5;
+Q.reformist_dissent -= 3;
+
+// Reclassify coalition type without SPD
+if (Q.coalition_formed) {
+    var has_z = Q.chosen_coalition.parties.indexOf('Z') >= 0;
+    var has_ddp = Q.chosen_coalition.parties.indexOf('DDP') >= 0;
+    var has_dvp = Q.chosen_coalition.parties.indexOf('DVP') >= 0;
+    var has_bvp = Q.chosen_coalition.parties.indexOf('BVP') >= 0;
+    var has_dnvp = Q.chosen_coalition.parties.indexOf('DNVP') >= 0;
+    var has_wp = Q.chosen_coalition.partners.indexOf('WP') >= 0;
+    
+    if (has_z && has_ddp && has_dvp) {
+        Q.chosen_coalition.type = 'bourgeois';
+    } else if (has_z && has_dvp && has_dnvp) {
+        Q.chosen_coalition.type = 'right';
+    } else {
+        Q.chosen_coalition.type = 'other';
+    }
+}
+!}
+go-to: coalition_success if coalition_formed;
+       coalition_failure if not coalition_formed
+
+We have formally declined to join the coalition.
 
 @coalition_success
 on-arrival: {!
@@ -857,19 +967,18 @@ Q.government_parties = coalition;
 Q.coalition_votes = Q.chosen_coalition.votes;
 Q.coalition_type = Q.chosen_coalition.type;
 
-// Pre-calculate coalition partners display (AFTER coalition is defined)
+// Pre-calculate coalition partners display
 Q.coalition_partners_list = "";
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var votes = Q[party.toLowerCase() + '_r'];
-    Q.coalition_partners_list += "- **" + party + "**: " + votes + "%\n";
+    Q.coalition_partners_list += "- **" + party + "**: " + Math.round(votes * 10) / 10 + "%\n";
 }
 
 // ============================================
 // DETERMINE CHANCELLOR
 // ============================================
 
-// Find largest party in coalition
 var largest_party = coalition[0];
 var largest_votes = Q[coalition[0].toLowerCase() + '_r'];
 
@@ -882,9 +991,7 @@ for (var i = 1; i < coalition.length; i++) {
     }
 }
 
-// Special cases for chancellor selection
 if (Q.president === "Hindenburg" && Q.year >= 1930) {
-    // Hindenburg prefers non-SPD chancellors
     if (largest_party === "SPD" && coalition.indexOf("Z") >= 0) {
         Q.chancellor_party = "Z";
         Q.hindenburg_forced_z = 1;
@@ -907,11 +1014,7 @@ if (Q.chancellor_party === 'KPD') {
 } else if (Q.chancellor_party === 'SAPD') {
     Q.chancellor = "Seydewitz";
 } else if (Q.chancellor_party === 'SPD') {
-    if (Q.muller_dead) {
-        Q.chancellor = "Wels";
-    } else {
-        Q.chancellor = "Müller";
-    }
+    Q.chancellor = Q.muller_dead ? "Wels" : "Müller";
 } else if (Q.chancellor_party === 'SRPD') {
     Q.chancellor = "Severing";
 } else if (Q.chancellor_party === 'DDP') {
@@ -953,7 +1056,7 @@ Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
 Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 
-// Reset all coalition type flags
+// Reset coalition type flags
 Q.in_weimar_coalition = 0;
 Q.in_grand_coalition = 0;
 Q.in_left_front = 0;
@@ -996,14 +1099,12 @@ if (Q.coalition_type === 'weimar') {
 // POLITICAL CONSEQUENCES
 // ============================================
 
-// Left Front consequences
 if (Q.in_left_front) {
     Q.coup_progress += 3;
     Q.capital_strike_progress += 2;
     Q.kpd_relation += 10;
 }
 
-// Popular Front consequences
 if (Q.in_popular_front) {
     Q.coup_progress += 2;
     Q.pro_republic += 5;
@@ -1011,13 +1112,11 @@ if (Q.in_popular_front) {
     Q.z_relation += 5;
 }
 
-// Far-right consequences
 if (Q.coalition_type === 'far_right') {
     Q.coup_progress += 5;
     Q.pro_republic -= 15;
 }
 
-// Bourgeois coalition (SPD excluded)
 if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
     Q.workers_spd -= 5;
     Q.left_dissent += 10;
@@ -1034,6 +1133,8 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 [+ coalition_partners_list +]
 
 **Total Reichstag Support:** [+ coalition_votes +]%
+
+[? if not spd_in_government : **The SPD has declined to participate in this government.** We will oppose from opposition. ?]
 
 [? if hindenburg_forced_z : President Hindenburg insisted that the Center Party provide the Chancellor, despite the SPD being larger in the coalition. ?]
 
