@@ -875,6 +875,9 @@ go-to: spd_formateur_choice if spd_must_decide; player_coalition_review if spd_i
 
 @spd_formateur_choice
 on-arrival: {!
+// Pre-calculate coalition count for view-if checks
+Q.num_coalitions = Q.possible_coalitions.length;
+
 // Pre-calculate all possible coalitions display
 Q.coalition_options_display = "";
 
@@ -918,7 +921,7 @@ As the largest democratic party, the responsibility falls to us to build a stabl
 - @spd_decline_formateur: Decline to form a government
 
 @choose_coalition_1
-view-if: possible_coalitions.length >= 1
+view-if: num_coalitions >= 1
 on-arrival: {!
 Q.chosen_coalition = Q.possible_coalitions[0];
 Q.spd_accepted_coalition = 1;
@@ -926,7 +929,7 @@ Q.spd_accepted_coalition = 1;
 go-to: coalition_success
 
 @choose_coalition_2
-view-if: possible_coalitions.length >= 2
+view-if: num_coalitions >= 2
 on-arrival: {!
 Q.chosen_coalition = Q.possible_coalitions[1];
 Q.spd_accepted_coalition = 1;
@@ -934,7 +937,7 @@ Q.spd_accepted_coalition = 1;
 go-to: coalition_success
 
 @choose_coalition_3
-view-if: possible_coalitions.length >= 3
+view-if: num_coalitions >= 3
 on-arrival: {!
 Q.chosen_coalition = Q.possible_coalitions[2];
 Q.spd_accepted_coalition = 1;
@@ -942,7 +945,7 @@ Q.spd_accepted_coalition = 1;
 go-to: coalition_success
 
 @choose_coalition_4
-view-if: possible_coalitions.length >= 4
+view-if: num_coalitions >= 4
 on-arrival: {!
 Q.chosen_coalition = Q.possible_coalitions[3];
 Q.spd_accepted_coalition = 1;
@@ -950,7 +953,7 @@ Q.spd_accepted_coalition = 1;
 go-to: coalition_success
 
 @choose_coalition_5
-view-if: possible_coalitions.length >= 5
+view-if: num_coalitions >= 5
 on-arrival: {!
 Q.chosen_coalition = Q.possible_coalitions[4];
 Q.spd_accepted_coalition = 1;
