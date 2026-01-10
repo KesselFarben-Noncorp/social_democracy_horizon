@@ -669,13 +669,15 @@ for (var i = 0; i < other_parties.length; i++) {
         var parties_array = [formateur, partner];
         var compat = coalition_compatibility(parties_array);
         
-        Q.possible_coalitions.push({
-            parties: parties_array,
-            votes: total,
-            compatibility: compat,
-            size: 2,
-            type: classify_coalition(parties_array)
-        });
+        if (compat >= 0) {
+            Q.possible_coalitions.push({
+                parties: parties_array,
+                votes: total,
+                compatibility: compat,
+                size: 2,
+                type: classify_coalition(parties_array)
+            });
+        }
     }
 }
 
@@ -699,13 +701,15 @@ for (var i = 0; i < other_parties.length; i++) {
             var parties_array = [formateur, p1, p2];
             var compat = coalition_compatibility(parties_array);
             
-            Q.possible_coalitions.push({
-                parties: parties_array,
-                votes: total,
-                compatibility: compat,
-                size: 3,
-                type: classify_coalition(parties_array)
-            });
+            if (compat >= 0) {
+                Q.possible_coalitions.push({
+                    parties: parties_array,
+                    votes: total,
+                    compatibility: compat,
+                    size: 3,
+                    type: classify_coalition(parties_array)
+                });
+            }
         }
     }
 }
@@ -736,13 +740,15 @@ for (var i = 0; i < other_parties.length; i++) {
                 var parties_array = [formateur, p1, p2, p3];
                 var compat = coalition_compatibility(parties_array);
                 
-                Q.possible_coalitions.push({
-                    parties: parties_array,
-                    votes: total,
-                    compatibility: compat,
-                    size: 4,
-                    type: classify_coalition(parties_array)
-                });
+                if (compat >= 0) {
+                    Q.possible_coalitions.push({
+                        parties: parties_array,
+                        votes: total,
+                        compatibility: compat,
+                        size: 4,
+                        type: classify_coalition(parties_array)
+                    });
+                }
             }
         }
     }
@@ -771,13 +777,15 @@ if (Q.unity_government_possible && Q.possible_coalitions.length === 0) {
                         var parties_array = [formateur, p1, p2, p3, p4];
                         var compat = coalition_compatibility(parties_array);
 
-                        Q.possible_coalitions.push({
-                            parties: parties_array,
-                            votes: total,
-                            compatibility: compat,
-                            size: 5,
-                            type: 'unity'
-                        });
+                        if (compat >= 0) {
+                            Q.possible_coalitions.push({
+                                parties: parties_array,
+                                votes: total,
+                                compatibility: compat,
+                                size: 5,
+                                type: 'unity'
+                            });
+                        }
                     }
                 }
             }
