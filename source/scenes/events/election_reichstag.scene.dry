@@ -857,8 +857,257 @@ if (Q.possible_coalitions.length === 0) {
     Q.chosen_coalition = Q.possible_coalitions[0];
     Q.coalition_formed = 1;
 }
+
+// After all coalition evaluation is complete:
+if (Q.coalition_formed && Q.spd_is_formateur) {
+    // SPD gets to choose - don't auto-select
+    Q.spd_must_decide = 1;
+} else if (Q.coalition_formed) {
+    // Other party formed coalition, check if SPD is invited
+    Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
+}
 !}
-go-to: coalition_success if coalition_formed; coalition_failure if not coalition_formed
+go-to: spd_formateur_choice if spd_must_decide; player_coalition_review if spd_in_chosen_coalition and not spd_is_formateur; coalition_success if coalition_formed and not spd_in_chosen_coalition; coalition_failure if not coalition_formed
+
+# ============================================
+# SPD AS FORMATEUR - PLAYER CHOOSES COALITION
+# ============================================
+
+@spd_formateur_choice
+on-arrival: {!
+// Pre-calculate all possible coalitions display
+Q.coalition_options_display = "";
+
+if (Q.possible_coalitions.length === 0) {
+    Q.coalition_options_display = "**No viable coalitions found.**\n\nNo combination of parties willing to work together can achieve a majority.";
+} else {
+    Q.coalition_options_display = "**Available Coalition Options:**\n\n";
+    
+    for (var i = 0; i < Q.possible_coalitions.length && i < 5; i++) {
+        var coal = Q.possible_coalitions[i];
+        var partners_text = coal.parties.join(', ');
+        var type_text = coal.type.replace(/_/g, ' ');
+        
+        Q.coalition_options_display += (i + 1) + ". **" + partners_text + "**\n";
+        Q.coalition_options_display += "   - Type: " + type_text + "\n";
+        Q.coalition_options_display += "   - Support: " + Math.round(coal.votes * 10) / 10 + "%\n";
+        Q.coalition_options_display += "   - Compatibility: " + Math.round(coal.compatibility) + "/100\n\n";
+    }
+    
+    if (Q.possible_coalitions.length > 5) {
+        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 5) + " more options available)*\n";
+    }
+}
+!}
+
+= SPD Coalition Formation
+
+**The SPD has been designated to form a government.**
+
+As the largest democratic party, the responsibility falls to us to build a stable coalition.
+
+[+ coalition_options_display +]
+
+**What should we do?**
+
+- @choose_coalition_1: Form coalition option #1
+  view-if: possible_coalitions.length >= 1
+- @choose_coalition_2: Form coalition option #2
+  view-if: possible_coalitions.length >= 2
+- @choose_coalition_3: Form coalition option #3
+  view-if: possible_coalitions.length >= 3
+- @choose_coalition_4: Form coalition option #4
+  view-if: possible_coalitions.length >= 4
+- @choose_coalition_5: Form coalition option #5
+  view-if: possible_coalitions.length >= 5
+- @spd_decline_formateur: Decline to form a government
+
+@choose_coalition_1
+on-arrival: Q.chosen_coalition = Q.possible_coalitions[0]; Q.spd_accepted_coalition = 1
+go-to: coalition_success
+
+@choose_coalition_2
+on-arrival: Q.chosen_coalition = Q.possible_coalitions[1]; Q.spd_accepted_coalition = 1
+go-to: coalition_success
+
+@choose_coalition_3
+on-arrival: Q.chosen_coalition = Q.possible_coalitions[2]; Q.spd_accepted_coalition = 1
+go-to: coalition_success
+
+@choose_coalition_4
+on-arrival: Q.chosen_coalition = Q.possible_coalitions[3]; Q.spd_accepted_coalition = 1
+go-to: coalition_success
+
+@choose_coalition_5
+on-arrival: Q.chosen_coalition = Q.possible_coalitions[4]; Q.spd_accepted_coalition = 1
+go-to: coalition_success
+
+@spd_decline_formateur
+on-arrival: {!
+// SPD refuses to form government
+Q.coalition_formed = 0;
+Q.spd_accepted_coalition = 0;
+
+// Political consequences
+Q.left_dissent += 5;
+Q.reformist_dissent += 5;
+Q.pro_republic -= 3;
+
+// Note: This will trigger coalition_failure and pass mandate to next party
+!}
+
+= SPD Declines to Form Government
+
+We have chosen not to form a government at this time.
+
+**Consequences:**
+- The mandate will pass to the next largest party
+- Our reputation for governmental responsibility may suffer
+- Some within the party question this decision
+
+**The President will now approach the next party in line.**
+
+- @coalition_failure: Continue
+
+# ============================================
+# PLAYER REVIEWS COALITION INVITATION (NON-FORMATEUR)
+# ============================================
+
+@player_coalition_review
+on-arrival: {!
+// Pre-calculate display if coalition exists
+if (Q.coalition_formed) {
+    Q.coalition_partners_list = "";
+    for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+        var party = Q.chosen_coalition.parties[i];
+        var votes = Q[party.toLowerCase() + '_r'];
+        Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
+    }
+    Q.coalition_total_votes = Q.chosen_coalition.votes;
+}
+!}
+
+= Coalition Invitation - [+ formateur +] Proposes Government
+
+**[+ formateur +] has successfully negotiated a coalition and invites the SPD to participate.**
+
+**Proposed Coalition:**
+
+[+ coalition_partners_list +]
+
+**Total Reichstag Support:** [+ coalition_total_votes +]%
+
+**Chancellor:** [+ formateur +] will provide the Chancellor.
+
+**What is our decision?**
+
+- @accept_coalition_invitation: Accept the invitation and join this coalition
+- @reject_coalition_invitation: Decline the invitation
+
+@accept_coalition_invitation
+on-arrival: Q.spd_accepted_coalition = 1
+
+We accept the invitation to join this coalition government.
+
+- @coalition_success
+
+@reject_coalition_invitation
+
+= Declining Coalition Participation
+
+**Are you certain you want to decline this coalition?**
+
+**Consequences:**
+- [+ formateur +] will attempt to form a government without the SPD
+- We will sit in opposition
+- Relations with [+ formateur +] will worsen
+- The coalition may lack a majority and fail
+
+- @confirm_reject_coalition: Yes, decline the invitation
+- @accept_coalition_invitation: No, accept the coalition after all
+
+@confirm_reject_coalition
+on-arrival: {!
+// Worsen relations with formateur
+var formateur_lower = Q.formateur.toLowerCase();
+var relation_var = formateur_lower + '_relation';
+if (Q[relation_var] !== undefined) {
+    Q[relation_var] -= 5;
+}
+
+// Remove SPD from coalition
+Q.chosen_coalition.parties = Q.chosen_coalition.parties.filter(function(p) {
+    return p !== 'SPD';
+});
+
+// Recalculate coalition votes
+var new_votes = 0;
+for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+    var party = Q.chosen_coalition.parties[i];
+    new_votes += Q[party.toLowerCase() + '_r'];
+}
+Q.chosen_coalition.votes = new_votes;
+
+// Check if coalition still viable
+Q.coalition_formed = new_votes >= 50;
+Q.spd_in_chosen_coalition = 0;
+Q.spd_accepted_coalition = 0;
+
+// Political consequences
+Q.left_dissent += 10;
+Q.labor_dissent += 5;
+Q.reformist_dissent -= 3;
+
+// Update coalition info for display
+if (Q.coalition_formed) {
+    Q.coalition_total_votes = new_votes;
+    
+    // Rebuild display list
+    Q.coalition_partners_list = "";
+    for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+        var party = Q.chosen_coalition.parties[i];
+        var votes = Q[party.toLowerCase() + '_r'];
+        Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
+    }
+}
+!}
+go-to: coalition_formed_without_spd if coalition_formed; coalition_failure if not coalition_formed
+
+@coalition_formed_without_spd
+
+= Coalition Formed Without SPD
+
+**[+ formateur +] has formed a government without the SPD.**
+
+**Coalition Partners:**
+
+[+ coalition_partners_list +]
+
+**Total Support:** [+ coalition_total_votes +]%
+
+The SPD will sit in opposition. [? if coalition_total_votes < 55 : This is a narrow majority and may prove unstable. ?]
+
+- @continue_without_spd: Continue
+
+@continue_without_spd
+on-arrival: {!
+// Set opposition status
+Q.spd_in_government = 0;
+Q.in_weimar_coalition = 0;
+Q.in_grand_coalition = 0;
+Q.in_left_front = 0;
+Q.in_popular_front = 0;
+
+// Opposition benefits
+Q.workers_spd += 3;
+Q.left_strength += 5;
+!}
+go-to: coalition_success
+
+
+
+
+
 
 @coalition_success
 on-arrival: {!
@@ -1069,22 +1318,32 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 @ministry_allocation
 on-arrival: {!
 // ============================================
-// CALCULATE LEVERAGE FOR EACH PARTY
+// CALCULATE BASE SHARE FROM VOTE COUNT
 // ============================================
 
 var coalition = Q.government_parties;
+var total_coalition_votes = 0;
+
+// Calculate total coalition votes
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var party_lower = party.toLowerCase();
+    total_coalition_votes += Q[party_lower + '_r'];
+}
+
 var leverage = {};
-var total_leverage = 0;
 
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var party_lower = party.toLowerCase();
-    var base = Q[party_lower + '_r'];
+    
+    // Base share = party's percentage of total coalition votes
+    var base = (Q[party_lower + '_r'] / total_coalition_votes) * 100;
     
     // Relationship modifier
     var relation_var = party_lower + '_relation';
     var relation = Q[relation_var] || 50;
-    base += Math.floor(relation / 10);
+    base += (relation - 50) / 5;  // +/- up to 10 points
     
     // Chancellor bonus
     if (Q.chancellor_party === party) {
@@ -1118,16 +1377,21 @@ for (var i = 0; i < coalition.length; i++) {
     
     // Floor
     leverage[party] = Math.max(base, 10);
-    total_leverage += leverage[party];
 }
 
 // ============================================
-// ALLOCATE 7 MINISTRIES
+// ALLOCATE 7 MINISTRIES BASED ON LEVERAGE
 // ============================================
 
 var ministries = ['foreign', 'interior', 'justice', 'labor', 'economic', 'finance', 'agriculture'];
 var allocation = {};
 var ministry_count = {};
+
+// Calculate total leverage
+var total_leverage = 0;
+for (var party in leverage) {
+    total_leverage += leverage[party];
+}
 
 // Calculate initial allocation
 for (var i = 0; i < coalition.length; i++) {
@@ -1137,12 +1401,13 @@ for (var i = 0; i < coalition.length; i++) {
     ministry_count[party] = 0;
 }
 
-// Adjust for rounding
+// Adjust for rounding errors
 var total_assigned = 0;
 for (var party in allocation) {
     total_assigned += allocation[party];
 }
 
+// If over-allocated, remove from non-chancellor parties
 while (total_assigned > ministries.length) {
     var max_party = null;
     var max_count = 0;
@@ -1160,6 +1425,7 @@ while (total_assigned > ministries.length) {
     }
 }
 
+// If under-allocated, add to highest leverage parties
 while (total_assigned < ministries.length) {
     var max_party = null;
     var max_leverage = 0;
@@ -1172,7 +1438,7 @@ while (total_assigned < ministries.length) {
     if (max_party) {
         allocation[max_party]++;
         total_assigned++;
-        leverage[max_party] -= 10;
+        leverage[max_party] -= 10;  // Reduce to allow others to catch up
     } else {
         break;
     }
@@ -1181,8 +1447,9 @@ while (total_assigned < ministries.length) {
 // Pre-calculate ministry display (AFTER allocation is calculated)
 Q.ministry_display_list = "";
 for (var party in allocation) {
-    var rounded_leverage = Math.round(leverage[party]);
-    Q.ministry_display_list += "- **" + party + "**: " + allocation[party] + " ministries (Leverage: " + rounded_leverage + ")\n";
+    var party_votes = Q[party.toLowerCase() + '_r'];
+    var rounded_leverage = Math.round(leverage[party] * 10) / 10;
+    Q.ministry_display_list += "- **" + party + "**: " + allocation[party] + " ministries (" + Math.round(party_votes * 10) / 10 + "% votes, leverage: " + rounded_leverage + ")\n";
 }
 
 // ============================================
@@ -1211,12 +1478,12 @@ for (var i = 0; i < ministries.length; i++) {
     assignments[ministries[i]] = null;
 }
 
-// Sort coalition by leverage
+// Sort coalition by leverage (descending)
 var sorted_coalition = coalition.slice().sort(function(a, b) {
     return leverage[b] - leverage[a];
 });
 
-// Assign ministries
+// Assign ministries in rounds
 for (var round = 0; round < ministries.length; round++) {
     for (var i = 0; i < sorted_coalition.length; i++) {
         var party = sorted_coalition[i];
@@ -1249,6 +1516,13 @@ Q.economic_minister_party = assignments.economic || 'I';
 Q.finance_minister_party = assignments.finance || 'I';
 Q.agriculture_minister_party = assignments.agriculture || 'I';
 Q.reichswehr_minister_party = 'I';
+
+// [Keep all your minister name assignment code here - it's unchanged]
+
+// Store allocation for display
+Q.ministry_allocation = allocation;
+Q.ministry_leverage = leverage;
+!}
 
 // ============================================
 // ASSIGN MINISTER NAMES
