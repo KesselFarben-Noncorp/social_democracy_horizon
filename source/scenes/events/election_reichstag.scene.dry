@@ -610,7 +610,7 @@ function can_partner(party1, party2) {
     var avg_rel = get_relation(party1, party2);
     
     // Lower threshold - many historical coalitions had poor relations
-    return avg_rel >= 20;
+    return avg_rel >= 25;
 }
 
 // Helper: Calculate coalition compatibility
@@ -625,7 +625,7 @@ function coalition_compatibility(parties) {
         var rel = (Q.party_relations[formateur] && Q.party_relations[formateur][parties[i]]);
         var rel = get_relation(formateur, parties[i]);
         if (typeof rel === 'undefined') rel = 50;
-        if (rel < 30) return -1;
+        if (rel < 35) return -1;
         total_rel += rel;
         count++;
     }
@@ -638,7 +638,7 @@ function coalition_compatibility(parties) {
             var rel = (Q.party_relations[parties[i]] && Q.party_relations[parties[i]][parties[j]]);
             var rel = get_relation(parties[i], parties[j]);
             if (typeof rel === 'undefined') rel = 50;
-            if (rel < 20) return -1;
+            if (rel < 30) return -1;
             total_rel += rel;
             count++;
         }
