@@ -1157,7 +1157,6 @@ go-to: coalition_success
 
 
 
-
 @coalition_success
 on-arrival: {!
 // ============================================
@@ -1178,103 +1177,9 @@ for (var i = 0; i < coalition.length; i++) {
 }
 
 // ============================================
-// DETERMINE CHANCELLOR
+// SET COALITION NAME EARLY
 // ============================================
 
-// Find largest party in coalition
-var largest_party = coalition[0];
-var largest_votes = Q[coalition[0].toLowerCase() + '_r'];
-
-for (var i = 1; i < coalition.length; i++) {
-    var party = coalition[i];
-    var party_votes = Q[party.toLowerCase() + '_r'];
-    if (party_votes > largest_votes) {
-        largest_party = party;
-        largest_votes = party_votes;
-    }
-}
-
-// Special cases for chancellor selection
-if (Q.president === "Hindenburg" && Q.year >= 1930) {
-    // Hindenburg prefers non-SPD chancellors
-    if (largest_party === "SPD" && coalition.indexOf("Z") >= 0) {
-        Q.chancellor_party = "Z";
-        Q.hindenburg_forced_z = 1;
-    } else if (largest_party === "SPD" && coalition.indexOf("DVP") >= 0) {
-        Q.chancellor_party = "DVP";
-        Q.hindenburg_forced_dvp = 1;
-    } else {
-        Q.chancellor_party = largest_party;
-    }
-} else {
-    Q.chancellor_party = largest_party;
-}
-
-// ============================================
-// SELECT SPECIFIC CHANCELLOR PERSON
-// ============================================
-
-if (Q.chancellor_party === 'KPD') {
-    Q.chancellor = Q.kpd_party_leader === "Conciliators" ? "Neumann" : "Thälmann";
-} else if (Q.chancellor_party === 'SAPD') {
-    Q.chancellor = "Seydewitz";
-} else if (Q.chancellor_party === 'SPD') {
-    if (Q.muller_dead) {
-        Q.chancellor = "Wels";
-    } else {
-        Q.chancellor = "Müller";
-    }
-} else if (Q.chancellor_party === 'SRPD') {
-    Q.chancellor = "Severing";
-} else if (Q.chancellor_party === 'DDP') {
-    Q.chancellor = "Koch-Weser";
-} else if (Q.chancellor_party === 'Z') {
-    if (Q.z_party_leader === "Joos") {
-        Q.chancellor = "Wirth";
-    } else if (Q.z_party_leader === "Kaas") {
-        Q.chancellor = "Kaas";
-    } else if (Q.z_party_leader === "Brüning") {
-        Q.chancellor = "Brüning";
-    } else {
-        Q.chancellor = "Marx";
-    }
-} else if (Q.chancellor_party === 'BVP') {
-    Q.chancellor = "Held";
-} else if (Q.chancellor_party === 'DVP') {
-    Q.chancellor = Q.stresemann_dead ? "Curtius" : "Stresemann";
-} else if (Q.chancellor_party === 'WP') {
-    Q.chancellor = "Lambach";
-} else if (Q.chancellor_party === 'DNVP') {
-    Q.chancellor = Q.dnvp_line === 3 ? "Hugenberg" : "Westarp";
-} else {
-    Q.chancellor = "Marx";
-}
-
-// ============================================
-// SET COALITION FLAGS
-// ============================================
-
-Q.spd_in_government = coalition.indexOf('SPD') >= 0 ? 1 : 0;
-Q.kpd_in_government = coalition.indexOf('KPD') >= 0 ? 1 : 0;
-Q.sapd_in_government = coalition.indexOf('SAPD') >= 0 ? 1 : 0;
-Q.srpd_in_government = coalition.indexOf('SRPD') >= 0 ? 1 : 0;
-Q.z_in_government = coalition.indexOf('Z') >= 0 ? 1 : 0;
-Q.bvp_in_government = coalition.indexOf('BVP') >= 0 ? 1 : 0;
-Q.ddp_in_government = coalition.indexOf('DDP') >= 0 ? 1 : 0;
-Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
-Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
-Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
-
-// Reset all coalition type flags
-Q.in_weimar_coalition = 0;
-Q.in_grand_coalition = 0;
-Q.in_left_front = 0;
-Q.in_popular_front = 0;
-Q.in_bourgeois_coalition = 0;
-Q.in_right_coalition = 0;
-Q.in_unity_government = 0;
-
-// Set appropriate flag
 if (Q.coalition_type === 'weimar') {
     Q.in_weimar_coalition = 1;
     Q.coalition_name = "Weimar Coalition";
@@ -1304,6 +1209,291 @@ if (Q.coalition_type === 'weimar') {
     Q.coalition_name = "Coalition Government";
 }
 
+// ============================================
+// IDENTIFY CHANCELLOR CANDIDATES
+// ============================================
+
+// Find parties and their votes
+var party_votes_in_coalition = [];
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var votes = Q[party.toLowerCase() + '_r'];
+    party_votes_in_coalition.push({party: party, votes: votes});
+}
+
+// Sort by votes descending
+party_votes_in_coalition.sort(function(a, b) { return b.votes - a.votes; });
+
+// Build candidate list (top 3 or all if fewer)
+Q.chancellor_candidates = [];
+Q.chancellor_candidates_display = "";
+
+// Helper function to get chancellor name by party
+function get_chancellor_name(party) {
+    if (party === 'KPD') {
+        return Q.kpd_party_leader === "Conciliators" ? "Neumann" : "Thälmann";
+    } else if (party === 'SAPD') {
+        return "Seydewitz";
+    } else if (party === 'SPD') {
+        return Q.muller_dead ? "Wels" : "Müller";
+    } else if (party === 'SRPD') {
+        return "Severing";
+    } else if (party === 'DDP') {
+        return "Koch-Weser";
+    } else if (party === 'Z') {
+        if (Q.z_party_leader === "Joos") {
+            return "Wirth";
+        } else if (Q.z_party_leader === "Kaas") {
+            return "Kaas";
+        } else if (Q.z_party_leader === "Brüning") {
+            return "Brüning";
+        } else {
+            return "Marx";
+        }
+    } else if (party === 'BVP') {
+        return "Held";
+    } else if (party === 'DVP') {
+        return Q.stresemann_dead ? "Curtius" : "Stresemann";
+    } else if (party === 'WP') {
+        return "Lambach";
+    } else if (party === 'DNVP') {
+        return Q.dnvp_line === 3 ? "Hugenberg" : "Westarp";
+    } else {
+        return "Marx";
+    }
+}
+
+var num_candidates = Math.min(3, party_votes_in_coalition.length);
+for (var i = 0; i < num_candidates; i++) {
+    var party = party_votes_in_coalition[i].party;
+    var votes = party_votes_in_coalition[i].votes;
+    
+    var chancellor_name = get_chancellor_name(party);
+    
+    Q.chancellor_candidates.push({
+        party: party,
+        name: chancellor_name,
+        votes: votes
+    });
+    
+    Q.chancellor_candidates_display += (i + 1) + ". **" + chancellor_name + "** (" + party + ", " + Math.round(votes * 10) / 10 + "%)\n";
+}
+
+Q.num_candidates = Q.chancellor_candidates.length;
+
+// ============================================
+// SET COALITION FLAGS
+// ============================================
+
+Q.spd_in_government = coalition.indexOf('SPD') >= 0 ? 1 : 0;
+Q.kpd_in_government = coalition.indexOf('KPD') >= 0 ? 1 : 0;
+Q.sapd_in_government = coalition.indexOf('SAPD') >= 0 ? 1 : 0;
+Q.srpd_in_government = coalition.indexOf('SRPD') >= 0 ? 1 : 0;
+Q.z_in_government = coalition.indexOf('Z') >= 0 ? 1 : 0;
+Q.bvp_in_government = coalition.indexOf('BVP') >= 0 ? 1 : 0;
+Q.ddp_in_government = coalition.indexOf('DDP') >= 0 ? 1 : 0;
+Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
+Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
+Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
+
+// Reset coalition type flags (some already set above)
+Q.in_weimar_coalition = Q.coalition_type === 'weimar' ? 1 : 0;
+Q.in_grand_coalition = (Q.coalition_type === 'grand' || Q.coalition_type === 'grand_small') ? 1 : 0;
+Q.in_left_front = Q.coalition_type === 'left_front' ? 1 : 0;
+Q.in_popular_front = Q.coalition_type === 'popular_front' ? 1 : 0;
+Q.in_bourgeois_coalition = (Q.coalition_type === 'bourgeois' || Q.coalition_type === 'bourgeois_catholic') ? 1 : 0;
+Q.in_right_coalition = (Q.coalition_type === 'right' || Q.coalition_type === 'right_business') ? 1 : 0;
+Q.in_unity_government = Q.coalition_type === 'unity' ? 1 : 0;
+!}
+go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
+
+# ============================================
+# CHANCELLOR NEGOTIATION - SPD IN GOVERNMENT
+# ============================================
+
+@chancellor_negotiation_spd
+
+= Chancellor Negotiations - [+ coalition_name +]
+
+**Coalition Partners:**
+
+[+ coalition_partners_list +]
+
+**The coalition must now select a Chancellor.**
+
+**Candidates:**
+
+[+ chancellor_candidates_display +]
+
+[? if president = "Hindenburg" and year >= 1930 : **Note:** President Hindenburg has expressed strong preferences about who should lead the government. Choosing a Chancellor he opposes may create difficulties. ?]
+
+[? if president = "Hindenburg" and year >= 1932 and chancellor_candidates[0].party = "SPD" : **Warning:** Hindenburg has made it clear he will not accept an SPD Chancellor under current circumstances. ?]
+
+**Who should become Chancellor?**
+
+- @choose_chancellor_1: Support [+ chancellor_candidates[0].name +] ([+ chancellor_candidates[0].party +])
+- @choose_chancellor_2: Support [+ chancellor_candidates[1].name +] ([+ chancellor_candidates[1].party +])
+- @choose_chancellor_3: Support [+ chancellor_candidates[2].name +] ([+ chancellor_candidates[2].party +])
+
+@choose_chancellor_1
+view-if: num_candidates >= 1
+on-arrival: {!
+Q.chosen_chancellor_index = 0;
+Q.chancellor_party = Q.chancellor_candidates[0].party;
+Q.chancellor = Q.chancellor_candidates[0].name;
+!}
+go-to: chancellor_hindenburg_check
+
+@choose_chancellor_2
+view-if: num_candidates >= 2
+on-arrival: {!
+Q.chosen_chancellor_index = 1;
+Q.chancellor_party = Q.chancellor_candidates[1].party;
+Q.chancellor = Q.chancellor_candidates[1].name;
+!}
+go-to: chancellor_hindenburg_check
+
+@choose_chancellor_3
+view-if: num_candidates >= 3
+on-arrival: {!
+Q.chosen_chancellor_index = 2;
+Q.chancellor_party = Q.chancellor_candidates[2].party;
+Q.chancellor = Q.chancellor_candidates[2].name;
+!}
+go-to: chancellor_hindenburg_check
+
+# ============================================
+# CHANCELLOR NEGOTIATION - AI DECIDES
+# ============================================
+
+@chancellor_negotiation_ai
+on-arrival: {!
+// AI chooses chancellor based on various factors
+var best_candidate = 0;
+var best_score = -999;
+
+for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+    var candidate = Q.chancellor_candidates[i];
+    var score = candidate.votes; // Base score = vote share
+    
+    // Hindenburg preferences
+    if (Q.president === "Hindenburg" && Q.year >= 1930) {
+        if (candidate.party === "SPD") {
+            score -= 20;
+        }
+        if (candidate.party === "Z") {
+            score += 10;
+        }
+        if (candidate.party === "DVP") {
+            score += 5;
+        }
+    }
+    
+    if (Q.president === "Hindenburg" && Q.year >= 1932) {
+        if (candidate.party === "SPD") {
+            score -= 40;
+        }
+    }
+    
+    // Formateur bonus
+    if (candidate.party === Q.formateur) {
+        score += 15;
+    }
+    
+    // Strong leaders
+    if (candidate.name === "Stresemann" && !Q.stresemann_dead) {
+        score += 10;
+    }
+    if (candidate.name === "Brüning") {
+        score += 8;
+    }
+    
+    if (score > best_score) {
+        best_score = score;
+        best_candidate = i;
+    }
+}
+
+Q.chosen_chancellor_index = best_candidate;
+Q.chancellor_party = Q.chancellor_candidates[best_candidate].party;
+Q.chancellor = Q.chancellor_candidates[best_candidate].name;
+!}
+go-to: chancellor_hindenburg_check
+
+# ============================================
+# HINDENBURG VETO CHECK
+# ============================================
+
+@chancellor_hindenburg_check
+on-arrival: {!
+Q.hindenburg_vetoed = 0;
+Q.hindenburg_forced_change = 0;
+Q.hindenburg_forced_z = 0;
+Q.hindenburg_forced_dvp = 0;
+
+// Check if Hindenburg will veto
+if (Q.president === "Hindenburg" && Q.year >= 1932) {
+    if (Q.chancellor_party === "SPD" || Q.chancellor_party === "KPD" || Q.chancellor_party === "SAPD") {
+        Q.hindenburg_vetoed = 1;
+    }
+}
+
+// If vetoed, force change to acceptable candidate
+if (Q.hindenburg_vetoed) {
+    var original_party = Q.chancellor_party;
+    
+    for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+        var party = Q.chancellor_candidates[i].party;
+        if (party !== "SPD" && party !== "KPD" && party !== "SAPD") {
+            Q.chancellor_party = party;
+            Q.chancellor = Q.chancellor_candidates[i].name;
+            Q.hindenburg_forced_change = 1;
+            Q.chosen_chancellor_index = i;
+            
+            // Track specific forcing
+            if (party === "Z") Q.hindenburg_forced_z = 1;
+            if (party === "DVP") Q.hindenburg_forced_dvp = 1;
+            break;
+        }
+    }
+}
+!}
+go-to: hindenburg_veto_message if hindenburg_vetoed; chancellor_confirmed if not hindenburg_vetoed
+
+@hindenburg_veto_message
+
+= Presidential Veto
+
+**President Hindenburg refuses to appoint [+ chancellor_candidates[chosen_chancellor_index].name +] as Chancellor.**
+
+"I cannot in good conscience appoint a [? if chancellor_candidates[chosen_chancellor_index].party = "SPD" : Social Democrat ?][? if chancellor_candidates[chosen_chancellor_index].party = "KPD" : Communist ?][? if chancellor_candidates[chosen_chancellor_index].party = "SAPD" : Socialist ?] to lead the Reich government under current circumstances."
+
+[? if hindenburg_forced_change : **[+ chancellor +] ([+ chancellor_party +]) has been appointed Chancellor instead.** ?]
+
+**Consequences:**
+- Relations with the President are severely strained
+- The coalition's legitimacy is questioned
+- Democratic norms are undermined
+
+- @continue_after_veto: Continue
+
+@continue_after_veto
+on-arrival: {!
+Q.pro_republic -= 10;
+
+if (Q.spd_in_government) {
+    Q.reformist_dissent += 10;
+    Q.left_dissent += 15;
+}
+!}
+go-to: chancellor_confirmed
+
+# ============================================
+# CHANCELLOR CONFIRMED
+# ============================================
+
+@chancellor_confirmed
+on-arrival: {!
 // ============================================
 // POLITICAL CONSEQUENCES
 // ============================================
@@ -1362,6 +1552,11 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 [? if coalition_type = 'far_right' : The Nazis have entered government. This may be the end of democracy. ?]
 
 - @ministry_allocation: Proceed to ministry distribution
+
+
+
+
+
 
 @ministry_allocation
 on-arrival: {!
