@@ -569,6 +569,25 @@ var threshold = 50;
 
 Q.formation_attempts.push(formateur);
 
+// Helper: Get relation between two parties (handles missing values)
+function get_relation(party1, party2) {
+    if (party1 === party2) return 100;
+    
+    var rel1 = (Q.party_relations[party1] && Q.party_relations[party1][party2]) || 0;
+    var rel2 = (Q.party_relations[party2] && Q.party_relations[party2][party1]) || 0;
+    
+    // Use the average, or if one is missing, use the other
+    if (rel1 > 0 && rel2 > 0) {
+        return (rel1 + rel2) / 2;
+    } else if (rel1 > 0) {
+        return rel1;
+    } else if (rel2 > 0) {
+        return rel2;
+    } else {
+        return 0;
+    }
+}
+
 // Helper: Check if block exists
 function is_blocked(party1, party2) {
     var keys = [
@@ -588,12 +607,10 @@ function is_blocked(party1, party2) {
 function can_partner(party1, party2) {
     if (is_blocked(party1, party2)) return false;
     
-    var rel1 = (Q.party_relations[party1] && Q.party_relations[party1][party2]) || 0;
-    var rel2 = (Q.party_relations[party2] && Q.party_relations[party2][party1]) || 0;
+    var avg_rel = get_relation(party1, party2);
     
-    // Need at least 15 average relation
-    var avg_rel = (rel1 + rel2) / 2;
-    return avg_rel >= 15;
+    // Lower threshold - many historical coalitions had poor relations
+    return avg_rel >= 20;
 }
 
 // Helper: Calculate coalition compatibility
@@ -605,8 +622,7 @@ function coalition_compatibility(parties) {
     for (var i = 0; i < parties.length; i++) {
         if (parties[i] === formateur) continue;
         
-        var rel = (Q.party_relations[formateur] && Q.party_relations[formateur][parties[i]]) || 0;
-        if (rel < 15) return -1; // Veto
+        var rel = get_relation(formateur, parties[i]);
         total_rel += rel;
         count++;
     }
@@ -616,8 +632,7 @@ function coalition_compatibility(parties) {
         for (var j = i + 1; j < parties.length; j++) {
             if (parties[i] === formateur || parties[j] === formateur) continue;
             
-            var rel = (Q.party_relations[parties[i]] && Q.party_relations[parties[i]][parties[j]]) || 0;
-            if (rel < 15) return -1; // Mutual veto
+            var rel = get_relation(parties[i], parties[j]);
             total_rel += rel;
             count++;
         }
@@ -629,7 +644,7 @@ function coalition_compatibility(parties) {
 // Get other parties (exclude formateur and NSDAP unless special conditions)
 var other_parties = Q.party_votes.filter(function(p) {
     if (p.party === formateur) return false;
-    if (p.party === 'NSDAP' && Q.nsdap_r < 40) return false; // Nazis don't join unless dominant
+    if (p.party === 'NSDAP' && Q.nsdap_r < 40) return false;
     return true;
 });
 
@@ -648,15 +663,13 @@ for (var i = 0; i < other_parties.length; i++) {
         var parties_array = [formateur, partner];
         var compat = coalition_compatibility(parties_array);
         
-        if (compat >= 0) {
-            Q.possible_coalitions.push({
-                parties: parties_array,
-                votes: total,
-                compatibility: compat,
-                size: 2,
-                type: classify_coalition(parties_array)
-            });
-        }
+        Q.possible_coalitions.push({
+            parties: parties_array,
+            votes: total,
+            compatibility: compat,
+            size: 2,
+            type: classify_coalition(parties_array)
+        });
     }
 }
 
@@ -680,15 +693,13 @@ for (var i = 0; i < other_parties.length; i++) {
             var parties_array = [formateur, p1, p2];
             var compat = coalition_compatibility(parties_array);
             
-            if (compat >= 0) {
-                Q.possible_coalitions.push({
-                    parties: parties_array,
-                    votes: total,
-                    compatibility: compat,
-                    size: 3,
-                    type: classify_coalition(parties_array)
-                });
-            }
+            Q.possible_coalitions.push({
+                parties: parties_array,
+                votes: total,
+                compatibility: compat,
+                size: 3,
+                type: classify_coalition(parties_array)
+            });
         }
     }
 }
@@ -719,15 +730,14 @@ for (var i = 0; i < other_parties.length; i++) {
                 var parties_array = [formateur, p1, p2, p3];
                 var compat = coalition_compatibility(parties_array);
                 
-                if (compat >= 0) {
-                    Q.possible_coalitions.push({
-                        parties: parties_array,
-                        votes: total,
-                        compatibility: compat,
-                        size: 4,
-                        type: classify_coalition(parties_array)
-                    });
-                }
+                Q.possible_coalitions.push({
+                    parties: parties_array,
+                    votes: total,
+                    compatibility: compat,
+                    size: 4,
+                    type: classify_coalition(parties_array)
+                });
+                              }
             }
         }
     }
@@ -751,11 +761,11 @@ if (Q.special_conditions.unity_government && Q.possible_coalitions.length === 0)
                     var v3 = other_parties[k].votes;
                     var v4 = other_parties[m].votes;
                     var total = formateur_votes + v1 + v2 + v3 + v4;
-                    
+
                     if (total >= threshold) {
                         var parties_array = [formateur, p1, p2, p3, p4];
                         var compat = coalition_compatibility(parties_array);
-                        
+
                         if (compat >= 0) {
                             Q.possible_coalitions.push({
                                 parties: parties_array,
@@ -836,17 +846,6 @@ if (Q.possible_coalitions.length === 0) {
     Q.chosen_coalition = Q.possible_coalitions[0];
     Q.coalition_formed = 1;
 }
-
-// After the 3-party coalition loop, add:
-if (formateur === 'SPD') {
-    console.log("SPD possible 3-party coalitions found: " + Q.possible_coalitions.length);
-    for (var x = 0; x < Q.possible_coalitions.length; x++) {
-        console.log("Coalition " + x + ": " + Q.possible_coalitions[x].parties.join(", ") + 
-                    " - Votes: " + Q.possible_coalitions[x].votes + 
-                    " - Compat: " + Q.possible_coalitions[x].compatibility);
-    }
-}
-
 !}
 go-to: coalition_success if coalition_formed; coalition_failure if not coalition_formed
 
