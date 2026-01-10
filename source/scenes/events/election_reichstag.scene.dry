@@ -902,7 +902,7 @@ if (Q.possible_coalitions.length === 0) {
 } else {
     Q.coalition_options_display = "**Available Coalition Options:**\n\n";
     
-    for (var i = 0; i < Q.possible_coalitions.length && i < 5; i++) {
+    for (var i = 0; i < Q.possible_coalitions.length && i < 6; i++) {
         var coal = Q.possible_coalitions[i];
         var partners_text = coal.parties.join(', ');
         var type_text = coal.type.replace(/_/g, ' ');
@@ -911,10 +911,12 @@ if (Q.possible_coalitions.length === 0) {
         Q.coalition_options_display += "   - Type: " + type_text + "\n";
         Q.coalition_options_display += "   - Support: " + Math.round(coal.votes * 10) / 10 + "%\n";
         Q.coalition_options_display += "   - Compatibility: " + Math.round(coal.compatibility) + "/100\n\n";
+
+        Q.coalition_optipns_dispaly += "                                    ";
     }
     
-    if (Q.possible_coalitions.length > 5) {
-        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 5) + " more options available)*\n";
+    if (Q.possible_coalitions.length > 6) {
+        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 6) + " more options available)*\n";
     }
 }
 !}
@@ -934,6 +936,7 @@ As the largest democratic party, the responsibility falls to us to build a stabl
 - @choose_coalition_3: Form coalition option #3
 - @choose_coalition_4: Form coalition option #4
 - @choose_coalition_5: Form coalition option #5
+- @choose_coalition_5: Form coalition option #6
 - @spd_decline_formateur: Decline to form a government
 
 @choose_coalition_1
@@ -975,6 +978,18 @@ Q.chosen_coalition = Q.possible_coalitions[4];
 Q.spd_accepted_coalition = 1;
 !}
 go-to: coalition_success
+
+@choose_coalition_6
+view-if: num_coalitions >= 6
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[5];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+
+
+
 
 @spd_decline_formateur
 on-arrival: {!
@@ -1555,7 +1570,6 @@ Q.reichswehr_minister_party = 'I';
 // Store allocation for display
 Q.ministry_allocation = allocation;
 Q.ministry_leverage = leverage;
-!}
 
 // ============================================
 // ASSIGN MINISTER NAMES
