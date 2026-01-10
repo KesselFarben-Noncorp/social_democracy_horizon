@@ -737,7 +737,6 @@ for (var i = 0; i < other_parties.length; i++) {
                     size: 4,
                     type: classify_coalition(parties_array)
                 });
-                              }
             }
         }
     }
@@ -747,7 +746,7 @@ for (var i = 0; i < other_parties.length; i++) {
 // EVALUATE 5-PARTY COALITIONS (UNITY GOVERNMENT)
 // ============================================
 
-if (Q.special_conditions.unity_government && Q.possible_coalitions.length === 0) {
+if (Q.unity_government_possible && Q.possible_coalitions.length === 0) {
     for (var i = 0; i < other_parties.length; i++) {
         for (var j = i + 1; j < other_parties.length; j++) {
             for (var k = j + 1; k < other_parties.length; k++) {
@@ -766,15 +765,13 @@ if (Q.special_conditions.unity_government && Q.possible_coalitions.length === 0)
                         var parties_array = [formateur, p1, p2, p3, p4];
                         var compat = coalition_compatibility(parties_array);
 
-                        if (compat >= 0) {
-                            Q.possible_coalitions.push({
-                                parties: parties_array,
-                                votes: total,
-                                compatibility: compat,
-                                size: 5,
-                                type: 'unity'
-                            });
-                        }
+                        Q.possible_coalitions.push({
+                            parties: parties_array,
+                            votes: total,
+                            compatibility: compat,
+                            size: 5,
+                            type: 'unity'
+                        });
                     }
                 }
             }
