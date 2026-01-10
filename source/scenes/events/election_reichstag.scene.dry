@@ -591,9 +591,9 @@ function can_partner(party1, party2) {
     var rel1 = (Q.party_relations[party1] && Q.party_relations[party1][party2]) || 0;
     var rel2 = (Q.party_relations[party2] && Q.party_relations[party2][party1]) || 0;
     
-    // Need at least 30 average relation
+    // Need at least 15 average relation
     var avg_rel = (rel1 + rel2) / 2;
-    return avg_rel >= 30;
+    return avg_rel >= 15;
 }
 
 // Helper: Calculate coalition compatibility
@@ -606,7 +606,7 @@ function coalition_compatibility(parties) {
         if (parties[i] === formateur) continue;
         
         var rel = (Q.party_relations[formateur] && Q.party_relations[formateur][parties[i]]) || 0;
-        if (rel < 10) return -1; // Veto
+        if (rel < 15) return -1; // Veto
         total_rel += rel;
         count++;
     }
@@ -617,7 +617,7 @@ function coalition_compatibility(parties) {
             if (parties[i] === formateur || parties[j] === formateur) continue;
             
             var rel = (Q.party_relations[parties[i]] && Q.party_relations[parties[i]][parties[j]]) || 0;
-            if (rel < 5) return -1; // Mutual veto
+            if (rel < 15) return -1; // Mutual veto
             total_rel += rel;
             count++;
         }
