@@ -867,7 +867,7 @@ if (Q.coalition_formed && Q.spd_is_formateur) {
     Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
 }
 !}
-go-to: spd_formateur_choice if spd_must_decide; player_coalition_review if spd_in_chosen_coalition and not spd_is_formateur; coalition_success if coalition_formed and not spd_in_chosen_coalition; coalition_failure if not coalition_formed
+go-to:spd_formateur_choice if coalition_formed and formateur = "SPD"; player_coalition_review if coalition_formed and formateur != "SPD" and spd_in_chosen_coalition; coalition_success if coalition_formed and not spd_in_chosen_coalition; formation_failed if not coalition_formed;
 
 # ============================================
 # SPD AS FORMATEUR - PLAYER CHOOSES COALITION
@@ -1331,7 +1331,6 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 [? if coalition_type = 'far_right' : The Nazis have entered government. This may be the end of democracy. ?]
 
 - @ministry_allocation: Proceed to ministry distribution
-- @coalition_failure: Reject this coalition.
 
 @ministry_allocation
 on-arrival: {!
