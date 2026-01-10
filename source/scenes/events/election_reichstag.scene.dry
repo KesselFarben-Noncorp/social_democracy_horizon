@@ -1475,12 +1475,17 @@ if (Q.hindenburg_vetoed) {
 go-to: hindenburg_veto_message if hindenburg_vetoed; chancellor_confirmed if not hindenburg_vetoed
 
 @hindenburg_veto_message
+on-arrival: {!
+// Pre-calculate the vetoed candidate info for display
+Q.vetoed_candidate_name = Q.chancellor_candidates[Q.chosen_chancellor_index].name;
+Q.vetoed_candidate_party = Q.chancellor_candidates[Q.chosen_chancellor_index].party;
+!}
 
 = Presidential Veto
 
-**President Hindenburg refuses to appoint [+ chancellor_candidates[chosen_chancellor_index].name +] as Chancellor.**
+**President Hindenburg refuses to appoint [+ vetoed_candidate_name +] as Chancellor.**
 
-"I cannot in good conscience appoint a [? if chancellor_candidates[chosen_chancellor_index].party = "SPD" : Social Democrat ?][? if chancellor_candidates[chosen_chancellor_index].party = "KPD" : Communist ?][? if chancellor_candidates[chosen_chancellor_index].party = "SAPD" : Socialist ?] to lead the Reich government under current circumstances."
+"I cannot in good conscience appoint a [? if vetoed_candidate_party = "SPD" : Social Democrat ?][? if vetoed_candidate_party = "KPD" : Communist ?][? if vetoed_candidate_party = "SAPD" : Socialist ?] to lead the Reich government under current circumstances."
 
 [? if hindenburg_forced_change : **[+ chancellor +] ([+ chancellor_party +]) has been appointed Chancellor instead.** ?]
 
