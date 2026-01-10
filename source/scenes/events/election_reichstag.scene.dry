@@ -852,18 +852,18 @@ on-arrival: {!
 // COALITION SUCCESSFULLY FORMED
 // ============================================
 
-// Pre-calculate coalition partners display
+var coalition = Q.chosen_coalition.parties;
+Q.government_parties = coalition;
+Q.coalition_votes = Q.chosen_coalition.votes;
+Q.coalition_type = Q.chosen_coalition.type;
+
+// Pre-calculate coalition partners display (AFTER coalition is defined)
 Q.coalition_partners_list = "";
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var votes = Q[party.toLowerCase() + '_r'];
     Q.coalition_partners_list += "- **" + party + "**: " + votes + "%\n";
 }
-
-var coalition = Q.chosen_coalition.parties;
-Q.government_parties = coalition;
-Q.coalition_votes = Q.chosen_coalition.votes;
-Q.coalition_type = Q.chosen_coalition.type;
 
 // ============================================
 // DETERMINE CHANCELLOR
@@ -1057,13 +1057,6 @@ on-arrival: {!
 // CALCULATE LEVERAGE FOR EACH PARTY
 // ============================================
 
-// Pre-calculate ministry display
-Q.ministry_display_list = "";
-for (var party in allocation) {
-    var rounded_leverage = Math.round(leverage[party]);
-    Q.ministry_display_list += "- **" + party + "**: " + allocation[party] + " ministries (Leverage: " + rounded_leverage + ")\n";
-}
-
 var coalition = Q.government_parties;
 var leverage = {};
 var total_leverage = 0;
@@ -1101,11 +1094,11 @@ for (var i = 0; i < coalition.length; i++) {
     
     // Special conditions
     if (Q.in_grand_coalition && party === "DVP" && Q.capital_strike_progress >= 3) {
-        base += 5; // Business pressure
+        base += 5;
     }
     
     if (Q.in_left_front && party === "KPD") {
-        base -= 5; // KPD takes backseat in Left Front
+        base -= 5;
     }
     
     // Floor
@@ -1113,7 +1106,7 @@ for (var i = 0; i < coalition.length; i++) {
     total_leverage += leverage[party];
 }
 
-// ============================================
+/ ============================================
 // ALLOCATE 7 MINISTRIES
 // ============================================
 
@@ -1164,10 +1157,17 @@ while (total_assigned < ministries.length) {
     if (max_party) {
         allocation[max_party]++;
         total_assigned++;
-        leverage[max_party] -= 10; // Reduce to give others a chance
+        leverage[max_party] -= 10;
     } else {
         break;
     }
+}
+
+// Pre-calculate ministry display (AFTER allocation is calculated)
+Q.ministry_display_list = "";
+for (var party in allocation) {
+    var rounded_leverage = Math.round(leverage[party]);
+    Q.ministry_display_list += "- **" + party + "**: " + allocation[party] + " ministries (Leverage: " + rounded_leverage + ")\n";
 }
 
 // ============================================
@@ -1343,7 +1343,7 @@ Q.ministry_leverage = leverage;
 
 **The [+ coalition_name +] has formed its cabinet:**
 
-**Ministries by Party:****Ministries by Party:**
+**Ministries by Party:**
 
 [+ ministry_display_list +]
 
