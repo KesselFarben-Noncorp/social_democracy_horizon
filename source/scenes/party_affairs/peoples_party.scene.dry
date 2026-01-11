@@ -2,10 +2,9 @@ title: Building a People's Party
 new-page: true
 is-card: true
 card-image: img/poster_0.jpg
-view-if: neorevisionism > 0 and peoples_party_support >= 3 and peoples_party = 0 and peoples_party_timer == 0
-on-arrival: peoples_party_timer = 6
+view-if: (neorevisionism > 0 and peoples_party_support >= 3 and peoples_party = 0 and peoples_party_timer == 0) or (peoples_party = 1 and sandbox = 1)
+on-arrival: peoples_party_timer = 24
 tags: party_affairs
-max-visits: 4
 #subtitle: Can the SPD move beyond the working class?
 
 = Building a People's Party
@@ -18,6 +17,7 @@ In order to build a socialist majority, many reformists and neorevisionists are 
 - @build_support: We must build additional support before becoming a people's party.
 - @support_peoples_party_hard: Despite strong opposition from the Center and Left factions, we will become a people's party.
 - @no_new_ideas: No, we will always be a party of the working class.
+- @revert_people: Revert back the Wider People's Party back to Worker's Party
 - @root: Perhaps we can discuss this at a later time.
 - @easy_discard
 - @cancel_advisor_action
@@ -102,9 +102,8 @@ on-arrival: catholics_spd += 7*(1-dissent);
 
 Catholics have historically been tied to the Center Party, but there is no reason why our party cannot appeal to them. The Prussian Concordat in particular is a sign of our friendship with Catholicism.
 
+@revert_people
+view-if: peoples_party = 1
+on-arrival: peoples_party = 0; neorevisionist_strength -= 7; neorevisionist_dissent += 8; workers_spd *= 1.10; new_middle_spd *= 0.95; old_middle_spd *= 0.95; rural_spd *= 0.95; catholics_spd *= 0.97; unemployed_spd *= 1.05
 
-@no_new_ideas
-on-arrival: neorevisionist_strength -= 6; neorevisionist_dissent += 5; center_strength += 8; left_strength += 3; peoples_party = 0; peoples_party_support -= 3
-
-The Social Democrats have been and will always be a party of the working class.
-
+We have reverted our focus back to the Worker's Party, alienating non proletariat groups of population. 
