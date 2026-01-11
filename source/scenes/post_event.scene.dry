@@ -896,6 +896,8 @@ if (Q.month_actions >= 1) {
         if (Q.party === 'spd' && Q.peoples_party === 1) {
             if (Q.c === 'old_middle' || Q.c === 'new_middle' || Q.c === 'rural') {
                 Q.ideology_factor *= 1.12; // 12% boost to middle-class appeal
+            } else if (Q.c === 'workers' || Q.c === 'unemployed') {
+                Q.ideology_factor *= 0.95; // 5% penalty - dilution of worker focus
             }
         }
 
