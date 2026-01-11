@@ -37,7 +37,328 @@ if (Q.finance_minister_party && Q.finance_minister_party !== "I") {
 
 Q.inflation_policy_party = policy_party;
 !}
-go-to: dvp_response if inflation_policy_party = "DVP"; z_response if inflation_policy_party = "Z"; ddp_response if inflation_policy_party = "DDP"; dnvp_response if inflation_policy_party = "DNVP"; papen_response if chancellor = "Papen"; schleicher_response if chancellor = "Schleicher"; bruning_response if chancellor = "Brüning"
+go-to: kpd_response if inflation_policy_party = "KPD"; sapd_response if inflation_policy_party = "SAPD"; srpd_response if inflation_policy_party = "SRPD"; dvp_response if inflation_policy_party = "DVP"; z_response if inflation_policy_party = "Z"; bvp_response if inflation_policy_party = "BVP"; ddp_response if inflation_policy_party = "DDP"; wp_response if inflation_policy_party = "WP"; dnvp_response if inflation_policy_party = "DNVP"; papen_response if chancellor = "Papen"; schleicher_response if chancellor = "Schleicher"; bruning_response if chancellor = "Brüning"
+
+@kpd_response
+on-arrival: inflation -= 0.5; economic_growth += 0.3; unemployed -= 1; budget -= 3; workers_kpd += 8; workers_spd -= 3; unemployed_kpd += 5; old_middle_dnvp += 5; new_middle_dnvp += 4; capital_strike_progress += 5; coup_progress += 4; fiscal_stance -= 0.30; demand_impulse += 0.35; price_pressure += 0.15;
+
+**KPD Response: Revolutionary Economics**
+
+The Communist-controlled government implements radical anti-inflation measures that prioritize workers over price stability.
+
+"Inflation is a tool of capitalist exploitation!" the KPD Finance Minister declares. "We will protect workers through direct action, not bourgeois monetary orthodoxy!"
+
+The policy is revolutionary: price controls enforced by worker committees, forced wage increases to match inflation, wealth confiscation to fund social programs, nationalization of key industries, and complete rejection of Reichsbank independence.
+
+**The Results:**
+
+Inflation barely declines—the KPD's policies actually fuel it through increased money supply and wage-price spirals. But unemployment falls as government spending surges and industries are ordered to maintain employment.
+
+Workers initially celebrate: rising wages, job security, direct worker control over prices. The middle class panics as their savings continue eroding and "red committees" dictate economic policy.
+
+Capital flees Germany. Business launches massive resistance. Military and conservative forces prepare for confrontation. The economic crisis becomes a revolutionary crisis.
+
+**Our Response:**
+
+We're horrified. "This isn't democratic socialism—it's economic adventurism that will provoke civil war!" But we also face working-class pressure: "The KPD protects jobs while you preach caution!"
+
+Our base fractures. Militant workers drift to the KPD's revolutionary promises. Moderate workers fear the chaos. Middle-class supporters flee entirely.
+
+The Republic's survival is now in question. A KPD government has triggered the very class confrontation we spent years trying to prevent.
+
+- @condemn_kpd_adventurism: Publicly condemn KPD's reckless economics.
+- @compete_with_kpd: Try to compete by proposing our own radical program.
+- @support_kpd_goals: Support the goals while criticizing the methods.
+- @prepare_for_crisis: Prepare for the coming political crisis.
+
+@condemn_kpd_adventurism
+on-arrival: kpd_relation -= 15; workers_kpd += 3; workers_spd -= 2; left_dissent += 10; reformist_strength += 8;
+
+"The KPD's reckless economics will destroy the Republic!" we declare. "Revolutionary adventurism invites counter-revolution!"
+
+We lose militant workers to the KPD but solidify our position as the responsible left. The question is whether responsibility matters in revolutionary times.
+
+@compete_with_kpd
+choose-if: left_strength >= 50
+unavailable-subtitle: [? if left_strength < 50 : Our party lacks the left-wing strength for this position. ?]
+on-arrival: workers_spd += 3; workers_kpd -= 2; left_strength += 8; capital_strike_progress += 2; reformist_dissent += 15;
+
+We propose our own radical program to compete with the KPD: extensive nationalizations, worker councils, wealth confiscation—but implemented democratically, not through revolution.
+
+It's a desperate bid to prevent workers from embracing Communism. Our reformist wing is horrified.
+
+@support_kpd_goals
+on-arrival: kpd_relation += 5; workers_kpd -= 1; workers_spd += 2; left_dissent -= 5; reformist_dissent += 8;
+
+"The KPD's goals are correct—protect workers above all," we say. "But their methods risk civil war. We must find democratic paths to similar ends."
+
+It's an attempt to validate left-wing economics while criticizing revolutionary tactics. But are we legitimizing the KPD?
+
+@prepare_for_crisis
+on-arrival: coup_progress += 2; reichswehr_loyalty -= 3; rb_militancy += 0.08;
+
+We quietly prepare for the crisis we see coming: KPD radicalism will provoke right-wing reaction. Either counter-revolution or civil war looms.
+
+Reichsbanner mobilizes. We coordinate with democratic parties. Germany stands on the precipice.
+
+
+
+
+
+
+
+
+@sapd_response
+on-arrival: inflation -= 0.8; economic_growth += 0.1; unemployed -= 0.5; budget -= 2; workers_sapd += 6; workers_spd -= 2; workers_kpd -= 2; old_middle_dvp += 4; new_middle_ddp += 3; capital_strike_progress += 3; fiscal_stance -= 0.20; demand_impulse += 0.25; price_pressure += 0.10;
+
+**SAPD Response: Left Socialist Economics**
+
+The SAPD-controlled government implements militant anti-inflation policy that rejects orthodox economics but stops short of Communist radicalism.
+
+"Inflation must be fought through socialist planning, not capitalist discipline!" Finance Minister Seydewitz announces. "We protect workers without triggering bourgeois panic—unlike the KPD's adventurism."
+
+The policy includes: extensive price controls on essentials, aggressive progressive taxation, selective nationalizations (utilities, transport), coordinated wage policy with unions, and government employment programs funded through wealth taxes.
+
+**The Results:**
+
+Inflation declines modestly but remains elevated. Employment is protected better than under orthodox policy but not as dramatically as under KPD radicalism. Middle-class assets erode but not catastrophically.
+
+It's left-wing economics but implemented with some pragmatism. Workers appreciate job protection. The middle class is nervous but not in full revolt. Business is hostile but not launching coups.
+
+**Our Response:**
+
+We're conflicted. The SAPD is doing what our left wing always demanded—socialist economics without Communist revolution. But we're watching from opposition as they claim our ideological space.
+
+"The SAPD proves socialist economics can work!" some of our members argue. "They're stealing our program while we criticized from the sidelines!" others lament.
+
+Our working-class support is threatened by both the SAPD's socialist credentials and the KPD's revolutionary promises. We risk becoming the "moderate" option that satisfies neither left nor center.
+
+- @criticize_sapd_radicalism: Attack SAPD policy as too radical and economically unsound.
+- @claim_credit: Claim the SAPD is implementing SPD ideas.
+- @move_left: Shift our own position leftward to compete.
+- @accept_sapd_success: Grudgingly acknowledge the SAPD's approach is working.
+
+@criticize_sapd_radicalism
+on-arrival: sapd_relation -= 10; workers_sapd += 2; workers_spd -= 1; reformist_strength += 5; old_middle_spd += 2;
+
+"The SAPD's radical economics are economically unsound!" we argue. "Socialist planning without market discipline will fail!"
+
+We position ourselves as the economically competent left, but risk looking conservative to workers who want militant action.
+
+@claim_credit
+on-arrival: sapd_relation -= 5; workers_spd += 2; left_strength += 3;
+
+"The SAPD is implementing SPD ideas!" we declare. "These are our policies, now being proven in practice!"
+
+It's an attempt to benefit from SAPD success without being in government. But it also validates the split that weakened us.
+
+@move_left
+choose-if: left_strength >= 40
+unavailable-subtitle: [? if left_strength < 40 : Our party lacks left-wing strength for this shift. ?]
+on-arrival: left_strength += 8; workers_spd += 3; workers_sapd -= 2; reformist_dissent += 10;
+
+We shift our own program leftward to compete with SAPD: more nationalization, more aggressive progressive taxation, stronger worker control.
+
+It's ideological competition on the left. But does it blur the distinction between us and SAPD/KPD?
+
+@accept_sapd_success
+on-arrival: sapd_relation += 3; workers_sapd += 1; left_dissent += 5;
+
+"The SAPD's approach is working," we grudgingly acknowledge. "Left economics can succeed when implemented with pragmatism."
+
+It's honest but demoralizing—watching a splinter party succeed where we hesitated.
+
+
+
+
+
+@srpd_response
+on-arrival: inflation -= 1.4; economic_growth -= 0.2; unemployed += 1; budget += 1; workers_spd += 3; old_middle_spd += 4; new_middle_spd += 3; old_middle_ddp -= 2; capital_strike_progress -= 2; fiscal_stance += 0.12; demand_impulse -= 0.08; price_pressure -= 0.18;
+
+**SRPD Response: Reformist Pragmatism**
+
+The SRPD-controlled government implements moderately progressive anti-inflation policy that leans toward economic orthodoxy while maintaining social concern.
+
+"Inflation control requires responsible economics," Finance Minister Severing announces. "But responsibility includes protecting workers, not just creditors."
+
+The policy: substantial fiscal consolidation but with progressive taxation, Reichsbank coordination with democratic oversight, limited price controls, modest employment programs, and emphasis on negotiated wage restraint rather than imposed austerity.
+
+**The Results:**
+
+Inflation declines significantly—the SRPD's orthodox leanings deliver real price stability. Unemployment rises moderately, less than pure business orthodoxy but more than full SPD approach.
+
+The middle class appreciates the inflation control and responsible governance. Workers face economic pain but less than under right-wing policy. Business respects the SRPD's economic competence even while preferring more conservative policy.
+
+**Our Response:**
+
+The SRPD is governing from our center-right—social concern combined with economic orthodoxy. They're proving that responsible, moderate governance can control inflation without devastating workers.
+
+We watch as they claim the "responsible left" political space we once occupied. Our challenge: they're competent but uninspiring, effective but not transformative.
+
+Some in our party wonder if we should have split differently—or not at all.
+
+- @praise_srpd_competence: Acknowledge the SRPD's competent governance.
+- @criticize_srpd_conservatism: Attack them as too conservative on worker protection.
+- @regret_split: Publicly or privately regret the party split.
+- @differentiate_position: Emphasize how we'd govern differently.
+
+@praise_srpd_competence
+on-arrival: srpd_relation += 5; reformist_strength += 5; workers_spd -= 1; old_middle_spd += 2;
+
+"The SRPD governs competently and responsibly," we acknowledge. "They demonstrate that moderate social democracy can deliver results."
+
+It validates the split but also the reformist approach. Some wonder if we should reconcile.
+
+@criticize_srpd_conservatism
+on-arrival: srpd_relation -= 8; workers_spd += 2; left_strength += 3;
+
+"The SRPD has drifted too far toward economic orthodoxy!" we argue. "They protect price stability over employment—that's not social democracy!"
+
+We differentiate ourselves but risk looking irresponsible compared to SRPD's competent governance.
+
+@regret_split
+on-arrival: srpd_relation += 10; reunification_possible = 1; left_dissent += 8; reformist_dissent += 8;
+
+"The party split weakened both of us," we admit publicly. "Perhaps we could govern more effectively together."
+
+It's an opening toward potential reunification—but also an admission that the split was a mistake. Both party wings are conflicted.
+
+@differentiate_position
+on-arrival: workers_spd += 2; reformist_strength += 3;
+
+We clearly articulate how our approach differs from SRPD: more emphasis on employment protection, stronger worker participation, but still within responsible economics.
+
+It's positioning for the future: similar but distinct enough to justify our separate existence.
+
+
+
+
+@bvp_response
+on-arrival: inflation -= 1.7; economic_growth -= 0.4; unemployed += 2; budget += 1.5; catholics_bvp += 4; rural_bvp += 3; old_middle_bvp += 3; workers_spd += 2; fiscal_stance += 0.16; demand_impulse -= 0.15; price_pressure -= 0.22;
+
+**BVP Response: Bavarian Catholic Economics**
+
+The BVP-controlled government implements conservative but socially-conscious anti-inflation policy reflecting Bavarian Catholic values.
+
+"Christian social teaching demands both fiscal responsibility and care for the vulnerable," the BVP Finance Minister announces. "Bavaria will show Germany how Catholic economics serves all classes."
+
+The policy: substantial fiscal discipline, moderate tax increases (including some on wealth, respecting Catholic social doctrine), protection of agricultural interests, preservation of social insurance (especially family support), and emphasis on regional autonomy in implementation.
+
+**The Results:**
+
+Inflation declines substantially—the BVP's conservative economics delivers price stability. Unemployment rises moderately, with particular attention to protecting rural employment and family-supporting industries.
+
+Catholic workers and middle class appreciate the combination of economic discipline and social concern. Rural Bavaria is insulated somewhat from urban unemployment. But industrial workers in Bavaria face job losses.
+
+**Our Response:**
+
+The BVP is governing as Catholic conservatives: socially conservative economics with enough social conscience to avoid pure business orthodoxy. It's regionally focused and confessionally bounded.
+
+We struggle to critique effectively because the BVP's approach isn't egregiously anti-worker, just conservative. But it prioritizes rural/Catholic interests over industrial workers.
+
+Our challenge in Bavaria: how do we compete with a party that combines economic conservatism with Catholic social teaching?
+
+- @respect_bvp_approach: Acknowledge the Catholic social conscience in BVP policy.
+- @criticize_rural_bias: Attack the BVP's rural and regional bias.
+- @compete_in_bavaria: Emphasize our universal worker protection vs. BVP's particularism.
+- @accept_bvp_dominance: Accept that BVP dominates Catholic Bavaria.
+
+
+@respect_bvp_approach
+on-arrival: bvp_relation += 5; catholics_spd += 1; z_relation += 3;
+
+"Catholic social teaching offers genuine social conscience," we acknowledge. "The BVP's approach reflects those values, even if we'd prioritize differently."
+
+It's respectful engagement with Catholic voters, but our Protestant/secular base is puzzled.
+
+@criticize_rural_bias
+on-arrival: bvp_relation -= 5; workers_spd += 2; rural_spd -= 1;
+
+"The BVP protects rural interests while urban industrial workers suffer!" we argue. "Regional particularism sacrifices workers to agricultural conservatism!"
+
+It plays well with urban workers but confirms our weakness in rural Catholic Bavaria.
+
+@compete_in_bavaria
+on-arrival: catholics_spd += 2; bvp_relation -= 3;
+
+We emphasize that our worker protection is universal, not regionally or confessionally bounded. "SPD economics serves all workers—Catholic or Protestant, urban or rural!"
+
+It's an attempt to compete in Bavaria, but the BVP's cultural rootedness remains powerful.
+
+@accept_bvp_dominance
+on-arrival: bvp_relation += 3; catholics_spd -= 1;
+
+We tacitly accept that the BVP dominates Catholic Bavaria. Our energy is better spent elsewhere.
+
+It's strategic realism but also admission of regional weakness.
+
+
+
+
+
+
+
+@wp_response
+on-arrival: inflation -= 2.3; economic_growth -= 0.9; unemployed += 3.5; budget += 2.5; old_middle_wp += 5; new_middle_wp += 4; workers_spd += 4; unemployed_spd += 5; workers_kpd += 3; capital_strike_progress -= 2; fiscal_stance += 0.24; demand_impulse -= 0.28; price_pressure -= 0.32;
+
+**WP (Business Party) Response: Pure Economic Liberalism**
+
+The Business Party-controlled government implements the harshest possible orthodox anti-inflation policy—even more extreme than the DVP.
+
+"Markets must be purged of inflationary distortions!" the WP Finance Minister declares. "Government interference created this crisis. Only complete market discipline can resolve it."
+
+The policy is brutally orthodox: massive spending cuts (especially social programs), regressive tax increases, maximum Reichsbank independence, active wage suppression, corporate tax relief, and explicit rejection of any employment protection.
+
+**The Results:**
+
+Inflation is crushed through sheer economic violence. Currency stabilizes completely. Business interests and creditors celebrate. The propertied middle class breathes enormous relief.
+
+But unemployment soars to catastrophic levels. Wages collapse. Social programs are gutted. Working-class suffering is extreme. It's 1920s American-style capitalism imposed on Weimar Germany.
+
+**Our Response:**
+
+"The Business Party governs exclusively for capital!" we thunder. "Workers are sacrificed completely to protect bourgeois wealth!"
+
+This is the clearest possible class conflict. Our rallies overflow with furious workers. But the KPD also surges: "See? Democracy serves only the rich! Revolution is the only answer!"
+
+Working-class radicalization accelerates. The WP gains among business and propertied interests but becomes politically toxic to workers. German politics polarizes completely along class lines.
+
+- @total_opposition: Launch maximum opposition campaign.
+- @warn_of_radicalization: Warn that WP policy breeds extremism.
+- @coordinate_with_unions: Full coordination with ADGB against WP economics.
+- @prepare_for_backlash: Prepare to capitalize on inevitable political backlash.
+
+
+
+@total_opposition
+on-arrival: wp_relation -= 15; workers_spd += 5; unemployed_spd += 6; left_strength += 8;
+
+We launch absolute opposition: mass rallies, parliamentary obstruction, coordination with unions, media campaigns. "The Business Party must be driven from power!"
+
+Working-class mobilization reaches fever pitch. The WP becomes our perfect enemy—pure capitalism incarnate.
+
+@warn_of_radicalization
+on-arrival: pro_republic += 3; coup_progress += 1; workers_kpd += 2;
+
+"WP economics breeds extremism!" we warn. "When democracy serves only capital, workers turn to revolution or fascism!"
+
+It's a prophetic warning—but will anyone listen before it's too late?
+
+@coordinate_with_unions
+on-arrival: labor_strength += 10; workers_spd += 4; wp_relation -= 12; capital_strike_progress += 3;
+
+Full partnership with ADGB: coordinated strikes, protest campaigns, political opposition. Labor becomes the primary resistance vehicle.
+
+Worker solidarity surges but business retaliates viciously. Class warfare intensifies.
+
+@prepare_for_backlash
+on-arrival: workers_spd += 3; unemployed_spd += 5;
+
+We position ourselves to benefit when WP economics inevitably provoke political backlash. "When this fails, Germany will need real alternatives."
+
+It's strategic positioning for electoral opportunity from economic suffering—morally uncomfortable but politically necessary.
+
+
 
 @dvp_response
 on-arrival: inflation -= 2; economic_growth -= 0.7; unemployed += 3; budget += 2; old_middle_dvp += 4; new_middle_dvp += 3; workers_spd += 3; unemployed_spd += 4; workers_kpd += 2; old_middle_spd -= 2; dvp_relation += 5; capital_strike_progress -= 1; fiscal_stance += 0.20; demand_impulse -= 0.25; price_pressure -= 0.30;
@@ -416,3 +737,4 @@ on-arrival: workers_spd += 3; unemployed_spd += 3; z_relation -= 3;
 We use Brüning's economic failure as primary campaign theme. "They've tried orthodox economics. It failed in deflation, it's failing in inflation. Germany needs new leadership!"
 
 Economic policy becomes our main electoral weapon for the next campaign.
+
