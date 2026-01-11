@@ -13,7 +13,7 @@ on-arrival: {!
 !}
 frequency: 200
 card-image: img/info.jpg
-go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3
+go-to: intel_upgrade_available_3 if intelligence_can_upgrade_3 and seen_upgrade_3 = 0
 
 = Intelligence Operations
 
@@ -198,6 +198,7 @@ These matters fall outside standard intelligence protocols, but warrant investig
 - @root: Continue operations review.
 
 @intel_upgrade_available_3
+on-arrival: seen_upgrade_3 = 1
 max-visits: 1
 
 
