@@ -2,7 +2,7 @@ title: Building a People's Party
 new-page: true
 is-card: true
 card-image: img/poster_0.jpg
-view-if: (neorevisionism > 0 and peoples_party_support >= 3 and peoples_party = 0 and peoples_party_timer == 0) or (peoples_party = 1 and sandbox = 1)
+view-if: (neorevisionism > 0 and peoples_party_support >= 3 and peoples_party = 0 and peoples_party_timer == 0) or (peoples_party = 1 and sandbox = 1 and peoples_party_timer == 0)
 on-arrival: peoples_party_timer = 24
 tags: party_affairs
 #subtitle: Can the SPD move beyond the working class?
@@ -16,20 +16,33 @@ In order to build a socialist majority, many reformists and neorevisionists are 
 - @support_peoples_party: Yes, we must become a people's party!
 - @build_support: We must build additional support before becoming a people's party.
 - @support_peoples_party_hard: Despite strong opposition from the Center and Left factions, we will become a people's party.
+- @campaign_pps: Run the campaign of People's Party:
 - @revert_people: Revert back policy of People's Party back to Worker's Party
 - @root: Perhaps we can discuss this at a later time.
 - @easy_discard
 - @cancel_advisor_action
 
+@campaign_pps
+
+We may run the campaign.
+
+- @campaign_workers
+- @campaign_middle
+- @campaign_rural
+- @campaign_unemployed
+- @campaign_women
+- @campaign_catholics
+- @easy_discard
+
 @build_support
-view-if: (neorevisionist_strength + reformist_strength < left_strength + center_strength) or peoples_party_support < 5
+view-if: ((neorevisionist_strength + reformist_strength < left_strength + center_strength) or peoples_party_support < 5) and peoples_party = 0
 on-arrival: peoples_party_support += 1; neorevisionist_strength += 5; left_strength -= 5; left_dissent += 5
 
 Within our party, we are pushing forward proposals for a people's party against the Left and Center.
 
 
 @support_peoples_party
-choose-if: (neorevisionist_strength + reformist_strength >= left_strength + center_strength) and peoples_party_support >= 4
+choose-if: (neorevisionist_strength + reformist_strength >= left_strength + center_strength) and peoples_party_support >= 4 and peoples_party = 0
 unavailable-subtitle: The opposition is too strong.
 on-arrival: neorevisionist_strength += 15; reformist_strength += 15; neorevisionist_dissent -= 10; reformist_dissent -= 10; peoples_party = 1; workers_spd -= 12; rural_spd += 10; new_middle_spd += 10; old_middle_spd += 8; catholics_spd += 8; left_dissent += 25; center_dissent += 20; kpd_relation -= 10; kpd_coalition_dissent += 1; coalition_dissent -= 1; z_relation += 5*(1-dissent); dvp_relation += 5*(1-dissent)
 achievement: volkspartei
@@ -48,7 +61,7 @@ Should we run a new campaign to publicize our new platform?
 
 @support_peoples_party_hard
 subtitle: This will increase dissent.
-view-if: (neorevisionist_strength + reformist_strength < left_strength + center_strength) or (peoples_party_support < 4)
+view-if: ((neorevisionist_strength + reformist_strength < left_strength + center_strength) or (peoples_party_support < 4)) and peoples_party = 0
 on-arrival: neorevisionist_strength += 10; reformist_strength += 8; peoples_party = 1; workers_spd -= 15; rural_spd += 10; new_middle_spd += 10; old_middle_spd += 8; catholics_spd += 8; left_dissent += 40; center_dissent += 40; kpd_relation -= 10; kpd_coalition_dissent += 1; coalition_dissent -= 1
 achievement: volkspartei
 
