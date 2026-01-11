@@ -861,15 +861,93 @@ if (Q.month_actions >= 1) {
                      break;
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
+                    
+                    // Ideology-based class appeal
+                    if (Q.ideology === 'left') {
+                        if (Q.c === 'workers' || Q.c === 'unemployed') {
+                            Q.ideology_factor *= 1.15; // Strong working-class appeal
+                        } else if (Q.c === 'old_middle' || Q.c === 'new_middle') {
+                            Q.ideology_factor *= 0.85; // Alienates middle class
+                        }
+                    } else if (Q.ideology === 'reformist') {
+                        if (Q.c === 'old_middle' || Q.c === 'new_middle') {
+                            Q.ideology_factor *= 1.12; // Appeals to middle class
+                        } else if (Q.c === 'workers') {
+                            Q.ideology_factor *= 0.93; // Slightly weaker working-class appeal
+                        }
+                    } else if (Q.ideology === 'labor') {
+                        if (Q.c === 'workers') {
+                            Q.ideology_factor *= 1.08; // Strong trade union appeal
+                        }
+                        if (Q.c === 'unemployed') {
+                            Q.ideology_factor *= 1.08; // Job programs appeal
+                        }
+                    } else if (Q.ideology === 'neorev') {
+                        if (Q.c === 'workers' || Q.c === 'unemployed') {
+                            Q.ideology_factor *= 1.04; // Moderate working-class boost
+                        }
+                        if (Q.c === 'old_middle' || Q.c === 'new_middle') {
+                            Q.ideology_factor *= 1.05; // Anti-Nazi coalition appeal
+                        }
+                    }
+                    
+                    // Peoples party stacks with ideology
+                    if (Q.peoples_party === 1) {
+                        if (Q.c === 'old_middle' || Q.c === 'new_middle') {
+                            Q.ideology_factor *= 1.10;
+                        } else if (Q.c === 'workers' || Q.c === 'unemployed') {
+                            Q.ideology_factor *= 0.93;
+                        }
+                    }
                     break;
                 case 'wp':
                     Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.15 + (Q.inflation * 0.09) - (Q.unemployed * 0.07) + ((Q.old_middle + Q.new_middle) * 0.05)), 0.15);
                     break;
-                case 'bvp':
-                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.2 * (1 + Q.catholics/200 + Q.rural/100), 0.15);
-                    break;
                 case 'z':
+                    // Base: pro-republic + Catholic dominance
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
+                    
+                    // Leadership matters
+                    if (Q.z_party_leader === "Kaas") {
+                        Q.ideology_factor *= 0.95; // More conservative, loses some workers/liberals
+                    } else if (Q.z_party_leader === "Joos") {
+                        Q.ideology_factor *= 1.05; // More left-leaning, broader appeal
+                    }
+                    
+                    // Class-specific appeal
+                    if (Q.c === 'catholics') {
+                        Q.ideology_factor *= 1.20; // Strong confessional base
+                    } else if (Q.c === 'workers' && Q.z_party_leader !== "Kaas") {
+                        Q.ideology_factor *= 1.03; // Christian trade unions
+                    } else if (Q.c === 'old_middle') {
+                        Q.ideology_factor *= 1.04; // Catholic bourgeoisie
+                    }
+                    
+                    // In government boosts credibility
+                    if (Q.z_in_government) {
+                        Q.ideology_factor *= 1.05;
+                    }
+                    break;
+                case 'bvp':
+                    // Base: pro-republic (moderate) + regional/rural + Catholic
+                    Q.ideology_factor = Q.random_factor(
+                        Q.pro_republic_factor * 0.75 * (1 + Q.catholics/150 + Q.rural/80), 
+                        0.15
+                    );
+                    
+                    // Class-specific appeal (more conservative than Z)
+                    if (Q.c === 'catholics') {
+                        Q.ideology_factor *= 1.25; // Very strong confessional loyalty
+                    } else if (Q.c === 'rural') {
+                        Q.ideology_factor *= 1.15; // Bavarian agricultural interests
+                    } else if (Q.c === 'old_middle') {
+                        Q.ideology_factor *= 1.10; // Conservative bourgeoisie
+                    } else if (Q.c === 'workers') {
+                        Q.ideology_factor *= 0.90; // Weaker with workers than Z
+                    }
+                    
+                    // Less affected by national crises than other parties
+                    Q.ideology_factor *= (1 - Q.unrest_factor * 0.1); // Stable regional base
                     break;
                 case 'ddp':
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.3, 0.15);
@@ -891,15 +969,6 @@ if (Q.month_actions >= 1) {
             Q.class_total += Q[Q.c+'_'+Q.party];
         }
     }
-
-    // Party-specific class bonuses
-        if (Q.party === 'spd' && Q.peoples_party === 1) {
-            if (Q.c === 'old_middle' || Q.c === 'new_middle' || Q.c === 'rural') {
-                Q.ideology_factor *= 1.12; // 12% boost to middle-class appeal
-            } else if (Q.c === 'workers' || Q.c === 'unemployed') {
-                Q.ideology_factor *= 0.95; // 5% penalty - dilution of worker focus
-            }
-        }
 
     // Recalculate normalized fractions after drift
     for (var c of Q.classes) {
