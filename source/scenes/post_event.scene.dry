@@ -1038,7 +1038,7 @@ if (Q.month_actions >= 1) {
                     
                     // Class-specific appeal
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 1.20; // Strong confessional base
+                        Q.ideology_factor *= 1.28; // Strong confessional base
                     } else if (Q.c === 'workers' && Q.z_party_leader !== "Kaas") {
                         Q.ideology_factor *= 1.03; // Christian trade unions
                     } else if (Q.c === 'old_middle') {
@@ -1053,19 +1053,19 @@ if (Q.month_actions >= 1) {
                 case 'bvp':
                     // Base: pro-republic (moderate) + regional/rural + Catholic
                     Q.ideology_factor = Q.random_factor(
-                        Q.pro_republic_factor * 0.75 * (1 + Q.catholics/150 + Q.rural/80), 
+                        Q.pro_republic_factor * 0.50 * (1 + Q.catholics/155 + Q.rural/85), 
                         0.15
                     );
                     
                     // Class-specific appeal (more conservative than Z)
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 1.25; // Very strong confessional loyalty
+                        Q.ideology_factor *= 1.10; // Very strong confessional loyalty
                     } else if (Q.c === 'rural') {
-                        Q.ideology_factor *= 1.15; // Bavarian agricultural interests
+                        Q.ideology_factor *= 1.09; // Bavarian agricultural interests
                     } else if (Q.c === 'old_middle') {
-                        Q.ideology_factor *= 1.10; // Conservative bourgeoisie
+                        Q.ideology_factor *= 1.03; // Conservative bourgeoisie
                     } else if (Q.c === 'workers') {
-                        Q.ideology_factor *= 0.90; // Weaker with workers than Z
+                        Q.ideology_factor *= 0.86; // Weaker with workers than Z
                     }
                     
                     // Less affected by national crises than other parties
