@@ -1,7 +1,7 @@
 title: Presidential Election
 subtitle: The presidential term has ended
 new-page: true
-view-if: (year - last_presidential_election >= 8 or president_term_ended) and month = 3 and not presidential_election_active and hindenburg_dead = 1
+view-if: (year = next_presidential_election_year and month >= next_presidential_election_month) or (year > next_presidential_election_year)
 on-arrival: presidential_election_active = 1; round = 0; last_presidential_election = year;
 max-visits: 999
 tags: event
@@ -1099,7 +1099,15 @@ go-to: election_end
 [+ winner_desc +] has won the presidency with [+ winner_votes_disp +]% of the vote!
 
 @election_end
-on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
+on-departure: {!
+Q.presidential_election_active = 0;
+Q.president_term_start = Q.year;
+Q.president_term_ended = 0;
+// Set next presidential election (7 years from now)
+Q.next_presidential_election_year = Q.year + 7;
+Q.next_presidential_election_month = 3; // Always March
+!}
+on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
 go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"
 
 [+ winner_desc +] is now President of Germany.
