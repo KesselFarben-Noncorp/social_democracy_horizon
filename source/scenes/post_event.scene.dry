@@ -892,6 +892,13 @@ if (Q.month_actions >= 1) {
         }
     }
 
+    // Party-specific class bonuses
+        if (Q.party === 'spd' && Q.peoples_party === 1) {
+            if (Q.c === 'old_middle' || Q.c === 'new_middle' || Q.c === 'rural') {
+                Q.ideology_factor *= 1.12; // 12% boost to middle-class appeal
+            }
+        }
+
     // Recalculate normalized fractions after drift
     for (var c of Q.classes) {
         var class_votes = 0;
