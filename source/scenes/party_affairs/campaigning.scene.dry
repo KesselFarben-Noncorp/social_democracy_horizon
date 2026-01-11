@@ -31,7 +31,7 @@ We have increased our campaigning among workers.
 [? if unemployed >= 15: High unemployment makes our campaign more difficult. ?]
 [? if wtb_adopted = 1: Adopting the WTB plan gives us a new rallying point to attract labor support. ?]
 [? if welfare < 0: Absence of the welfare program has impacted negatively our ability to campaign amongst workers. ?]
-[? if peoples/party > 0: As a people's party, increased socialist moods will heavily sabotage our campaign. ?]
+[? if peoples_party > 0: As a people's party, increasing socialist moods will heavily sabotage our campaign. ?]
 
 @new_middle
 subtitle: -1 resources
@@ -59,12 +59,13 @@ We have increased our campaigning among the old middle class.
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: rural_spd += 5*(1-dissent); rural_spd -= 3*(1-dissent) if peoples_party == 0; resources -= 1; peoples_party_support += 1; rural_spd += 3*(1-dissent) if rural_policy >= 2
+on-arrival: rural_spd += 5*(1-dissent); rural_spd -= 3*(1-dissent) if peoples_party == 0; resources -= 1; peoples_party_support += 1; rural_spd += 3*(1-dissent) if rural_policy >= 2; rural_spd *= 1.09 if state_buyer = 1
 
 We have increased our campaigning among farmers and rural workers.
 [? if peoples_party == 0: Our lack of historical focus on rural voters undermines trust. ?]
 [? if peoples_party > 0: As a people's party, we face fewer obstacles in rural campaigning. ?]
 [? if rural_policy >= 2: Our rural policies have eased support-building efforts. ?]
+[? if state_buyer = 1: State monopoly on prices of the agricultural products benefits primarily rurals, which are satisfied with our achievements and grateful for it. Junkers are not. ?]
 
 @unemployed
 subtitle: -1 resources
@@ -84,8 +85,8 @@ view-if: peoples_party == 1
 on-arrival: catholics_spd += 6*(1-dissent); resources -= 1; catholics_spd *= 1.03 if reichskonkordat = 1;  catholics_spd *= 1.01 if prussian_concordat = 1
 
 We have increased our campaigning among Catholics.
-[if reichskonkordat = 1: Signing the Concordat between Reich and Pope has gathered us major popularity amongst the catholics. ?]
-[if prussian_concordat = 1: Signing the Prussian Concordate (and Pope) has gathered us major popularity amongst the catholics of the Prussia. ?]
+[? if reichskonkordat = 1: Signing the Concordat between Reich and Pope has gathered us major popularity amongst the catholics. ?]
+[? if prussian_concordat = 1: Signing the Prussian Concordate (and Pope) has gathered us major popularity amongst the catholics of the Prussia. ?]
 
 @finish_game
 view-if: sandbox = 1
