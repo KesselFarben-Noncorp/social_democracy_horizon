@@ -22,6 +22,8 @@ Copyright belongs to the Autumn Chen OR https://github.com/aucchen/social_democr
 
 ---
 
+---
+
 ## Included Libraries
 
 [jquery v1.11.1](https://releases.jquery.com/)
