@@ -1486,9 +1486,54 @@ Hilferding's intellectual credentials and left-wing appeal strengthen our social
 
 - @continue_to_negotiation: Continue to coalition negotiations
 
+
 @continue_to_negotiation
 on-arrival: {!
-// Recalculate display after preference boost
+// REBUILD the entire candidate list to get back to 6 candidates after filtering
+var coalition = Q.chosen_coalition.parties;
+var all_candidates = [];
+
+// Rebuild from all coalition parties
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var votes = Q[party.toLowerCase() + '_r'];
+    
+    // For SPD, only include the chosen candidate
+    if (party === 'SPD') {
+        for (var k = 0; k < Q.chancellor_candidates.length; k++) {
+            if (Q.chancellor_candidates[k].party === 'SPD') {
+                all_candidates.push(Q.chancellor_candidates[k]);
+                break;
+            }
+        }
+    } else {
+        // For other parties, get all their candidates
+        var party_candidates = get_chancellor_candidates_for_party(party);
+        for (var j = 0; j < party_candidates.length; j++) {
+            var candidate = party_candidates[j];
+            all_candidates.push({
+                party: party,
+                name: candidate.name,
+                votes: votes,
+                weight: candidate.weight,
+                score: votes * (candidate.weight / 100)
+            });
+        }
+    }
+}
+
+// Sort by score
+all_candidates.sort(function(a, b) { return b.score - a.score; });
+
+// Take top 6
+Q.chancellor_candidates = [];
+var num_candidates = Math.min(6, all_candidates.length);
+for (var i = 0; i < num_candidates; i++) {
+    Q.chancellor_candidates.push(all_candidates[i]);
+}
+Q.num_candidates = Q.chancellor_candidates.length;
+
+// Rebuild display
 Q.chancellor_candidates_display = "";
 for (var i = 0; i < Q.num_candidates; i++) {
     var candidate = Q.chancellor_candidates[i];
