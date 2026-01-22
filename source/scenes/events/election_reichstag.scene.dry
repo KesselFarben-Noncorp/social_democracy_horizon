@@ -1251,7 +1251,7 @@ function get_chancellor_candidates_for_party(party) {
         }
     }
     else if (party === 'SRPD') {
-        candidates.push({name: "Severing", weight: 100});
+        candidates.push({name: "Horsing", weight: 100});
     } 
     else if (party === 'DDP') {
         candidates.push({name: "Koch-Weser", weight: 100});
@@ -1416,24 +1416,27 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 view-if: not muller_dead
 on-arrival: {!
 Q.spd_chancellor_preference = "mueller";
-// Boost Müller's weight in candidate list
+// Remove all other SPD candidates from the list
+Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
+    return c.party !== "SPD" || c.name === "Müller";
+});
+// Boost Müller
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Müller") {
         Q.chancellor_candidates[i].weight = 120;
         Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
     }
 }
-// Re-sort
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.num_candidates = Q.chancellor_candidates.length;
 !}
-
-Müller's experience and moderate reputation make him a strong choice for coalition building.
-
-- @continue_to_negotiation: Continue to coalition negotiations
 
 @prefer_wels
 on-arrival: {!
 Q.spd_chancellor_preference = "wels";
+Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
+    return c.party !== "SPD" || c.name === "Wels";
+});
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Wels") {
         Q.chancellor_candidates[i].weight = 120;
@@ -1441,15 +1444,15 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     }
 }
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.num_candidates = Q.chancellor_candidates.length;
 !}
-
-Wels as party chairman brings legitimacy and unity to our coalition offer.
-
-- @continue_to_negotiation: Continue to coalition negotiations
 
 @prefer_braun
 on-arrival: {!
 Q.spd_chancellor_preference = "braun";
+Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
+    return c.party !== "SPD" || c.name === "Braun";
+});
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Braun") {
         Q.chancellor_candidates[i].weight = 120;
@@ -1457,16 +1460,16 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     }
 }
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.num_candidates = Q.chancellor_candidates.length;
 !}
-
-Braun's proven administrative record in Prussia demonstrates he can lead effectively.
-
-- @continue_to_negotiation: Continue to coalition negotiations
 
 @prefer_hilferding
 view-if: spd_toleration = 0
 on-arrival: {!
 Q.spd_chancellor_preference = "hilferding";
+Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
+    return c.party !== "SPD" || c.name === "Hilferding";
+});
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Hilferding") {
         Q.chancellor_candidates[i].weight = 120;
@@ -1474,6 +1477,7 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     }
 }
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.num_candidates = Q.chancellor_candidates.length;
 Q.left_strength += 5;
 Q.left_dissent -= 5;
 !}
