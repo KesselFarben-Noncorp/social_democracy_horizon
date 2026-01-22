@@ -3,30 +3,30 @@ subtitle: The German National People's Party chooses a new direction
 new-page: true
 is-card: true
 tags: event
-view-if: year = 1929 and month >= 10 and dnvp_leadership_resolved = 0
+view-if: year = 1929 and month >= 10 and dnvp_leadership_resolved = 0 and dnvp_line = 1
 on-arrival: month_actions += 1; dnvp_leadership_resolved = 1
 max-visits: 1
 card-image: img/portraits/Hugenberg.jpg
 
-= DNVP Leadership Contest - October 1929
+= The Soul of the Right - October 1929
 
-Emil Hartwig has resigned as chairman of the German National People's Party after barely securing leadership earlier this year. The party now faces a crucial decision about its future direction.
+The DNVP is at a breaking point. Since the "catastrophic" electoral losses of 1928 and the rise of the industrial tycoon Alfred Hugenberg, the party has drifted away from the old aristocratic "gentleman’s politics" toward a populist, radical nationalism. Emil Hartwig’s resignation marks the final gasp of the old trade-union wing.
 
-**Five candidates compete for the chairmanship:**
+The party remains the bastion of the **Stab-in-the-Back Myth** and the primary foe of the **Young Plan**. Whether led by a Junker or a businessman, the goal remains the same: the restoration of German greatness and the final defeat of Marxism.
 
-**Ernst Oberfohren** (Moderate Nationalist): Represents the traditional conservative wing, favors cooperation with other bourgeois parties.
+**The factions gather to decide who will lead the crusade:**
 
-**Reinhold Quaatz** (Economic Conservative): Business-oriented nationalist, prioritizes economic interests over ideological purity.
+**Ernst Oberfohren** (The Hardline Intellectual): A staunch nationalist who believes in "Legal Revolution." He wants to use the Reichstag to dismantle the Republic from within.
 
-**Martin Schiele** (Agrarian Nationalist): Represents the landed aristocracy and agricultural interests, pragmatic on coalitions.
+**Reinhold Quaatz** (The Strategist): Hugenberg’s closest confidant. He views politics through the lens of power and "National Capitalism." He seeks a total break with the "System."
 
-**Gottfried Treviranus** (Young Conservative): Modernizing conservative, open to cooperation with the Center and even SPD on economic issues.
+**Martin Schiele** (The Junker): Represents the RLB (Reich Landbund). He is a man of the soil and the sword, demanding protection for East Prussian estates above all else.
 
-**Walther Lambach** (Trade Union Conservative): Represents the DHV (nationalist trade union), most moderate candidate, opposes antisemitism.
+**Gottfried Treviranus** (The Tory Democrat): A "Young Conservative." He believes the party must be "modern"—not by becoming democratic, but by becoming a more efficient, disciplined anti-socialist machine.
 
-The contest will be decided by factional strength within the party, external pressures, and recent political developments.
+**Walther Lambach** (The Social Christian): Represents the nationalist employees. He is the most "moderate," yet even he views the Republic only as a temporary necessity to prevent a Bolshevik uprising.
 
-- @dnvp_contest_evaluation: The party votes...
+- @dnvp_contest_evaluation: The ballots are cast...
 
 @dnvp_contest_evaluation
 on-arrival: {!
@@ -127,8 +127,19 @@ if (Q.in_bourgeois_coalition) {
 
 // Random factor (factional maneuvering)
 var random = Math.random() * 20 - 10;
-oberfohren_strength += random;
-quaatz_strength -= random / 2;
+oberfohren_strength += random / 3
+quaatz_strength += random / 2;
+schiele_strength += random / 1.5
+lambach_strength += random / 2.5
+treviranus_strength += random / 1.5
+
+// Party factors
+
+oberfohren_strength += Q.unemployed_dnvp / 2;
+quaatz_strength += Q.old_middle_dnvp / 2;
+schiele_strength += Q.rural_dnvp / 2;
+treviranus_strength += (Q.catholics_dnvp / 3) + (Q.new_middle_dnvp / 3);
+lambach_strength += Q.workers_dnvp / 1.5
 
 // ============================================
 // DETERMINE WINNER
