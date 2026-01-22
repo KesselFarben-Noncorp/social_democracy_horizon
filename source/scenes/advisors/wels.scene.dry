@@ -40,13 +40,14 @@ on-arrival: advisor_action_timer = 6; left_dissent -= 5; labor_dissent -= 10; ce
 
 We have enforced party discipline to reduce dissent across all factions.
 
-@whole_shuffle_wels
-title: Coalition Reshuffling
-subtitle: We re-shuffle the structure of our coalition.
-choose-if: advisor_action_timer = 0 and spd_in_government = 1
-unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?] [? if spd_in_government = 0 : SPD is not in the government. ?]
-on-arrival: advisor_action_timer = 6; 
-go-to: election_reichstag.coalition_formation_start
+@republican_synthesis
+title: The Republican Synthesis
+subtitle: Form a binding pact between the SPD, Center, and DDP.
+unavailable-subtitle: [? if chancellor != "Wels": Wels is not the Chancellor! ?] [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
+choose-if: advisor_action_timer = 0 and (chancellor == "Wels") and (in_weimar_coalition = 1) and (nazi_urgency > 1 or crisis_urgency > 1)
+on-arrival: advisor_action_timer = 12 - democratization; coalition_dissent -= 3; democratization += 1; democratization *= 1.5; nsdap_r -= 3; kpd_r -= 3; z_relation += 5; ddp_relation += 7; nationalism /= 5; socialism /= 10; pro_republic += 5
+
+Wels has leveraged his personal prestige and organizational leverage to bind the democratic parties together. We have formed a "United Front of Democracy." For now, the bickering has ceased, and the Republic stands united against the extremes.
 
 @snap_election
 title: Snap Election
