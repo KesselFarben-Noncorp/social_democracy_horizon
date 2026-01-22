@@ -1210,6 +1210,7 @@ if (Q.coalition_type === 'weimar') {
     Q.coalition_name = "Coalition Government";
 }
 
+
 // ============================================
 // IDENTIFY CHANCELLOR CANDIDATES
 // ============================================
@@ -1366,10 +1367,10 @@ Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
 Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 !}
-go-to: spd_chancellor_preference if spd_in_government; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
+go-to: spd_chancellor_preference if spd_in_government; chancellor_negotiation_ai if not spd_in_government
 
 # ============================================
-# SPD CHANCELLOR PREFERENCE (BEFORE candidate list is built)
+# SPD CHANCELLOR PREFERENCE
 # ============================================
 
 @spd_chancellor_preference
@@ -1400,33 +1401,71 @@ view-if: not muller_dead
 on-arrival: {!
 Q.spd_chancellor_preference = "mueller";
 Q.reformist_strength += 3;
+Q.spd_alternative_1 = "Wels";
+Q.spd_alternative_2 = "Braun";
+Q.spd_alternative_3 = "Hilferding";
+Q.spd_has_alternatives = 1;
 !}
 
 Hermann Müller's experience and moderate reputation make him the SPD's strongest candidate for coalition leadership.
 
-- @continue_after_spd_choice: Continue
+**Other senior figures available for ministerial positions:** Wels, Braun, Hilferding
+
+**Ministry specialists:** Severing (Interior), Leipart (Labor), Sollmann (Defense), Grzesinski (Police)
+
+- @finalize_spd_choice: Proceed to coalition negotiations
 
 @spd_prefer_wels
 on-arrival: {!
 Q.spd_chancellor_preference = "wels";
 Q.reformist_strength += 2;
 Q.pro_republic += 2;
+if (!Q.muller_dead) {
+    Q.spd_alternative_1 = "Müller";
+    Q.spd_alternative_2 = "Braun";
+    Q.spd_alternative_3 = "Hilferding";
+} else {
+    Q.spd_alternative_1 = "Braun";
+    Q.spd_alternative_2 = "Hilferding";
+    Q.spd_alternative_3 = "";
+}
+Q.spd_has_alternatives = 1;
 !}
 
 Otto Wels as party chairman brings institutional legitimacy and unwavering republican principles to the chancellorship.
 
-- @continue_after_spd_choice: Continue
+[? if not muller_dead : **Other senior figures available for ministerial positions:** Müller, Braun, Hilferding ?]
+[? if muller_dead : **Other senior figures available for ministerial positions:** Braun, Hilferding ?]
+
+**Ministry specialists:** Severing (Interior), Leipart (Labor), Sollmann (Defense), Grzesinski (Police)
+
+- @finalize_spd_choice: Proceed to coalition negotiations
 
 @spd_prefer_braun
 on-arrival: {!
 Q.spd_chancellor_preference = "braun";
 Q.reformist_strength += 2;
 Q.prussian_government_strength += 3;
+if (!Q.muller_dead) {
+    Q.spd_alternative_1 = "Müller";
+    Q.spd_alternative_2 = "Wels";
+    Q.spd_alternative_3 = "Hilferding";
+} else {
+    Q.spd_alternative_1 = "Wels";
+    Q.spd_alternative_2 = "Hilferding";
+    Q.spd_alternative_3 = "";
+}
+Q.spd_has_alternatives = 1;
 !}
 
 Otto Braun's administrative record in Prussia demonstrates executive competence at the highest level.
 
-- @continue_after_spd_choice: Continue
+[? if not muller_dead : **Other senior figures available for ministerial positions:** Müller, Wels, Hilferding ?]
+[? if muller_dead : **Other senior figures available for ministerial positions:** Wels, Hilferding ?]
+
+**Ministry specialists:** Severing (Interior), Leipart (Labor), Sollmann (Defense), Grzesinski (Police)
+
+- @finalize_spd_choice: Proceed to coalition negotiations
 
 @spd_prefer_hilferding
 view-if: spd_toleration = 0 and left_strength > 30
@@ -1435,49 +1474,24 @@ Q.spd_chancellor_preference = "hilferding";
 Q.left_strength += 5;
 Q.left_dissent -= 8;
 Q.reformist_dissent += 5;
+if (!Q.muller_dead) {
+    Q.spd_alternative_1 = "Müller";
+    Q.spd_alternative_2 = "Wels";
+    Q.spd_alternative_3 = "Braun";
+} else {
+    Q.spd_alternative_1 = "Wels";
+    Q.spd_alternative_2 = "Braun";
+    Q.spd_alternative_3 = "";
+}
+Q.spd_has_alternatives = 1;
 !}
 
 Rudolf Hilferding's theoretical expertise and left-wing credentials strengthen the SPD's socialist identity.
 
 [? if z_in_government or dvp_in_government : **Note:** This choice may complicate relations with bourgeois coalition partners. ?]
 
-- @continue_after_spd_choice: Continue
-
-@continue_after_spd_choice
-go-to: spd_alternative_candidates
-
-# ============================================
-# SPD ALTERNATIVE CANDIDATES (For context)
-# ============================================
-
-@spd_alternative_candidates
-on-arrival: {!
-// Set alternative SPD candidates for ministry roles (not chancellorship)
-Q.spd_alternatives = [];
-
-if (Q.spd_chancellor_preference !== "mueller" && !Q.muller_dead) {
-    Q.spd_alternatives.push("Müller");
-}
-if (Q.spd_chancellor_preference !== "wels") {
-    Q.spd_alternatives.push("Wels");
-}
-if (Q.spd_chancellor_preference !== "braun") {
-    Q.spd_alternatives.push("Braun");
-}
-if (Q.spd_chancellor_preference !== "hilferding") {
-    Q.spd_alternatives.push("Hilferding");
-}
-
-// Ministry specialists (never chancellors)
-Q.spd_ministry_specialists = ["Severing", "Leipart", "Sollmann", "Grzesinski", "Hörsing"];
-!}
-
-= SPD Leadership Team
-
-**Chancellor Candidate:** [? if spd_chancellor_preference = "mueller" : Hermann Müller ?][? if spd_chancellor_preference = "wels" : Otto Wels ?][? if spd_chancellor_preference = "braun" : Otto Braun ?][? if spd_chancellor_preference = "hilferding" : Rudolf Hilferding ?]
-
-**Other senior figures available for ministerial positions:**
-[? if spd_alternatives.length > 0 : [+ spd_alternatives.join(", ") +] ?]
+[? if not muller_dead : **Other senior figures available for ministerial positions:** Müller, Wels, Braun ?]
+[? if muller_dead : **Other senior figures available for ministerial positions:** Wels, Braun ?]
 
 **Ministry specialists:** Severing (Interior), Leipart (Labor), Sollmann (Defense), Grzesinski (Police)
 
