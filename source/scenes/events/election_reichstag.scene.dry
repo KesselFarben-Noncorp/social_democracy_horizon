@@ -1214,136 +1214,130 @@ if (Q.coalition_type === 'weimar') {
 // IDENTIFY CHANCELLOR CANDIDATES
 // ============================================
 
-// Helper function to get viable chancellor candidates by party
-function get_chancellor_candidates_for_party(party) {
-    var candidates = [];
-    
+// Helper function to get the single best chancellor candidate for a party
+function get_chancellor_for_party(party) {
     if (party === 'KPD') {
-        if (Q.kpd_party_leader === "Conciliators") {
-            candidates.push({name: "Neumann", weight: 100});
-        } else {
-            candidates.push({name: "Thälmann", weight: 100});
-        }
+        return Q.kpd_party_leader === "Conciliators" ? "Neumann" : "Thälmann";
     } 
     else if (party === 'SAPD') {
-        candidates.push({name: "Seydewitz", weight: 100});
+        return "Seydewitz";
     } 
     else if (party === 'SPD') {
-        // Multiple viable SPD chancellors - only those suited for the role
-        if (!Q.muller_dead) {
-            candidates.push({name: "Müller", weight: 100}); // Former chancellor, experienced
-        }
-        candidates.push({name: "Wels", weight: 90}); // Party chairman
-        candidates.push({name: "Braun", weight: 85}); // Prussian PM, executive experience
-        if (Q.spd_toleration === 0) { // More militant option if not in toleration
-            candidates.push({name: "Hilferding", weight: 70}); // Economic expert, intellectual
+        // SPD chancellor determined by preference (set earlier in coalition flow)
+        // If no preference set, use default logic
+        if (Q.spd_chancellor_preference === "mueller" && !Q.muller_dead) {
+            return "Müller";
+        } else if (Q.spd_chancellor_preference === "wels") {
+            return "Wels";
+        } else if (Q.spd_chancellor_preference === "braun") {
+            return "Braun";
+        } else if (Q.spd_chancellor_preference === "hilferding") {
+            return "Hilferding";
+        } else {
+            // Default: use most appropriate based on game state
+            if (!Q.muller_dead) {
+                return "Müller";
+            } else if (Q.reformist_strength > Q.left_strength + 15) {
+                return "Wels";
+            } else {
+                return "Braun";
+            }
         }
     } 
     else if (party === 'SRPD') {
-        candidates.push({name: "Severing", weight: 100});
+        return "Severing";
     } 
     else if (party === 'DDP') {
-        candidates.push({name: "Koch-Weser", weight: 100});
-        if (Q.ddp_decline < 50) { // If party not too weakened
-            candidates.push({name: "Dietrich", weight: 80});
-        }
+        return Q.ddp_leader === "dietrich" ? "Dietrich" : "Koch-Weser";
     } 
     else if (party === 'Z') {
         if (Q.z_party_leader === "Joos") {
-            candidates.push({name: "Wirth", weight: 100});
-            candidates.push({name: "Joos", weight: 80});
+            return "Wirth";
         } else if (Q.z_party_leader === "Kaas") {
-            candidates.push({name: "Kaas", weight: 100});
-            candidates.push({name: "Brüning", weight: 90});
+            return "Kaas";
         } else if (Q.z_party_leader === "Brüning") {
-            candidates.push({name: "Brüning", weight: 100});
-            candidates.push({name: "Marx", weight: 70});
+            return "Brüning";
         } else {
-            candidates.push({name: "Marx", weight: 100});
-            candidates.push({name: "Wirth", weight: 85});
+            return "Marx";
         }
     } 
     else if (party === 'BVP') {
-        candidates.push({name: "Held", weight: 100});
-        candidates.push({name: "Schäffer", weight: 80});
+        return Q.bvp_leader === "schaeffer" ? "Schäffer" : "Held";
     } 
     else if (party === 'DVP') {
         if (!Q.stresemann_dead) {
-            candidates.push({name: "Stresemann", weight: 100});
-            candidates.push({name: "Curtius", weight: 70});
+            return "Stresemann";
         } else {
-            candidates.push({name: "Curtius", weight: 100});
-            candidates.push({name: "Dingeldey", weight: 85});
+            return Q.dvp_leader === "dingeldey" ? "Dingeldey" : "Curtius";
         }
     } 
     else if (party === 'WP') {
-        candidates.push({name: "Lambach", weight: 100});
+        return "Lambach";
     } 
     else if (party === 'DNVP') {
         if (Q.dnvp_line === 3) {
-            candidates.push({name: "Hugenberg", weight: 100});
+            return "Hugenberg";
         } else {
-            candidates.push({name: "Westarp", weight: 100});
-            candidates.push({name: "Treviranus", weight: 75});
+            return Q.dnvp_leader === "treviranus" ? "Treviranus" : "Westarp";
         }
     }
     
-    return candidates;
+    return "Unknown";
 }
 
-// Build comprehensive candidate list
-var all_candidates = [];
+// Build candidate list - ONE PER PARTY
+var party_votes_in_coalition = [];
 
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var votes = Q[party.toLowerCase() + '_r'];
-    var party_candidates = get_chancellor_candidates_for_party(party);
+    var chancellor_name = get_chancellor_for_party(party);
     
-    for (var j = 0; j < party_candidates.length; j++) {
-        var candidate = party_candidates[j];
-        all_candidates.push({
-            party: party,
-            name: candidate.name,
-            votes: votes,
-            weight: candidate.weight,
-            score: votes * (candidate.weight / 100) // Combined score for sorting
-        });
-    }
+    party_votes_in_coalition.push({
+        party: party,
+        name: chancellor_name,
+        votes: votes
+    });
 }
 
-// Sort by score descending
-all_candidates.sort(function(a, b) { return b.score - a.score; });
+// Sort by votes descending
+party_votes_in_coalition.sort(function(a, b) { return b.votes - a.votes; });
 
-// Take top 6 candidates
+// Build display list (top 6 parties or all if fewer)
 Q.chancellor_candidates = [];
 Q.chancellor_candidates_display = "";
 
-var num_candidates = Math.min(6, all_candidates.length);
+var num_candidates = Math.min(6, party_votes_in_coalition.length);
 for (var i = 0; i < num_candidates; i++) {
-    var candidate = all_candidates[i];
+    var candidate = party_votes_in_coalition[i];
     
     Q.chancellor_candidates.push({
         party: candidate.party,
         name: candidate.name,
-        votes: candidate.votes,
-        weight: candidate.weight
+        votes: candidate.votes
     });
     
     Q.chancellor_candidates_display += (i + 1) + ". **" + candidate.name + "** (" + candidate.party + ", " + Math.round(candidate.votes * 10) / 10 + "%)";
     
-    // Add contextual notes
+    // Add descriptive notes
     if (candidate.name === "Müller") {
         Q.chancellor_candidates_display += " - Former Chancellor";
     } else if (candidate.name === "Wels") {
-        Q.chancellor_candidates_display += " - Party Chairman";
+        Q.chancellor_candidates_display += " - SPD Chairman";
     } else if (candidate.name === "Braun") {
-        Q.chancellor_candidates_display += " - Prussian Minister-President";
+        Q.chancellor_candidates_display += " - Prussian PM";
     } else if (candidate.name === "Hilferding") {
-        Q.chancellor_candidates_display += " - Economic Expert";
+        Q.chancellor_candidates_display += " - Economic Theorist";
     } else if (candidate.name === "Brüning") {
         Q.chancellor_candidates_display += " - Financial Expert";
     } else if (candidate.name === "Stresemann") {
-        Q.chancellor_candidates_display += " - Foreign Policy Expert";
+        Q.chancellor_candidates_display += " - Foreign Minister";
+    } else if (candidate.name === "Kaas") {
+        Q.chancellor_candidates_display += " - Center Party Chairman";
+    } else if (candidate.name === "Hugenberg") {
+        Q.chancellor_candidates_display += " - Media Magnate";
+    } else if (candidate.name === "Westarp") {
+        Q.chancellor_candidates_display += " - Conservative Moderate";
     }
     
     Q.chancellor_candidates_display += "\n";
@@ -1372,138 +1366,192 @@ Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
 Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 !}
-go-to: spd_chancellor_preference if spd_in_government and candidate_0_party = "SPD"; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
+go-to: spd_chancellor_preference if spd_in_government; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
 
 # ============================================
-# SPD CHANCELLOR PREFERENCE (if SPD largest party)
+# SPD CHANCELLOR PREFERENCE (BEFORE candidate list is built)
 # ============================================
 
 @spd_chancellor_preference
 
 = SPD Chancellor Candidate Selection
 
-The SPD is the largest party in the coalition. Before presenting candidates to our coalition partners, we must decide which SPD figure to put forward as our preferred chancellor candidate.
+The SPD will participate in the coalition. Before finalizing the candidate list, the party leadership must decide which figure to put forward as the SPD's chancellor candidate.
 
-**Available SPD Chancellor Candidates:**
+**Available Candidates:**
 
-[? if not muller_dead : **Hermann Müller** - Former Chancellor (1928-1930), experienced in coalition management, moderate reformist, respected across party lines. ?]
+[? if not muller_dead : **Hermann Müller** - Former Chancellor (1928-1930), experienced in coalition management, moderate reformist, widely respected. Has proven ability to hold coalitions together. ?]
 
-**Otto Wels** - Party Chairman since 1919, staunch republican, strong anti-Nazi credentials, represents party orthodoxy.
+**Otto Wels** - Party Chairman since 1919, stalwart republican, uncompromising anti-Nazi. Represents party legitimacy and institutional continuity.
 
-**Otto Braun** - Minister-President of Prussia, executive experience, pragmatic administrator, controls largest state government.
+**Otto Braun** - Minister-President of Prussia since 1920, longest-serving state leader. Proven executive administrator, controls the largest state government apparatus.
 
-[? if spd_toleration = 0 : **Rudolf Hilferding** - Leading Marxist economist, intellectual heavyweight, appeals to left wing, controversial with bourgeois parties. ?]
+[? if spd_toleration = 0 and left_strength > 30 : **Rudolf Hilferding** - Leading Marxist economist, intellectual heavyweight of the party. Appeals to left wing, may concern bourgeois partners. ?]
 
-**Who should the SPD put forward?**
+**Who should represent the SPD?**
 
-- @prefer_mueller: Hermann Müller - Experience and moderation
-- @prefer_wels: Otto Wels - Party unity and legitimacy
-- @prefer_braun: Otto Braun - Executive competence
-- @prefer_hilferding: Rudolf Hilferding - Left credibility
+- @spd_prefer_mueller: Hermann Müller - Experienced coalition builder
+- @spd_prefer_wels: Otto Wels - Party chairman and legitimacy
+- @spd_prefer_braun: Otto Braun - Proven executive leader
+- @spd_prefer_hilferding: Rudolf Hilferding - Left-wing intellectual
 
-@prefer_mueller
+@spd_prefer_mueller
 view-if: not muller_dead
 on-arrival: {!
 Q.spd_chancellor_preference = "mueller";
-// Boost Müller's weight in candidate list
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Müller") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-// Re-sort
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.reformist_strength += 3;
 !}
 
-Müller's experience and moderate reputation make him a strong choice for coalition building.
+Hermann Müller's experience and moderate reputation make him the SPD's strongest candidate for coalition leadership.
 
-- @continue_to_negotiation: Continue to coalition negotiations
+- @continue_after_spd_choice: Continue
 
-@prefer_wels
+@spd_prefer_wels
 on-arrival: {!
 Q.spd_chancellor_preference = "wels";
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Wels") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.reformist_strength += 2;
+Q.pro_republic += 2;
 !}
 
-Wels as party chairman brings legitimacy and unity to our coalition offer.
+Otto Wels as party chairman brings institutional legitimacy and unwavering republican principles to the chancellorship.
 
-- @continue_to_negotiation: Continue to coalition negotiations
+- @continue_after_spd_choice: Continue
 
-@prefer_braun
+@spd_prefer_braun
 on-arrival: {!
 Q.spd_chancellor_preference = "braun";
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Braun") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.reformist_strength += 2;
+Q.prussian_government_strength += 3;
 !}
 
-Braun's proven administrative record in Prussia demonstrates he can lead effectively.
+Otto Braun's administrative record in Prussia demonstrates executive competence at the highest level.
 
-- @continue_to_negotiation: Continue to coalition negotiations
+- @continue_after_spd_choice: Continue
 
-@prefer_hilferding
-view-if: spd_toleration = 0
+@spd_prefer_hilferding
+view-if: spd_toleration = 0 and left_strength > 30
 on-arrival: {!
 Q.spd_chancellor_preference = "hilferding";
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Hilferding") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
 Q.left_strength += 5;
-Q.left_dissent -= 5;
+Q.left_dissent -= 8;
+Q.reformist_dissent += 5;
 !}
 
-Hilferding's intellectual credentials and left-wing appeal strengthen our socialist credibility.
+Rudolf Hilferding's theoretical expertise and left-wing credentials strengthen the SPD's socialist identity.
 
-- @continue_to_negotiation: Continue to coalition negotiations
+[? if z_in_government or dvp_in_government : **Note:** This choice may complicate relations with bourgeois coalition partners. ?]
 
-@continue_to_negotiation
+- @continue_after_spd_choice: Continue
+
+@continue_after_spd_choice
+go-to: spd_alternative_candidates
+
+# ============================================
+# SPD ALTERNATIVE CANDIDATES (For context)
+# ============================================
+
+@spd_alternative_candidates
 on-arrival: {!
-// Recalculate display after preference boost
+// Set alternative SPD candidates for ministry roles (not chancellorship)
+Q.spd_alternatives = [];
+
+if (Q.spd_chancellor_preference !== "mueller" && !Q.muller_dead) {
+    Q.spd_alternatives.push("Müller");
+}
+if (Q.spd_chancellor_preference !== "wels") {
+    Q.spd_alternatives.push("Wels");
+}
+if (Q.spd_chancellor_preference !== "braun") {
+    Q.spd_alternatives.push("Braun");
+}
+if (Q.spd_chancellor_preference !== "hilferding") {
+    Q.spd_alternatives.push("Hilferding");
+}
+
+// Ministry specialists (never chancellors)
+Q.spd_ministry_specialists = ["Severing", "Leipart", "Sollmann", "Grzesinski", "Hörsing"];
+!}
+
+= SPD Leadership Team
+
+**Chancellor Candidate:** [? if spd_chancellor_preference = "mueller" : Hermann Müller ?][? if spd_chancellor_preference = "wels" : Otto Wels ?][? if spd_chancellor_preference = "braun" : Otto Braun ?][? if spd_chancellor_preference = "hilferding" : Rudolf Hilferding ?]
+
+**Other senior figures available for ministerial positions:**
+[? if spd_alternatives.length > 0 : [+ spd_alternatives.join(", ") +] ?]
+
+**Ministry specialists:** Severing (Interior), Leipart (Labor), Sollmann (Defense), Grzesinski (Police)
+
+- @finalize_spd_choice: Proceed to coalition negotiations
+
+@finalize_spd_choice
+go-to: chancellor_negotiation_start
+
+# ============================================
+# REBUILD CANDIDATE LIST WITH SPD PREFERENCE
+# ============================================
+
+@chancellor_negotiation_start
+on-arrival: {!
+// Now rebuild the candidate list with SPD preference locked in
+var party_votes_in_coalition = [];
+
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var votes = Q[party.toLowerCase() + '_r'];
+    var chancellor_name = get_chancellor_for_party(party);
+    
+    party_votes_in_coalition.push({
+        party: party,
+        name: chancellor_name,
+        votes: votes
+    });
+}
+
+party_votes_in_coalition.sort(function(a, b) { return b.votes - a.votes; });
+
+Q.chancellor_candidates = [];
 Q.chancellor_candidates_display = "";
-for (var i = 0; i < Q.num_candidates; i++) {
-    var candidate = Q.chancellor_candidates[i];
+
+var num_candidates = Math.min(6, party_votes_in_coalition.length);
+for (var i = 0; i < num_candidates; i++) {
+    var candidate = party_votes_in_coalition[i];
+    
+    Q.chancellor_candidates.push({
+        party: candidate.party,
+        name: candidate.name,
+        votes: candidate.votes
+    });
+    
     Q.chancellor_candidates_display += (i + 1) + ". **" + candidate.name + "** (" + candidate.party + ", " + Math.round(candidate.votes * 10) / 10 + "%)";
     
     if (candidate.name === "Müller") {
         Q.chancellor_candidates_display += " - Former Chancellor";
     } else if (candidate.name === "Wels") {
-        Q.chancellor_candidates_display += " - Party Chairman";
+        Q.chancellor_candidates_display += " - SPD Chairman";
     } else if (candidate.name === "Braun") {
-        Q.chancellor_candidates_display += " - Prussian Minister-President";
+        Q.chancellor_candidates_display += " - Prussian PM";
     } else if (candidate.name === "Hilferding") {
-        Q.chancellor_candidates_display += " - Economic Expert";
+        Q.chancellor_candidates_display += " - Economic Theorist";
     } else if (candidate.name === "Brüning") {
         Q.chancellor_candidates_display += " - Financial Expert";
     } else if (candidate.name === "Stresemann") {
-        Q.chancellor_candidates_display += " - Foreign Policy Expert";
+        Q.chancellor_candidates_display += " - Foreign Minister";
     }
     
     Q.chancellor_candidates_display += "\n";
-    
-    // Update pre-calculated vars
-    Q['candidate_' + i + '_name'] = candidate.name;
-    Q['candidate_' + i + '_party'] = candidate.party;
+}
+
+Q.num_candidates = Q.chancellor_candidates.length;
+
+for (var i = 0; i < Q.num_candidates && i < 6; i++) {
+    Q['candidate_' + i + '_name'] = Q.chancellor_candidates[i].name;
+    Q['candidate_' + i + '_party'] = Q.chancellor_candidates[i].party;
 }
 !}
 go-to: chancellor_negotiation_spd
 
 # ============================================
-# CHANCELLOR NEGOTIATION - SPD IN GOVERNMENT
+# CHANCELLOR NEGOTIATION - PLAYER CHOICE
 # ============================================
 
 @chancellor_negotiation_spd
@@ -1520,14 +1568,14 @@ go-to: chancellor_negotiation_spd
 
 [+ chancellor_candidates_display +]
 
-[? if spd_chancellor_preference = "mueller" : The SPD has put forward Hermann Müller as their preferred candidate. ?]
-[? if spd_chancellor_preference = "wels" : The SPD has put forward Otto Wels as their preferred candidate. ?]
-[? if spd_chancellor_preference = "braun" : The SPD has put forward Otto Braun as their preferred candidate. ?]
-[? if spd_chancellor_preference = "hilferding" : The SPD has put forward Rudolf Hilferding as their preferred candidate. ?]
+[? if spd_chancellor_preference = "mueller" : The SPD has nominated Hermann Müller. ?]
+[? if spd_chancellor_preference = "wels" : The SPD has nominated Otto Wels. ?]
+[? if spd_chancellor_preference = "braun" : The SPD has nominated Otto Braun. ?]
+[? if spd_chancellor_preference = "hilferding" : The SPD has nominated Rudolf Hilferding. ?]
 
-[? if president = "Hindenburg" and year >= 1930 : **Note:** President Hindenburg has expressed strong preferences about who should lead the government. Choosing a Chancellor he opposes may create difficulties. ?]
+[? if president = "Hindenburg" and year >= 1930 : **Note:** President Hindenburg has expressed preferences about government leadership. ?]
 
-[? if president = "Hindenburg" and year >= 1932 and candidate_0_party = "SPD" : **Warning:** Hindenburg has made it clear he will not accept an SPD Chancellor under current circumstances. ?]
+[? if president = "Hindenburg" and year >= 1932 and candidate_0_party = "SPD" : **Warning:** Hindenburg opposes an SPD Chancellor. ?]
 
 **Who should become Chancellor?**
 
@@ -1589,70 +1637,6 @@ on-arrival: {!
 Q.chosen_chancellor_index = 5;
 Q.chancellor_party = Q.chancellor_candidates[5].party;
 Q.chancellor = Q.chancellor_candidates[5].name;
-!}
-go-to: chancellor_hindenburg_check
-
-# ============================================
-# CHANCELLOR NEGOTIATION - AI DECIDES
-# ============================================
-
-@chancellor_negotiation_ai
-on-arrival: {!
-// AI chooses chancellor based on various factors
-var best_candidate = 0;
-var best_score = -999;
-
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    var candidate = Q.chancellor_candidates[i];
-    var score = candidate.score; // Use pre-calculated score
-    
-    // Hindenburg preferences
-    if (Q.president === "Hindenburg" && Q.year >= 1930) {
-        if (candidate.party === "SPD") {
-            score -= 20;
-        }
-        if (candidate.party === "Z") {
-            score += 10;
-        }
-        if (candidate.party === "DVP") {
-            score += 5;
-        }
-    }
-    
-    if (Q.president === "Hindenburg" && Q.year >= 1932) {
-        if (candidate.party === "SPD") {
-            score -= 40;
-        }
-    }
-    
-    // Formateur bonus
-    if (candidate.party === Q.formateur) {
-        score += 15;
-    }
-    
-    // Experienced leaders bonus
-    if (candidate.name === "Stresemann" && !Q.stresemann_dead) {
-        score += 15;
-    }
-    if (candidate.name === "Brüning") {
-        score += 12;
-    }
-    if (candidate.name === "Müller" && !Q.muller_dead) {
-        score += 10;
-    }
-    if (candidate.name === "Braun") {
-        score += 8;
-    }
-    
-    if (score > best_score) {
-        best_score = score;
-        best_candidate = i;
-    }
-}
-
-Q.chosen_chancellor_index = best_candidate;
-Q.chancellor_party = Q.chancellor_candidates[best_candidate].party;
-Q.chancellor = Q.chancellor_candidates[best_candidate].name;
 !}
 go-to: chancellor_hindenburg_check
 
