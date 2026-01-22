@@ -1229,29 +1229,18 @@ function get_chancellor_candidates_for_party(party) {
         candidates.push({name: "Seydewitz", weight: 100});
     } 
     else if (party === 'SPD') {
-        // If SPD has already chosen their preference, only return that candidate
-        if (Q.spd_chancellor_preference === "mueller" && !Q.muller_dead) {
-            candidates.push({name: "Müller", weight: 100});
-        } else if (Q.spd_chancellor_preference === "wels") {
-            candidates.push({name: "Wels", weight: 100});
-        } else if (Q.spd_chancellor_preference === "braun") {
-            candidates.push({name: "Braun", weight: 100});
-        } else if (Q.spd_chancellor_preference === "hilferding") {
-            candidates.push({name: "Hilferding", weight: 100});
-        } else {
-            // No preference set yet - show all options (this happens during initial candidate building)
-            if (!Q.muller_dead) {
-                candidates.push({name: "Müller", weight: 100});
-            }
-            candidates.push({name: "Wels", weight: 90});
-            candidates.push({name: "Braun", weight: 85});
-            if (Q.spd_toleration === 0) {
-                candidates.push({name: "Hilferding", weight: 70});
-            }
+        // Multiple viable SPD chancellors - only those suited for the role
+        if (!Q.muller_dead) {
+            candidates.push({name: "Müller", weight: 100}); // Former chancellor, experienced
         }
-    }
+        candidates.push({name: "Wels", weight: 90}); // Party chairman
+        candidates.push({name: "Braun", weight: 85}); // Prussian PM, executive experience
+        if (Q.spd_toleration === 0) { // More militant option if not in toleration
+            candidates.push({name: "Hilferding", weight: 70}); // Economic expert, intellectual
+        }
+    } 
     else if (party === 'SRPD') {
-        candidates.push({name: "Horsing", weight: 100});
+        candidates.push({name: "Severing", weight: 100});
     } 
     else if (party === 'DDP') {
         candidates.push({name: "Koch-Weser", weight: 100});
@@ -1383,7 +1372,7 @@ Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
 Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 !}
-go-to: spd_chancellor_preference if spd_in_government and formateur = "SPD"; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
+go-to: spd_chancellor_preference if spd_in_government and candidate_0_party = "SPD"; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
 
 # ============================================
 # SPD CHANCELLOR PREFERENCE (if SPD largest party)
@@ -1416,27 +1405,24 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 view-if: not muller_dead
 on-arrival: {!
 Q.spd_chancellor_preference = "mueller";
-// Remove all other SPD candidates from the list
-Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
-    return c.party !== "SPD" || c.name === "Müller";
-});
-// Boost Müller
+// Boost Müller's weight in candidate list
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Müller") {
         Q.chancellor_candidates[i].weight = 120;
         Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
     }
 }
+// Re-sort
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-Q.num_candidates = Q.chancellor_candidates.length;
 !}
+
+Müller's experience and moderate reputation make him a strong choice for coalition building.
+
+- @continue_to_negotiation: Continue to coalition negotiations
 
 @prefer_wels
 on-arrival: {!
 Q.spd_chancellor_preference = "wels";
-Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
-    return c.party !== "SPD" || c.name === "Wels";
-});
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Wels") {
         Q.chancellor_candidates[i].weight = 120;
@@ -1444,15 +1430,15 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     }
 }
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-Q.num_candidates = Q.chancellor_candidates.length;
 !}
+
+Wels as party chairman brings legitimacy and unity to our coalition offer.
+
+- @continue_to_negotiation: Continue to coalition negotiations
 
 @prefer_braun
 on-arrival: {!
 Q.spd_chancellor_preference = "braun";
-Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
-    return c.party !== "SPD" || c.name === "Braun";
-});
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Braun") {
         Q.chancellor_candidates[i].weight = 120;
@@ -1460,16 +1446,16 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     }
 }
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-Q.num_candidates = Q.chancellor_candidates.length;
 !}
+
+Braun's proven administrative record in Prussia demonstrates he can lead effectively.
+
+- @continue_to_negotiation: Continue to coalition negotiations
 
 @prefer_hilferding
 view-if: spd_toleration = 0
 on-arrival: {!
 Q.spd_chancellor_preference = "hilferding";
-Q.chancellor_candidates = Q.chancellor_candidates.filter(function(c) {
-    return c.party !== "SPD" || c.name === "Hilferding";
-});
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     if (Q.chancellor_candidates[i].name === "Hilferding") {
         Q.chancellor_candidates[i].weight = 120;
@@ -1477,7 +1463,6 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     }
 }
 Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-Q.num_candidates = Q.chancellor_candidates.length;
 Q.left_strength += 5;
 Q.left_dissent -= 5;
 !}
@@ -1486,54 +1471,9 @@ Hilferding's intellectual credentials and left-wing appeal strengthen our social
 
 - @continue_to_negotiation: Continue to coalition negotiations
 
-
 @continue_to_negotiation
 on-arrival: {!
-// REBUILD the entire candidate list to get back to 6 candidates after filtering
-var coalition = Q.chosen_coalition.parties;
-var all_candidates = [];
-
-// Rebuild from all coalition parties
-for (var i = 0; i < coalition.length; i++) {
-    var party = coalition[i];
-    var votes = Q[party.toLowerCase() + '_r'];
-    
-    // For SPD, only include the chosen candidate
-    if (party === 'SPD') {
-        for (var k = 0; k < Q.chancellor_candidates.length; k++) {
-            if (Q.chancellor_candidates[k].party === 'SPD') {
-                all_candidates.push(Q.chancellor_candidates[k]);
-                break;
-            }
-        }
-    } else {
-        // For other parties, get all their candidates
-        var party_candidates = get_chancellor_candidates_for_party(party);
-        for (var j = 0; j < party_candidates.length; j++) {
-            var candidate = party_candidates[j];
-            all_candidates.push({
-                party: party,
-                name: candidate.name,
-                votes: votes,
-                weight: candidate.weight,
-                score: votes * (candidate.weight / 100)
-            });
-        }
-    }
-}
-
-// Sort by score
-all_candidates.sort(function(a, b) { return b.score - a.score; });
-
-// Take top 6
-Q.chancellor_candidates = [];
-var num_candidates = Math.min(6, all_candidates.length);
-for (var i = 0; i < num_candidates; i++) {
-    Q.chancellor_candidates.push(all_candidates[i]);
-}
-Q.num_candidates = Q.chancellor_candidates.length;
-
-// Rebuild display
+// Recalculate display after preference boost
 Q.chancellor_candidates_display = "";
 for (var i = 0; i < Q.num_candidates; i++) {
     var candidate = Q.chancellor_candidates[i];
@@ -2475,9 +2415,9 @@ on-arrival: {!
 
 **Coalition Dissent:** [+ coalition_dissent +]
 
-[? if coalition_dissent >= 1 : The coalition is showing signs of strain. ?]
+[? if coalition_dissent >= 3 : The coalition is showing signs of strain. ?]
 
-[? if coalition_dissent >= 3 : The coalition is in serious trouble. A vote of no confidence may be imminent. ?]
+[? if coalition_dissent >= 5 : The coalition is in serious trouble. A vote of no confidence may be imminent. ?]
 
 [? if kpd_in_government : **KPD Coalition Dissent:** [+ kpd_coalition_dissent +] ?]
 
