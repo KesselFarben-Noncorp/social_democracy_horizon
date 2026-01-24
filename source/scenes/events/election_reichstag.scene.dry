@@ -112,6 +112,7 @@ Q.party_relations = {
         BVP: 5,
         DVP: 5,
         WP: 5,
+        CNBL: 0,
         DNVP: 0,
         NSDAP: 0
     },
@@ -126,6 +127,7 @@ Q.party_relations = {
         BVP: 25,
         DVP: 20,
         WP: 15,
+        CNBL: 15,
         DNVP: 10,
         NSDAP: 0
     },
@@ -140,6 +142,7 @@ Q.party_relations = {
         BVP: Q.bvp_relation || 40,
         DVP: Q.dvp_relation,
         WP: Q.wp_relation || 30,
+        CNBL: Q.cnbl_relation || 25,
         DNVP: Q.dnvp_relation,
         NSDAP: Q.nsdap_relation || 5
     },
@@ -154,6 +157,7 @@ Q.party_relations = {
         BVP: (Q.bvp_relation || 40) + 5,
         DVP: Q.dvp_relation - 5,
         WP: (Q.wp_relation || 30) - 5,
+        CNBL: (Q.cnbl_relation || 25) + 5,
         DNVP: Q.dnvp_relation - 10,
         NSDAP: 0
     },
@@ -168,6 +172,7 @@ Q.party_relations = {
         BVP: 60,
         DVP: 65 - (Q.dvp_right_shift || 0) * 8,
         WP: 55,
+        CNBL: 45,
         DNVP: Q.dnvp_line === 3 ? 15 : 35,
         NSDAP: 10
     },
@@ -182,6 +187,7 @@ Q.party_relations = {
         BVP: 80,
         DVP: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         WP: 50,
+        CNBL: 30,
         DNVP: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
         NSDAP: Math.max(5, 30 - Q.nazi_urgency * 4)
     },
@@ -196,6 +202,7 @@ Q.party_relations = {
         Z: 80,
         DVP: 55,
         WP: 45,
+        CNBL: 65,
         DNVP: 50,
         NSDAP: 25 - (Q.nazi_urgency * 2)
     },
@@ -210,6 +217,7 @@ Q.party_relations = {
         Z: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         BVP: 55,
         WP: 70,
+        CNBL: 30
         DNVP: 50 + (Q.dvp_right_shift || 0) * 15,
         NSDAP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10
     },
@@ -224,8 +232,24 @@ Q.party_relations = {
         Z: 50,
         BVP: 45,
         DVP: 70,
+        CNBL: 40,
         DNVP: 45,
         NSDAP: 30 + (Q.capital_strike_progress * 3)
+    },
+
+    // === CNBL ===
+    CNBL: {
+        KPD: 5,
+        SAPD: 15,
+        SPD: Q.wp_relation || 25,
+        SRPD: (Q.wp_relation || 30) + 5,
+        DDP: 35,
+        Z: 40,
+        BVP: 55,
+        DVP: 35,
+        WP: 40,
+        DNVP: 40,
+        NSDAP: 20 + (Q.capital_strike_progress * 3)
     },
     
     // === DNVP (Nationalists) ===
@@ -239,6 +263,7 @@ Q.party_relations = {
         BVP: 50,
         DVP: 50 + (Q.dvp_right_shift || 0) * 15,
         WP: 45,
+        CNBL: 35,
         NSDAP: Q.dnvp_line === 3 ? 60 : 35
     },
     
@@ -253,6 +278,7 @@ Q.party_relations = {
         BVP: 25 - (Q.nazi_urgency * 2),
         DVP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10,
         WP: 30 + (Q.capital_strike_progress * 3),
+        CNBL: 25,
         DNVP: Q.dnvp_line === 3 ? 60 : 35
     }
 };
@@ -405,6 +431,14 @@ if (Q.wp_r && Q.wp_r > 0) {
         "seats": Math.round(Q.wp_r*6),
     });
 }
+if (Q.cnbl_r && Q.cnbl_r > 0) {
+    data.push({
+        "id": "cnbl",
+        "legend": "CNBL",
+        "name": "CNBL,
+        "seats": Math.round(Q.cnbl_r*6),
+    });
+}
 data = data.concat([
     {
         "id": "dnvp",
@@ -454,6 +488,7 @@ go-to: coalition_formation_start
 {!<tr><td><div class="box" style='background-color:#69A2BE'> </div> !} BVP: {!</td><td>!} [+ bvp_r +]% {!</td><td>!} [+ str_change_bvp +] {!</td></tr>!}
 {!<tr><td><div class="box" style='background-color:#D5AC27'> </div> !} DVP: {!</td><td>!} [+ dvp_r +]% {!</td><td>!} [+ str_change_dvp +] {!</td></tr>!}
 [? if wp_r > 0 : {!<tr><td><div class="box" style='background-color:#424242'> </div> !} WP: {!</td><td>!} [+ wp_r +]% {!</td><td>!} [+ str_change_wp +] {!</td></tr>!} ?]
+[? if cnbl_r > 0 : {!<tr><td><div class="box" style='background-color:#424242'> </div> !} CNBL: {!</td><td>!} [+ cnbl_r +]% {!</td><td>!} [+ str_change_cnbl +] {!</td></tr>!} ?]
 {!<tr><td><div class="box" style='background-color:#3f7bc1'> </div> !} DNVP: {!</td><td>!} [+ dnvp_r +]% {!</td><td>!} [+ str_change_dnvp +] {!</td></tr>!}
 {!<tr><td><div class="box" style='background-color:#954B00'> </div> !} NSDAP: {!</td><td>!} [+ nsdap_r +]% {!</td><td>!} [+ str_change_nsdap +] {!</td></tr>!}
 {!</table>!}
@@ -485,6 +520,9 @@ if (Q.srpd_formed && Q.srpd_r > 0) {
 
 if (Q.wp_r && Q.wp_r > 0) {
     Q.party_votes.push({party: 'WP', votes: Q.wp_r});
+}
+if (Q.cnbl_r && Q.cnbl_r > 0) {
+    Q.party_votes.push({party: 'CNBL', votes: Q.cnbl_r});
 }
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
@@ -807,6 +845,7 @@ function classify_coalition(parties) {
     var has_bvp = parties.indexOf('BVP') >= 0;
     var has_dvp = parties.indexOf('DVP') >= 0;
     var has_wp = parties.indexOf('WP') >= 0;
+    var has_cnbl = parties.indexOf('CNBL') >= 0;
     var has_dnvp = parties.indexOf('DNVP') >= 0;
     var has_nsdap = parties.indexOf('NSDAP') >= 0;
     
@@ -1285,7 +1324,10 @@ function get_chancellor_candidates_for_party(party) {
         }
     } 
     else if (party === 'WP') {
-        candidates.push({name: "Lambach", weight: 100});
+        candidates.push({name: "Drewitz", weight: 100});
+    } 
+    else if (party === 'CNBL') {
+        candidates.push({name: "Hepp", weight: 100});
     } 
     else if (party === 'DNVP') {
         if (Q.dnvp_line === 3) {
@@ -1954,7 +1996,8 @@ var priorities = {
     BVP: ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor'],
     DVP: ['economic', 'finance', 'foreign', 'justice', 'interior', 'labor', 'agriculture'],
     WP: ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor'],
-    DNVP: ['agriculture', 'finance', 'interior', 'foreign', 'economic', 'justice', 'labor']
+    CNBL: ['agriculture', 'finance', 'economical', 'justice', 'interior', 'foreign', 'labor'],
+    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor']
 };
 
 // ============================================
@@ -2025,6 +2068,7 @@ else if (Q.foreign_minister_party === 'Z') Q.foreign_minister = 'Curtius';
 else if (Q.foreign_minister_party === 'BVP') Q.foreign_minister = 'Held';
 else if (Q.foreign_minister_party === 'DVP') Q.foreign_minister = Q.stresemann_dead ? 'Curtius' : 'Stresemann';
 else if (Q.foreign_minister_party === 'WP') Q.foreign_minister = 'Lambach';
+else if (Q.foreign_minister_party === 'CNBL') Q.foreign_minister = 'Hepp';
 else if (Q.foreign_minister_party === 'DNVP') Q.foreign_minister = 'Westarp';
 else Q.foreign_minister = 'Unbesetzt';
 
@@ -2038,6 +2082,7 @@ else if (Q.interior_minister_party === 'Z') Q.interior_minister = 'Wirth';
 else if (Q.interior_minister_party === 'BVP') Q.interior_minister = 'Schätzel';
 else if (Q.interior_minister_party === 'DVP') Q.interior_minister = 'Scholz';
 else if (Q.interior_minister_party === 'WP') Q.interior_minister = 'Petersen';
+else if (Q.interior_minister_party === 'CNBL') Q.interior_minister = 'Behrens';
 else if (Q.interior_minister_party === 'DNVP') Q.interior_minister = 'Hergt';
 else Q.interior_minister = 'Unbesetzt';
 
@@ -2051,6 +2096,7 @@ else if (Q.justice_minister_party === 'Z') Q.justice_minister = 'Bredt';
 else if (Q.justice_minister_party === 'BVP') Q.justice_minister = 'Gürtner';
 else if (Q.justice_minister_party === 'DVP') Q.justice_minister = 'Heinze';
 else if (Q.justice_minister_party === 'WP') Q.justice_minister = 'Drewitz';
+else if (Q.justice_minister_party === 'CNBL') Q.justice_minister = 'von Rohr';
 else if (Q.justice_minister_party === 'DNVP') Q.justice_minister = 'Schiele';
 else Q.justice_minister = 'Unbesetzt';
 
@@ -2064,6 +2110,7 @@ else if (Q.labor_minister_party === 'Z') Q.labor_minister = 'Stegerwald';
 else if (Q.labor_minister_party === 'BVP') Q.labor_minister = 'Stützel';
 else if (Q.labor_minister_party === 'DVP') Q.labor_minister = 'Brauns';
 else if (Q.labor_minister_party === 'WP') Q.labor_minister = 'Petersen';
+else if (Q.labor_minister_party === 'CNBL') Q.labor_minister = 'Lohse';
 else if (Q.labor_minister_party === 'DNVP') Q.labor_minister = 'Schiele';
 else Q.labor_minister = 'Unbesetzt';
 
@@ -2077,6 +2124,7 @@ else if (Q.economic_minister_party === 'Z') Q.economic_minister = 'Bredt';
 else if (Q.economic_minister_party === 'BVP') Q.economic_minister = 'Held';
 else if (Q.economic_minister_party === 'DVP') Q.economic_minister = 'Curtius';
 else if (Q.economic_minister_party === 'WP') Q.economic_minister = 'Lambach';
+else if (Q.economic_minister_party === 'CNBL') Q.economic_minister = 'Heim';
 else if (Q.economic_minister_party === 'DNVP') Q.economic_minister = 'Schiele';
 else Q.economic_minister = 'Unbesetzt';
 
@@ -2090,6 +2138,7 @@ else if (Q.finance_minister_party === 'Z') Q.finance_minister = 'Köhler';
 else if (Q.finance_minister_party === 'BVP') Q.finance_minister = 'Krausneck';
 else if (Q.finance_minister_party === 'DVP') Q.finance_minister = 'Moldenhauer';
 else if (Q.finance_minister_party === 'WP') Q.finance_minister = 'Drewitz';
+else if (Q.finance_minister_party === 'CNBL') Q.finance_minister = 'Hepp';
 else if (Q.finance_minister_party === 'DNVP') Q.finance_minister = 'Schiele';
 else Q.finance_minister = 'Unbesetzt';
 
@@ -2103,6 +2152,7 @@ else if (Q.agriculture_minister_party === 'Z') Q.agriculture_minister = 'Hermes'
 else if (Q.agriculture_minister_party === 'BVP') Q.agriculture_minister = 'Wutzlhofer';
 else if (Q.agriculture_minister_party === 'DVP') Q.agriculture_minister = 'Schiele';
 else if (Q.agriculture_minister_party === 'WP') Q.agriculture_minister = 'Bredt';
+else if (Q.agriculture_minister_party === 'CNBL') Q.agriculture_minister = 'Hamkens';
 else if (Q.agriculture_minister_party === 'DNVP') Q.agriculture_minister = 'Schiele';
 else Q.agriculture_minister = 'Unbesetzt';
 
