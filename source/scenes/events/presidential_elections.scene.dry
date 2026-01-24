@@ -26,7 +26,7 @@ on-arrival: {!
     var all_candidates = ["Hitler", "Göring", "Goring", "Seldte", "Westarp", "Eckener", "Adenauer", 
                           "Kaas", "Gessler", "Stresemann", "Thälmann", "Thalmann", "Münzenberg", 
                           "Munzenberg", "Braun", "Schumacher", "Juchacz", "Einstein", "Mann", 
-                          "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", "Drewitz", "Horsing"];
+                          "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", "Drewitz", "Horsing", "Hamkens", "Behrens"];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
         Q[all_candidates[i] + '_running'] = 0;
@@ -97,6 +97,46 @@ on-arrival: {!
         Q.dvp_default_candidate = "Gessler";
     }
     Q.dvp_candidate = null;
+
+    // === CNBL (CHRISTLICH-NATIONALER BAUERN- UND LANDVOLKPARTEI) ===
+    if (Q.cnbl_r && Q.cnbl_r > 1.5) { // Only if they have meaningful representation
+        if (Q.agricultural_prices && Q.agricultural_prices < -12) {
+            // Deep agricultural crisis - run own protest candidate
+            Q.cnbl_candidate = "Hamkens"; // Wilhelm Hamkens, agricultural specialist
+        } else if (Q.land_reform >= 2 || Q.pro_consumer >= 2) {
+            // Hostile policies toward landowners - run own candidate in opposition
+            Q.cnbl_candidate = "Hamkens";
+        } else if (Q.state_buyer = 1 && Q.agricultural_finance >= 1) {
+            // Government helping agriculture - might support establishment
+            if (Q.dnvp_candidate && Q.dnvp_line !== 3) {
+                // Support moderate DNVP (traditional conservatives)
+                Q.cnbl_candidate = Q.dnvp_candidate;
+            } else if (Q.z_candidate && Q.bvp_candidate) {
+                // Catholic agrarians acceptable
+                Q.cnbl_candidate = Q.z_candidate;
+            } else {
+                // Still run own but weakly
+                Q.cnbl_candidate = "Behrens"; // Wilhelm Behrens, Landvolk leader
+            }
+        } else if (Q.dnvp_line === 3 && Q.nsdap_r >= 12) {
+            // Hugenberg DNVP + strong Nazis = rural radicalization
+            // Split between staying independent or going Nazi
+            if (Q.year >= 1932) {
+                Q.cnbl_candidate = Q.nsdap_candidate; // Absorbed into Nazi movement
+            } else {
+                Q.cnbl_candidate = "Behrens"; // Still independent protest
+            }
+        } else if (Q.dnvp_candidate && Q.dnvp_line !== 3) {
+            // Default: align with moderate conservative-nationalists
+            Q.cnbl_candidate = Q.dnvp_candidate;
+        } else {
+            // Independent agrarian protest candidate
+            Q.cnbl_candidate = "Hamkens";
+        }
+    } else {
+        // Too small - fold into conservative camp
+        Q.cnbl_candidate = Q.dnvp_candidate || Q.bvp_candidate;
+    }
 
     // === WP (WIRTSCHAFTSPARTEI / ECONOMIC PARTY) ===
     if (Q.wp_r && Q.wp_r > 2) { // Only if they have meaningful representation
@@ -169,6 +209,7 @@ The parties are preparing their candidates:
 - [+ ddp_name +]: To be determined
 - DVP: To be determined
 - WP: To be determined
+- CNBL: TBD
 [? if srpd_formed = 1: SRPD: To be determined ?]
 
 **SPD:**
@@ -449,6 +490,52 @@ on-arrival: {!
     } else {
         Q.wp_candidate = Q.wp_default_candidate || "Gessler";
     }
+
+    // === CNBL (AGRARIAN PROTEST PARTY) ===
+    if (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens") {
+        Q.cnbl_candidate = Q.cnbl_default_candidate;
+    } else if (Q.is_unity_candidate && Q.cnbl_relation >= 35 && Q.spd_candidate !== Q.kpd_candidate) {
+        // Unlikely but possible if SPD makes major rural outreach
+        Q.cnbl_candidate = Q.spd_candidate;
+    } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && Q.cnbl_relation >= 40) {
+        // Support moderate DNVP (traditional conservatives)
+        Q.cnbl_candidate = Q.dnvp_candidate;
+    } else if (Q.z_candidate && Q.bvp_candidate && Q.cnbl_relation >= 35) {
+        // Catholic agrarians acceptable
+        Q.cnbl_candidate = Q.z_candidate;
+    } else if (Q.spd_candidate === "Juchacz") {
+        // Very unlikely to support woman candidate (conservative rural values)
+        if (Q.cnbl_relation >= 65) {
+            Q.cnbl_candidate = Q.spd_candidate;
+        } else {
+            Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hindenburg";
+        }
+    } else if (
+        Q.spd_candidate === "Braun" ||
+        Q.spd_candidate === "Severing" ||
+        Q.is_cultural_candidate
+    ) {
+        // Prussian politicians or cultural progressives - rural distrust
+        if (Q.cnbl_relation >= 55 && Q.land_reform < 2) {
+            Q.cnbl_candidate = Q.spd_candidate;
+        } else {
+            Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hindenburg";
+        }
+    } else if (Q.land_reform >= 2 || Q.pro_consumer >= 2) {
+        // Hostile agricultural policies - never support SPD
+        Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hindenburg";
+    } else if (Q.state_buyer >= 2 && Q.agricultural_finance >= 1) {
+        // Government helping agriculture - might support establishment
+        if (Q.spd_candidate && Q.cnbl_relation >= 45) {
+            Q.cnbl_candidate = Q.spd_candidate;
+        } else if (Q.z_candidate) {
+            Q.cnbl_candidate = Q.z_candidate;
+        } else {
+            Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hindenburg";
+        }
+    } else {
+    Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hindenburg";
+    }
     
     // === DDP/DStP (DEMOCRATS) ===
     if (Q.is_unity_candidate && Q.ddp_relation >= 30 && Q.spd_candidate !== Q.kpd_candidate) {
@@ -534,6 +621,8 @@ The candidates have been finalized:
 
 [? if wp_candidate and wp_candidate != spd_candidate and wp_candidate != z_candidate and wp_candidate != ddp_candidate and wp_candidate != dvp_candidate: - WP: [+ wp_candidate +] ?]
 [? if wp_candidate == spd_candidate : - WP: Supporting [+ spd_candidate +] ?]
+
+CNBL: [+ cnbl_candidate +]
 
 
 - @r1_menu: Continue to first round.
@@ -654,7 +743,9 @@ on-arrival: {!
         Schäffer: "Franz Schäffer (BVP)",
         Schaffer: "Franz Schäffer (BVP)",
         Drewitz: "Max Drewitz (WP)",
-        Horsing: "Otto Hörsing (SRPD)"
+        Horsing: "Otto Hörsing (SRPD)",
+        Hamkens: "Hamkens (CNBL)",
+        Behrens: "Behrens (CNBL)"
     };
     
     // Mark running candidates
@@ -664,7 +755,7 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'srpd', 'wp', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'srpd', 'wp', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -764,6 +855,8 @@ go-to: election_end if has_majority; r2_start if not has_majority
 [? if Schaffer_running : Schäffer - [+ Schaffer_votes_disp +]% ?]
 [? if Drewitz_running: "Max Drewitz - [+ Drewitz_votes_disp +]% ?]
 [? if Horsing_running: "Otto Hörsing - [+ Horsing_votes_disp +]% ?]
+[? if Hamkens_running: "Hamkens - [+ Hamkens_votes_disp +]% ?]
+[? if Behrens_running: "Behrens - [+ Behrens_votes_disp +]% ?]
 
 @r2_start
 on-arrival: {!
@@ -776,7 +869,7 @@ on-arrival: {!
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing"];
     var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
-    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz"];
+    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
     
@@ -900,6 +993,11 @@ on-arrival: {!
     if (Q.wp_candidate) {
         Q.wp_candidate = pickClosestFinalist(Q.wp_candidate, [center_right, center, center_left, far_right, left]);
     }
+
+    // === CNBL ===
+    if (Q.cnbl_candidate) {
+        Q.cnbl_candidate = pickClosestFinalist(Q.cnbl_candidate, [center_right, center, far_right, center_left, left]);
+    }
     
     // === OTHER ===
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
@@ -1017,7 +1115,7 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'sapd', 'wp' , 'srpd', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'wp' , 'srpd', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -1087,7 +1185,9 @@ on-arrival: {!
         Schäffer: "Franz Schäffer (BVP)",
         Schaffer: "Franz Schäffer (BVP)",
         Drewitz: "Max Drewitz (WP)",
-        Horsing: "Otto Hörsing (SRPD)"
+        Horsing: "Otto Hörsing (SRPD)",
+        Hamkens: "Hamkens (CNBL)",
+        Behrens: "Behrens (CNBL)"
     };
     
     Q.winner_desc = candidate_descs[Q.winner];
@@ -1108,9 +1208,13 @@ Q.next_presidential_election_year = Q.year + 7;
 Q.next_presidential_election_month = 3; // Always March
 !}
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
-go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"
+go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
 
 [+ winner_desc +] is now President of Germany.
+
+@cnbl_victory
+
+CNBL has secured the win.
 
 @srpd_victory
 
