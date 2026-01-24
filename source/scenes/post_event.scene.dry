@@ -1031,6 +1031,27 @@ if (Q.month_actions >= 1) {
                 case 'wp':
                     Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.15 + (Q.inflation * 0.09) - (Q.unemployed * 0.07) + ((Q.old_middle + Q.new_middle) * 0.05)), 0.15);
                     break;
+                case 'cnbl':
+                    Q.ideology_factor = Q.random_factor(((Q.pro_republic_factor * 0.10) + (Q.nationalism * 0.40) + (Q.unemployed * 0.02) + ((Q.rural) * 0.05)), 0.15);
+                        // Class-specific appeal - VERY rural-focused
+                            if (Q.c === 'rural') {
+                                Q.ideology_factor *= 1.40; // Extreme rural concentration
+        
+                                // Additional boost if rural specifically suffering
+        
+                            } else if (Q.c === 'old_middle') {
+                                Q.ideology_factor *= 0.75; // Small town shopkeepers affected by rural crisis
+                            } else if (Q.c === 'new_middle') {
+                                Q.ideology_factor *= 0.35; // Very weak - urban educated
+                            } else if (Q.c === 'workers') {
+                                Q.ideology_factor *= 0.30; // Almost no appeal
+                            } else if (Q.c === 'unemployed') {
+                                Q.ideology_factor *= 0.40; // Slight appeal if rural unemployed
+                            }
+                            if (Q.c === 'catholics') {
+                                Q.ideology_factor *= 0.25; // Very weak with Catholics
+                            }
+                    break;
                 case 'z':
                     // Base: pro-republic + Catholic dominance
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
