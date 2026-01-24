@@ -1,26 +1,140 @@
-title: DDP Reformation
-subtitle: The German Democratic Party is becoming the German State Party.
+title: DDP Merger Discussions
+subtitle: The German Democratic Party is considering a merger with the Young German Order.
 view-if: year == 1930 and month >= 6
 new-page: true
 max-visits: 1
-on-arrival: ddp_name = "DStP"; ddp_dstp_seen = 1; new_middle_ddp -= 5; old_middle_ddp -= 3; rural_ddp -= 3; ddp_relation -= 5
+on-arrival: ddp_merger_decision = 1
 tags: event
 
-= DDP Reformation
+= DDP Merger Discussions
 
-Leaders of the German Democratic Party, seeing the party's vote share fall over time, has decided that now is the time to completely reform the party. The party leader, Erich Koch-Weser, has engineered a merger with the political arm of the Young German Order, a nationalist paramilitary group. Now, the party will be called the German State Party, or DStP.
+Leaders of the German Democratic Party, facing declining electoral support, are holding emergency meetings to discuss the party's future. Party leader Erich Koch-Weser has proposed a controversial merger with the political arm of the Young German Order, led by Artur Mahraun, to form a new "German State Party" (DStP).
 
-This has led to outcry from the left wing of the party, progressives who would rather not work with antisemites and conservative nationalists.
+The proposal has sparked fierce internal debate. Progressive and left-liberal members oppose allying with conservative nationalists, while others see it as necessary to broaden appeal and halt the party's decline.
 
-- @advantage: We can recruit disaffected progressives to the SPD.
-- @nothing: This is none of our concern.
+**The decision will be made at the upcoming party congress.**
 
-@advantage
+- @ddp_merger_happens: The merger proceeds (likely if DDP is weak and desperate)
+- @ddp_merger_rejected: The progressives block the merger (likely if DDP retains strength or has SPD support)
+- @wait: Wait and see what happens
+
+@ddp_merger_happens
+view-if: ddp_r <= 5 or (ddp_relation <= 40 and nationalism >= 55)
+on-arrival: ddp_name = "DStP"; ddp_dstp_seen = 1; new_middle_ddp -= 5; old_middle_ddp -= 3; rural_ddp -= 3; ddp_relation -= 5; jungdo_strength += 50; ddp_merger_accepted = 1
+
+The merger goes through. The desperate state of the DDP's finances and electoral prospects has forced the party leadership to accept Mahraun's terms. 
+
+The German Democratic Party is now the German State Party (DStP), incorporating the Young German Order's membership and nationalist rhetoric. Many progressive members have resigned in protest, seeing this as a betrayal of liberal principles.
+
+**The Young German Order gains significant influence as its members flood into the new party structure.**
+
+- @advantage_merger: We can recruit the disaffected progressives.
+- @nothing_merger: This is their choice to make.
+
+@ddp_merger_rejected
+view-if: ddp_r > 5 and (ddp_relation > 50 or nationalism < 50 or pro_republic >= 55)
+on-arrival: ddp_merger_rejected = 1; ddp_relation += 5; new_middle_ddp += 2; pro_republic += 1; jungdo_strength -= 10
+
+The progressive wing of the DDP successfully blocks the merger at the party congress. Koch-Weser's proposal is voted down after impassioned speeches about maintaining liberal principles and rejecting antisemitism.
+
+The Young German Order remains independent, and the DDP retains its original identity - though it must now find other ways to reverse its declining fortunes. The party's relationship with democratic forces has improved.
+
+- @support_decision: This shows principle over opportunism.
+- @nothing_rejection: Their internal affairs are their own.
+
+@wait
+on-arrival: {!
+// AI decides based on conditions
+var merger_score = 0;
+
+// DDP weakness favors merger
+if (Q.ddp_r <= 4) { merger_score += 40; }
+else if (Q.ddp_r <= 5) { merger_score += 25; }
+else if (Q.ddp_r <= 6) { merger_score += 10; }
+
+// Poor SPD-DDP relations favor merger (DDP feels isolated)
+if (Q.ddp_relation <= 30) { merger_score += 20; }
+else if (Q.ddp_relation <= 40) { merger_score += 10; }
+else if (Q.ddp_relation >= 60) { merger_score -= 15; }
+
+// High nationalism favors merger
+if (Q.nationalism >= 60) { merger_score += 20; }
+else if (Q.nationalism >= 55) { merger_score += 10; }
+else if (Q.nationalism <= 45) { merger_score -= 10; }
+
+// Low pro-republic sentiment favors merger (desperation)
+if (Q.pro_republic <= 45) { merger_score += 15; }
+else if (Q.pro_republic >= 55) { merger_score -= 10; }
+
+// DNVP/NSDAP strength favors merger (competition)
+if (Q.dnvp_r + Q.nsdap_r >= 15) { merger_score += 15; }
+
+// DVP relations matter (if DVP is strong, DDP seeks differentiation)
+if (Q.dvp_r >= 10 && Q.ddp_relation >= 50) { merger_score -= 10; }
+
+// Random factor
+merger_score += Math.random() * 20 - 10;
+
+// Decision
+if (merger_score >= 40) {
+    Q.ddp_name = "DStP";
+    Q.ddp_dstp_seen = 1;
+    Q.new_middle_ddp -= 5;
+    Q.old_middle_ddp -= 3;
+    Q.rural_ddp -= 3;
+    Q.ddp_relation -= 5;
+    Q.jungdo_strength += 50;
+    Q.ddp_merger_accepted = 1;
+    Q.aiddp_decision = "merger_accepted";
+} else {
+    Q.ddp_merger_rejected = 1;
+    Q.ddp_relation += 5;
+    Q.new_middle_ddp += 2;
+    Q.pro_republic += 1;
+    Q.jungdo_strength -= 10;
+    Q.aiddp_decision = "merger_rejected";
+}
+!}
+go-to: ddp_decision_result if aiddp_decision = "merger_accepted"; ddp_decision_result_2 if aiddp_decision = "merger_rejected";
+
+@ddp_decision_result
+
+= The Merger Succeeds
+
+After intense debate, the DDP party congress votes to accept the merger. The German State Party (DStP) is born, incorporating the Young German Order's membership and adopting more nationalist rhetoric.
+
+Progressive members resign in protest. The Young German Order gains significant influence in the new party structure.
+
+- @advantage_merger: We should recruit the departing progressives.
+- @nothing_merger: Not our concern.
+
+@ddp_decision_result_2
+
+= The Merger is Rejected
+
+The DDP party congress votes down the merger proposal after heated debate. Progressive delegates successfully argued that cooperation with nationalist forces would betray liberal principles.
+
+The Young German Order remains independent. The DDP retains its identity, though it must find other solutions to its electoral decline.
+
+- @support_decision: This preserves republican unity.
+- @nothing_rejection: Their decision to make.
+
+@advantage_merger
 on-arrival: new_middle_spd += 5; peoples_party_support += 1; left_dissent += 5; reformist_strength += 3; neorevisionist_strength += 3; reformist_dissent -= 2; neorevisionist_dissent -= 2
 
-With turmoil in the DDP, we have an opportunity to recruit middle-class progressives and portions of the liberal intelligensia into our party. The left of the SPD is opposed to this path, seeing it as diluting the class character of the party. On the other hand, revisionists support this course.
+We actively recruit disaffected progressive DDP members who refuse to work with the Young German Order. This brings middle-class progressives and liberal intellectuals into the SPD.
 
+The party's left wing objects to diluting our working-class character, but revisionists welcome the broader appeal.
 
-@nothing
+@nothing_merger
 
-The DDP's internal affairs are none of our concern.
+The DDP's transformation is their own affair.
+
+@support_decision
+on-arrival: ddp_relation += 3; pro_republic += 1; reformist_strength += 2
+
+We publicly commend the DDP for choosing principle over political expedience. This strengthens ties between republican parties.
+
+@nothing_rejection
+
+Their internal decisions are not our business.
