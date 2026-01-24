@@ -1226,21 +1226,29 @@ function get_chancellor_candidates_for_party(party) {
         }
     } 
     else if (party === 'SAPD') {
-        candidates.push({name: "Seydewitz", weight: 100});
+        candidates.push({name: "Rosenfeld", weight: 100});
     } 
     else if (party === 'SPD') {
-        // Multiple viable SPD chancellors - only those suited for the role
-        if (!Q.muller_dead) {
-            candidates.push({name: "Müller", weight: 100}); // Former chancellor, experienced
+        // Alternative: if you need the player's preference to determine which ONE candidate appears, not multiple i guess
+        if (Q.spd_chancellor_preference === "mueller" && !Q.muller_dead) {
+            candidates.push({name: "Müller", weight: 100});
+        } else if (Q.spd_chancellor_preference === "wels") {
+            candidates.push({name: "Wels", weight: 100});
+        } else if (Q.spd_chancellor_preference === "braun") {
+            candidates.push({name: "Braun", weight: 100});
+        } else if (Q.spd_chancellor_preference === "hilferding" && Q.spd_toleration === 0) {
+            candidates.push({name: "Hilferding", weight: 100});
+        } else {
+            // Default fallback
+            if (!Q.muller_dead) {
+                candidates.push({name: "Müller", weight: 100});
+            } else {
+                candidates.push({name: "Wels", weight: 100});
+            }
         }
-        candidates.push({name: "Wels", weight: 90}); // Party chairman
-        candidates.push({name: "Braun", weight: 85}); // Prussian PM, executive experience
-        if (Q.spd_toleration === 0) { // More militant option if not in toleration
-            candidates.push({name: "Hilferding", weight: 70}); // Economic expert, intellectual
-        }
-    } 
+    }
     else if (party === 'SRPD') {
-        candidates.push({name: "Severing", weight: 100});
+        candidates.push({name: "Horsing", weight: 100});
     } 
     else if (party === 'DDP') {
         candidates.push({name: "Koch-Weser", weight: 100});
