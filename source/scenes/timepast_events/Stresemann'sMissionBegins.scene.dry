@@ -1,0 +1,193 @@
+title: Stresemann's Burden
+view-if: year = 1929 and month >= 9 and tt_begin = 1
+frequency: 1000
+max-visits: 1
+tags: event
+on-arrival: stresemann_survives = 1; temporal_events_seen += 1; stresemann_dread = 1
+face-image: img/portraits/StresemannGustav.jpg
+new-page: true
+
+= Stresemann's Burden
+
+Gustav Stresemann collapses during a cabinet meeting in September. Heart attack, the doctors say. He survives - barely. 51 years old, too young to die.
+
+But something has changed.
+
+When Stresemann wakes in the hospital, his first words are: "I wasn't supposed to survive this." The attending physician assumes delirium. But Stresemann repeats it with perfect clarity. "I remember dying. I remember my funeral. I remember reading my own obituary."
+
+His wife dismisses it as fever dreams. His party colleagues attribute it to stress and exhaustion. But Stresemann knows.
+
+Over the following weeks, as he recovers, the dread grows. He remembers things that haven't happened. Negotiations he hasn't conducted. Speeches he hasn't given. A republic that falls after his death - a death that didn't occur.
+
+"Something is profoundly wrong with causality itself," he tells Curtius in private. "We are living through events that have already transpired. I know how this ends, Julius. I remember the end."
+
+Curtius gently suggests rest, perhaps retirement. Stresemann refuses.
+
+At a DVP leadership meeting, Stresemann speaks with unusual urgency about preparing for "the coming crisis" - economic collapse, political radicalization, the republic's death. When challenged on his certainty, he cannot explain. Only: "I've seen it. I've lived it. We all have, we just don't remember."
+
+The democratic wing rallies around him, but his allies are troubled. Heuss confides to associates: "Gustav speaks like a man haunted by memories of a life he never lived."
+
+Then Dingeldey comes to visit.
+
+"You feel it too," Dingeldey says. Not a question. "The wrongness. The sense that we've done all this before."
+
+Stresemann stares. "What do you mean?"
+
+"I've been having dreams, Gustav. Dreams of making different choices. Dreams where you're dead and I'm leading the party into alliance with Hugenberg. Dreams that feel more real than memory." Dingeldey leans forward. "Tell me I'm not losing my mind."
+
+"You're not," Stresemann says quietly. "But I don't know what's happening to us."
+
+Days later, two unexpected visitors arrive: Hjalmar Schacht and Albert Vögler. Industrialists. Financiers. Men who should have no reason to seek Stresemann's counsel.
+
+"We know what you're experiencing," Schacht says without preamble. "Because we're experiencing it too."
+
+Vögler nods. "I remember negotiating economic policy for a government that doesn't exist yet. I remember a bank crisis that hasn't occurred. I remember..." He pauses. "I remember you being dead, Stresemann."
+
+"Hugenberg is afflicted as well," Schacht continues. "More severely than any of us. He's nearly mad with it. He speaks of 'correcting the timeline' and 'preventing the catastrophe a second time.'"
+
+"What catastrophe?" Curtius asks, having entered quietly.
+
+All four men exchange glances. 
+
+"That's what we're trying to understand," Stresemann says. "We remember a future that hasn't happened. Or... has it already happened? Is this a repetition? A correction? Or are we simply losing our minds?"
+
+"You're not mad," Vögler says. "We've compared notes. Our memories align. Small details, yes, but the pattern is consistent. Economic collapse. Political extremism. The republic's failure. And..." He hesitates. "Your death, Gustav. All of us remember your death as the trigger."
+
+Stresemann sits heavily. "But I didn't die."
+
+"No," Schacht agrees. "You didn't. Which means something has changed. The question is whether that change saves us or dooms us."
+
+A power struggle erupts within the DVP, but this time Stresemann remains to influence it. His presence shifts calculations. His warnings, though unexplained, carry weight.
+
+Dingeldey tells his faction: "Stresemann may be right. I can't explain why I believe him, but I do. Something is coming. We need to be ready."
+
+[? if dvp_relation >= 60 : Our strong relationship with the DVP, combined with Stresemann's survival, strengthens the democratic wing significantly. ?]
+[? if unemployment >= 15 : The economic crisis validates Stresemann's dire warnings, even as it empowers nationalist voices. ?]
+[? if nsdap_r >= 10 : The Nazi surge feels to Stresemann like confirmation of his remembered future. ?]
+
+- @stresemann_decides: Stresemann will guide the party's direction...
+
+@stresemann_decides
+on-arrival: {!
+// Stresemann's survival dramatically shifts calculations
+var democratic_points = 0;
+var nationalist_points = 0;
+
+// Stresemann's presence is a massive boost to democratic wing
+democratic_points += 35; // His survival alone
+
+// His dread and warnings can backfire if economic crisis is severe
+if (Q.unemployment >= 20) {
+    nationalist_points += 15; // Crisis validates need for radical change
+    democratic_points -= 10; // Even Stresemann can't overcome catastrophe
+}
+
+// Dingeldey's awareness shifts him toward cooperation
+if (Q.dvp_relation >= 40) {
+    democratic_points += 20; // Dingeldey believes Stresemann
+} else {
+    nationalist_points += 10; // Dingeldey thinks Stresemann's warnings mean abandon SPD
+}
+
+// Schacht/Vögler consultation creates wild card
+var industrial_roll = Math.random();
+if (industrial_roll < 0.4) {
+    democratic_points += 15; // Industrialists convinced to support stability
+} else if (industrial_roll < 0.7) {
+    nationalist_points += 10; // Industrialists want authoritarian solutions
+} else {
+    // Chaotic - they're convinced something is wrong but split on response
+    democratic_points += 5;
+    nationalist_points += 5;
+    Q.industrial_confusion = 1;
+}
+
+// Standard factors still apply but weighted differently
+if (Q.dvp_relation >= 70) democratic_points += 20;
+else if (Q.dvp_relation >= 50) democratic_points += 10;
+else if (Q.dvp_relation < 30) nationalist_points += 10;
+
+if (Q.in_grand_coalition || Q.in_weimar_coalition) {
+    democratic_points += 15;
+    if (Q.coalition_dissent < 2) democratic_points += 5;
+    else if (Q.coalition_dissent > 4) nationalist_points += 5;
+}
+
+if (Q.pro_republic >= 60) democratic_points += 10;
+else if (Q.pro_republic < 45) nationalist_points += 10;
+
+if (Q.nsdap_r >= 15) nationalist_points += 15;
+else if (Q.nsdap_r < 5) democratic_points += 5;
+
+// Hugenberg's madness affects calculations
+if (Q.hugenberg_prophecy >= 2) {
+    nationalist_points -= 10; // Hugenberg's incoherence hurts right-wing credibility
+    democratic_points += 5;
+}
+
+// Determine outcome - Stresemann's survival makes democratic outcome much more likely
+if (democratic_points > nationalist_points + 5) {
+    Q.dvp_right_shift = 0;
+    Q.dvp_outcome = "stresemann_democratic";
+    Q.dvp_leader = "Stresemann and Curtius";
+    Q.dvp_relation += 5; // Improved relations
+    Q.stresemann_temporal_authority = 1;
+} else if (nationalist_points > democratic_points + 15) {
+    // Very hard to overcome Stresemann
+    Q.dvp_right_shift = 1;
+    Q.dvp_outcome = "nationalist_despite_stresemann";
+    Q.dvp_leader = "Dingeldey (Stresemann sidelined)";
+    Q.dvp_relation -= 10;
+    Q.stresemann_defeated = 1;
+} else {
+    Q.dvp_right_shift = 0;
+    Q.dvp_outcome = "stresemann_consensus";
+    Q.dvp_leader = "Stresemann (uneasily), with Dingeldey's support";
+    Q.stresemann_temporal_authority = 1;
+}
+
+// Effects
+if (!Q.dvp_right_shift) {
+    Q.pro_republic += 3;
+    Q.z_relation += 5;
+    if (Q.in_grand_coalition || Q.in_weimar_coalition) {
+        Q.coalition_dissent -= 1;
+    }
+} else {
+    Q.nationalism += 4;
+    Q.dnvp_relation += 5;
+    Q.z_relation -= 3;
+    if (Q.in_grand_coalition || Q.in_weimar_coalition) {
+        Q.coalition_dissent += 1;
+    }
+}
+!}
+go-to: stresemann_outcome
+
+@stresemann_outcome
+
+= The Prophet Who Survived
+
+[? if dvp_outcome = "stresemann_democratic" : **Gustav Stresemann** retains leadership of the DVP alongside Julius Curtius. In an address to the party congress, Stresemann speaks with unprecedented gravity about maintaining republican democracy and international cooperation. He does not explain why he believes the republic's survival depends on these choices. He doesn't need to - something in his voice carries absolute conviction. ?]
+
+[? if dvp_outcome = "nationalist_despite_stresemann" : Despite Stresemann's survival and warnings, **Eduard Dingeldey** and the business-nationalist wing seize control. Stresemann is marginalized, relegated to honorary positions. Dingeldey announces alignment with business interests and the DNVP. After the vote, Stresemann tells Curtius: "They've made the same mistake. Even with me here, they made the same mistake." ?]
+
+[? if dvp_outcome = "stresemann_consensus" : **Gustav Stresemann** maintains leadership, but with Eduard Dingeldey's support secured through private meetings no one fully understands. Dingeldey tells associates: "Stresemann knows something. I can't explain it, but I trust him." The party adopts a cautious, centrist course - cooperation with the republic, but vigilance against "the coming crisis" Stresemann warns about. ?]
+
+[? if industrial_confusion : Schacht and Vögler release a joint statement about "economic instability requiring extraordinary vigilance" that confuses analysts with its apocalyptic tone and vague warnings about "preventing repetition of past errors" that haven't occurred yet. ?]
+
+In his office, Stresemann keeps a private journal he shares with no one. The latest entry:
+
+*"I survived. The timeline has diverged. But I still remember my death, my funeral, the republic's collapse. Does surviving change anything? Or am I simply alive to witness what I once only remembered?"*
+
+*"Hugenberg is mad. Schacht is frightened. Dingeldey is confused but willing to listen. And I... I carry the weight of a future I cannot prove and cannot forget."*
+
+*"The dread grows. Something is still coming. I feel it. We all feel it."*
+
+*"This time, I will be here to fight it."*
+
+[? if stresemann_temporal_authority : - Stresemann's moral authority, enhanced by his inexplicable prescience, strengthens the republican coalition ?]
+[? if stresemann_defeated : - Even Stresemann's survival cannot overcome the rightward tide ?]
+[? if dvp_outcome = "stresemann_consensus" : - A fragile consensus holds, unified by shared dread of an unexplained catastrophe ?]
+
+- @continue: The burden of knowledge...
