@@ -908,7 +908,7 @@ if (Q.month_actions >= 1) {
         dnvp: Q.dnvp_line === 1  ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8)  : Q.nationalism * 1.35,
         dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
         wp: (Q.pro_republic * 1.10) + (Q.inflation * 0.14),
-        cnbl: (Q.pro_republic * 1.02 + Q.nationalism + 1.05) + (Q.rural * 1.02),
+        cnbl: (Q.pro_republic * 0.92 + Q.nationalism) + (Q.rural * 0.85),
         kpd:   Q.socialism * 1.35,             // extremist left, limited elasticity
         sapd:  Q.socialism * 1.10,
         srpd:  (Q.socialism * 1.01) + (Q.rb_strength * 0.001) + (Q.pro_republic * 1.50),
@@ -919,7 +919,7 @@ if (Q.month_actions >= 1) {
         other: ((Q.nationalism + Q.pro_republic) / 3) * 1.3
     };
 
-    // Reworked drift per class
+  // Reworked drift per class
     for (Q.c of Q.classes) {
         Q.class_total = 0;
         for (Q.party of Q.parties) {
@@ -975,19 +975,19 @@ if (Q.month_actions >= 1) {
                     if (Q.sapd_formed === 1) {
                         Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism / Q.nationalism);
                         Q.ideology_factor = Q.random_factor(
-                           Q.socialism_factor * Q.unrest_factor * 0.3 * Q.soc_adj,
-                           0.25
+                            Q.socialism_factor * Q.unrest_factor * 0.3 * Q.soc_adj,
+                            0.25
                         );
-                     }
-                     break;
+                    }
+                    break;
                 case 'srpd':
                     if (Q.srpd_formed === 1) {
                         Q.ideology_factor = Q.random_factor(
-                           (Q.pro_republic_factor * 0.98) + (Q.rb_strength * 0.0002) ,
-                           0.25
+                            (Q.pro_republic_factor * 0.98) + (Q.rb_strength * 0.0002),
+                            0.25
                         );
-                     }
-                     break;
+                    }
+                    break;
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
                     
@@ -1033,25 +1033,24 @@ if (Q.month_actions >= 1) {
                     Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.15 + (Q.inflation * 0.09) - (Q.unemployed * 0.07) + ((Q.old_middle + Q.new_middle) * 0.05)), 0.15);
                     break;
                 case 'cnbl':
-                    Q.ideology_factor = Q.random_factor(((Q.pro_republic_factor * 0.10) + (Q.nationalism * 0.20) + (Q.unemployed * 0.02) + ((Q.rural) * 0.05)), 0.15);
-                        // Class-specific appeal - VERY rural-focused
-                            if (Q.c === 'rural') {
-                                Q.ideology_factor *= 1.20; // Extreme rural concentration
-        
-                                // Additional boost if rural specifically suffering
-        
-                            } else if (Q.c === 'old_middle') {
-                                Q.ideology_factor *= 0.65; // Small town shopkeepers affected by rural crisis
-                            } else if (Q.c === 'new_middle') {
-                                Q.ideology_factor *= 0.25; // Very weak - urban educated
-                            } else if (Q.c === 'workers') {
-                                Q.ideology_factor *= 0.25; // Almost no appeal
-                            } else if (Q.c === 'unemployed') {
-                                Q.ideology_factor *= 0.30; // Slight appeal if rural unemployed
-                            }
-                            if (Q.c === 'catholics') {
-                                Q.ideology_factor *= 0.25; // Very weak with Catholics
-                            }
+                    Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.10) + (Q.nationalism_factor * 0.20) + (Q.unemployed_factor * 0.02) + (Q.rural_factor * 0.05), 0.15);
+                    
+                    // Class-specific appeal - VERY rural-focused
+                    if (Q.c === 'rural') {
+                        Q.ideology_factor *= 1.15; // Extreme rural concentration
+                    } else if (Q.c === 'old_middle') {
+                        Q.ideology_factor *= 0.35; // Small town shopkeepers affected by rural crisis
+                    } else if (Q.c === 'new_middle') {
+                        Q.ideology_factor *= 0.15; // Very weak - urban educated
+                    } else if (Q.c === 'workers') {
+                        Q.ideology_factor *= 0.15; // Almost no appeal
+                    } else if (Q.c === 'unemployed') {
+                        Q.ideology_factor *= 0.25; // Slight appeal if rural unemployed
+                    }
+                    
+                    if (Q.c === 'catholics') {
+                        Q.ideology_factor *= 0.20; // Very weak with Catholics
+                    }
                     break;
                 case 'z':
                     // Base: pro-republic + Catholic dominance
@@ -1066,7 +1065,7 @@ if (Q.month_actions >= 1) {
                     
                     // Class-specific appeal
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 1.28; // Strong confessional base
+                        Q.ideology_factor *= 1.32; // Strong confessional base
                     } else if (Q.c === 'workers' && Q.z_party_leader !== "Kaas") {
                         Q.ideology_factor *= 1.03; // Christian trade unions
                     } else if (Q.c === 'old_middle') {
@@ -1099,11 +1098,73 @@ if (Q.month_actions >= 1) {
                     // Less affected by national crises than other parties
                     Q.ideology_factor *= (1 - Q.unrest_factor * 0.1); // Stable regional base
                     break;
-                case 'ddp':
-                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.3, 0.15);
-                    break;
+                 case 'ddp':
+                     if (!Q.ddp_name || Q.ddp_name === "DDP") {
+                          // Classic DDP: intellectual, progressive, republican liberals
+                         var education_bonus = (Q.education_science || 0) * 0.03 + (secularized * 0.05) + (science * 0.10) + (womens_rights * 0.05);
+                         var secular_bonus = ((100 - Q.catholics) / 100) * 0.10; // Stronger in Protestant areas
+                         var nationalism_penalty = (Q.nationalism / 100) * 0.15;
+        
+                         Q.ideology_factor = Q.random_factor(
+                             Q.pro_republic_factor * 0.45 + 
+                             education_bonus + 
+                             secular_bonus - 
+                             nationalism_penalty - 
+                             (Q.unemployment / 100) * 0.20 -
+                             (street_pressure_factor * 0.50),
+                             0.15
+                         );
+        
+                         // Class modifiers
+                         if (Q.c === 'new_middle') {
+                             Q.ideology_factor *= 1.25; // Professionals, professors, lawyers
+                         } else if (Q.c === 'old_middle') {
+                             Q.ideology_factor *= 0.85; // Less appealing to traditional shopkeepers
+                         } else if (Q.c === 'workers') {
+                             Q.ideology_factor *= 0.70; // Some progressive skilled workers
+                         } else if (Q.c === 'rural') {
+                             Q.ideology_factor *= 0.75; // Weak in countryside
+                         }
+        
+                         // Cultural policies help
+                         if (Q.secular_education >= 2) {
+                             Q.ideology_factor *= 1.10;
+                         }
+        
+                     } else if (Q.ddp_name === "DStP") {
+                         // DStP: nationalist-liberal hybrid, loses progressives
+                         var jungdo_bonus = (Q.jungdo_strength || 0) * 0.0003;
+                         var education_penalty = (Q.education_science || 0) * 0.01 + (secularized * 0.05) + (science * 0.10) + (womens_rights * 0.05); // Loses intellectuals
+        
+                         Q.ideology_factor = Q.random_factor(
+                             Q.pro_republic_factor * 0.35 + 
+                             Q.nationalism_factor * 0.25 + 
+                             jungdo_bonus - 
+                             education_penalty - 
+                             (Q.unemployment / 100) * 0.30 +
+                             (street_pressure_factor * 0.25), // More vulnerable
+                             0.15
+                         );
+        
+                         // Class modifiers shift
+                         if (Q.c === 'new_middle') {
+                             Q.ideology_factor *= 1.10; // Loses progressive segment
+                         } else if (Q.c === 'old_middle') {
+                             Q.ideology_factor *= 1.05; // Gains some conservatives
+                         } else if (Q.c === 'workers') {
+                             Q.ideology_factor *= 0.50; // Major losses among workers
+                         } else if (Q.c === 'rural') {
+                             Q.ideology_factor *= 1.15; // Jungdo brings rural appeal
+                         }
+        
+                         // Progressive policies now hurt
+                         if (Q.education_science >= 2 || Q.welfare >= 3) {
+                             Q.ideology_factor *= 0.90; // Alienates new conservative base
+                         }
+                     }
+                     break;
                 case 'dvp':
-                    Q.ideology_factor = Q.random_factor(Q.dvp_right_shift ? Q.nationalism_factor * (1 + Q.unrest_factor*0.1) : Q.pro_republic_factor * 0.9, 0.15);
+                    Q.ideology_factor = Q.random_factor(Q.dvp_right_shift ? Q.nationalism_factor * (1 + Q.unrest_factor*0.1) : Q.pro_republic_factor * 0.8, 0.15);
                     break;
                 case 'other':
                     Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/4.7 * (1 + Q.unrest_factor*0.1), 0.2);
