@@ -1101,17 +1101,17 @@ if (Q.month_actions >= 1) {
                  case 'ddp':
                      if (!Q.ddp_name || Q.ddp_name === "DDP") {
                           // Classic DDP: intellectual, progressive, republican liberals
-                         var education_bonus = (Q.education_science || 0) * 0.03 + (secularized * 0.05) + (science * 0.10) + (womens_rights * 0.05);
-                         var secular_bonus = ((100 - Q.catholics) / 100) * 0.10; // Stronger in Protestant areas
-                         var nationalism_penalty = (Q.nationalism / 100) * 0.15;
+                         Q.education_bonus = (Q.education_science || 0) * 0.03 + (secularized * 0.05) + (science * 0.10) + (womens_rights * 0.05);
+                         Q.secular_bonus = ((100 - Q.catholics) / 100) * 0.10; // Stronger in Protestant areas
+                         Q.nationalism_penalty = (Q.nationalism / 100) * 0.15;
         
                          Q.ideology_factor = Q.random_factor(
                              Q.pro_republic_factor * 0.45 + 
-                             education_bonus + 
-                             secular_bonus - 
-                             nationalism_penalty - 
+                             Q.education_bonus + 
+                             Q.secular_bonus - 
+                             Q.nationalism_penalty - 
                              (Q.unemployment / 100) * 0.20 -
-                             (street_pressure_factor * 0.50),
+                             (Q.street_pressure_factor * 0.50),
                              0.15
                          );
         
@@ -1127,22 +1127,22 @@ if (Q.month_actions >= 1) {
                          }
         
                          // Cultural policies help
-                         if (Q.secular_education >= 2) {
-                             Q.ideology_factor *= 1.10;
+                         if (Q.education_science >= 2 || womens_rights >= 3) {
+                             Q.ideology_factor *= 1.05;
                          }
         
                      } else if (Q.ddp_name === "DStP") {
                          // DStP: nationalist-liberal hybrid, loses progressives
-                         var jungdo_bonus = (Q.jungdo_strength || 0) * 0.0003;
-                         var education_penalty = (Q.education_science || 0) * 0.01 + (secularized * 0.05) + (science * 0.10) + (womens_rights * 0.05); // Loses intellectuals
+                         Q.jungdo_bonus = (Q.jungdo_strength || 0) * 0.0003;
+                         Q.education_penalty = (Q.education_science || 0) * 0.01 + (secularized * 0.05) + (science * 0.10) + (womens_rights * 0.05); // Loses intellectuals
         
                          Q.ideology_factor = Q.random_factor(
                              Q.pro_republic_factor * 0.35 + 
                              Q.nationalism_factor * 0.25 + 
-                             jungdo_bonus - 
-                             education_penalty - 
+                             Q.jungdo_bonus - 
+                             Q.education_penalty - 
                              (Q.unemployment / 100) * 0.30 +
-                             (street_pressure_factor * 0.25), // More vulnerable
+                             (Q.street_pressure_factor * 0.25), // More vulnerable
                              0.15
                          );
         
