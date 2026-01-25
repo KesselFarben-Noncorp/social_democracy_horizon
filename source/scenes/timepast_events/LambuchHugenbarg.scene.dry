@@ -1,0 +1,125 @@
+title: The Lambach Article – *"Monarchismus"* 
+tags: event
+view-if: ((year >= 1928 and month >= 7 and dnvp_votes < 14 and lambach_seen = 0) or (year >= 1929 and lambach_seen = 0 and (dnvp_win = 2 or dnvp_win = 0))) and tt_begin = 1
+priority: 1
+on-arrival: {!
+    Q.lambach_seen = 1;
+    Q.temporal_events_seen += 1;
+    Q.dnvp_win = 2;
+    
+    // Randomize outcome due to temporal instability
+    var outcome_roll = Math.random();
+    
+    if (Q.pro_republic > 50 && Q.spd_in_government == 0) {
+        if (outcome_roll < 0.6) Q.dnvp_win = 1;
+        else if (outcome_roll < 0.8) Q.dnvp_win = 2;
+        else Q.dnvp_win = 3;
+    } else if (Q.pro_republic > 55 && Q.spd_in_government == 1) {
+        if (outcome_roll < 0.5) Q.dnvp_win = 1;
+        else if (outcome_roll < 0.8) Q.dnvp_win = 2;
+        else Q.dnvp_win = 3;
+    } else if (Q.pro_republic < 45 || Q.nationalism > 29) {
+        if (outcome_roll < 0.7) Q.dnvp_win = 3;
+        else if (outcome_roll < 0.9) Q.dnvp_win = 2;
+        else Q.dnvp_win = 1;
+    }
+!}
+
+= The Lambach Article
+
+The polls show DNVP dropping from 20% to 13%. Westarp resigns. Lambach publishes his article on the futility of monarchist nostalgia.
+
+The party congress convenes.
+
+Something is wrong with Alfred Hugenberg.
+
+His allies notice it first. During strategy sessions, he refers to events that haven't occurred. He mentions "the coming crash" with certainty - not as prediction, but as memory. When Lambach's article is read aloud, Hugenberg interrupts: "We debated this already."
+
+"When?" Westarp asks.
+
+"I... don't know." Hugenberg's face is pale. "But we did."
+
+In his private study, Hugenberg has been writing. Page after page of notes about what he calls "the cycle." His secretaries find diagrams - timelines that fork and loop back. One page reads simply: "IT HAPPENED. IT WILL HAPPEN. IT IS HAPPENING."
+
+During the congress, Hugenberg gives a speech that unsettles even his supporters. He speaks of "preventing the catastrophe a second time." He insists Germany is "trapped in a pattern of failure" that must be broken. When challenged, he cannot explain what he means.
+
+Emil Hartwig later tells associates that Hugenberg "spoke like a man drowning in memories that aren't his own."
+
+Westarp observes the chaos with growing unease. He has strange dreams - visions of himself making this same speech years from now, but different. Older. More desperate.
+
+The vote proceeds. But the atmosphere is wrong. Delegates report feeling as though they've attended this congress before. Some vote differently than they planned, unable to explain why.
+
+[? if year >= 1929: Eventually, cheating DNVP was caught up trying to break my code, so here they are. ?]
+
+- @hartwig: Hartwig wins.
+- @westarp: Westarp maintains control.
+- @hugenberg: Hugenberg takes power - to save Germany, he says. Again.
+
+@hartwig
+choose-if: dnvp_win = 1
+subtitle: The constitutionalists prevail
+on-arrival: dnvp_line = 1; dnvp_party_leader = "Emil Hartwig"; old_middle_dnvp -= 5; rural_dnvp -= 2; catholics_dnvp -= 1; new_middle_dnvp -= 2; hugenberg_prophecy = 1
+
+= Hartwig Secures Victory
+
+Emil Hartwig wins. The Christian-Socialist wing prevails. The party will seek cooperation with republican parties.
+
+Hugenberg storms out of the congress hall. As he leaves, he shouts something that silences the room:
+
+"You're making the same mistake. I've seen where this leads. I've *lived* it. The Republic falls. The chaos comes. And Germany burns."
+
+Security escorts him out. His media empire withdraws funding. His closest allies report he is "not himself."
+
+In his final meeting with party leadership, Hugenberg is incoherent. He speaks of "breaking the loop" and "preventing what I remember but hasn't happened." He insists he must act, must prepare, must save Germany "before it's too late again."
+
+They dismiss him as suffering from nervous exhaustion.
+
+Hartwig reorients the party toward constitutional cooperation. But some deputies report nightmares - visions of a future that feels like the past.
+
+@westarp
+choose-if: dnvp_win = 2
+subtitle: Stalemate holds
+on-arrival: dnvp_line = 2; dnvp_party_leader = "Kuno von Westarp"; hugenberg_prophecy = 1
+
+= Westarp Maintains Position
+
+The vote stalemates. Westarp retains control through parliamentary maneuvering.
+
+Hugenberg accepts the outcome with disturbing calm. "It doesn't matter," he tells associates. "This isn't the decision point. The real crisis comes later. I remember now."
+
+When asked what he remembers, he cannot articulate it. Only fragments. Economic collapse. Street violence. A chancellor whose name he can't quite recall but whose face haunts his dreams.
+
+In private, Westarp admits to confidants that Hugenberg's behavior troubles him. "He speaks as a prophet. But prophets don't usually know stock prices three years in advance."
+
+Someone found Hugenberg's notebooks. Pages of economic predictions. Political forecasts. Names and dates. Some accurate. Some impossible. All written as if from memory.
+
+The party holds together. But Hartwig observes: "Something broke in Hugenberg. He acts like a man racing against time he can see but we cannot."
+
+@hugenberg
+choose-if: dnvp_win = 3
+subtitle: The prophet takes control
+on-arrival: dnvp_line = 3; dnvp_party_leader = "Alfred Hugenberg"; new_middle_dnvp -= 5; old_middle_dnvp += 2; rural_dnvp -= 3; workers_dnvp -= 5; hugenberg_prophecy = 2; temporal_breaking += 1
+
+= Hugenberg Seizes Power
+
+Hugenberg wins. Lambach is expelled. Westarp is forced out.
+
+In his victory speech, Hugenberg is both triumphant and terrified. He speaks of "the coming catastrophe" with absolute certainty. He describes economic collapse, street chaos, the republic's death - all in past tense, then corrects himself, then lapses back into past tense.
+
+"I will not let it happen again," he declares. "This time, we will be ready. This time, Germany will be saved."
+
+The delegates cheer, but privately express confusion. "Again?" asks one deputy. "What does he mean, *again*?"
+
+Christian-Social deputies attempt to remove him, citing mental instability. But Hugenberg's faction is too strong. And something about his prophecies rings true to voters drowning in their own inexplicable sense of déjà vu.
+
+Hartwig, watching from the sidelines, tells an associate: "He's right about something being wrong. I feel it too. We've been here before. But Hugenberg thinks he can prevent what's coming by accelerating toward it."
+
+"And can he?"
+
+"I don't know. But I fear what happens when a man tries to save a country from a future he alone remembers."
+
+In his office, Hugenberg keeps files labeled "SECOND ATTEMPT" and "CORRECTIONS TO THE TIMELINE." His staff doesn't ask what they mean.
+
+He is preparing. For what, he cannot fully explain. But he knows it's coming.
+
+Because he's seen it before.
