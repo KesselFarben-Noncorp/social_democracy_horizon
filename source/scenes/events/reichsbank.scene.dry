@@ -33,8 +33,6 @@ The question now is succession. The Reichsbank President is appointed by the Rei
 
 **Albert Vögler** - Industrialist, Schacht's ally, explicitly right-wing. Would signal government capitulation to business interests.
 
-**Foreign appointment** - Bring in an international figure to restore confidence. Admits German leadership bankruptcy but might calm markets.
-
 The government must make a recommendation to President Hindenburg. Our voice in this decision depends on our position:
 
 [? if spd_in_government = 1 : As coalition partners, we have significant influence over the recommendation. ?]
@@ -45,10 +43,10 @@ How should we approach the succession question?
 - @support_luther: Support Hans Luther as safe, consensus candidate.
 - @support_blessing: Support Karl Blessing as moderate reformer.
 - @propose_hilferding: Propose Rudolf Hilferding for Reichsbank President.
-- @oppose_voegler: Focus on blocking right-wing business candidates.
-- @demand_reform: Use crisis to demand Reichsbank accountability reforms.
+- @elected_voegler: Vogler is elected.
 
 @support_luther
+view-if: (reichsbank_independent > 1 and schacht_relation < 50) or (wtb_adopted = 1 or lautenbach_supported = 1)
 on-arrival: reichsbank_president = "Luther"; schacht_relation -= 5; z_relation += 5; dvp_relation += 5; ddp_relation += 3; financial_crisis_progress -= 1; reichsbank_independent += 1;
 
 We support Hans Luther as Reichsbank President. Hindenburg readily agrees—Luther is a safe, respectable choice acceptable to all establishment parties.
@@ -101,7 +99,7 @@ We've demonstrated boldness and principle. Our left wing applauds the attempt. B
 The message is clear: democratic government has limited reach. Certain institutions remain beyond popular control.
 
 @oppose_voegler
-choose-if: investigate_far_right >= 1 or schacht_exposed = 1
+view-if: reichsbank_independent > 3 and schacht_relation < 40
 unavailable-subtitle: [? if investigate_far_right < 1 and schacht_exposed != 1 : We need evidence of right-wing business connections to make this case. ?]
 on-arrival: voegler_blocked = 1; reichsbank_president = "Luther"; dnvp_relation -= 8; dvp_relation -= 5; capital_strike_progress += 1; left_strength += 3; labor_strength += 3;
 
@@ -114,26 +112,3 @@ The public campaign works. Hindenburg, unwilling to court controversy, appoints 
 We've blocked the worst outcome. The Reichsbank won't become an explicit tool of business interests. But we haven't achieved positive reform either—just prevented backsliding.
 
 The industrialists are furious. "The SPD sabotages qualified candidates for ideological reasons!" Capital strike threats intensify.
-
-@demand_reform
-choose-if: left_strength >= 35 and (spd_in_government = 1 or spd_toleration = 1)
-unavailable-subtitle: [? if left_strength < 35 : The party lacks strength for this confrontational approach. ?] [? if spd_in_government != 1 and spd_toleration != 1 : We need government leverage for reform demands. ?]
-on-arrival: reichsbank_reform_demanded = 1; coalition_dissent += 1; left_dissent -= 10; labor_dissent -= 5; z_relation -= 5; dvp_relation -= 8;
-go-to: reform_rejected
-
-@reform_rejected
-on-arrival: reichsbank_president = "Luther"; reichsbank_independent += 2; left_strength += 5;
-
-"Schacht's resignation exposes the problem—an unaccountable Reichsbank pursuing policies contradicting democratic government!" we declare. "We demand reforms: Reichsbank subordination to elected Finance Ministry, transparency in monetary policy, parliamentary oversight!"
-
-It's a radical demand—challenging the central bank independence that orthodox economics treats as sacred. We argue that democracy means democratic control of all state institutions, including monetary policy.
-
-The proposal goes nowhere. The bourgeois parties are united in horror. "Destroying Reichsbank independence will trigger currency collapse!" Even some of our own reformists are uncomfortable.
-
-Hindenburg appoints Luther with expanded assurances of Reichsbank independence—a direct rebuke to our reform demands. The central bank's autonomy is strengthened, not reduced.
-
-We've made a principled stand for democratic accountability. Our left wing is energized. But practically, we've achieved the opposite of our goal—the Reichsbank is now more independent, more insulated from popular control than before.
-
-[? if left_strength >= 45 : Some in the left faction argue we should have been more radical: "If they won't accept democratic reform, maybe we need non-democratic methods to control finance capital." ?]
-
-The lesson: some institutions resist democratic sovereignty. The question is whether we accept that or fight it.
