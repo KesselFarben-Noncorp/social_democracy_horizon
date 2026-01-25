@@ -883,7 +883,7 @@ if (Q.month_actions >= 1) {
         
         // Minor siphoning on the left (much weaker than nationalist siphoning)
         if (dominant_socialist && Q.unrest_factor >= 1.5) {
-            var left_siphon = 0.015 * Q.unrest_factor;
+            var left_siphon = 0.015 * Q.unrest_factor + (young_socialists * 0.03);
             
             for (Q.p of socialist_parties) {
                 if (Q.p === dominant_socialist) continue;
@@ -969,7 +969,7 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'kpd':
                     Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor, 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor + (young_socialists * 0.09), 0.25);
                     break;
                 case 'sapd':
                     if (Q.sapd_formed === 1) {
@@ -989,7 +989,7 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'spd':
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95), 0.2);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95) + (young_socialists * 0.09), 0.2);
                     
                     // Ideology-based class appeal
                     if (Q.ideology === 'left') {
@@ -1037,7 +1037,7 @@ if (Q.month_actions >= 1) {
                     
                     // Class-specific appeal - VERY rural-focused
                     if (Q.c === 'rural') {
-                        Q.ideology_factor *= 1.15; // Extreme rural concentration
+                        Q.ideology_factor *= 1.05; // Extreme rural concentration
                     } else if (Q.c === 'old_middle') {
                         Q.ideology_factor *= 0.35; // Small town shopkeepers affected by rural crisis
                     } else if (Q.c === 'new_middle') {
