@@ -44,8 +44,8 @@ We have enforced party discipline to reduce dissent across all factions.
 title: The Republican Synthesis
 subtitle: Form a binding pact between the SPD, Center, and DDP.
 unavailable-subtitle: [? if chancellor != "Wels": Wels is not the Chancellor! ?] [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
-choose-if: advisor_action_timer = 0 and (chancellor == "Wels") and (in_weimar_coalition = 1) and (nazi_urgency > 1 or crisis_urgency > 1)
-on-arrival: advisor_action_timer = 12; coalition_dissent -= 3; democratization += 1; democratization *= 1.5; nsdap_r -= 3; kpd_r -= 3; z_relation += 5; ddp_relation += 7; nationalism /= 5; socialism /= 10; pro_republic += 5; advisor_action_timer -= democratization; advisor_action_timer = 0 if democratization >= advisor_action_timer
+choose-if: advisor_action_timer = 0 and (chancellor == "Wels") and (in_weimar_coalition = 1) and (nazi_urgency > 1 or crisis_urgency > 1) and democratization >= 1
+on-arrival: advisor_action_timer = 12; coalition_dissent -= 3; democratization += 1; democratization *= 1.5; nsdap_votes -= 3; kpd_votes -= 3; z_relation += 5; ddp_relation += 7; nationalism /= 5; socialism /= 10; pro_republic += 5; advisor_action_timer /= 2 if democratization >= advisor_action_timer
 
 Wels has leveraged his personal prestige and organizational leverage to bind the democratic parties together. We have formed a "United Front of Democracy." For now, the bickering has ceased, and the Republic stands united against the extremes.
 
