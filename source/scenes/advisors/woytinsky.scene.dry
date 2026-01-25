@@ -9,18 +9,66 @@ new-page: true
 
 Wladimir Woytinsky is a Russian Menshevik in exile, and the chief economist of the socialist trade union federation. His primary idea is to use massive government spending as a way of stimulating demand to extricate us from the depression.
 
-- @plan
+- @emergency_budget
 - @carry_out_policy
 - @depression
 - @root: Return to main
 
-@plan
-title: Adopt the WTB-plan!
-subtitle: Convincing the rest of the party to support the WTB-plan.
-choose-if: advisor_action_timer <= 0 and wtb_adopted == 0 and wtb_support >= 3 and black_thursday_seen and (not historical_mode or ((labor_strength >= center_strength) and (labor_strength >= left_strength) and (labor_strength >= reformist_strength)))
-on-arrival: advisor_action_timer = 6;
-unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if black_thursday_seen == 0 : We are not currently in an economic crisis. ?][? if wtb_adopted > 0 : We have already adopted the WTB-Plan. ?][? if wtb_support < 3 : There is not enough support for the WTB-Plan. ?][? if (labor_strength < center_strength or labor_strength < left_strength or labor_strength < reformist_strength) and historical_mode : The labor faction is not strong enough. ?]
-go-to: crisis_program.plan_adopted
+@emergency_budget
+title: Secure Emergency Deficit Budget
+subtitle: Push for extraordinary spending powers - at significant political cost.
+choose-if: advisor_action_timer <= 0 and wtb_adopted == 0 and unemployed >= 10 and (spd_in_government or spd_toleration) and budget <= 3
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if unemployed < 15 : Unemployment not severe enough to justify emergency measures. ?][? if not spd_in_government and not spd_toleration : We need to be in government. ?]
+
+Woytinsky proposes bypassing normal budgetary procedures to secure immediate deficit financing for emergency employment programs. This is deeply controversial - even within our own party.
+
+The Center and moderate Left will likely resist this "fiscal adventurism." Success depends on our factional strength and how desperate the situation appears.
+
+- @attempt_emergency: Attempt to push it through.
+- @root: Not yet.
+
+@attempt_emergency
+on-arrival: {!
+    Q.advisor_action_timer = 6;
+    // Calculate opposition based on faction strength + dissent
+    Q.center_opposition = Q.center_strength + (Q.center_dissent / 2);
+    Q.left_opposition = Q.left_strength + (Q.left_dissent / 2);
+    Q.total_opposition = Q.center_opposition + Q.left_opposition;
+    
+    Q.labor_push = Q.labor_strength + (Q.unemployed / 5);
+    
+    // Need labor dominance OR extremely high unemployment
+    if (Q.labor_push > Q.total_opposition || Q.unemployed >= 20) {
+        Q.emergency_budget_secured = 1;
+        Q.budget += 1;
+        Q.center_dissent += 15;
+        Q.left_dissent += 10;
+        Q.coalition_dissent += 1;
+        Q.inflation += 1.5;
+        Q.wtb_support += 1;
+        goto: emergency_success;
+    } else {
+        Q.center_dissent += 8;
+        Q.left_dissent += 5;
+        Q.labor_dissent += 3;
+        Q.dissent += 5;
+        goto: emergency_failure;
+    }
+!}
+
+@emergency_success
+
+We've done it! Through a combination of political maneuvering and appeals to the dire economic situation, we've secured extraordinary budgetary powers.
+
+**+1 budget**
+
+However, the Center and moderate Left are **furious** at this violation of fiscal orthodoxy. The coalition is also unhappy. We've burned political capital for economic flexibility.
+
+@emergency_failure
+
+The resistance was too strong. The Center and Left have blocked our attempt, calling it "Bolshevik adventurism" and "fiscal irresponsibility."
+
+Our own unity has suffered from the internal fight.
 
 @carry_out_policy
 title: Carry out the economic plan.
