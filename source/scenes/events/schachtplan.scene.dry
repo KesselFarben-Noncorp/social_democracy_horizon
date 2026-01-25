@@ -1,7 +1,7 @@
 title: Schacht's Crisis Doctrine
 subtitle: March 1930
 new-page: true
-view-if: year = 1930 and month = 4 and (support_memorandum = 1 or finance_minister != "Hilferding") and schacht_relation >= 0 and schacht_resigned != 1
+view-if: year = 1930 and month = 4 and (support_memorandum = 1 or finance_minister = "Moldenhauer") and schacht_relation >= 0 and schacht_resigned != 1
 tags: event
 max-visits: 1
 face-image: img/portraits/SchachtHjalmar.jpg
@@ -38,7 +38,7 @@ How should we respond to Schacht's offer?
 - @refuse_schacht: Refuse—we will not implement nationalist economics under technocratic authority.
 
 @accept_schacht_plan
-on-arrival: schacht_plan_adopted = 1; economic_plan = 4; schacht_relation += 15; dnvp_relation += 5; dvp_relation += 10; left_dissent += 15; labor_dissent += 10; nationalism += 5; unemployed -= 4; economic_growth += 1.5; fiscal_stance -= 0.15; demand_impulse += 0.15; supply_impulse += 0.25; capital_pressure -= 0.15; budget -= 2;
+on-arrival: schacht_plan_adopted = 1; economic_plan = 4; reichsbank_independent += 2; schacht_relation += 15; dnvp_relation += 5; dvp_relation += 10; left_dissent += 15; labor_dissent += 10; nationalism += 5; unemployed -= 4; economic_growth += 1.5; fiscal_stance -= 0.15; demand_impulse += 0.15; supply_impulse += 0.25; capital_pressure -= 0.15; budget -= 2;
 
 "We accept the Reichsbank President's proposal," we announce. "Germany faces existential economic crisis. Ideological purity is a luxury we cannot afford."
 
@@ -59,7 +59,7 @@ Schacht meets regularly with the Cabinet, an unelected technocrat wielding enorm
 @negotiate_terms
 choose-if: spd_in_government and (in_grand_coalition or in_weimar_coalition)
 unavailable-subtitle: [? if not spd_in_government : We must be in government to negotiate policy terms. ?] [? if not in_grand_coalition and not in_weimar_coalition : We need coalition leverage to modify Schacht's proposal. ?]
-on-arrival: schacht_plan_adopted = 1; economic_plan = 4; schacht_relation += 8; dvp_relation += 5; left_dissent += 8; labor_dissent += 5; unemployed -= 3.5; economic_growth += 1.3; workers_spd += 5*(1-dissent); fiscal_stance -= 0.12; demand_impulse += 0.12; supply_impulse += 0.20; distribution_shift += 0.03; capital_pressure -= 0.10; budget -= 2;
+on-arrival: schacht_plan_adopted = 1; economic_plan = 4; schacht_relation += 8; reichsbank_independent += 1; dvp_relation += 5; left_dissent += 8; labor_dissent += 5; unemployed -= 3.5; economic_growth += 1.3; workers_spd += 5*(1-dissent); fiscal_stance -= 0.12; demand_impulse += 0.12; supply_impulse += 0.20; distribution_shift += 0.03; capital_pressure -= 0.10; budget -= 2;
 
 "We accept the framework but insist on modifications," we state. "Economic intervention must serve all Germans, not just industrialists."
 
@@ -76,7 +76,7 @@ It's Weimar compromise in action: nobody's ideal policy, but something better th
 [? if labor_strength > 60 : The trade unions successfully enforce the wage and recognition clauses, turning industrial revival into genuine worker gains. ?]
 
 @counter_with_wtb
-view-if: wtb_adopted = 1 or wtb_support >= 2
+view-if: wtb_adopted = 1 or wtb_support >= 4
 choose-if: spd_in_government and labor_strength >= 55
 unavailable-subtitle: [? if not spd_in_government : We must be in government to propose alternative plans. ?] [? if labor_strength < 55 : We need stronger labor support to push our own economic agenda. ?] [? if wtb_adopted != 1 and wtb_support < 2 : We haven't built sufficient party support for the WTB-Plan. ?]
 on-arrival: wtb_implemented = 1; economic_plan = 1; schacht_relation += 5; left_dissent -= 10; labor_dissent -= 8; reformist_strength += 8; dvp_relation -= 5; unemployed -= 4.5; economic_growth += 1.7; workers_spd += 8*(1-dissent); pro_republic += 3; fiscal_stance -= 0.18; demand_impulse += 0.20; supply_impulse += 0.15; distribution_shift += 0.05; price_pressure += 0.04; budget -= 3;
