@@ -1098,7 +1098,67 @@ if (Q.month_actions >= 1) {
                     // Less affected by national crises than other parties
                     Q.ideology_factor *= (1 - Q.unrest_factor * 0.1); // Stable regional base
                     break;
-                 
+                case 'ddp':
+                     if (!Q.ddp_name || Q.ddp_name === "DDP") {
+                         // Classic DDP: intellectual, progressive, republican liberals
+                         Q.secular_bonus = ((100 - Q.catholics) / 100) * 0.10;
+                         Q.nationalism_penalty = (Q.nationalism / 100) * 0.15;
+        
+                         // CALCULATE FIRST
+                         Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.45 + Q.secular_bonus - Q.nationalism_penalty - (Q.unemployment / 100) * 0.20 - (Q.street_pressure_factor * 0.50), 0.15);
+        
+                         // THEN ADD BONUS
+                         if (Q.education_science || Q.secularized || Q.science || Q.womens_rights) {
+                             Q.education_bonus = (Q.education_science || 0) * 0.03 + (Q.secularized || 0) * 0.05 + (Q.science || 0) * 0.10 + (Q.womens_rights || 0) * 0.05;
+                             Q.ideology_factor += Q.education_bonus;
+                         }
+        
+                         // Class modifiers
+                          if (Q.c === 'new_middle') {
+                             Q.ideology_factor *= 1.25;
+                         } else if (Q.c === 'old_middle') {
+                             Q.ideology_factor *= 0.85;
+                         } else if (Q.c === 'workers') {
+                             Q.ideology_factor *= 0.70;
+                         } else if (Q.c === 'rural') {
+                             Q.ideology_factor *= 0.75;
+                         }
+        
+                         // Cultural policies help
+                         if (Q.education_science >= 2 || Q.womens_rights >= 3) {
+                             Q.ideology_factor *= 1.05;
+                         }
+        
+                     } else if (Q.ddp_name === "DStP") {
+                         // DStP: nationalist-liberal hybrid, loses progressives
+                         Q.jungdo_bonus = (Q.jungdo_strength || 0) * 0.0003;
+        
+                         // CALCULATE FIRST
+                         Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.35 + Q.nationalism_factor * 0.25 + Q.jungdo_bonus - (Q.unemployment / 100) * 0.30 + (Q.street_pressure_factor * 0.25), 0.15);
+        
+                         // THEN SUBTRACT PENALTY
+                         if (Q.education_science || Q.secularized || Q.science || Q.womens_rights) {
+                             Q.education_penalty = (Q.education_science || 0) * 0.01 + (Q.secularized || 0) * 0.05 + (Q.science || 0) * 0.10 + (Q.womens_rights || 0) * 0.05;
+                             Q.ideology_factor -= Q.education_penalty;
+                         }
+        
+                         // Class modifiers shift
+                         if (Q.c === 'new_middle') {
+                             Q.ideology_factor *= 1.10;
+                         } else if (Q.c === 'old_middle') {
+                             Q.ideology_factor *= 1.05;
+                         } else if (Q.c === 'workers') {
+                             Q.ideology_factor *= 0.50;
+                         } else if (Q.c === 'rural') {
+                             Q.ideology_factor *= 1.15;
+                         }
+        
+                         // Progressive policies now hurt
+                         if (Q.education_science >= 2 || Q.welfare >= 3) {
+                              Q.ideology_factor *= 0.90;
+                         }
+                     }
+                     break;
                 case 'dvp':
                     Q.ideology_factor = Q.random_factor(Q.dvp_right_shift ? Q.nationalism_factor * (1 + Q.unrest_factor*0.1) : Q.pro_republic_factor * 0.8, 0.15);
                     break;
