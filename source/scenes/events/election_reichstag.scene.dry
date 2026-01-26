@@ -46,28 +46,95 @@ for (var party of Q.parties) {
         }
     }
     
+    if (Q.math_broken) {
+        // CHAOS MODE: Support values become nonsense
+        Q[party + '_support'] = Q.impossible_add(Q[party + '_support'], 0);
+    }
+    
     new_party_sum += Q[party + '_support'];
 }
 
-for (var party of Q.parties) {
-    if (new_party_sum > 0) {
-        Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
-    } else {
-        Q[party + '_r'] = 0;
-    }
-    Q[party + '_votes'] = Math.round(Q[party + '_r'] * 10) / 10;
+// Apply chaos to the sum itself
+if (Q.math_broken) {
+    new_party_sum = Q.impossible_multiply(new_party_sum, 1);
 }
 
 for (var party of Q.parties) {
-    if (Q.use_decimals) {
-        Q[party + '_r_disp'] = (Math.ceil(Q[party + '_r'] * 10) / 10).toFixed(1);
+    if (!Q.math_broken) {
+        // NORMAL: Votes sum to 100%
+        if (new_party_sum > 0) {
+            Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
+        } else {
+            Q[party + '_r'] = 0;
+        }
+        Q[party + '_votes'] = Math.round(Q[party + '_r'] * 10) / 10;
     } else {
-        Q[party + '_r_disp'] = Math.round(Q[party + '_r']).toString();
+        // CHAOS MODE: Division doesn't work properly
+        if (new_party_sum > 0) {
+            // Random choice of broken operations
+            var roll = Math.random();
+            if (roll < 0.3) {
+                // Normal (rare)
+                Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
+            } else if (roll < 0.5) {
+                // Multiplication instead of division
+                Q[party + '_r'] = Q.impossible_multiply(Q[party + '_support'], new_party_sum / 100);
+            } else if (roll < 0.7) {
+                // Just add some chaos
+                Q[party + '_r'] = Q.impossible_percentage(Q[party + '_support']);
+            } else {
+                // Complete nonsense
+                Q[party + '_r'] = Q.impossible_add(Q[party + '_support'], new_party_sum);
+            }
+        } else {
+            Q[party + '_r'] = Q.impossible_subtract(0, 0); // "Zero" that isn't zero
+        }
+        
+        // Votes calculation also broken
+        Q[party + '_votes'] = Q.impossible_multiply(Q[party + '_r'], 1);
+        
+        // Ensure no NaN
+        if (isNaN(Q[party + '_r'])) Q[party + '_r'] = Math.random() * 50;
+        if (isNaN(Q[party + '_votes'])) Q[party + '_votes'] = Math.random() * 50;
     }
-    
-    Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
-    Q['str_change_' + party] = (Q['change_' + party + '_r'] >= 0 ? '+' : '') +
-        (Math.ceil(Q['change_' + party + '_r'] * 10) / 10).toFixed(1);
+}
+
+for (var party of Q.parties) {
+    if (!Q.math_broken) {
+        // NORMAL: Display formatting
+        if (Q.use_decimals) {
+            Q[party + '_r_disp'] = (Math.ceil(Q[party + '_r'] * 10) / 10).toFixed(1);
+        } else {
+            Q[party + '_r_disp'] = Math.round(Q[party + '_r']).toString();
+        }
+        
+        Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
+        Q['str_change_' + party] = (Q['change_' + party + '_r'] >= 0 ? '+' : '') +
+            (Math.ceil(Q['change_' + party + '_r'] * 10) / 10).toFixed(1);
+    } else {
+        // CHAOS MODE: Display formatting is also broken
+        if (Q.use_decimals) {
+            Q[party + '_r_disp'] = Q.impossible_add(Q[party + '_r'], 0).toFixed(1);
+        } else {
+            Q[party + '_r_disp'] = Math.round(Q.impossible_multiply(Q[party + '_r'], 1)).toString();
+        }
+        
+        // Change calculation doesn't work right
+        Q['change_' + party + '_r'] = Q.impossible_subtract(Q[party + '_r'], Q['old_' + party + '_r']);
+        
+        // Ensure no NaN in change
+        if (isNaN(Q['change_' + party + '_r'])) Q['change_' + party + '_r'] = Math.random() * 20 - 10;
+        
+        // Sign might be wrong
+        var broken_sign = Math.random() < 0.3 ? '-' : '+';
+        if (Math.random() < 0.5) {
+            // Sometimes use correct sign
+            broken_sign = (Q['change_' + party + '_r'] >= 0 ? '+' : '');
+        }
+        
+        Q['str_change_' + party] = broken_sign +
+            Q.impossible_add(Q['change_' + party + '_r'], 0).toFixed(1);
+    }
 }
 
 // Reset government flags
