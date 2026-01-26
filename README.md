@@ -1,8 +1,8 @@
 # Social Democracy: An Alternate Horizon
 
-Vanilla Plus game, focused on right wing coalition side, adding right wing and bourgeoise coalitios and their contents, some borrowed from Second Incoming of His Holiness (may I not invoke J's name) called Dynamic Social Democracy. Other than that, treat it as Vanilla Plus on other aspects.
+Modification of the Social Democracy: An Alternate History, oriented on mechanical aspect of the game compared to the narrative side of the Dynamic Social Democracy. 
 
-Other than that, suggest your stuff if something gives off the sign that I didn't read not single of Weimar Republic/Interregnum Germany related book.
+What is expected: Replayability enhancement, enhancement of algorithm of other parties and etcetera.
 
 Copyright belongs to the Autumn Chen OR https://github.com/aucchen/social_democracy_alternate_history , as usual. My work simply modifies the original source. 
 
