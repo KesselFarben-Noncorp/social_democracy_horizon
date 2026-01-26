@@ -19,6 +19,317 @@ Pick your demise.
 
 - @sandbox_menu: Back.
 - @time_back: Time travel to the 1928 with everyone on the board. (You may not return, disabled forever once activated)
+- @rngizer: RNG ALL VARIABLES. Breaks game, so save it, but have fun.
+
+
+
+
+@rngizer
+subtitle: WARNING: This will completely randomize EVERY variable in the game. Reality becomes meaningless.
+on-arrival: {!
+    // ===== ECONOMIC VARIABLES =====
+    Q.inflation = (Math.random() * 40) - 20; // -20% to +20%
+    Q.unemployed = Math.random() * 50; // 0% to 50%
+    Q.economic_growth = (Math.random() * 40) - 20; // -20% to +20%
+    Q.budget = (Math.random() * 100) - 50; // -50 to +50
+    
+    // Economic impulses
+    Q.demand_impulse = (Math.random() * 4) - 2;
+    Q.supply_impulse = (Math.random() * 4) - 2;
+    Q.price_pressure = (Math.random() * 4) - 2;
+    Q.trade_pressure = (Math.random() * 4) - 2;
+    Q.capital_pressure = Math.random();
+    Q.fiscal_stance = (Math.random() * 4) - 2;
+    Q.distribution_shift = (Math.random() * 4) - 2;
+    
+    // Post-event variables
+    Q.inflation_expectations = (Math.random() * 40) - 20;
+    Q.cycle_phase = Math.random() * 6.28; // 0 to 2π
+    Q.shock_residual = (Math.random() * 2) - 1;
+    Q.NAIRU = 3 + Math.random() * 12; // 3-15%
+    Q.POTENTIAL_GROWTH = -2 + Math.random() * 8; // -2% to +6%
+    
+    Q.fiscal_demand = (Math.random() * 4) - 2;
+    Q.total_demand = (Math.random() * 4) - 2;
+    Q.investment_effect = (Math.random() * 4) - 2;
+    Q.consumption_multiplier = 0.5 + Math.random() * 1.5;
+    Q.cycle_amplitude = Math.random() * 3;
+    Q.business_cycle = (Math.random() * 6) - 3;
+    Q.productivity_trend = (Math.random() * 0.1) - 0.05;
+    Q.labor_churn = (Math.random() * 2) - 1;
+    Q.inflation_momentum = (Math.random() * 2) - 1;
+    Q.trade_drift = (Math.random() * 0.2) - 0.1;
+    Q.capital_drift = (Math.random() * 0.2) - 0.1;
+    Q.wage_pressure = Math.random() * 0.5;
+    Q.structural_unemployment_drift = Math.random() * 0.02;
+    Q.credit_conditions = (Math.random() * 0.2) - 0.1;
+    Q.cycle_growth_effect = (Math.random() * 2) - 1;
+    Q.productivity_growth = Math.random() * 0.02;
+    Q.passive_inflation = (Math.random() * 0.5) - 0.25;
+    Q.output_gap = (Math.random() * 20) - 10;
+    Q.overheating = Math.random() * 5;
+    Q.tax_drag = (Math.random() * 2) - 1;
+    Q.investment_chill = (Math.random() * 2) - 1;
+    
+    // Deltas
+    Q.dInflation = (Math.random() * 10) - 5;
+    Q.dUnemployment = (Math.random() * 10) - 5;
+    Q.dGrowth = (Math.random() * 10) - 5;
+    
+    // Deflation variables
+    Q.deflation_severity = Math.random() * 15;
+    Q.deflation_debt_effect = Math.random() * 0.5;
+    Q.consumption_defer = Math.random() * 0.3;
+    Q.banking_stress = Math.random() * 0.4;
+    Q.severe_deflation = Math.random() * 10;
+    Q.extreme_deflation_u = Math.random() * 15;
+    Q.catastrophic_deflation = Math.random() * 10;
+    Q.deflation_drag = Math.random() * 2;
+    Q.deflation_base_u = Math.random() * 1.5;
+    Q.severe_deflation_u = Math.random() * 1;
+    Q.severe_deflation_g = Math.random() * 10;
+    Q.depression_effect = Math.random() * 1.5;
+    Q.investment_collapse = Math.random() * 0.5;
+    Q.deflation_trade = Math.random() * 0.6;
+    Q.deflation_catastrophe = Math.random() * 1.2;
+    Q.deflation_unemployment = Math.random() * 1;
+    Q.depression_unemployment = Math.random() * 0.8;
+    
+    // Stabilizers
+    Q.emergency_reflation = Math.random() * 1;
+    Q.stabilizer_boost = Math.random() * 2;
+    Q.unemployment_stabilizer = (Math.random() * 2) - 1;
+    Q.inflation_penalty = Math.random() * 2;
+    
+    // ===== POLITICAL VARIABLES =====
+    Q.nationalism = Math.random() * 100;
+    Q.socialism = Math.random() * 100;
+    Q.pro_republic = Math.random() * 100;
+    Q.pacifism = Math.random() * 100;
+    
+    // ===== PARTY SUPPORT (REICHSTAG) =====
+    var total = 0;
+    var parties = ['spd', 'kpd', 'sapd', 'srpd', 'z', 'bvp', 'ddp', 'dvp', 'wp', 'cnbl', 'dnvp', 'nsdap', 'other'];
+    for (var p of parties) {
+        Q[p + '_r'] = Math.random() * 30;
+        total += Q[p + '_r'];
+    }
+    // Normalize to 100%
+    for (var p of parties) {
+        Q[p + '_r'] = (Q[p + '_r'] / total) * 100;
+    }
+    
+    // ===== CLASS SUPPORT FOR PARTIES =====
+    var classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed', 'catholics'];
+    for (var c of classes) {
+        var class_total = 0;
+        for (var p of parties) {
+            Q[c + '_' + p] = Math.random() * 100;
+            class_total += Q[c + '_' + p];
+        }
+        // Normalize each class
+        for (var p of parties) {
+            Q[c + '_' + p] = (Q[c + '_' + p] / class_total) * 100;
+        }
+    }
+    
+    // ===== CLASS PROPORTIONS =====
+    Q.workers = 30 + Math.random() * 40; // 30-70%
+    Q.old_middle = 5 + Math.random() * 20; // 5-25%
+    Q.new_middle = 5 + Math.random() * 20; // 5-25%
+    Q.rural = 10 + Math.random() * 30; // 10-40%
+    Q.unemployed = Math.random() * 40; // 0-40%
+    Q.catholics = 15 + Math.random() * 40; // 15-55%
+    // Normalize (except catholics which overlaps)
+    var class_total = Q.workers + Q.old_middle + Q.new_middle + Q.rural + Q.unemployed;
+    Q.workers = (Q.workers / class_total) * 100;
+    Q.old_middle = (Q.old_middle / class_total) * 100;
+    Q.new_middle = (Q.new_middle / class_total) * 100;
+    Q.rural = (Q.rural / class_total) * 100;
+    Q.unemployed = (Q.unemployed / class_total) * 100;
+    
+    // ===== PARTY RELATIONS =====
+    Q.z_relation = Math.random() * 100;
+    Q.kpd_relation = Math.random() * 100;
+    Q.sapd_relation = Math.random() * 100;
+    Q.srpd_relation = Math.random() * 100;
+    Q.ddp_relation = Math.random() * 100;
+    Q.bvp_relation = Math.random() * 100;
+    Q.dvp_relation = Math.random() * 100;
+    Q.wp_relation = Math.random() * 100;
+    Q.dnvp_relation = Math.random() * 100;
+    Q.nsdap_relation = Math.random() * 100;
+    
+    // ===== FACTION STRENGTH/DISSENT =====
+    var factions = ['left', 'center', 'labor', 'reformist', 'neorevisionist'];
+    var faction_total = 0;
+    for (var f of factions) {
+        Q[f + '_strength'] = Math.random() * 50;
+        Q[f + '_dissent'] = Math.random() * 100;
+        faction_total += Q[f + '_strength'];
+    }
+    // Normalize strength to 100
+    for (var f of factions) {
+        Q[f + '_strength'] = (Q[f + '_strength'] / faction_total) * 100;
+    }
+    
+    // ===== PARAMILITARIES =====
+    Q.rb_strength = Math.random() * 5000;
+    Q.rb_militancy = Math.random();
+    Q.sa_strength = Math.random() * 3000;
+    Q.sa_militancy = Math.random();
+    Q.sh_strength = Math.random() * 2000;
+    Q.sh_militancy = Math.random();
+    Q.rfb_strength = Math.random() * 1000;
+    Q.rfb_militancy = Math.random();
+    Q.jungdo_strength = Math.random() * 1000;
+    Q.jungdo_militancy = Math.random();
+    
+    // ===== MILITARY/POLICE =====
+    Q.reichswehr_strength = 50 + Math.random() * 200;
+    Q.reichswehr_loyalty = Math.random();
+    Q.prussian_police_strength = 30 + Math.random() * 150;
+    Q.prussian_police_loyalty = Math.random();
+    Q.interior_police_loyalty = Math.random();
+    
+    // ===== GOVERNMENT STATUS =====
+    Q.resources = Math.floor(Math.random() * 10);
+    Q.dissent = Math.random();
+    Q.coalition_dissent = Math.random() * 10;
+    Q.kpd_coalition_dissent = Math.random() * 10;
+    
+    // ===== POLICIES =====
+    Q.agricultural_finance = Math.floor(Math.random() * 4);
+    Q.land_reform = Math.floor(Math.random() * 4);
+    Q.pro_consumer = Math.floor(Math.random() * 4);
+    Q.state_buyer = Math.floor(Math.random() * 4);
+    Q.constitutional_reform = Math.floor(Math.random() * 4);
+    Q.constructive_vonc = Math.floor(Math.random() * 2);
+    Q.presidential_powers = Math.floor(Math.random() * 3);
+    Q.electoral_threshold = Math.floor(Math.random() * 10);
+    Q.works_councils = Math.floor(Math.random() * 4);
+    Q.cooperatives = Math.floor(Math.random() * 4);
+    Q.socializations = Math.floor(Math.random() * 4);
+    Q.welfare = Math.floor(Math.random() * 6) - 2;
+    Q.judicial_reform = Math.floor(Math.random() * 3);
+    Q.bureaucratic_reform = Math.floor(Math.random() * 3);
+    Q.military_reform = Math.floor(Math.random() * 3);
+    Q.womens_rights = Math.floor(Math.random() * 4);
+    Q.homosexual_rights = Math.floor(Math.random() * 3);
+    
+    // ===== INTERNATIONAL =====
+    Q.west_relation = Math.floor(Math.random() * 20) - 10;
+    Q.italy_relation = Math.floor(Math.random() * 20) - 10;
+    Q.hungary_relation = Math.floor(Math.random() * 20) - 10;
+    Q.poland_relation = Math.floor(Math.random() * 20) - 10;
+    Q.czech_relation = Math.floor(Math.random() * 20) - 10;
+    Q.austria_relation = Math.floor(Math.random() * 20) - 10;
+    Q.reparations = Math.floor(Math.random() * 6) - 2;
+    Q.reparations_negotiation = Math.floor(Math.random() * 5);
+    
+    // ===== SCHACHT =====
+    Q.schacht_relation = Math.floor(Math.random() * 100);
+    Q.schacht_enemy = Math.floor(Math.random() * 2);
+    Q.schacht_plan = Math.floor(Math.random() * 4);
+    Q.reichsbank_independent = Math.floor(Math.random() * 3);
+    Q.reichsbank_loyalty = Math.random() * 100;
+    
+    // ===== CHAOS INDICATORS =====
+    Q.coup_progress = Math.random() * 10;
+    Q.capital_strike_progress = Math.random() * 10;
+    Q.crisis_urgency = Math.random() * 10;
+    Q.nazi_urgency = Math.random() * 10;
+    Q.radicalization = Math.random() * 10;
+    
+    // ===== PARTY LEADERS =====
+    var z_leaders = ['Marx', 'Kaas', 'Joos', 'Brüning'];
+    Q.z_party_leader = z_leaders[Math.floor(Math.random() * z_leaders.length)];
+    
+    var dnvp_leaders = ['Westarp', 'Hugenberg'];
+    Q.dnvp_party_leader = dnvp_leaders[Math.floor(Math.random() * dnvp_leaders.length)];
+    Q.dnvp_line = Math.floor(Math.random() * 4); // 0-3
+    
+    var kpd_leaders = ['Thälmann', 'Conciliators'];
+    Q.kpd_party_leader = kpd_leaders[Math.floor(Math.random() * kpd_leaders.length)];
+    
+    Q.dvp_right_shift = Math.floor(Math.random() * 2);
+    
+    // ===== TIME =====
+    Q.year = 1928 + Math.floor(Math.random() * 6); // 1928-1933
+    Q.month = 1 + Math.floor(Math.random() * 12);
+    
+    // ===== RANDOM SPLITS/EVENTS =====
+    Q.sapd_formed = Math.floor(Math.random() * 2);
+    Q.srpd_formed = Math.floor(Math.random() * 2);
+    Q.stresemann_dead = Math.floor(Math.random() * 2);
+    Q.muller_dead = Math.floor(Math.random() * 2);
+    Q.iron_front_formed = Math.floor(Math.random() * 2);
+    Q.wtb_adopted = Math.floor(Math.random() * 2);
+    Q.moderate_plan_adopted = Math.floor(Math.random() * 2);
+    Q.nationalization_adopted = Math.floor(Math.random() * 2);
+    Q.young_plan_seen = Math.floor(Math.random() * 2);
+    Q.kellogg_briand_signed = Math.floor(Math.random() * 2);
+    
+    // ===== GOVERNMENT COMPOSITION =====
+    var chancellors = ['Marx', 'Müller', 'Brüning', 'Papen', 'Schleicher', 'Hitler', 'Braun', 'Wels'];
+    Q.chancellor = chancellors[Math.floor(Math.random() * chancellors.length)];
+    
+    var govts = ['SPD', 'Z', 'DVP', 'DNVP', 'NSDAP', 'KPD', 'Coalition', 'Minority'];
+    Q.prussian_government = govts[Math.floor(Math.random() * govts.length)];
+    
+    Q.spd_in_government = Math.floor(Math.random() * 2);
+    Q.in_weimar_coalition = Math.floor(Math.random() * 2);
+    Q.in_grand_coalition = Math.floor(Math.random() * 2);
+    Q.in_popular_front = Math.floor(Math.random() * 2);
+    Q.in_left_front = Math.floor(Math.random() * 2);
+    
+    console.log("=== CHAOS MODE ACTIVATED ===");
+    console.log("All variables randomized. Reality is meaningless.");
+    console.log("Inflation: " + Q.inflation.toFixed(2) + "%");
+    console.log("Unemployment: " + Q.unemployed.toFixed(2) + "%");
+    console.log("Year: " + Q.year + "/" + Q.month);
+    console.log("Chancellor: " + Q.chancellor);
+    console.log("NSDAP: " + Q.nsdap_r.toFixed(1) + "%");
+    console.log("SPD: " + Q.spd_r.toFixed(1) + "%");
+!}
+
+= CHAOS MODE ACTIVATED
+
+**Every single variable has been randomized.**
+
+Year: [+ year +]/[+ month +]
+
+Inflation: [+ inflation +]%
+Unemployment: [+ unemployed +]%
+Growth: [+ economic_growth +]%
+
+SPD: [+ spd_r +]%
+NSDAP: [+ nsdap_r +]%
+KPD: [+ kpd_r +]%
+
+Chancellor: [+ chancellor +]
+
+Pro-Republic: [+ pro_republic +]
+Nationalism: [+ nationalism +]
+Socialism: [+ socialism +]
+
+**Reality has collapsed. Causality is optional.**
+
+**Good luck.**
+
+Embrace the chaos
+
+
+
+
+
+
+
+
+
+
+
+
 
 @time_back
 view-if: tt_begin = 0 and sandbox = 1
