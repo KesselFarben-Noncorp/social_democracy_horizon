@@ -46,17 +46,19 @@ on-arrival: {!
         Q.coalition_dissent += 1;
         Q.inflation += 1.5;
         Q.wtb_support += 1;
-        goto: emergency_success;
+        Q.emergency_win_woytinsky = 1;
     } else {
         Q.center_dissent += 8;
         Q.left_dissent += 5;
         Q.labor_dissent += 3;
         Q.dissent += 5;
-        goto: emergency_failure;
+        Q.emergency_win_woytinsky = 0;
     }
 !}
+go-to: emergency_success if emergency_win_woytinsky = 1; emergency_failure if emergency_win_woytinsky = 0
 
 @emergency_success
+on-arrival: emergency_win_woytinsky = 0
 
 We've done it! Through a combination of political maneuvering and appeals to the dire economic situation, we've secured extraordinary budgetary powers.
 
@@ -65,6 +67,7 @@ We've done it! Through a combination of political maneuvering and appeals to the
 However, the Center and moderate Left are **furious** at this violation of fiscal orthodoxy. The coalition is also unhappy. We've burned political capital for economic flexibility.
 
 @emergency_failure
+on-arrival: emergency_win_woytinsky = 0
 
 The resistance was too strong. The Center and Left have blocked our attempt, calling it "Bolshevik adventurism" and "fiscal irresponsibility."
 
