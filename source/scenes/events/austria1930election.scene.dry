@@ -20,12 +20,12 @@ on-arrival: {!
 // ==============================
 
 // --- Store previous results
-Q.old_sdapo_vote     ??= 36;
-Q.old_cs_vote        ??= 34;
-Q.old_gdvp_vote      ??= 18;
-Q.old_heimwehr_vote  ??= 7;
-Q.old_kpoe_vote      ??= 4;
-Q.old_aus_minor_vote ??= 6;
+Q.old_sdapo_vote     = 36;
+Q.old_cs_vote        = 34;
+Q.old_gdvp_vote      = 18;
+Q.old_heimwehr_vote  = 7;
+Q.old_kpoe_vote      = 4;
+Q.old_aus_minor_vote = 6;
 
 // --- Base ideological blocs (long-term electorate structure)
 let base = {
@@ -138,14 +138,20 @@ Q.str_change_cs        = Q.cs_vote - Q.old_cs_vote;
 Q.str_change_gdvp      = Q.gdvp_vote - Q.old_gdvp_vote;
 Q.str_change_heimwehr  = Q.heimwehr_vote - Q.old_heimwehr_vote;
 Q.str_change_kpoe      = Q.kpoe_vote - Q.old_kpoe_vote;
-Q.str_change_aus_minor = Q.aus_minor_vote - Q.old_aus_minor_vote; > aus_left_bloc and right_legit == 1
+Q.str_change_aus_minor = Q.aus_minor_vote - Q.old_aus_minor_vote;
 
 // --- Persist voting history
-	
 Q.election_records = Q.election_records || [];
-	
-Q.election_records.push({date: new Date(Q.year, Q.month - 1), sdapo: Q.sdapo_vote, cs: Q.cs_vote, gdvp: Q.gdvp_vote, heimwehr: Q.heimwehr_vote, kpoe: Q.kpoe_vote, other: Q.aus_other_vote});
-	
+Q.election_records.push({
+    date: new Date(Q.year, Q.month - 1),
+    sdapo: Q.sdapo_vote,
+    cs: Q.cs_vote,
+    gdvp: Q.gdvp_vote,
+    heimwehr: Q.heimwehr_vote,
+    kpoe: Q.kpoe_vote,
+    other: Q.aus_minor_vote
+});
+
 !}
 	
 
