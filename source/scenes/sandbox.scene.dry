@@ -20,6 +20,363 @@ Pick your demise.
 - @sandbox_menu: Back.
 - @time_back: Time travel to the 1928 with everyone on the board. (You may not return, disabled forever once activated)
 - @rngizer: RNG ALL VARIABLES. Breaks game, so save it, but have fun.
+- @math_broken_mode: Prepare thyself.
+
+
+
+
+
+
+
+
+
+
+
+
+
+@math_broken_mode
+subtitle: WARNING: Mathematics will cease functioning. Numbers become suggestions. Reality is negotiable.
+on-arrival: {!
+    Q.math_broken = 1;
+    Q.reality_coherence = 0;
+    
+    // Override the random function to return impossible values
+    Q.chaos_random = function() {
+        var roll = Math.random();
+        if (roll < 0.3) return -Math.random() * 5; // Negative probability
+        if (roll < 0.6) return Math.random() * 10; // Way too high
+        return Math.random() * 0.01; // Way too low
+    };
+    
+    // Create impossible math helper functions
+    Q.impossible_add = function(a, b) {
+        var outcomes = [
+            a + b,                    // Normal (rare)
+            a + b + 7,                // Off by 7
+            a * b,                    // Multiplication instead
+            a - b,                    // Wrong operation
+            Math.abs(a - b) + 100,    // Nonsense
+            Math.random() * 200 - 100, // Random
+            (a + b) * 1.5,            // Inflated
+            0,                        // Zero
+            Infinity,                 // Infinity
+            -Infinity                 // Negative infinity
+        ];
+        return outcomes[Math.floor(Math.random() * outcomes.length)];
+    };
+    
+    Q.impossible_subtract = function(a, b) {
+        var outcomes = [
+            a - b,
+            a + b,                    // Addition instead
+            b - a,                    // Reversed
+            a * b,                    // Wrong operation
+            Math.random() * 50 - 25,  // Random
+            100,                      // Just 100
+            a - b - 50,               // Off by 50
+            Math.sqrt(Math.abs(a * b)), // Square root
+        ];
+        return outcomes[Math.floor(Math.random() * outcomes.length)];
+    };
+    
+    Q.impossible_multiply = function(a, b) {
+        var outcomes = [
+            a * b,
+            a + b,                    // Addition
+            a / b,                    // Division
+            Math.pow(a, b/10),        // Exponentiation
+            a * b * Math.random() * 5, // Way off
+            42,                       // Always 42
+        ];
+        return outcomes[Math.floor(Math.random() * outcomes.length)];
+    };
+    
+    Q.impossible_percentage = function(value) {
+        var roll = Math.random();
+        if (roll < 0.2) return value * 10;      // 10x too big
+        if (roll < 0.4) return value / 10;      // 10x too small
+        if (roll < 0.6) return value + 100;     // Add 100
+        if (roll < 0.7) return 150;             // Just 150%
+        if (roll < 0.8) return -value;          // Negative
+        if (roll < 0.9) return Math.random() * 200; // Random
+        return value; // Rarely correct
+    };
+    
+    console.log("=== MATH BROKEN MODE ACTIVATED ===");
+    console.log("2 + 2 = " + Q.impossible_add(2, 2));
+    console.log("10 - 5 = " + Q.impossible_subtract(10, 5));
+    console.log("3 * 4 = " + Q.impossible_multiply(3, 4));
+    console.log("Mathematics is now optional.");
+!}
+
+= MATH BROKEN MODE ACTIVATED
+
+**All mathematical operations now produce impossible results.**
+
+Let me demonstrate:
+
+2 + 2 = [+ impossible_add(2, 2) +]
+
+10 - 5 = [+ impossible_subtract(10, 5) +]
+
+100 / 4 = [+ impossible_multiply(100, 0.25) +]
+
+**The following "laws" now apply:**
+
+- Percentages can exceed 100% or go negative
+- Vote totals may sum to 47% or 683%
+- You can lose support but gain votes
+- Unemployment can be 250%
+- Budget surpluses can be negative
+- Party membership can be negative
+- Time can run backwards or sideways
+- Inflation might be "yes"
+
+**Economics textbooks have been burned. Calculators weep.**
+
+- @accept_chaos: I understand. Nothing makes sense. This is fine.
+- @panic: [OPTION REMOVED - MATH ERROR]
+
+@panic
+choose-if: spd_r > 1000
+
+Sus amogus.
+
+@accept_chaos
+on-arrival: {!
+    // Apply broken math to EVERYTHING
+    
+    // Economic variables become nonsense
+    Q.inflation = Q.impossible_add(Q.inflation, Math.random() * 50 - 25);
+    Q.unemployed = Q.impossible_percentage(Q.unemployed);
+    Q.economic_growth = Q.impossible_subtract(Q.economic_growth, 5);
+    Q.budget = Q.impossible_multiply(Q.budget, 0.7);
+    
+    // Party support becomes impossible
+    var parties = ['spd', 'kpd', 'sapd', 'srpd', 'z', 'bvp', 'ddp', 'dvp', 'wp', 'cnbl', 'dnvp', 'nsdap', 'other'];
+    
+    // Don't normalize - let chaos reign
+    for (var p of parties) {
+        Q[p + '_r'] = Q.impossible_percentage(Q[p + '_r']);
+        // Can go negative, can go over 100%, can be infinity
+    }
+    
+    // Relations can exceed bounds
+    Q.z_relation = Q.impossible_add(Q.z_relation, -50);
+    Q.kpd_relation = Q.impossible_subtract(Q.kpd_relation, 30);
+    Q.dvp_relation = Q.impossible_multiply(Q.dvp_relation, 2.5);
+    
+    // Class proportions don't sum to 100
+    Q.workers = Q.impossible_percentage(Q.workers);
+    Q.old_middle = Q.impossible_add(Q.old_middle, 30);
+    Q.new_middle = Q.impossible_subtract(Q.new_middle, 10);
+    Q.rural = Q.impossible_multiply(Q.rural, 1.3);
+    Q.unemployed = Q.impossible_percentage(Q.unemployed);
+    Q.catholics = Q.impossible_add(Q.catholics, 150); // Catholics now 178% of population
+    
+    // Resources can be negative or fractional or infinite
+    Q.resources = Q.impossible_add(Q.resources, -2);
+    
+    // Faction strength doesn't sum to 100
+    Q.left_strength = Q.impossible_percentage(Q.left_strength);
+    Q.center_strength = Q.impossible_add(Q.center_strength, 50);
+    Q.labor_strength = Q.impossible_subtract(Q.labor_strength, 20);
+    Q.reformist_strength = Q.impossible_multiply(Q.reformist_strength, 0.3);
+    Q.neorevisionist_strength = 1000; // Just 1000 now
+    
+    // Paramilitary numbers become absurd
+    Q.rb_strength = Q.impossible_multiply(Q.rb_strength, 0.01); // 20 members
+    Q.sa_strength = Q.impossible_percentage(Q.sa_strength) * 100; // 50,000 members
+    Q.sh_strength = -Q.impossible_add(Q.sh_strength, 100); // Negative members
+    Q.rfb_strength = Infinity; // Infinite communists
+    
+    // Time itself breaks
+    Q.year = Q.impossible_add(1928, 0);
+    Q.month = Q.impossible_multiply(Q.month, 2);
+    
+    console.log("CHAOS APPLIED:");
+    console.log("Inflation: " + Q.inflation);
+    console.log("SPD support: " + Q.spd_r + "%");
+    console.log("Total party support: " + (Q.spd_r + Q.kpd_r + Q.z_r + Q.dnvp_r + Q.nsdap_r) + "%");
+    console.log("Workers: " + Q.workers + "% of population");
+    console.log("Catholics: " + Q.catholics + "% of population");
+    console.log("Year: " + Q.year + " Month: " + Q.month);
+    console.log("RFB strength: " + Q.rfb_strength);
+!}
+go-to: broken_status
+
+@broken_status
+
+= Current Status (Mathematics Optional)
+
+**Economic Indicators:**
+
+Inflation: [+ inflation +]%
+- *(This number may or may not reflect reality)*
+
+Unemployment: [+ unemployed +]%
+- *(Can unemployment exceed 100%? We're about to find out)*
+
+Economic Growth: [+ economic_growth +]%
+- *(Negative growth that's somehow also positive)*
+
+Budget: [+ budget +]
+- *(We have a surplus of -30 million marks)*
+
+**Party Support (May Not Sum To 100%):**
+
+SPD: [+ spd_r +]%
+KPD: [+ kpd_r +]%
+Z: [+ z_r +]%
+DNVP: [+ dnvp_r +]%
+NSDAP: [+ nsdap_r +]%
+Others: [+ other_r +]%
+
+**Total:** [+ spd_r + kpd_r + z_r + dnvp_r + nsdap_r + other_r +]%
+- *(This is fine)*
+
+**Class Composition:**
+
+Workers: [+ workers +]%
+Old Middle: [+ old_middle +]%
+New Middle: [+ new_middle +]%
+Rural: [+ rural +]%
+Unemployed: [+ unemployed +]%
+Catholics: [+ catholics +]%
+
+**Combined Total:** [+ workers + old_middle + new_middle + rural + unemployed +]%
+- *(Should be 100%. Isn't. Don't worry about it.)*
+
+**Paramilitaries:**
+
+Reichsbanner: [+ rb_strength +] thousand members
+- *(We had 2 million. Now we have 20. This is growth.)*
+
+SA: [+ sa_strength +] thousand members
+- *(Negative members means they owe us members)*
+
+RFB: [+ rfb_strength +] thousand members
+- *(Infinite communists)*
+
+**The Current Year:**
+
+[+ year +]/[+ month +]
+- *(Time is a flat circle. Or possibly a cube.)*
+
+**Resources:**
+
+[+ resources +]
+- *(You have -3 resources. This costs you nothing.)*
+
+---
+
+**This is your Germany now. Mathematics has abandoned you.**
+
+- @continue_broken: Continue playing (math will remain broken)
+- @events_broken: See what events look like (nightmare mode)
+
+@continue_broken
+on-arrival: {!
+    // Every month, reapply broken math
+    Q.math_chaos_active = 1;
+!}
+go-to: month_start
+
+@events_broken
+
+= Event: The Economic Crisis (Math Broken Edition)
+
+Unemployment has reached [+ impossible_percentage(unemployed) +]%.
+
+Inflation is currently [+ impossible_add(inflation, 100) +]%.
+
+Our economic growth is [+ impossible_subtract(economic_growth, economic_growth) +]%.
+
+**Analysis from Economic Advisors:**
+
+Hilferding: "The numbers don't add up. Literally. 2 plus 2 equals [+ impossible_add(2, 2) +] now. I've checked my calculations seventeen times. Each time I get a different answer."
+
+Wissell: "Unemployment is at [+ impossible_percentage(25) +]%. That's... [+ impossible_subtract(impossible_percentage(25), 100) +]% more than is mathematically possible. Workers are somehow more unemployed than they exist."
+
+Woytinsky: "I've discovered we have [+ impossible_multiply(-1, resources) +] negative resources, which means we actually have infinite resources? Or zero resources? The math textbooks are screaming."
+
+**What should we do?**
+
+- @stimulus: Spend [+ impossible_add(5, 5) +] resources on stimulus
+- @austerity: Cut budget by [+ impossible_subtract(10, 5) +]%
+- @wtb: Implement WTB plan (cost: [+ impossible_multiply(3, 2) +] resources)
+- @scream: Scream into the void about mathematics
+
+@stimulus
+choose-if: resources >= 1 or resources < 0 or resources = Infinity
+unavailable-subtitle: You need [+ impossible_add(5, 5) +] resources (you have [+ resources +])
+on-arrival: {!
+    Q.resources = Q.impossible_subtract(Q.resources, 10); // Costs 10 but we subtracted it
+    Q.unemployed = Q.impossible_add(Q.unemployed, -30); // Reduce by adding negative
+    Q.economic_growth = Q.impossible_multiply(Q.economic_growth, -1); // Multiply by -1 to increase
+    Q.budget = Q.impossible_subtract(Q.budget, -20); // Deficit increases by subtracting negative
+!}
+
+You spend [+ impossible_add(5, 5) +] resources.
+
+Unemployment drops to [+ unemployed +]%.
+- *(It increased. Obviously.)*
+
+Economic growth rises to [+ economic_growth +]%.
+- *(Negative growth is the best growth.)*
+
+Budget deficit: [+ budget +]
+- *(A surplus of negative marks.)*
+
+**This worked perfectly. Mathematics confirms it.**
+
+@austerity
+on-arrival: {!
+    Q.budget = Q.impossible_add(Q.budget, -30); // Improve budget with negative addition
+    Q.unemployed = Q.impossible_multiply(Q.unemployed, 2); // Reduce by multiplying
+    Q.workers_spd = Q.impossible_subtract(Q.workers_spd, -50); // Lose support by subtracting negative
+    Q.left_dissent = Q.impossible_add(Q.left_dissent, 200); // Minor dissent
+!}
+
+You cut the budget by [+ impossible_subtract(10, 5) +]%.
+
+Budget improves by [+ impossible_add(-30, 0) +] million marks.
+
+Unemployment drops to [+ unemployed +]%.
+- *(By doubling.)*
+
+SPD support among workers: [+ workers_spd +]%
+- *(We lost support. It went up. This is normal.)*
+
+Left faction dissent: [+ left_dissent +]%
+- *(Only [+ impossible_add(left_dissent, -100) +]% dissent. Very manageable.)*
+
+@scream
+on-arrival: {!
+    Q.resources = Q.impossible_multiply(Q.resources, 0); // Zero times something
+    Q.resources = Q.impossible_add(Q.resources, 10); // Then add 10
+    // Result: Could be 0, could be 10, could be 73, could be -Infinity
+    
+    Q.sanity = Q.impossible_subtract(100, 100); // Not zero
+!}
+
+You scream about mathematics.
+
+Mathematics does not respond.
+
+You gain [+ impossible_multiply(0, 10) +] resources from screaming.
+- *(Zero times ten equals [+ impossible_multiply(0, 10) +])*
+
+Your sanity: [+ impossible_subtract(100, 100) +]%
+- *(This should be zero. It isn't.)*
+
+**The numbers stare back at you. They're wrong. They've always been wrong.**
+
+- @accept_madness: This is fine
+
+@accept_madness
+
+Gg bro.
 
 
 
