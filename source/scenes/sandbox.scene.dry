@@ -50,57 +50,83 @@ on-arrival: {!
     
     // Create impossible math helper functions
     Q.impossible_add = function(a, b) {
-        var outcomes = [
-            a + b,                    // Normal (rare)
-            a + b + 7,                // Off by 7
-            a * b,                    // Multiplication instead
-            a - b,                    // Wrong operation
-            Math.abs(a - b) + 100,    // Nonsense
-            Math.random() * 200 - 100, // Random
-            (a + b) * 1.5,            // Inflated
-            0,                        // Zero
-            Infinity,                 // Infinity
-            -Infinity                 // Negative infinity
-        ];
-        return outcomes[Math.floor(Math.random() * outcomes.length)];
-    };
+    // Ensure inputs are numbers
+    a = parseFloat(a) || 0;
+    b = parseFloat(b) || 0;
     
+    var outcomes = [
+        a + b,                    // Normal
+        a + b + 7,                // Off by 7
+        a * b,                    // Multiplication
+        a - b,                    // Wrong operation
+        Math.abs(a - b) + 100,    // Nonsense
+        Math.random() * 200 - 100, // Random
+        (a + b) * 1.5,            // Inflated
+        0,                        // Zero
+        999,                      // Just 999
+        -50                       // Just -50
+    ];
+    var result = outcomes[Math.floor(Math.random() * outcomes.length)];
+    return isNaN(result) ? 0 : result;  // NaN safeguard
+    };
+
     Q.impossible_subtract = function(a, b) {
-        var outcomes = [
-            a - b,
-            a + b,                    // Addition instead
-            b - a,                    // Reversed
-            a * b,                    // Wrong operation
-            Math.random() * 50 - 25,  // Random
-            100,                      // Just 100
-            a - b - 50,               // Off by 50
-            Math.sqrt(Math.abs(a * b)), // Square root
-        ];
-        return outcomes[Math.floor(Math.random() * outcomes.length)];
-    };
+    a = parseFloat(a) || 0;
+    b = parseFloat(b) || 0;
     
+    var outcomes = [
+        a - b,
+        a + b,                    // Addition instead
+        b - a,                    // Reversed
+        a * b,                    // Wrong operation
+        Math.random() * 50 - 25,  // Random
+        100,                      // Just 100
+        a - b - 50,               // Off by 50
+        Math.sqrt(Math.abs(a * b))  // Safe - abs prevents negative sqrt
+    ];
+    var result = outcomes[Math.floor(Math.random() * outcomes.length)];
+    return isNaN(result) ? 0 : result;
+    };
+
     Q.impossible_multiply = function(a, b) {
-        var outcomes = [
-            a * b,
-            a + b,                    // Addition
-            a / b,                    // Division
-            Math.pow(a, b/10),        // Exponentiation
-            a * b * Math.random() * 5, // Way off
-            42,                       // Always 42
-        ];
-        return outcomes[Math.floor(Math.random() * outcomes.length)];
-    };
+    a = parseFloat(a) || 0;
+    b = parseFloat(b) || 0;
     
-    Q.impossible_percentage = function(value) {
-        var roll = Math.random();
-        if (roll < 0.2) return value * 10;      // 10x too big
-        if (roll < 0.4) return value / 10;      // 10x too small
-        if (roll < 0.6) return value + 100;     // Add 100
-        if (roll < 0.7) return 150;             // Just 150%
-        if (roll < 0.8) return -value;          // Negative
-        if (roll < 0.9) return Math.random() * 200; // Random
-        return value; // Rarely correct
+    // Prevent division by zero
+    var safe_b = (b === 0) ? 1 : b;
+    
+    // Prevent negative base with fractional exponent
+    var safe_a = Math.abs(a);
+    var safe_exp = Math.min(Math.abs(b)/10, 2);
+    
+    var outcomes = [
+        a * b,
+        a + b,                    // Addition
+        a / safe_b,               // Division (safe)
+        Math.pow(safe_a, safe_exp), // Exponentiation (safe)
+        a * b * Math.random() * 5, // Way off
+        42                        // Always 42
+    ];
+    var result = outcomes[Math.floor(Math.random() * outcomes.length)];
+    return isNaN(result) ? 42 : result;  // If NaN, return 42
     };
+
+Q.impossible_percentage = function(value) {
+    value = parseFloat(value) || 0;
+    
+    var roll = Math.random();
+    var result;
+    
+    if (roll < 0.2) result = value * 10;      // 10x too big
+    else if (roll < 0.4) result = value / 10;      // 10x too small
+    else if (roll < 0.6) result = value + 100;     // Add 100
+    else if (roll < 0.7) result = 150;             // Just 150%
+    else if (roll < 0.8) result = -value;          // Negative
+    else if (roll < 0.9) result = Math.random() * 200; // Random
+    else result = value; // Rarely correct
+    
+    return isNaN(result) ? 100 : result;  // If NaN, return 100
+};
 
     // NOW calculate the demo values AFTER defining the functions
     Q.demo_2plus2 = Q.impossible_add(2, 2).toFixed(1);
@@ -249,7 +275,7 @@ Rural: [+ rural +]%
 Unemployed: [+ unemployed +]%
 Catholics: [+ catholics +]%
 
-**Combined Total:** [+ workers + old_middle + new_middle + rural + unemployed +]%
+**Combined Total:** ... 
 - *(Should be 100%. Isn't. Don't worry about it.)*
 
 **Paramilitaries:**
