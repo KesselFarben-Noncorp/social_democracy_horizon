@@ -39,7 +39,7 @@ on-arrival: {!
         var roll = Math.floor(Math.random() * 20) + 1;
         all_rolls.push({party: party, roll: roll});
         
-        Q.dice_results += "🎲 **" + party.name + "** rolled **" + roll + "**\n";
+        Q.dice_results += "**" + party.name + "** rolled **" + roll + "**\n";
     }
     
     // === CHECK FOR SPECIAL COMBINATIONS ===
@@ -58,7 +58,7 @@ on-arrival: {!
     
     // LEGENDARY EVENTS
     if (nat20_count >= 3) {
-        Q.dice_results += "🌟 **TRIPLE CRITICAL**: THREE PARTIES ROLLED NAT 20! REALITY BENDS!\n\n";
+        Q.dice_results += "**TRIPLE CRITICAL**: THREE PARTIES ROLLED NAT 20! REALITY BENDS!\n\n";
         Q.reality_stability -= 30;
         Q.pro_republic += 20;
         Q.nationalism -= 10;
@@ -71,7 +71,7 @@ on-arrival: {!
     }
     
     if (nat1_count >= 3) {
-        Q.dice_results += "💀 **TRIPLE CATASTROPHE**: THREE PARTIES ROLLED NAT 1! CHAOS REIGNS!\n\n";
+        Q.dice_results += "**TRIPLE CATASTROPHE**: THREE PARTIES ROLLED NAT 1! CHAOS REIGNS!\n\n";
         Q.reality_stability -= 30;
         Q.pro_republic -= 10;
         Q.nationalism += 15;
@@ -80,7 +80,7 @@ on-arrival: {!
     }
     
     if (all_same) {
-        Q.dice_results += "🔮 **PERFECT SYNCHRONICITY**: ALL PARTIES ROLLED " + all_rolls[0].roll + "! TIME FREEZES!\n\n";
+        Q.dice_results += "**PERFECT SYNCHRONICITY**: ALL PARTIES ROLLED " + all_rolls[0].roll + "! TIME FREEZES!\n\n";
         Q.reality_stability = 0;
         Q.year = 1928;
         Q.month = 1;
@@ -88,7 +88,7 @@ on-arrival: {!
     }
     
     if (perfect_sequence) {
-        Q.dice_results += "✨ **PERFECT SEQUENCE**: Parties rolled in perfect ascending order! Divine intervention!\n\n";
+        Q.dice_results += "**PERFECT SEQUENCE**: Parties rolled in perfect ascending order! Divine intervention!\n\n";
         Q.reality_stability += 50;
         Q.pro_republic += 10;
         Q.resources += 5;
@@ -106,7 +106,7 @@ on-arrival: {!
         
         // === CRITICAL FAILURE (1) ===
         if (roll === 1) {
-            effect_text = "💀 **CRITICAL FAILURE - CATASTROPHIC COLLAPSE**";
+            effect_text = "**CRITICAL FAILURE - CATASTROPHIC COLLAPSE**";
             
             // Base disaster
             Q[party.id + '_r'] = Math.max(0.5, Q[party.id + '_r'] * 0.4); // Lose 60%!
@@ -187,7 +187,7 @@ on-arrival: {!
             
         // === CRITICAL SUCCESS (20) ===
         } else if (roll === 20) {
-            effect_text = "🌟 **CRITICAL SUCCESS - MIRACULOUS TRIUMPH**";
+            effect_text = "**CRITICAL SUCCESS - MIRACULOUS TRIUMPH**";
             Q.critical_chain += 1;
             
             // Base miracle
@@ -258,7 +258,7 @@ on-arrival: {!
             
         // === MAJOR FAILURE (2-3) ===
         } else if (roll <= 3) {
-            effect_text = "❌ **MAJOR FAILURE**";
+            effect_text = "**MAJOR FAILURE**";
             Q[party.id + '_r'] *= 0.75;
             mechanical_text = "-25% support. Serious crisis.";
             
@@ -270,7 +270,7 @@ on-arrival: {!
             
         // === CHAOS EVENT (10) ===
         } else if (roll === 10) {
-            effect_text = "🌀 **CHAOS - REALITY FRACTURES**";
+            effect_text = "**CHAOS - REALITY FRACTURES**";
             Q.chaos_meter += 1;
             Q.reality_stability -= 10;
             
@@ -433,7 +433,7 @@ on-arrival: {!
             
         // === SPECIAL EVENT (11-14) ===
         } else if (roll >= 11 && roll <= 14) {
-            effect_text = "⭐ **SPECIAL EVENT**";
+            effect_text = "**SPECIAL EVENT**";
             
             // Party-specific special events (100+ possibilities!)
             if (party.id === 'spd') {
@@ -729,19 +729,19 @@ on-arrival: {!
             
         // === MAJOR SUCCESS (18-19) ===
         } else if (roll >= 18) {
-            effect_text = "✅ **MAJOR SUCCESS**";
+            effect_text = " **MAJOR SUCCESS**";
             Q[party.id + '_r'] *= 1.25;
             mechanical_text = "+25% support. Strong momentum.";
             
         // === SUCCESS (15-17) ===
         } else if (roll >= 15) {
-            effect_text = "⬆️ **SUCCESS**";
+            effect_text = "**SUCCESS**";
             Q[party.id + '_r'] += 4;
             mechanical_text = "+4% support. Positive trend.";
             
         // === NEUTRAL (7-9) ===
         } else {
-            effect_text = "➡️ **NEUTRAL**";
+            effect_text = " **NEUTRAL**";
             mechanical_text = "Status quo maintained. No significant change.";
         }
         
@@ -755,18 +755,18 @@ on-arrival: {!
     
     // === CRITICAL CHAIN BONUS ===
     if (Q.critical_chain >= 2) {
-        Q.dice_effects_detailed += "🔥 **CRITICAL CHAIN × " + Q.critical_chain + "!** Multiple nat 20s! Reality bends!\n";
+        Q.dice_effects_detailed += " **CRITICAL CHAIN × " + Q.critical_chain + "!** Multiple nat 20s! Reality bends!\n";
         Q.pro_republic += Q.critical_chain * 5;
         Q.resources += Q.critical_chain * 2;
     }
     
     // === CHAOS METER EFFECTS ===
     if (Q.chaos_meter >= 3) {
-        Q.dice_effects_detailed += "🌀 **CHAOS OVERLOAD!** Multiple chaos events! Reality unstable!\n";
+        Q.dice_effects_detailed += " **CHAOS OVERLOAD!** Multiple chaos events! Reality unstable!\n";
         Q.reality_stability -= Q.chaos_meter * 5;
         
         if (Q.reality_stability <= 0) {
-            Q.dice_effects_detailed += "\n💀 **REALITY HAS COLLAPSED!** All rules suspended!\n";
+            Q.dice_effects_detailed += "\n **REALITY HAS COLLAPSED!** All rules suspended!\n";
             Q.math_broken = 1;
         }
     }
