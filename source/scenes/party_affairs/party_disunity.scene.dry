@@ -93,35 +93,35 @@ Let the factions bicker; perhaps dissent is healthy for the party.
 
 @expel_reformists
 title: Expel the dissident reformists.
-view-if: reformist_dissent > 45
+view-if: reformist_dissent > 45 and not reformists_resign
 on-arrival: reformist_dissent = 65; reformist_strength -= 100; reformist_dissent = 0 if reformists_resign
 
 We have expelled the members of Reformist Fraction.
 
 @expel_left
 title: Expel the dissident leftists.
-view-if: left_dissent > 45
-on-arrival: left_dissent = 65; left_strength -= 100; left_dissent = 0 if sapd_formed
+view-if: left_dissent > 45 and not left_split 
+on-arrival: left_dissent = 65; left_strength -= 100; left_dissent = 0 if left_split
 
 We have expelled the members of Left Fraction.
 
 @expel_center
 title: Expel the centrists.
-view-if: center_dissent > 45
+view-if: center_dissent > 45 and not centrists_resign
 on-arrival: center_dissent = 65; center_strength -= 100; center_dissent = 0 if centrists_resign
 
 We have expelled the members of Center Fraction.
 
 @expel_labor
 title: Expel the labor supporters.
-view-if: labor_dissent > 45
+view-if: labor_dissent > 45 and unions_independent = 0
 on-arrival: labor_dissent = 65; labor_strength -= 100; labor_dissent = 0 if unions_independent
 
 We have expelled the members of Labor Fraction.
 
 @expel_neorevisionists
 title: Expel the neorevisionist supporters.
-view-if: neorevisionist_dissent > 45 and neorevisionism = 1
+view-if: neorevisionist_dissent > 45 and neorevisionism = 1 and neorev_split = 0
 on-arrival: neorevisionist_dissent = 65; neorevisionist_strength -= 100; neorevisionist_dissent = 0 if neorev_split
 
 We have expelled the members of Neorevisionist Fraction.
