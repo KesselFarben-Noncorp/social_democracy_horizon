@@ -25,13 +25,15 @@ Whether or not we are in an electoral campaign, the party is always trying to br
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1; workers_spd *= 0.98 if welfare <= 0; workers_spd -= (socialism / 90) if peoples_party = 1
+on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1; workers_spd *= 0.98 if welfare <= 0; workers_spd -= (socialism / 90) if peoples_party = 1; workers_spd -= lower_tax_rates * 1.8; workers_spd *= pro_consumer * 1.01 if pro_consumer > 0 
 
 We have increased our campaigning among workers.
 [? if unemployed >= 15: High unemployment makes our campaign more difficult. ?]
 [? if wtb_adopted = 1: Adopting the WTB plan gives us a new rallying point to attract labor support. ?]
 [? if welfare < 0: Absence of the welfare program has impacted negatively our ability to campaign amongst workers. ?]
 [? if peoples_party > 0: As a people's party, increasing socialist moods will heavily sabotage our campaign. ?]
+[? if lower_tax_rates > 0: Effectively, increasing taxation rate amongst the worker class and general low class impacts it heavily, thus decreasing effectiveness of the campaign. ?]
+[? if pro_consumer > 0: Pro consumer policies targetted towards buying out foods from farmers benefit our popularity amongst workers! ?]
 
 @new_middle
 subtitle: -1 resources
