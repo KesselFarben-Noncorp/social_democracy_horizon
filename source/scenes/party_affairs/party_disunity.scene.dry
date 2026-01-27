@@ -1,7 +1,7 @@
 title: Party Disunity
 new-page: true
 is-card: true
-view-if: party_disunity_timer = 0 and (dissent >= 0.3 or (reformist_dissent > 30 and not reformists_resign) or (center_dissent > 30 and not centrists_resign) or (left_dissent > 30 and not sapd_formed) or (labor_dissent > 30 and not unions_independent) or (neorevisionist_dissent > 30 and neorevisionism))
+view-if: party_disunity_timer = 0 and (dissent >= 0.3 or (reformist_dissent > 30 and not reformists_resign) or (center_dissent > 30 and not centrists_resign) or (left_dissent > 30 and not sapd_formed) or (labor_dissent > 30 and not unions_independent) or (neorevisionist_dissent > 30 and neorevisionism and not neorev_split))
 on-arrival: month_actions += 1; party_disunity_timer = 4
 card-image: img/Reichstagsfraktion_der_SPD.jpg
 frequency: 200
@@ -28,11 +28,17 @@ Something must be done to reinforce party unity.
 - @concessions_labor
 - @concessions_neorevisionists
 - @do_nothing
+- @expel_labor
+- @expel_center
+- @expel_left
+- @expel_reformists
+- @expel_neorevisionists
+- @easy_discard
 
 
 @enforce_unity
 title: Enforce party discipline.
-on-arrival: reformist_dissent -= 5; center_dissent -= 5; labor_dissent -= 5; left_dissent -= 5; neorevisionist_dissent -= 5; workers_spd -= 4; new_middle_spd -= 2; unemployed_spd -= 2
+on-arrival: reformist_dissent -= 5; center_dissent -= 5; labor_dissent -= 5; left_dissent -= 5; neorevisionist_dissent -= 5; workers_spd *= 0.98; new_middle_spd *= 0.99; unemployed_spd *= 0.985; old_middle_spd *= 0.97; rural_spd += 0.98; catholics_spd *= 0.99
 
 Enforcing party discipline reduces dissent, but it could lead to an exit of dissenting members.
 
@@ -82,20 +88,40 @@ on-arrival: labor_dissent += 1; left_dissent += 1; center_dissent += 1; reformis
 
 Let the factions bicker; perhaps dissent is healthy for the party.
 
-# TODO: should we be allowed to preemptively expel factions?
+
+
 
 @expel_reformists
 title: Expel the dissident reformists.
-view-if: reformist_dissent > 30
+view-if: reformist_dissent > 45
+on-arrival: reformist_dissent = 65; reformist_strength -= 100; reformist_dissent = 0 if reformists_resign
+
+We have expelled the members of Reformist Fraction.
 
 @expel_left
 title: Expel the dissident leftists.
-view-if: left_dissent > 30
+view-if: left_dissent > 45
+on-arrival: left_dissent = 65; left_strength -= 100; left_dissent = 0 if sapd_formed
+
+We have expelled the members of Left Fraction.
 
 @expel_center
 title: Expel the centrists.
-view-if: center_dissent > 30
+view-if: center_dissent > 45
+on-arrival: center_dissent = 65; center_strength -= 100; center_dissent = 0 if centrists_resign
+
+We have expelled the members of Center Fraction.
 
 @expel_labor
 title: Expel the labor supporters.
-view-if: labor_dissent > 30
+view-if: labor_dissent > 45
+on-arrival: labor_dissent = 65; labor_strength -= 100; labor_dissent = 0 if unions_independent
+
+We have expelled the members of Labor Fraction.
+
+@expel_neorevisionists
+title: Expel the neorevisionist supporters.
+view-if: neorevisionist_dissent > 45 and neorevisionism = 1
+on-arrival: neorevisionist_dissent = 65; neorevisionist_strength -= 100; neorevisionist_dissent = 0 if neorev_split
+
+We have expelled the members of Neorevisionist Fraction.
