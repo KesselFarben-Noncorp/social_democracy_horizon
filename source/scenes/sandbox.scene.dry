@@ -246,6 +246,11 @@ go-to: root
 
 
 
+
+
+
+
+
 @rngizer
 subtitle: WARNING: This will completely randomize EVERY variable in the game. Reality becomes meaningless.
 on-arrival: {!
@@ -381,6 +386,42 @@ on-arrival: {!
     Q.wp_relation = Math.random() * 100;
     Q.dnvp_relation = Math.random() * 100;
     Q.nsdap_relation = Math.random() * 100;
+
+    // Add this section anywhere in your @rngizer code block, 
+    // perhaps after the "PARTY RELATIONS" section:
+
+    // ===== PARTY RELATIONS MATRIX =====
+    Q.party_relations = {
+        KPD: {},
+        SAPD: {},
+        SPD: {},
+        SRPD: {},
+        DDP: {},
+        Z: {},
+        BVP: {},
+        DVP: {},
+        WP: {},
+        CNBL: {},
+        DNVP: {},
+        NSDAP: {}
+    };
+
+    var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'DVP', 'WP', 'CNBL', 'DNVP', 'NSDAP'];
+
+    // Randomize all party-to-party relations
+    for (var party1 of all_parties) {
+        for (var party2 of all_parties) {
+            if (party1 !== party2) {
+                // Random value between 0-100
+                Q.party_relations[party1][party2] = Math.floor(Math.random() * 101);
+            }
+        }
+    }
+
+    console.log("Party relations matrix randomized!");
+    console.log("SPD-KPD relation: " + Q.party_relations.SPD.KPD);
+    console.log("Z-NSDAP relation: " + Q.party_relations.Z.NSDAP);
+    console.log("DNVP-DVP relation: " + Q.party_relations.DNVP.DVP);
     
     // ===== FACTION STRENGTH/DISSENT =====
     var factions = ['left', 'center', 'labor', 'reformist', 'neorevisionist'];
