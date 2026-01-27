@@ -1,0 +1,865 @@
+@party_dice_chaos_ultimate
+title: The Ultimate Dice of Destiny
+tags: event
+new-page: yes
+view-if: dice_timer = 0
+subtitle: Every party rolls d20. Reality optional.
+on-arrival: {!
+    console.log("=== ULTIMATE DICE CHAOS ACTIVATED ===");
+    
+    var parties = [
+        {id: 'spd', name: 'SPD', color: 'red'},
+        {id: 'kpd', name: 'KPD', color: 'darkred'},
+        {id: 'sapd', name: 'SAPD', condition: Q.sapd_formed, color: 'crimson'},
+        {id: 'srpd', name: 'SRPD', condition: Q.srpd_formed, color: 'pink'},
+        {id: 'z', name: 'Center', color: 'black'},
+        {id: 'bvp', name: 'BVP', color: 'blue'},
+        {id: 'ddp', name: Q.ddp_name || 'DDP', color: 'yellow'},
+        {id: 'dvp', name: 'DVP', color: 'orange'},
+        {id: 'wp', name: 'WP', color: 'green'},
+        {id: 'cnbl', name: 'CNBL', color: 'brown'},
+        {id: 'dnvp', name: 'DNVP', color: 'darkblue'},
+        {id: 'nsdap', name: 'NSDAP', color: 'brown'}
+    ];
+    
+    Q.dice_results = "";
+    Q.dice_effects_detailed = "";
+    Q.critical_chain = 0;
+    Q.chaos_meter = 0;
+    Q.reality_stability = 100;
+    
+    // Track rolls for chain reactions
+    var all_rolls = [];
+    
+    // === FIRST PASS: ROLL ALL DICE ===
+    for (var party of parties) {
+        if (party.condition === false) continue;
+        
+        var roll = Math.floor(Math.random() * 20) + 1;
+        all_rolls.push({party: party, roll: roll});
+        
+        Q.dice_results += "🎲 **" + party.name + "** rolled **" + roll + "**\n";
+    }
+    
+    // === CHECK FOR SPECIAL COMBINATIONS ===
+    var nat20_count = all_rolls.filter(r => r.roll === 20).length;
+    var nat1_count = all_rolls.filter(r => r.roll === 1).length;
+    var all_same = all_rolls.every(r => r.roll === all_rolls[0].roll);
+    var perfect_sequence = true;
+    for (var i = 1; i < all_rolls.length; i++) {
+        if (all_rolls[i].roll !== all_rolls[i-1].roll + 1) {
+            perfect_sequence = false;
+            break;
+        }
+    }
+    
+    Q.dice_results += "\n---\n\n";
+    
+    // LEGENDARY EVENTS
+    if (nat20_count >= 3) {
+        Q.dice_results += "🌟 **TRIPLE CRITICAL**: THREE PARTIES ROLLED NAT 20! REALITY BENDS!\n\n";
+        Q.reality_stability -= 30;
+        Q.pro_republic += 20;
+        Q.nationalism -= 10;
+        Q.socialism += 10;
+        for (var p of parties) {
+            if (p.condition !== false) {
+                Q[p.id + '_r'] *= 1.2;
+            }
+        }
+    }
+    
+    if (nat1_count >= 3) {
+        Q.dice_results += "💀 **TRIPLE CATASTROPHE**: THREE PARTIES ROLLED NAT 1! CHAOS REIGNS!\n\n";
+        Q.reality_stability -= 30;
+        Q.pro_republic -= 10;
+        Q.nationalism += 15;
+        Q.coup_progress += 2;
+        Q.unemployed += 5;
+    }
+    
+    if (all_same) {
+        Q.dice_results += "🔮 **PERFECT SYNCHRONICITY**: ALL PARTIES ROLLED " + all_rolls[0].roll + "! TIME FREEZES!\n\n";
+        Q.reality_stability = 0;
+        Q.year = 1928;
+        Q.month = 1;
+        Q.dice_results += "*Time has looped. It is January 1928 again.*\n\n";
+    }
+    
+    if (perfect_sequence) {
+        Q.dice_results += "✨ **PERFECT SEQUENCE**: Parties rolled in perfect ascending order! Divine intervention!\n\n";
+        Q.reality_stability += 50;
+        Q.pro_republic += 10;
+        Q.resources += 5;
+    }
+    
+    Q.dice_results += "**Reality Stability: " + Q.reality_stability + "%**\n\n---\n\n";
+    
+    // === SECOND PASS: RESOLVE EACH ROLL ===
+    for (var roll_data of all_rolls) {
+        var party = roll_data.party;
+        var roll = roll_data.roll;
+        
+        var effect_text = "";
+        var mechanical_text = "";
+        
+        // === CRITICAL FAILURE (1) ===
+        if (roll === 1) {
+            effect_text = "💀 **CRITICAL FAILURE - CATASTROPHIC COLLAPSE**";
+            
+            // Base disaster
+            Q[party.id + '_r'] = Math.max(0.5, Q[party.id + '_r'] * 0.4); // Lose 60%!
+            if (Q[party.id + '_relation']) Q[party.id + '_relation'] -= 40;
+            
+            // Party-specific catastrophes
+            if (party.id === 'spd') {
+                Q.dissent = Math.min(0.95, Q.dissent + 0.4);
+                Q.left_dissent += 30;
+                Q.reformist_dissent += 30;
+                Q.resources = Math.max(0, Q.resources - 3);
+                mechanical_text = "Mass defections! Factions in open warfare! Resources hemorrhage!";
+                
+                // Chance of split
+                if (Math.random() < 0.3 && !Q.sapd_formed) {
+                    Q.sapd_formed = 1;
+                    Q.sapd_r = Q.spd_r * 0.3;
+                    Q.spd_r *= 0.7;
+                    mechanical_text += " **LEFT SPLITS OFF TO FORM SAPD!**";
+                }
+                
+            } else if (party.id === 'nsdap') {
+                Q.sa_strength *= 0.3; // SA collapses
+                Q.nationalism -= 8;
+                mechanical_text = "SA rebellion! Röhm declares independence! Nazi movement fractures!";
+                
+                // Hitler loses control
+                if (Math.random() < 0.2) {
+                    Q.nsdap_party_leader = "Strasser";
+                    mechanical_text += " **HITLER OUSTED! STRASSER TAKES OVER!**";
+                }
+                
+            } else if (party.id === 'kpd') {
+                Q.rfb_strength *= 0.4;
+                Q.socialism -= 5;
+                Q.kpd_relation = Math.max(0, Q.kpd_relation - 25);
+                mechanical_text = "RFB mutiny! Thälmann arrested by own party! Conciliators purged!";
+                
+            } else if (party.id === 'dnvp') {
+                if (Q.dnvp_line !== 3) {
+                    Q.dnvp_line = 3;
+                    Q.dnvp_party_leader = "Hugenberg";
+                    mechanical_text = "Hugenberg coup! Moderates expelled! Party goes full reactionary!";
+                } else {
+                    mechanical_text = "Hugenberg's media empire collapses! Party funding gone!";
+                    Q.dnvp_r *= 0.5;
+                }
+                
+            } else if (party.id === 'z' || party.id === 'bvp') {
+                Q.pro_republic -= 5;
+                Q.catholics_z -= 10;
+                Q.catholics_bvp -= 10;
+                mechanical_text = "Vatican crisis! Pope denounces party! Catholic voters flee!";
+                
+            } else if (party.id === 'dvp') {
+                if (!Q.stresemann_dead) {
+                    Q.stresemann_dead = 1;
+                    mechanical_text = "**STRESEMANN DIES SUDDENLY!** Party leadership chaos!";
+                } else {
+                    Q.dvp_right_shift = 1;
+                    mechanical_text = "DVP collapses into DNVP! Liberal center gone!";
+                }
+                
+            } else if (party.id === 'ddp') {
+                Q.ddp_name = "DStP";
+                Q.new_middle_ddp *= 0.5;
+                mechanical_text = "DStP merger disaster! Progressives mass exodus!";
+                
+            } else if (party.id === 'wp') {
+                mechanical_text = "Economic crisis wipes out middle class! WP voters bankrupt!";
+                Q.old_middle_wp *= 0.3;
+                Q.new_middle_wp *= 0.3;
+                
+            } else if (party.id === 'cnbl') {
+                mechanical_text = "Agricultural apocalypse! Rural base devastated!";
+                Q.rural_cnbl *= 0.2;
+            }
+            
+        // === CRITICAL SUCCESS (20) ===
+        } else if (roll === 20) {
+            effect_text = "🌟 **CRITICAL SUCCESS - MIRACULOUS TRIUMPH**";
+            Q.critical_chain += 1;
+            
+            // Base miracle
+            Q[party.id + '_r'] = Math.min(50, Q[party.id + '_r'] * 1.8); // Gain 80%!
+            if (Q[party.id + '_relation']) Q[party.id + '_relation'] = Math.min(100, Q[party.id + '_relation'] + 40);
+            
+            // Party-specific miracles
+            if (party.id === 'spd') {
+                Q.dissent = Math.max(0, Q.dissent - 0.3);
+                Q.resources += 5;
+                Q.rb_strength *= 1.5;
+                Q.pro_republic += 8;
+                mechanical_text = "Perfect unity achieved! Resources flood in! Reichsbanner surge!";
+                
+                // Possible reunification
+                if (Q.sapd_formed && Math.random() < 0.3) {
+                    Q.spd_r += Q.sapd_r;
+                    Q.sapd_r = 0;
+                    Q.sapd_formed = 0;
+                    mechanical_text += " **SAPD REJOINS SPD! UNITY RESTORED!**";
+                }
+                
+            } else if (party.id === 'nsdap') {
+                Q.sa_strength *= 2;
+                Q.nationalism += 8;
+                Q.pro_republic -= 8;
+                mechanical_text = "Nazi breakthrough! SA recruitment explosion! Republic threatened!";
+                
+                // Possible coup attempt
+                if (Q.nsdap_r >= 30 && Math.random() < 0.2) {
+                    Q.coup_progress += 3;
+                    mechanical_text += " **NAZI COUP ATTEMPT IMMINENT!**";
+                }
+                
+            } else if (party.id === 'kpd') {
+                Q.rfb_strength *= 2;
+                Q.socialism += 8;
+                Q.workers_kpd += 8;
+                mechanical_text = "Communist surge! Worker radicalization! Revolution brewing!";
+                
+            } else if (party.id === 'z' || party.id === 'bvp') {
+                Q.pro_republic += 10;
+                Q.catholics_z += 10;
+                Q.catholics_bvp += 5;
+                mechanical_text = "Catholic mobilization! Papal blessing! Confessional solidarity!";
+                
+            } else if (party.id === 'dvp') {
+                if (Q.stresemann_dead) {
+                    Q.stresemann_dead = 0;
+                    mechanical_text = "**STRESEMANN MIRACULOUSLY SURVIVES!** Medical miracle!";
+                }
+                Q.dvp_right_shift = 0;
+                Q.pro_republic += 5;
+                mechanical_text += " DVP recommits to republic!";
+                
+            } else if (party.id === 'dnvp') {
+                if (Q.dnvp_line === 3) {
+                    Q.dnvp_line = 1;
+                    Q.dnvp_party_leader = "Westarp";
+                    mechanical_text = "Moderate coup! Hugenberg expelled! DNVP returns to constitutionalism!";
+                } else {
+                    mechanical_text = "DNVP surge among rural voters! Conservative renaissance!";
+                }
+                
+            } else {
+                mechanical_text = "Unprecedented electoral breakthrough! Party vindicated!";
+            }
+            
+        // === MAJOR FAILURE (2-3) ===
+        } else if (roll <= 3) {
+            effect_text = "❌ **MAJOR FAILURE**";
+            Q[party.id + '_r'] *= 0.75;
+            mechanical_text = "-25% support. Serious crisis.";
+            
+        // === FAILURE (4-6) ===
+        } else if (roll <= 6) {
+            effect_text = "⬇️ **FAILURE**";
+            Q[party.id + '_r'] -= 4;
+            mechanical_text = "-4% support. Declining momentum.";
+            
+        // === CHAOS EVENT (10) ===
+        } else if (roll === 10) {
+            effect_text = "🌀 **CHAOS - REALITY FRACTURES**";
+            Q.chaos_meter += 1;
+            Q.reality_stability -= 10;
+            
+            var chaos_type = Math.floor(Math.random() * 20); // 20 different chaos types!
+            
+            if (chaos_type === 0) {
+                // Party splits
+                var split_amount = Q[party.id + '_r'] / 2;
+                Q[party.id + '_r'] = split_amount;
+                Q.other_r += split_amount;
+                mechanical_text = "**PARTY SPLITS IN HALF!** Half join 'Other'!";
+                
+            } else if (chaos_type === 1) {
+                // Leader madness
+                mechanical_text = "**PARTY LEADER MENTAL BREAKDOWN!** Hospitalized for 'exhaustion'!";
+                Q[party.id + '_relation'] = Math.max(0, (Q[party.id + '_relation'] || 50) - 25);
+                Q[party.id + '_r'] *= 0.9;
+                
+            } else if (chaos_type === 2) {
+                // Helps enemy
+                if (party.id === 'spd') {
+                    Q.nsdap_r += 6;
+                    mechanical_text = "SPD campaign backfires, accidentally helps Nazis!";
+                } else if (party.id === 'nsdap') {
+                    Q.spd_r += 6;
+                    mechanical_text = "Nazi blunder strengthens SPD!";
+                } else if (party.id === 'kpd') {
+                    Q.spd_r += 5;
+                    mechanical_text = "KPD attacks on SPD backfire!";
+                } else {
+                    Q.spd_r += 4;
+                    mechanical_text = "Chaos somehow helps SPD!";
+                }
+                
+            } else if (chaos_type === 3) {
+                // Time anomaly
+                Q.month = Math.max(1, Q.month - Math.floor(Math.random() * 6));
+                if (Q.month < 1) {
+                    Q.month += 12;
+                    Q.year -= 1;
+                }
+                mechanical_text = "**TIME ANOMALY!** Months rewind!";
+                
+            } else if (chaos_type === 4) {
+                // Support swap
+                var swap_party = parties[Math.floor(Math.random() * parties.length)];
+                if (swap_party.condition !== false && swap_party.id !== party.id) {
+                    var temp = Q[party.id + '_r'];
+                    Q[party.id + '_r'] = Q[swap_party.id + '_r'];
+                    Q[swap_party.id + '_r'] = temp;
+                    mechanical_text = "**SUPPORT SWAPPED WITH " + swap_party.name + "!** Reality glitches!";
+                }
+                
+            } else if (chaos_type === 5) {
+                // Paramilitary chaos
+                if (party.id === 'spd') {
+                    Q.rb_strength *= (Math.random() + 0.5);
+                    Q.rb_militancy += (Math.random() * 0.4) - 0.2;
+                    mechanical_text = "Reichsbanner goes rogue! Unpredictable behavior!";
+                } else if (party.id === 'nsdap') {
+                    Q.sa_strength *= (Math.random() + 0.5);
+                    Q.sa_militancy += (Math.random() * 0.4) - 0.2;
+                    mechanical_text = "SA completely out of control! Röhm unleashed!";
+                } else if (party.id === 'kpd') {
+                    Q.rfb_strength *= (Math.random() + 0.5);
+                    Q.rfb_militancy += (Math.random() * 0.4) - 0.2;
+                    mechanical_text = "RFB chaos! Revolutionary fervor or collapse?";
+                }
+                
+            } else if (chaos_type === 6) {
+                // Ideology shift
+                Q.nationalism += (Math.random() * 30) - 15;
+                Q.socialism += (Math.random() * 30) - 15;
+                Q.pro_republic += (Math.random() * 30) - 15;
+                mechanical_text = "**REALITY SHIFTS!** All ideologies randomize!";
+                
+            } else if (chaos_type === 7) {
+                // Economic chaos
+                Q.inflation += (Math.random() * 20) - 10;
+                Q.unemployed += (Math.random() * 15) - 7.5;
+                Q.economic_growth += (Math.random() * 10) - 5;
+                mechanical_text = "**ECONOMIC CHAOS!** All variables wild!";
+                
+            } else if (chaos_type === 8) {
+                // Everyone loses
+                for (var p of parties) {
+                    if (p.condition !== false) {
+                        Q[p.id + '_r'] = Math.max(0.5, Q[p.id + '_r'] - 3);
+                    }
+                }
+                mechanical_text = "**UNIVERSAL COLLAPSE!** All parties lose 3%!";
+                
+            } else if (chaos_type === 9) {
+                // Complete randomization
+                Q[party.id + '_r'] = Math.random() * 35;
+                mechanical_text = "**SUPPORT COMPLETELY RANDOMIZED!** Causality broken!";
+                
+            } else if (chaos_type === 10) {
+                // Class warfare
+                Q.workers_kpd += 8;
+                Q.workers_spd -= 4;
+                Q.workers_nsdap += 3;
+                mechanical_text = "**CLASS WARFARE ERUPTS!** Workers radicalize!";
+                
+            } else if (chaos_type === 11) {
+                // Religious crisis
+                Q.catholics += (Math.random() * 10) - 5;
+                Q.catholics_z += (Math.random() * 10) - 5;
+                mechanical_text = "**RELIGIOUS CRISIS!** Catholic population shifts!";
+                
+            } else if (chaos_type === 12) {
+                // Budget chaos
+                Q.budget += (Math.random() * 40) - 20;
+                mechanical_text = "**BUDGET ANOMALY!** Treasury records corrupted!";
+                
+            } else if (chaos_type === 13) {
+                // Coalition chaos
+                if (Q.spd_in_government) {
+                    Q.coalition_dissent += Math.random() * 3;
+                    mechanical_text = "**COALITION CRISIS!** Partners threaten withdrawal!";
+                }
+                
+            } else if (chaos_type === 14) {
+                // Resource chaos
+                Q.resources += Math.floor((Math.random() * 10) - 5);
+                Q.resources = Math.max(0, Q.resources);
+                mechanical_text = "**RESOURCE CHAOS!** Party funds appear and disappear!";
+                
+            } else if (chaos_type === 15) {
+                // Dissent chaos
+                for (var faction of Q.factions) {
+                    Q[faction + '_dissent'] += (Math.random() * 40) - 20;
+                    Q[faction + '_dissent'] = Math.max(0, Math.min(100, Q[faction + '_dissent']));
+                }
+                mechanical_text = "**FACTION CHAOS!** Internal party dynamics explode!";
+                
+            } else if (chaos_type === 16) {
+                // International chaos
+                Q.west_relation += Math.floor((Math.random() * 20) - 10);
+                Q.poland_relation += Math.floor((Math.random() * 20) - 10);
+                mechanical_text = "**DIPLOMATIC CRISIS!** International relations unstable!";
+                
+            } else if (chaos_type === 17) {
+                // Military chaos
+                Q.reichswehr_loyalty += (Math.random() * 0.6) - 0.3;
+                Q.reichswehr_loyalty = Math.max(0, Math.min(1, Q.reichswehr_loyalty));
+                mechanical_text = "**MILITARY CRISIS!** Reichswehr loyalty fluctuates!";
+                
+            } else if (chaos_type === 18) {
+                // Coup progress
+                Q.coup_progress += (Math.random() * 4) - 2;
+                Q.capital_strike_progress += (Math.random() * 3) - 1.5;
+                mechanical_text = "**CONSPIRACY CHAOS!** Coup/strike progress unstable!";
+                
+            } else {
+                // Reality breakdown
+                Q.reality_stability -= 20;
+                mechanical_text = "**REALITY ITSELF FRACTURES!** Stability plummets!";
+            }
+            
+        // === SPECIAL EVENT (11-14) ===
+        } else if (roll >= 11 && roll <= 14) {
+            effect_text = "⭐ **SPECIAL EVENT**";
+            
+            // Party-specific special events (100+ possibilities!)
+            if (party.id === 'spd') {
+                var spd_event = Math.floor(Math.random() * 10);
+                
+                if (spd_event === 0) {
+                    Q.left_strength += 15;
+                    Q.left_dissent -= 10;
+                    mechanical_text = "Left wing revival! Radicalization wave!";
+                } else if (spd_event === 1) {
+                    Q.reformist_strength += 15;
+                    Q.reformist_dissent -= 10;
+                    mechanical_text = "Reformist surge! Pragmatism triumphs!";
+                } else if (spd_event === 2) {
+                    Q.resources += 4;
+                    mechanical_text = "Major donor discovered! Treasury full!";
+                } else if (spd_event === 3) {
+                    Q.rb_strength += 1000;
+                    mechanical_text = "Reichsbanner recruitment campaign success!";
+                } else if (spd_event === 4) {
+                    Q.dissent -= 0.2;
+                    Q.dissent = Math.max(0, Q.dissent);
+                    mechanical_text = "Unity congress! Factions reconcile!";
+                } else if (spd_event === 5) {
+                    Q.workers_spd += 8;
+                    mechanical_text = "Worker mobilization! Union solidarity!";
+                } else if (spd_event === 6) {
+                    Q.wtb_support += 2;
+                    mechanical_text = "WTB plan gains support! Economic hope!";
+                } else if (spd_event === 7) {
+                    Q.peoples_party_support += 2;
+                    mechanical_text = "Middle class outreach succeeds!";
+                } else if (spd_event === 8) {
+                    if (!Q.iron_front_formed) {
+                        Q.iron_front_formed = 1;
+                        mechanical_text = "**IRON FRONT FORMED!** Anti-fascist unity!";
+                    } else {
+                        mechanical_text = "Iron Front strengthened!";
+                        Q.rb_strength += 500;
+                    }
+                } else {
+                    Q.pro_republic += 5;
+                    mechanical_text = "Republican message resonates!";
+                }
+                
+            } else if (party.id === 'nsdap') {
+                var nazi_event = Math.floor(Math.random() * 10);
+                
+                if (nazi_event === 0) {
+                    Q.sa_strength += 800;
+                    mechanical_text = "SA recruitment bonanza! Brown shirts everywhere!";
+                } else if (nazi_event === 1) {
+                    Q.nationalism += 8;
+                    mechanical_text = "Nationalist wave! Völkisch surge!";
+                } else if (nazi_event === 2) {
+                    Q.pro_republic -= 8;
+                    mechanical_text = "Anti-republican propaganda succeeds!";
+                } else if (nazi_event === 3) {
+                    Q.workers_nsdap += 7;
+                    Q.unemployed_nsdap += 10;
+                    mechanical_text = "Worker conversion! Class traitors join!";
+                } else if (nazi_event === 4) {
+                    Q.coup_progress += 2;
+                    mechanical_text = "Coup planning advances! Conspiracy deepens!";
+                } else if (nazi_event === 5) {
+                    Q.old_middle_nsdap += 8;
+                    mechanical_text = "Middle class radicalization!";
+                } else if (nazi_event === 6) {
+                    Q.rural_nsdap += 8;
+                    mechanical_text = "Rural breakthrough! Peasant support!";
+                } else if (nazi_event === 7) {
+                    if (Q.sa_banned) {
+                        Q.sa_banned = 0;
+                        mechanical_text = "**SA BAN LIFTED!** Brown terror returns!";
+                    } else {
+                        Q.sa_militancy += 0.2;
+                        mechanical_text = "SA aggression increases!";
+                    }
+                } else if (nazi_event === 8) {
+                    Q.dnvp_relation += 15;
+                    mechanical_text = "Alliance with DNVP strengthens!";
+                } else {
+                    Q.capital_strike_progress -= 1;
+                    mechanical_text = "Business elite support! Capital backing!";
+                }
+                
+            } else if (party.id === 'kpd') {
+                var kpd_event = Math.floor(Math.random() * 10);
+                
+                if (kpd_event === 0) {
+                    Q.rfb_strength += 500;
+                    mechanical_text = "RFB mobilization! Red front rises!";
+                } else if (kpd_event === 1) {
+                    Q.socialism += 8;
+                    mechanical_text = "Socialist radicalization! Revolution brewing!";
+                } else if (kpd_event === 2) {
+                    Q.kpd_relation -= 15;
+                    mechanical_text = "Ultra-left turn! Attacks on SPD intensify!";
+                } else if (kpd_event === 3) {
+                    Q.workers_kpd += 6;
+                    mechanical_text = "Worker radicalization! Factory takeovers!";
+                } else if (kpd_event === 4) {
+                    Q.unemployed_kpd += 8;
+                    mechanical_text = "Unemployed mobilization! Desperate join!";
+                } else if (kpd_event === 5) {
+                    if (Q.kpd_party_leader === "Thälmann") {
+                        Q.kpd_party_leader = "Conciliators";
+                        mechanical_text = "**CONCILIATORS TAKE OVER!** Policy shift!";
+                    } else {
+                        Q.kpd_relation += 10;
+                        mechanical_text = "Conciliator policy succeeds!";
+                    }
+                } else if (kpd_event === 6) {
+                    Q.radicalization += 3;
+                    mechanical_text = "General radicalization! Society polarizes!";
+                } else if (kpd_event === 7) {
+                    Q.communist_coalition += 1;
+                    mechanical_text = "Popular front momentum builds!";
+                } else if (kpd_event === 8) {
+                    if (Q.rfb_banned) {
+                        Q.rfb_banned = 0;
+                        mechanical_text = "**RFB BAN LIFTED!** Red front returns!";
+                    } else {
+                        Q.rfb_militancy += 0.2;
+                        mechanical_text = "RFB aggression increases!";
+                    }
+                } else {
+                    Q.young_socialists += 0.5;
+                    mechanical_text = "Youth radicalization! Next generation red!";
+                }
+                
+            } else if (party.id === 'z' || party.id === 'bvp') {
+                var catholic_event = Math.floor(Math.random() * 8);
+                
+                if (catholic_event === 0) {
+                    Q.pro_republic += 6;
+                    mechanical_text = "Catholic pro-republic mobilization!";
+                } else if (catholic_event === 1) {
+                    Q.catholics_z += 6;
+                    Q.catholics_bvp += 4;
+                    mechanical_text = "Confessional solidarity strengthens!";
+                } else if (catholic_event === 2) {
+                    Q.workers_z += 4;
+                    mechanical_text = "Catholic worker organization success!";
+                } else if (catholic_event === 3) {
+                    if (Q.z_party_leader !== "Joos") {
+                        Q.z_party_leader = "Joos";
+                        mechanical_text = "**JOOS BECOMES LEADER!** Left-catholic turn!";
+                    } else {
+                        mechanical_text = "Joos leadership strengthened!";
+                    }
+                } else if (catholic_event === 4) {
+                    Q.z_relation += 10;
+                    mechanical_text = "Center-SPD relations improve!";
+                } else if (catholic_event === 5) {
+                    Q.old_middle_z += 5;
+                    mechanical_text = "Catholic bourgeoisie mobilization!";
+                } else if (catholic_event === 6) {
+                    Q.rural_z += 5;
+                    Q.rural_bvp += 5;
+                    mechanical_text = "Catholic rural solidarity!";
+                } else {
+                    mechanical_text = "Papal endorsement boosts morale!";
+                }
+                
+            } else if (party.id === 'dnvp') {
+                var dnvp_event = Math.floor(Math.random() * 8);
+                
+                if (dnvp_event === 0 && Q.dnvp_line !== 3) {
+                    Q.dnvp_line = 3;
+                    Q.dnvp_party_leader = "Hugenberg";
+                    mechanical_text = "**HUGENBERG TAKES OVER!** Radical turn!";
+                } else if (dnvp_event === 1 && Q.dnvp_line === 3) {
+                    Q.dnvp_line = 1;
+                    Q.dnvp_party_leader = "Westarp";
+                    mechanical_text = "**MODERATES COUP!** Hugenberg out!";
+                } else if (dnvp_event === 2) {
+                    Q.nationalism += 6;
+                    mechanical_text = "Nationalist mobilization!";
+                } else if (dnvp_event === 3) {
+                    Q.rural_dnvp += 8;
+                    mechanical_text = "Junker support solidifies!";
+                } else if (dnvp_event === 4) {
+                    Q.old_middle_dnvp += 6;
+                    mechanical_text = "Conservative bourgeoisie rally!";
+                } else if (dnvp_event === 5) {
+                    Q.nsdap_relation += 10;
+                    mechanical_text = "Nazi-DNVP alliance strengthens!";
+                } else if (dnvp_event === 6) {
+                    Q.coup_progress += 1;
+                    mechanical_text = "Reactionary conspiracy advances!";
+                } else {
+                    Q.sh_strength += 300;
+                    mechanical_text = "Stahlhelm recruitment drive!";
+                }
+                
+            } else if (party.id === 'dvp') {
+                var dvp_event = Math.floor(Math.random() * 6);
+                
+                if (dvp_event === 0 && !Q.stresemann_dead) {
+                    Q.stresemann_dead = 1;
+                    mechanical_text = "**STRESEMANN DIES!** Leadership crisis!";
+                } else if (dvp_event === 1 && Q.stresemann_dead) {
+                    Q.dvp_right_shift = 1;
+                    mechanical_text = "DVP shifts right! Business nationalism!";
+                } else if (dvp_event === 2 && Q.dvp_right_shift) {
+                    Q.dvp_right_shift = 0;
+                    mechanical_text = "DVP returns to center! Democratic wing wins!";
+                } else if (dvp_event === 3) {
+                    Q.new_middle_dvp += 5;
+                    mechanical_text = "Liberal professional support!";
+                } else if (dvp_event === 4) {
+                    Q.old_middle_dvp += 5;
+                    mechanical_text = "Business class mobilization!";
+                } else {
+                    Q.pro_republic += 3;
+                    mechanical_text = "Liberal republican message succeeds!";
+                }
+                
+            } else if (party.id === 'ddp') {
+                var ddp_event = Math.floor(Math.random() * 6);
+                
+                if (ddp_event === 0 && Q.ddp_name === "DDP") {
+                    Q.ddp_name = "DStP";
+                    mechanical_text = "**MERGER WITH JUNGDO!** Becomes DStP!";
+                } else if (ddp_event === 1) {
+                    Q.new_middle_ddp += 6;
+                    mechanical_text = "Intellectual progressive support!";
+                } else if (ddp_event === 2) {
+                    Q.pro_republic += 4;
+                    mechanical_text = "Liberal democratic message resonates!";
+                } else if (ddp_event === 3) {
+                    Q.jungdo_strength += 200;
+                    mechanical_text = "Young German Order alliance!";
+                } else if (ddp_event === 4) {
+                    Q.womens_rights += 1;
+                    mechanical_text = "Women's rights campaign success!";
+                } else {
+                    Q.education_science += 1;
+                    mechanical_text = "Education reform advocacy!";
+                }
+                
+            } else if (party.id === 'wp') {
+                var wp_event = Math.floor(Math.random() * 5);
+                
+                if (wp_event === 0) {
+                    Q.old_middle_wp += 7;
+                    Q.new_middle_wp += 7;
+                    mechanical_text = "Middle class crisis voting!";
+                } else if (wp_event === 1 && Q.inflation > 5) {
+                    Q.wp_r *= 1.3;
+                    mechanical_text = "Inflation panic! Middle class flees to WP!";
+                } else if (wp_event === 2) {
+                    mechanical_text = "Small business protection campaign!";
+                } else if (wp_event === 3) {
+                    Q.capital_strike_progress -= 0.5;
+                    mechanical_text = "Business confidence boost!";
+                } else {
+                    mechanical_text = "Anti-tax campaign resonates!";
+                }
+                
+            } else if (party.id === 'cnbl') {
+                var cnbl_event = Math.floor(Math.random() * 5);
+                
+                if (cnbl_event === 0) {
+                    Q.rural_cnbl += 10;
+                    mechanical_text = "Rural protest movement explodes!";
+                } else if (cnbl_event === 1) {
+                    Q.agricultural_finance = Math.max(0, Q.agricultural_finance - 1);
+                    mechanical_text = "Agricultural crisis worsens! Farmer anger!";
+                } else if (cnbl_event === 2) {
+                    mechanical_text = "Landvolk bombing campaign!";
+                    Q.pro_republic -= 2;
+                } else if (cnbl_event === 3 && Q.nsdap_r >= 15) {
+                    // CNBL absorbed by NSDAP
+                    Q.nsdap_r += Q.cnbl_r * 0.6;
+                    Q.cnbl_r *= 0.4;
+                    mechanical_text = "**CNBL VOTERS FLEE TO NSDAP!** Rural radicalization!";
+                } else {
+                    mechanical_text = "Agricultural subsidy demands!";
+                }
+                
+            } else if (party.id === 'sapd') {
+                Q.workers_sapd += 5;
+                Q.left_strength += 10;
+                mechanical_text = "SAPD left-wing appeal strengthens!";
+                
+            } else if (party.id === 'srpd') {
+                Q.rb_strength += 300;
+                Q.pro_republic += 4;
+                mechanical_text = "SRPD Reichsbanner alliance strengthens!";
+            }
+            
+        // === MAJOR SUCCESS (18-19) ===
+        } else if (roll >= 18) {
+            effect_text = "✅ **MAJOR SUCCESS**";
+            Q[party.id + '_r'] *= 1.25;
+            mechanical_text = "+25% support. Strong momentum.";
+            
+        // === SUCCESS (15-17) ===
+        } else if (roll >= 15) {
+            effect_text = "⬆️ **SUCCESS**";
+            Q[party.id + '_r'] += 4;
+            mechanical_text = "+4% support. Positive trend.";
+            
+        // === NEUTRAL (7-9) ===
+        } else {
+            effect_text = "➡️ **NEUTRAL**";
+            mechanical_text = "Status quo maintained. No significant change.";
+        }
+        
+        // Compile detailed effects
+        Q.dice_effects_detailed += "**" + party.name + "** (rolled " + roll + "):\n";
+        Q.dice_effects_detailed += effect_text + "\n";
+        Q.dice_effects_detailed += mechanical_text + "\n\n";
+        
+        console.log(party.name + " [" + roll + "]: " + mechanical_text);
+    }
+    
+    // === CRITICAL CHAIN BONUS ===
+    if (Q.critical_chain >= 2) {
+        Q.dice_effects_detailed += "🔥 **CRITICAL CHAIN × " + Q.critical_chain + "!** Multiple nat 20s! Reality bends!\n";
+        Q.pro_republic += Q.critical_chain * 5;
+        Q.resources += Q.critical_chain * 2;
+    }
+    
+    // === CHAOS METER EFFECTS ===
+    if (Q.chaos_meter >= 3) {
+        Q.dice_effects_detailed += "🌀 **CHAOS OVERLOAD!** Multiple chaos events! Reality unstable!\n";
+        Q.reality_stability -= Q.chaos_meter * 5;
+        
+        if (Q.reality_stability <= 0) {
+            Q.dice_effects_detailed += "\n💀 **REALITY HAS COLLAPSED!** All rules suspended!\n";
+            Q.math_broken = 1;
+        }
+    }
+    
+    // === FINAL NORMALIZATION ===
+    var total = 0;
+    for (var p of parties) {
+        if (p.condition !== false) {
+            Q[p.id + '_r'] = Math.max(0.1, Q[p.id + '_r']); // Minimum 0.1%
+            total += Q[p.id + '_r'];
+        }
+    }
+    
+    // Normalize to 100%
+    for (var p of parties) {
+        if (p.condition !== false) {
+            Q[p.id + '_r'] = (Q[p.id + '_r'] / total) * 100;
+        }
+    }
+    
+    // Constrain values (unless math is broken)
+    if (!Q.math_broken) {
+        Q.pro_republic = Math.max(0, Math.min(100, Q.pro_republic));
+        Q.nationalism = Math.max(0, Math.min(100, Q.nationalism));
+        Q.socialism = Math.max(0, Math.min(100, Q.socialism));
+        Q.unemployed = Math.max(0, Math.min(50, Q.unemployed));
+        Q.inflation = Math.max(-15, Math.min(99, Q.inflation));
+    }
+    
+    console.log("=== ULTIMATE DICE CHAOS COMPLETE ===");
+    console.log("Reality Stability: " + Q.reality_stability + "%");
+    console.log("Critical Chain: " + Q.critical_chain);
+    console.log("Chaos Meter: " + Q.chaos_meter);
+!}
+new-page: true
+
+= THE ULTIMATE DICE OF DESTINY
+
+**Every party has rolled. Fate has been decided. Reality trembles.**
+
+[+ dice_results +]
+
+---
+
+**DETAILED EFFECTS:**
+
+[+ dice_effects_detailed +]
+
+---
+
+**REALITY STATUS:**
+- **Stability**: [+ reality_stability +]% [? if reality_stability <= 0: (COLLAPSED) ?]
+- **Critical Chain**: [+ critical_chain +]
+- **Chaos Meter**: [+ chaos_meter +]
+[? if math_broken: - **MATHEMATICS**: BROKEN - All rules suspended ?]
+
+---
+
+**CURRENT REICHSTAG (POST-DICE):**
+
+SPD: [+ spd_r +]%
+KPD: [+ kpd_r +]%
+[? if sapd_formed: SAPD: [+ sapd_r +]% ?]
+[? if srpd_formed: SRPD: [+ srpd_r +]% ?]
+Center: [+ z_r +]%
+BVP: [+ bvp_r +]%
+[+ ddp_name +]: [+ ddp_r +]%
+DVP: [+ dvp_r +]%
+WP: [+ wp_r +]%
+CNBL: [+ cnbl_r +]%
+DNVP: [+ dnvp_r +]%
+NSDAP: [+ nsdap_r +]%
+Other: [+ other_r +]%
+
+---
+
+**IDEOLOGICAL CLIMATE:**
+- Pro-Republic: [+ pro_republic +]
+- Nationalism: [+ nationalism +]
+- Socialism: [+ socialism +]
+
+**ECONOMIC STATUS:**
+- Inflation: [+ inflation +]%
+- Unemployment: [+ unemployed +]%
+- Growth: [+ economic_growth +]%
+
+**The dice have spoken. Democracy is now literally a game of chance.**
+
+- @accept_chaos: What have we unleashed...
+- @roll_again: ROLL AGAIN (Double or nothing!)
+
+@roll_again
+subtitle: Are you insane? (Yes)
+go-to: party_dice_chaos_ultimate
+
+@accept_chaos
+go-to: root
