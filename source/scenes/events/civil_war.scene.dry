@@ -156,6 +156,7 @@ view-if: war_choices >= 2
 go-to: defeat if total_defeat = 1; long_war if long_war = 1; republic_victory if republic_victory = 1
 
 @defeat
+on-arrival: sandbox = 1
 
 = Total Defeat
 
@@ -164,6 +165,7 @@ Our forces are no match for those of the reactionaries. Reichsbanner fighters ar
 Our resistance will be recorded in the history books, and in the future, our names will be honored. But for now, all is lost.
 
 - @game_over: Game over.
+- @root: Perhaps...?
 
 @long_war
 go-to: long_war_intervention if resist_coup == 0; game_over_menu if resist_coup == 1
@@ -217,10 +219,12 @@ go-to: long_war_intervention
 Poland and Czechoslovakia are largely too absorbed in their own problems to be of much help, but weapons and volunteers filter through the parts of the borders that we control.
 
 @republic_victory
+on-arrival: sandbox = 1; civil_war_end = "republic"
 
 = Victory for the Republic
 
 The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. Today, the forces of the republic prevail over the fascists and the reactionaries. There is a new revolution in Germany. Let us hope it produces a longer-lasting peace than the previous one.
 
 - @game_over: Game over.
+- @root: You may continue.
 
