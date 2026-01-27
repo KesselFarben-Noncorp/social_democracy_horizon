@@ -25,9 +25,11 @@ Whether or not we are in an electoral campaign, the party is always trying to br
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1; workers_spd *= 0.98 if welfare <= 0; workers_spd -= (socialism / 90) if peoples_party = 1; workers_spd -= lower_tax_rates * 1.8; workers_spd *= pro_consumer * 1.01 if pro_consumer > 0 
+on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1; workers_spd *= 0.98 if welfare <= 0; workers_spd += workers_aid * 0.20; workers_spd -= (socialism / 70) if peoples_party = 1; workers_spd -= lower_tax_rates * 1.8; workers_spd *= pro_consumer * 1.01 if pro_consumer > 0 
 
-We have increased our campaigning among workers.
+[? if year < 1940: Our campaign is aimed towards the urban working class, our usual base from whom we gather the most of the votes. Campaign mentions the issues of the social welfare, healthcare, education, wages, union activity and financial stabilitu - our foremost issues regarding this class. ?]
+[? if year >= 1940: Our campaign is aimed towards the urban working class, our usual base from whom we gather the most of the votes. Campaign targets the problems of the social - progressive issues, including rights of the sexual minorities and non traditional gender members, on top of already saturated thematics of the social welfare, internationalist cause and economics/finances. ?]
+
 [? if unemployed >= 15: High unemployment makes our campaign more difficult. ?]
 [? if wtb_adopted = 1: Adopting the WTB plan gives us a new rallying point to attract labor support. ?]
 [? if welfare < 0: Absence of the welfare program has impacted negatively our ability to campaign amongst workers. ?]
@@ -41,7 +43,8 @@ choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: new_middle_spd += 6*(1-dissent); new_middle_spd -= 4 if socialism <= 49 and peoples_party == 0; resources -= 1; peoples_party_support += 1; new_middle_spd -= upper_tax_rates * 1.5
 
-We have increased our campaigning among the new middle class.
+We have increased our campaigning among the new middle class, white collars and servants of the state. Campaign touches the issues of the middle class - middle class protection - targetted against higher classes, minimum wages, democratic practices, education and science funding.
+
 [? if socialism <= 49 and peoples_party == 0: Antipathy toward socialism in this group makes our campaign more difficult. ?]
 [? if peoples_party > 0: As a people's party, we have an easier time gaining middle-class support. ?]
 [? if upper_tax_rates > 0: Taxes impacting new mittlestand has decreased effectiveness of our campaign. ?]
@@ -50,11 +53,12 @@ We have increased our campaigning among the new middle class.
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1; old_middle_spd -= upper_tax_rates * 1.5
+on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1; old_middle_spd -= upper_tax_rates * 1.5; old_middle_spd -= (nationalism / 60)
 
-We have increased our campaigning among the old middle class.
-[? if nationalism >= 51 and peoples_party == 0: High nationalism among this group makes campaigning difficult. ?]
-[? if peoples_party > 0: As a people's party, it is now easier to increase support among them. ?]
+We have increased our campaigning among the old middle class. While not the most friendly class, we campaigned on the protection small owners and businessmen from the hands of reactionary past of Kaiserreich.
+
+[? if nationalism >= 51 and peoples_party == 0: High nationalism and distrust to the socialist parties among this group makes campaigning difficult. ?]
+[? if peoples_party > 0: As a people's party, it is now easier to increase support among them with us dropping socialist rhetorics. ?]
 [? if upper_tax_rates > 0: Taxes impacting old mittlestand has decreased effectiveness of our campaign. ?]
 
 @rural
@@ -63,7 +67,8 @@ choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: rural_spd += 5*(1-dissent); rural_spd -= 3*(1-dissent) if peoples_party == 0; resources -= 1; peoples_party_support += 1; rural_spd += 3*(1-dissent) if rural_policy >= 2; rural_spd *= 1.09 if state_buyer = 1
 
-We have increased our campaigning among farmers and rural workers.
+We have increased our campaigning among farmers and rural workers. Our main issue will be guarantee and protection of farmers.
+
 [? if peoples_party == 0: Our lack of historical focus on rural voters undermines trust. ?]
 [? if peoples_party > 0: As a people's party, we face fewer obstacles in rural campaigning. ?]
 [? if rural_policy >= 2: Our rural policies have eased support-building efforts. ?]
@@ -76,6 +81,7 @@ unavailable-subtitle: Not enough resources.
 on-arrival: unemployed_spd += 6*(1-dissent); resources -= 1; unemployed_spd -= 3 if welfare < 0; unemployed_spd += 5*(1-dissent) if wtb_adopted = 1; unemployed_spd += 3*(1-dissent) if welfare >= 2; unemployed_spd += 2 if nazi_urgency > 4;
 
 We have increased our campaigning among the unemployed.
+
 [? if welfare < 0: Welfare cuts harm our credibility and hinder campaign efforts. ?]
 [? if wtb_adopted = 1: The WTB plan strengthens our appeal among the unemployed. ?]
 
