@@ -853,12 +853,13 @@ if (Q.month_actions >= 1) {
     Q.soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
 
         // Paramilitary influence (randomized)
-
-    Q.sa_influence  = Q.random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
-    Q.sh_influence  = Q.random_factor((Q.sh_strength/100 + Q.sh_militancy) * 0.2, 0.25);
-    Q.rfb_influence = Q.random_factor((Q.rfb_strength/100 + Q.rfb_militancy) * 0.2, 0.25);
+        // SA is banned if NSDAP is banned
+    Q.sa_influence  = Q.nsdap_banned ? 0 : Q.random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
+        // Stahlhelm is banned if DNVP is banned or separately
+    Q.sh_influence  = (Q.dnvp_banned || Q.sh_banned) ? 0 : Q.random_factor((Q.sh_strength/100 + Q.sh_militancy) * 0.2, 0.25);
+    Q.rfb_influence = Q.kpd_banned ? 0 : Q.random_factor((Q.rfb_strength/100 + Q.rfb_militancy) * 0.2, 0.25);
     Q.rb_influence  = Q.random_factor((Q.rb_strength/100 + Q.rb_militancy) * 0.15, 0.25);
-
+       
     // Class-specific scaling
     Q.class_influences = {
         workers:    1.3 + Q.rfb_influence,
@@ -872,6 +873,14 @@ if (Q.month_actions >= 1) {
 
 
     Q.nationalist_parties = Q.nationalist_parties || ['nsdap', 'dnvp', 'other'];
+
+    // Remove banned parties from nationalist_parties list
+    if (Q.nsdap_banned) {
+        Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'nsdap');
+    }
+    if (Q.dnvp_banned) {
+        Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
+    }
 
     if (Q.dvp_right_shift && !Q.nationalist_parties.includes('dvp')) {
         Q.nationalist_parties.push('dvp');
@@ -961,7 +970,7 @@ if (Q.month_actions >= 1) {
         }
         
         // Special case: If NSDAP dominant and DVP right-shifted, some DVP voters go directly to NSDAP
-        if (Q.dominant_nat === 'nsdap' && Q.dvp_right_shift >= 2) {
+        if (Q.dominant_nat === 'nsdap' && Q.dvp_right_shift >= 2 && !Q.nsdap_banned) {
             for (Q.c of Q.classes) {
                 if (Q.c === 'new_middle' || Q.c === 'old_middle') {
                     var extra_siphon = Q[Q.c + '_dvp'] * 0.01 * Q.unrest_factor;
@@ -972,7 +981,7 @@ if (Q.month_actions >= 1) {
         }
         
         // Special case: DNVP line 3 with high NSDAP - some rural voters still resist
-        if (Q.dominant_nat === 'nsdap' && Q.dnvp_line === 3) {
+        if (Q.dominant_nat === 'nsdap' && Q.dnvp_line === 3 && !Q.dnvp_banned) {
             // Rural landowners more loyal to DNVP despite Hugenberg
             var rural_loyalty = Math.min(Q.rural_dnvp * 0.005, 0.3);
             Q.rural_nsdap -= rural_loyalty;
@@ -986,7 +995,7 @@ if (Q.month_actions >= 1) {
 
 
     // Alternative siphoning: Socialist parties if KPD/SAPD dominant
-    if (Q.sapd_formed || Q.kpd_r >= 15) {
+    if (Q.sapd_formed || Q.kpd_r >= 15 && !Q.kpd_banned) {
         var socialist_parties = ['kpd', 'sapd', 'spd', 'srpd'].filter(function(p) {
             return Q[p + '_formed'] !== 0 || p === 'kpd' || p === 'spd';
         });
@@ -1028,18 +1037,18 @@ if (Q.month_actions >= 1) {
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
-        nsdap: (Q.nationalism * 1.25) + (Q.unrest_factor * 3.2),          // extremist, limited elasticity
-        dnvp: Q.dnvp_line === 1  ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8)  : Q.nationalism * 1.35,
+        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 1.25) + (Q.unrest_factor * 3.2),
+        dnvp: Q.dnvp_banned ? 0 : (Q.dnvp_line === 1  ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8)  : Q.nationalism * 1.35),
         dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
         wp: (Q.pro_republic * 1.10) + (Q.inflation * 0.14),
         cnbl: (Q.pro_republic * 0.92 + Q.nationalism) + (Q.rural * 0.85),
-        kpd:   Q.socialism * 1.35,             // extremist left, limited elasticity
+        kpd: Q.kpd_banned ? 0 : Q.socialism * 1.35,
         sapd:  Q.socialism * 1.10,
         srpd:  (Q.socialism * 1.01) + (Q.rb_strength * 0.001) + (Q.pro_republic * 1.50),
-        spd:   Q.pro_republic * 2,           // mass party, high elasticity
+        spd:   Q.pro_republic * 2,
         ddp:   Q.pro_republic * 1.4,
-        z:     Q.pro_republic * 1.5,           // confessional catch-all
-        bvp: Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05), // Hard cap at 4.5%
+        z:     Q.pro_republic * 1.5,
+        bvp: Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05),
         other: ((Q.nationalism + Q.pro_republic) / 3) * 1.3
     };
 
@@ -1048,6 +1057,54 @@ if (Q.month_actions >= 1) {
         Q.class_total = 0;
         for (Q.party of Q.parties) {
             Q.base = Q[Q.c+'_'+Q.party] || 0;
+            
+            // === BANNED PARTY HANDLING ===
+            // If party is banned, zero out support and redistribute
+            if ((Q.party === 'nsdap' && Q.nsdap_banned) || 
+                (Q.party === 'dnvp' && Q.dnvp_banned) ||
+                (Q.party === 'kpd' && Q.kpd_banned)) {
+                
+                // Redistribute banned party support to similar parties
+                if (Q.base > 0) {
+                    if (Q.party === 'nsdap') {
+                        // NSDAP voters go to: DNVP (if not banned), DVP (if right-shift), other
+                        if (!Q.dnvp_banned) {
+                            Q[Q.c + '_dnvp'] += Q.base * 0.50;
+                        }
+                        if (Q.dvp_right_shift) {
+                            Q[Q.c + '_dvp'] += Q.base * 0.25;
+                        }
+                        Q[Q.c + '_other'] += Q.base * 0.25;
+                    } else if (Q.party === 'dnvp') {
+                        // DNVP voters go to: NSDAP (if not banned), DVP, other
+                        if (!Q.nsdap_banned && Q.dnvp_line === 3) {
+                            Q[Q.c + '_nsdap'] += Q.base * 0.60;
+                        } else if (!Q.nsdap_banned) {
+                            Q[Q.c + '_nsdap'] += Q.base * 0.30;
+                        }
+                        Q[Q.c + '_dvp'] += Q.base * 0.20;
+                        Q[Q.c + '_other'] += Q.base * 0.20;
+                    } else if (Q.party === 'kpd') {
+                        // KPD voters go to: SAPD, SPD (if left-wing), abstention
+                        if (Q.sapd_formed) {
+                            Q[Q.c + '_sapd'] += Q.base * 0.40;
+                        }
+                        if (Q.ideology === 'left' || Q.ideology === 'neorev') {
+                            Q[Q.c + '_spd'] += Q.base * 0.35;
+                        } else {
+                            Q[Q.c + '_spd'] += Q.base * 0.20;
+                        }
+                        // Rest to 'other' (abstention/minor parties)
+                        Q[Q.c + '_other'] += Q.base * 0.25;
+                    }
+                }
+                
+                // Zero out the banned party
+                Q[Q.c+'_'+Q.party] = 0;
+                Q.class_total += 0;
+                continue; // Skip normal drift calculation
+            }
+            
             Q.ideology_factor = 1.0;
 
             switch (Q.party) {
@@ -1056,39 +1113,34 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'dnvp':
                     if (Q.dnvp_line === 1) {
-                        // Constitutional DNVP (Westarp's moderate line)
                         Q.ideology_factor = Q.random_factor(
                             (Q.pro_republic_factor * 0.75 + Q.nationalism_factor * 0.6),
                             0.15
                         );
                     } else if (Q.dnvp_line === 3) {
-                        // Hugenberg's radical DNVP (collaborates with NSDAP)
                         Q.ideology_factor = Q.random_factor(
                             Q.nationalism_factor * 1.15 * (1 + Q.unrest_factor * 0.20),
                             0.15
                         );
                     } else {
-                        // Traditional conservative DNVP (default)
                         Q.ideology_factor = Q.random_factor(
                             Q.nationalism_factor * 0.90 * (1 + Q.unrest_factor * 0.12),
                             0.15
                         );
                     }
                     
-                    // Class appeal
                     if (Q.c === 'rural') {
-                        Q.ideology_factor *= 1.30; // Junker/agricultural stronghold
+                        Q.ideology_factor *= 1.30;
                     } else if (Q.c === 'old_middle') {
-                        Q.ideology_factor *= 1.20; // Conservative property owners
+                        Q.ideology_factor *= 1.20;
                     } else if (Q.c === 'new_middle') {
-                        Q.ideology_factor *= 0.95; // Weaker with modern middle class
+                        Q.ideology_factor *= 0.95;
                     } else if (Q.c === 'workers' || Q.c === 'unemployed') {
-                        Q.ideology_factor *= 0.65; // Very weak with workers
+                        Q.ideology_factor *= 0.65;
                     }
                     
-                    // Hugenberg line bleeds to NSDAP
                     if (Q.dnvp_line === 3) {
-                        Q.ideology_factor *= 0.90; // Loses radicals to NSDAP
+                        Q.ideology_factor *= 0.90;
                     }
                     break;
                 case 'kpd':
@@ -1115,36 +1167,34 @@ if (Q.month_actions >= 1) {
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.1 : 0.95) + (Q.young_socialists * 0.09), 0.2);
                     
-                    // Ideology-based class appeal
                     if (Q.ideology === 'left') {
                         if (Q.c === 'workers' || Q.c === 'unemployed') {
-                            Q.ideology_factor *= 1.15; // Strong working-class appeal
+                            Q.ideology_factor *= 1.15;
                         } else if (Q.c === 'old_middle' || Q.c === 'new_middle') {
-                            Q.ideology_factor *= 0.85; // Alienates middle class
+                            Q.ideology_factor *= 0.85;
                         }
                     } else if (Q.ideology === 'reformist') {
                         if (Q.c === 'old_middle' || Q.c === 'new_middle') {
-                            Q.ideology_factor *= 1.12; // Appeals to middle class
+                            Q.ideology_factor *= 1.12;
                         } else if (Q.c === 'workers') {
-                            Q.ideology_factor *= 0.93; // Slightly weaker working-class appeal
+                            Q.ideology_factor *= 0.93;
                         }
                     } else if (Q.ideology === 'labor') {
                         if (Q.c === 'workers') {
-                            Q.ideology_factor *= 1.08; // Strong trade union appeal
+                            Q.ideology_factor *= 1.08;
                         }
                         if (Q.c === 'unemployed') {
-                            Q.ideology_factor *= 1.08; // Job programs appeal
+                            Q.ideology_factor *= 1.08;
                         }
                     } else if (Q.ideology === 'neorev') {
                         if (Q.c === 'workers' || Q.c === 'unemployed') {
-                            Q.ideology_factor *= 1.04; // Moderate working-class boost
+                            Q.ideology_factor *= 1.04;
                         }
                         if (Q.c === 'old_middle' || Q.c === 'new_middle') {
-                            Q.ideology_factor *= 1.05; // Anti-Nazi coalition appeal
+                            Q.ideology_factor *= 1.05;
                         }
                     }
                     
-                    // Peoples party stacks with ideology
                     if (Q.peoples_party === 1) {
                         if (Q.c === 'old_middle' || Q.c === 'new_middle') {
                             Q.ideology_factor *= 1.10;
@@ -1159,85 +1209,73 @@ if (Q.month_actions >= 1) {
                 case 'cnbl':
                     Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 0.10) + (Q.nationalism_factor * 0.20) + (Q.unemployed * 0.02) + (Q.rural * 0.05), 0.15);
                     
-                    // Class-specific appeal - VERY rural-focused
                     if (Q.c === 'rural') {
-                        Q.ideology_factor *= 1.05; // Extreme rural concentration
+                        Q.ideology_factor *= 1.05;
                     } else if (Q.c === 'old_middle') {
-                        Q.ideology_factor *= 0.35; // Small town shopkeepers affected by rural crisis
+                        Q.ideology_factor *= 0.35;
                     } else if (Q.c === 'new_middle') {
-                        Q.ideology_factor *= 0.15; // Very weak - urban educated
+                        Q.ideology_factor *= 0.15;
                     } else if (Q.c === 'workers') {
-                        Q.ideology_factor *= 0.15; // Almost no appeal
+                        Q.ideology_factor *= 0.15;
                     } else if (Q.c === 'unemployed') {
-                        Q.ideology_factor *= 0.25; // Slight appeal if rural unemployed
+                        Q.ideology_factor *= 0.25;
                     }
                     
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 0.20; // Very weak with Catholics
+                        Q.ideology_factor *= 0.20;
                     }
                     break;
                 case 'z':
-                    // Base: pro-republic + Catholic dominance
                     Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
                     
-                    // Leadership matters
                     if (Q.z_party_leader === "Kaas") {
-                        Q.ideology_factor *= 0.95; // More conservative, loses some workers/liberals
+                        Q.ideology_factor *= 0.95;
                     } else if (Q.z_party_leader === "Joos") {
-                        Q.ideology_factor *= 1.05; // More left-leaning, broader appeal
+                        Q.ideology_factor *= 1.05;
                     }
                     
-                    // Class-specific appeal
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 1.32; // Strong confessional base
+                        Q.ideology_factor *= 1.32;
                     } else if (Q.c === 'workers' && Q.z_party_leader !== "Kaas") {
-                        Q.ideology_factor *= 1.03; // Christian trade unions
+                        Q.ideology_factor *= 1.03;
                     } else if (Q.c === 'old_middle') {
-                        Q.ideology_factor *= 1.04; // Catholic bourgeoisie
+                        Q.ideology_factor *= 1.04;
                     }
                     
-                    // In government boosts credibility
                     if (Q.z_in_government) {
                         Q.ideology_factor *= 1.05;
                     }
                     break;
                 case 'bvp':
-                    // Base: pro-republic (moderate) + regional/rural + Catholic
                     Q.ideology_factor = Q.random_factor(
                         Q.pro_republic_factor * 0.50 * (1 + Q.catholics/155 + Q.rural/85), 
                         0.15
                     );
                     
-                    // Class-specific appeal (more conservative than Z)
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 1.10; // Very strong confessional loyalty
+                        Q.ideology_factor *= 1.10;
                     } else if (Q.c === 'rural') {
-                        Q.ideology_factor *= 1.09; // Bavarian agricultural interests
+                        Q.ideology_factor *= 1.09;
                     } else if (Q.c === 'old_middle') {
-                        Q.ideology_factor *= 1.03; // Conservative bourgeoisie
+                        Q.ideology_factor *= 1.03;
                     } else if (Q.c === 'workers') {
-                        Q.ideology_factor *= 0.86; // Weaker with workers than Z
+                        Q.ideology_factor *= 0.86;
                     }
                     
-                    // Less affected by national crises than other parties
-                    Q.ideology_factor *= (1 - Q.unrest_factor * 0.1); // Stable regional base
+                    Q.ideology_factor *= (1 - Q.unrest_factor * 0.1);
                     break;
                 case 'ddp':
                      if (!Q.ddp_name || Q.ddp_name === "DDP") {
-                         // Classic DDP: intellectual, progressive, republican liberals
                          Q.secular_bonus = ((100 - Q.catholics) / 100) * 0.10;
                          Q.nationalism_penalty = (Q.nationalism / 100) * 0.15;
         
-                         // CALCULATE FIRST
                          Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.45 + Q.secular_bonus - Q.nationalism_penalty - (Q.unemployed / 100) * 0.20 - (Q.street_pressure_factor * 0.50), 0.15);
         
-                         // THEN ADD BONUS
                          if (Q.education_science || Q.secularized || Q.science || Q.womens_rights) {
                              Q.education_bonus = (Q.education_science || 0) * 0.03 + (Q.secularized || 0) * 0.05 + (Q.science || 0) * 0.10 + (Q.womens_rights || 0) * 0.05;
                              Q.ideology_factor += Q.education_bonus;
                          }
         
-                         // Class modifiers
                           if (Q.c === 'new_middle') {
                              Q.ideology_factor *= 1.25;
                          } else if (Q.c === 'old_middle') {
@@ -1248,25 +1286,20 @@ if (Q.month_actions >= 1) {
                              Q.ideology_factor *= 0.75;
                          }
         
-                         // Cultural policies help
                          if (Q.education_science >= 2 || Q.womens_rights >= 3) {
                              Q.ideology_factor *= 1.05;
                          }
         
                      } else if (Q.ddp_name === "DStP") {
-                         // DStP: nationalist-liberal hybrid, loses progressives
                          Q.jungdo_bonus = (Q.jungdo_strength || 0) * 0.0003;
         
-                         // CALCULATE FIRST
                          Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.35 + Q.nationalism_factor * 0.25 + Q.jungdo_bonus - (Q.unemployed / 100) * 0.30 + (Q.street_pressure_factor * 0.25), 0.15);
         
-                         // THEN SUBTRACT PENALTY
                          if (Q.education_science || Q.secularized || Q.science || Q.womens_rights) {
                              Q.education_penalty = (Q.education_science || 0) * 0.01 + (Q.secularized || 0) * 0.05 + (Q.science || 0) * 0.10 + (Q.womens_rights || 0) * 0.05;
                              Q.ideology_factor -= Q.education_penalty;
                          }
         
-                         // Class modifiers shift
                          if (Q.c === 'new_middle') {
                              Q.ideology_factor *= 1.10;
                          } else if (Q.c === 'old_middle') {
@@ -1277,7 +1310,6 @@ if (Q.month_actions >= 1) {
                              Q.ideology_factor *= 1.15;
                          }
         
-                         // Progressive policies now hurt
                          if (Q.education_science >= 2 || Q.welfare >= 3) {
                               Q.ideology_factor *= 0.90;
                          }
@@ -1302,9 +1334,7 @@ if (Q.month_actions >= 1) {
     }
 
     // === CLASS VOTE RE-NORMALIZATION AFTER DRIFT (SKIP IN CHAOS MODE) ===
-    // (This is at the END of the monthly update)
     if (!Q.math_broken) {
-        // NORMAL: Recalculate normalized fractions
         for (var c of Q.classes) {
             var class_votes = 0;
             for (var party of Q.parties) {
@@ -1316,7 +1346,6 @@ if (Q.month_actions >= 1) {
             }
         }
     } else {
-        // MATH BROKEN: Re-normalization fails
         for (var c of Q.classes) {
             var class_votes = Q.impossible_add(0, 0);
             for (var party of Q.parties) {
@@ -1329,9 +1358,29 @@ if (Q.month_actions >= 1) {
         }
     }
 
-    Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);
-    Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
-    Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
+    // === PARAMILITARY STRENGTH UPDATES ===
+    // Banned parties' paramilitaries decay rapidly
+    if (Q.nsdap_banned) {
+        Q.sa_strength *= 0.70; // Rapid decay when banned
+        Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.5);
+    } else {
+        Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);
+    }
+    
+    if (Q.dnvp_banned || Q.sh_banned) {
+        Q.sh_strength *= 0.75; // Moderate decay when banned
+        Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
+    } else {
+        Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
+    }
+    
+    if (Q.kpd_banned) {
+        Q.rfb_strength *= 0.65; // Fastest decay (underground)
+        Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+    } else {
+        Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
+    }
+    
     Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
     Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
 
@@ -1345,6 +1394,11 @@ if (Q.month_actions >= 1) {
     Q.rfb_strength -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
     Q.rb_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
     Q.jungdo_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
+    
+    // Ensure banned parties' paramilitaries stay at low levels
+    if (Q.nsdap_banned) Q.sa_strength = Math.min(Q.sa_strength, 10);
+    if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
+    if (Q.kpd_banned) Q.rfb_strength = Math.min(Q.rfb_strength, 5);
 
 
         // === PARAMILITARY CONSTRAINTS (SKIP IN CHAOS MODE) ===
