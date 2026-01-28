@@ -1435,6 +1435,7 @@ for (var i = 0; i < coalition.length; i++) {
             votes: votes,
             weight: candidate.weight,
             score: votes * (candidate.weight / 100) // Combined score for sorting
+
         });
     }
 }
@@ -1955,7 +1956,7 @@ for (var i = 0; i < coalition.length; i++) {
     
     // Chancellor bonus
     if (Q.chancellor_party === party) {
-        base += 10;
+        base -= 10;
     }
     
     // President bonus
@@ -1991,7 +1992,7 @@ for (var i = 0; i < coalition.length; i++) {
 // ALLOCATE 7 MINISTRIES BASED ON LEVERAGE
 // ============================================
 
-var ministries = ['foreign', 'interior', 'justice', 'labor', 'economic', 'finance', 'agriculture'];
+var ministries = ['foreign', 'interior', 'justice', 'labor', 'economic', 'finance', 'agriculture', 'transport'];
 var allocation = {};
 var ministry_count = {};
 
@@ -2065,17 +2066,17 @@ for (var party in allocation) {
 // ============================================
 
 var priorities = {
-    KPD: ['labor', 'interior', 'economic', 'finance', 'justice', 'foreign', 'agriculture'],
-    SAPD: ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture'],
-    SPD: ['labor', 'interior', 'justice', 'finance', 'economic', 'foreign', 'agriculture'],
-    SRPD: ['labor', 'justice', 'interior', 'finance', 'economic', 'foreign', 'agriculture'],
-    DDP: ['justice', 'economic', 'finance', 'interior', 'foreign', 'labor', 'agriculture'],
-    Z: ['interior', 'foreign', 'finance', 'labor', 'agriculture', 'justice', 'economic'],
-    BVP: ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor'],
-    DVP: ['economic', 'finance', 'foreign', 'justice', 'interior', 'labor', 'agriculture'],
-    WP: ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor'],
-    CNBL: ['agriculture', 'finance', 'economical', 'justice', 'interior', 'foreign', 'labor'],
-    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor']
+    KPD: ['labor', 'interior', 'economic', 'finance', 'justice', 'foreign', 'agriculture', 'transport'],
+    SAPD: ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
+    SPD: ['labor', 'interior', 'justice', 'finance', 'economic', 'foreign', 'agriculture', 'transport'],
+    SRPD: ['labor', 'justice', 'interior', 'finance', 'economic', 'foreign', 'agriculture', 'transport'],
+    DDP: ['justice', 'economic', 'finance', 'interior', 'foreign', 'labor', 'agriculture', 'transport'],
+    Z: ['interior', 'foreign', 'finance', 'labor', 'agriculture', 'justice', 'economic', 'transport'],
+    BVP: ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor', 'transport'],
+    DVP: ['economic', 'finance', 'foreign', 'justice', 'interior', 'labor', 'agriculture', 'transport'],
+    WP: ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor', 'transport'],
+    CNBL: ['agriculture', 'finance', 'economical', 'justice', 'interior', 'foreign', 'labor', 'transport'],
+    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport']
 };
 
 // ============================================
@@ -2124,6 +2125,7 @@ Q.labor_minister_party = assignments.labor || 'I';
 Q.economic_minister_party = assignments.economic || 'I';
 Q.finance_minister_party = assignments.finance || 'I';
 Q.agriculture_minister_party = assignments.agriculture || 'I';
+Q.transport_minister_party = assignments.transport || 'I';
 Q.reichswehr_minister_party = 'I';
 
 // [Keep all your minister name assignment code here - it's unchanged]
@@ -2234,6 +2236,20 @@ else if (Q.agriculture_minister_party === 'CNBL') Q.agriculture_minister = 'Hamk
 else if (Q.agriculture_minister_party === 'DNVP') Q.agriculture_minister = 'Schiele';
 else Q.agriculture_minister = 'Unbesetzt';
 
+// Transport Ministry
+if (Q.transport_minister_party === 'KPD') Q.agriculture_minister = 'Hoernle';
+else if (Q.transport_minister_party === 'SAPD') Q.transport_minister = 'Baade';
+else if (Q.transport_minister_party === 'SPD') Q.transport_minister = 'Baade';
+else if (Q.transport_minister_party === 'SRPD') Q.transport_minister = 'Baade';
+else if (Q.transport_minister_party === 'DDP') Q.transport_minister = 'Dietrich';
+else if (Q.transport_minister_party === 'Z') Q.transport_minister = 'Guerard';
+else if (Q.transport_minister_party === 'BVP') Q.transport_minister = 'Wutzlhofer';
+else if (Q.transport_minister_party === 'DVP') Q.transport_minister = 'Schiele';
+else if (Q.transport_minister_party === 'WP') Q.transport_minister = 'Bredt';
+else if (Q.transport_minister_party === 'CNBL') Q.transport_minister = 'Hamkens';
+else if (Q.transport_minister_party === 'DNVP') Q.transport_minister = 'Schiele';
+else Q.transport_minister = 'Unbesetzt';
+
 // Reichswehr always independent
 Q.reichswehr_minister = 'Groener';
 Q.reichswehr_minister_party = 'I';
@@ -2259,6 +2275,7 @@ Q.ministry_leverage = leverage;
 - **Economic Affairs:** [+ economic_minister_party +] - [+ economic_minister +]
 - **Finance Ministry:** [+ finance_minister_party +] - [+ finance_minister +]
 - **Agriculture Ministry:** [+ agriculture_minister_party +] - [+ agriculture_minister +]
+- **Transport Ministry:** [+ transport_minister_party +] [+ transport_minister +]
 - **Reichswehr Ministry:** Independent - [+ reichswehr_minister +]
 
 [? if foreign_minister = 'Unbesetzt' or interior_minister = 'Unbesetzt' or justice_minister = 'Unbesetzt' : **Warning:** Some ministries remain unfilled and will operate under civil service administration. ?]
