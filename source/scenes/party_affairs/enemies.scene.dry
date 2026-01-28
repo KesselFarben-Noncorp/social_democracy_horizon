@@ -17,6 +17,7 @@ In our media and campaign materials, who should we consider as our main opponent
 - @nsdap: The NSDAP alone.
 - @kpd: The KPD.
 - @bourgeois: The bourgeois parties – the Center, DVP and WP.
+- @z: The Zentrum Party.
 - @dvp: The DVP party.
 - @bvp: The BVP party.
 - @wp: The Economic party.
@@ -45,7 +46,7 @@ on-arrival: enemies = "NSDAP"; neorevisionist_strength += 5; nazi_urgency += 1 i
 [? if nazi_urgency > 0 and nsdap_r >= 10: The Nazis are the most urgent problem for us to deal with. ?]
 
 @kpd
-on-arrival: enemies = "KPD"; reformist_strength += 5; left_dissent += 8; reformist_dissent -= 5; kpd_relation -= 10; dvp_relation += 5; z_relation += 5; workers_kpd -= 4 if workers_kpd < 25
+on-arrival: enemies = "KPD"; reformist_strength += 5; left_dissent += 8; reformist_dissent -= 5; kpd_relation -= 10; dvp_relation += 5; z_relation += 5; workers_kpd -= 4 if workers_kpd < 25; wp_relation += 4; bvp_relation += 5; dnvp_relation += 3 if dnvp_line = (1 or 0)
 
 Attacking the KPD is supported by all but the most left-wing socialists and wins some approval among bourgeois parties. However, if we want to reconcile with the KPD, this may not be the best choice.
 
@@ -54,9 +55,15 @@ on-arrival: enemies = "bourgeois parties"; left_strength += 8; left_dissent -= 5
 
 Our anti-bourgeois rhetoric is popular among the left, but may make it harder to build coalitions necessary for future government.
 
+@z
+view-if: sandbox = 1
+on-arrival: enemies = "Z"; z_relation -= 7; workers_z *= 0.95; unemployed_z *= 0.90; catholics_z *= 0.98
+
+Our secularist and anti radical catholic targets the Zentrum party.
+
 @dvp
 view-if: sandbox = 1
-on-arrival: enemies = "DVP"; left_strenght += 1; dvp_relation -= 7; z_relation -= 2; ddp_relation -= 3; old_middle_spd -= 2; coalition_dissent += 0.5; workers_dvp -= 3; new_middle_dvp -= 1; reformist_dissent += 4; kpd_relation += 1; dnvp_relation -= 2 if dnvp_line = 1
+on-arrival: enemies = "DVP"; left_strength += 1; dvp_relation -= 7; z_relation -= 2; ddp_relation -= 3; old_middle_spd -= 2; coalition_dissent += 0.5; workers_dvp -= 3; new_middle_dvp -= 1; reformist_dissent += 4; kpd_relation += 1; dnvp_relation -= 2 if dnvp_line = 1
 
 Our anti-industrialist propaganda seeks to undermine the DVP and our relationship with them.
 
