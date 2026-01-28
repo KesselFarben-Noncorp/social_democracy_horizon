@@ -1328,6 +1328,12 @@ if (Q.month_actions >= 1) {
             Q.scale = Math.min(1, Math.sqrt(Q.base + 1)/5);
             Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] * Q.scale / 12;
             Q.delta *= (0.7 + Math.random()*0.6);
+            // CRITICAL: If party is banned, prevent ALL positive drift
+            if ((Q.party === 'nsdap' && Q.nsdap_banned) || 
+                (Q.party === 'dnvp' && Q.dnvp_banned) ||
+                (Q.party === 'kpd' && Q.kpd_banned)) {
+                Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
+            }
             Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
             Q.class_total += Q[Q.c+'_'+Q.party];
         }
