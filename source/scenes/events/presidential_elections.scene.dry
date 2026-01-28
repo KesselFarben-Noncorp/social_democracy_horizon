@@ -241,12 +241,151 @@ Who should represent the SPD in this election?
 - @eckener_r1: Propose Hugo Eckener as a unity candidate for the Weimar Coalition.
 - @adenauer_r1: Support the Center Party's candidate.
 - @gessler_r1: Support an independent liberal candidate.
+- @stresemann_r1: Support Gustav Stresemann (if alive and DVP amenable).
+- @westarp_r1: Support Kuno von Westarp (if DNVP line 1 - moderate).
+- @schaffer_r1: Support Franz Schäffer (BVP - conservative but republican).
+- @rosenfeld_r1: Support Kurt Rosenfeld (SAPD - if formed).
+- @horsing_r1: Support Otto Hörsing (SRPD - if formed).
 - @thalmann_r1: Support the KPD candidate (if relations are good).
 - @munzenberg_r1: Support the KPD candidate (if relations are good).
 - @braun_r1: Nominate Otto Braun.
 - @schumacher_r1: Nominate Kurt Schumacher.
 - @juchacz_r1: Nominate Marie Juchacz.
 - @cultural_figure: Nominate a nonpartisan cultural figure.
+- @abstain_r1: Don't field a candidate, see who emerges.
+
+@rosenfeld_r1
+subtitle: Support the SAPD candidate - healing the socialist split.
+view-if: sapd_formed = 1
+choose-if: spd_sapd_relation >= 50 and (left_strength >= 35 or neorevisionist_strength >= 30)
+unavailable-subtitle: [? if spd_sapd_relation < 50 : Relations with SAPD not good enough. ?][? if left_strength < 35 and neorevisionist_strength < 30 : Party won't accept supporting the splitters. ?]
+on-arrival: spd_candidate = "Rosenfeld"; spd_sapd_relation += 10; left_strength += 3; reformist_dissent += 8; labor_dissent += 5; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+We will support Kurt Rosenfeld of the SAPD. This is a step toward healing the socialist split and reunifying the workers' movement.
+
+[? if spd_sapd_relation >= 65 : This could lead to eventual reunification... ?]
+
+@horsing_r1
+subtitle: Support the SRPD candidate - bringing back the social republicans.
+view-if: srpd_formed = 1
+choose-if: srpd_relation >= 50 and (reformist_strength >= 35 or neorevisionist_strength >= 30)
+unavailable-subtitle: [? if srpd_relation < 50 : Relations with SRPD not good enough. ?][? if reformist_strength < 35 and neorevisionist_strength < 30 : Not enough support in party. ?]
+on-arrival: spd_candidate = "Horsing"; srpd_relation += 10; reformist_strength += 2; neorevisionist_strength += 2; left_dissent += 5; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+We will support Otto Hörsing of the SRPD. The social republicans have proven their commitment to the Republic, and this gesture may bring them back to the fold.
+
+[? if srpd_relation >= 70 : Hörsing has indicated he would rejoin the SPD if elected... ?]
+
+@stresemann_r1
+subtitle: Support the great statesman of the Republic.
+view-if: stresemann_dead = 0 and year <= 1929 and dvp_relation >= 40
+choose-if: dvp_relation >= 40
+unavailable-subtitle: DVP relations not good enough.
+on-arrival: spd_candidate = "Stresemann"; dvp_relation += 8; ddp_relation += 6; z_relation += 4; is_unity_candidate = 1; left_dissent += 3;
+go-to: finalize_candidates
+
+We will support Gustav Stresemann, Germany's greatest democratic statesman. This is a powerful symbol of republican unity.
+
+@westarp_r1
+subtitle: Support the moderate conservative - an extraordinary anti-extremist coalition.
+view-if: dnvp_line = 1 and (nsdap_r >= 25 or kpd_r >= 20) and z_relation >= 50
+choose-if: reformist_strength >= 40 or neorevisionist_strength >= 35
+unavailable-subtitle: [? if reformist_strength < 40 and neorevisionist_strength < 35 : The party left wing blocks this. ?]
+on-arrival: spd_candidate = "Westarp"; dnvp_relation += 10; z_relation += 8; dvp_relation += 6; left_dissent += 15; labor_dissent += 8; workers_spd -= 4; unemployed_spd -= 3; new_middle_spd += 2; old_middle_spd += 3; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+In these desperate times, we will support Kuno von Westarp of the moderate DNVP. This is an unprecedented anti-extremist front spanning from socialists to conservatives.
+
+This will cause major dissent in our left wing.
+
+@schaffer_r1
+subtitle: Support the Bavarian conservative - pragmatic coalition-building.
+view-if: bvp_relation >= 45 and z_relation >= 50
+choose-if: reformist_strength >= 35 or neorevisionist_strength >= 30
+unavailable-subtitle: [? if reformist_strength < 35 and neorevisionist_strength < 30 : The party left wing blocks this. ?]
+on-arrival: spd_candidate = "Schäffer"; bvp_relation += 8; z_relation += 5; catholics_spd -= 2 if catholics_spd < 15; left_dissent += 10; labor_dissent += 5; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+We will support Franz Schäffer of the BVP. While conservative, he is a committed republican and acceptable coalition partner.
+
+@abstain_r1
+subtitle: Don't nominate anyone yet - see how the field develops.
+view-if: resources >= 3
+choose-if: resources >= 1
+unavailable-subtitle: We need at least 1 resource to pursue this strategy.
+on-arrival: spd_candidate = null; resources -= 1; spd_delayed_choice = 1;
+
+We will wait to see which candidates emerge before committing our support. This gives us maximum flexibility.
+
+Other parties have announced their candidates. Now we must choose.
+
+- @spd_late_choice: Choose our candidate now.
+
+@spd_late_choice
+
+The field is now clear. Who should we support?
+
+**Available Candidates:**
+[? if z_candidate : - [+ z_candidate +] (Center) ?]
+
+[? if bvp_candidate and bvp_candidate != z_candidate : - [+ bvp_candidate +] (BVP) ?]
+
+[? if dvp_candidate : - [+ dvp_candidate +] (DVP) ?]
+
+[? if ddp_candidate : - [+ ddp_candidate +] (DDP) ?]
+
+[? if dnvp_candidate and dnvp_line = 1 : - [+ dnvp_candidate +] (DNVP) ?]
+
+[? if kpd_candidate : - [+ kpd_candidate +] (KPD) ?]
+
+[? if nsdap_candidate : - [+ nsdap_candidate +] (NSDAP) - NEVER ?]
+
+- @support_z_late: Support [+ z_candidate +]
+- @support_dvp_late: Support [+ dvp_candidate +] (if DVP not supporting Z)
+- @support_dnvp_late: Support [+ dnvp_candidate +] (if moderate DNVP)
+- @support_kpd_late: Support [+ kpd_candidate +] (if left-wing)
+- @own_candidate_late: Run our own candidate after all
+
+@support_z_late
+view-if: z_candidate
+on-arrival: spd_candidate = z_candidate; z_relation += 6; is_unity_candidate = 1;
+go-to: r1_finalized
+
+We will support [+ z_candidate +].
+
+@support_dvp_late
+view-if: dvp_candidate and dvp_candidate != z_candidate
+on-arrival: spd_candidate = dvp_candidate; dvp_relation += 5; is_unity_candidate = 1;
+go-to: r1_finalized
+
+We will support [+ dvp_candidate +].
+
+@support_dnvp_late
+view-if: dnvp_candidate and dnvp_line = 1
+choose-if: reformist_strength >= 40 or neorevisionist_strength >= 35
+on-arrival: spd_candidate = dnvp_candidate; dnvp_relation += 10; left_dissent += 15; is_unity_candidate = 1;
+go-to: r1_finalized
+
+We will support [+ dnvp_candidate +] in this extraordinary anti-extremist coalition.
+
+@support_kpd_late
+view-if: kpd_candidate
+choose-if: kpd_relation >= 50 and left_strength >= 45
+on-arrival: spd_candidate = kpd_candidate; kpd_relation += 5; reformist_dissent += 10;
+go-to: r1_finalized
+
+We will support [+ kpd_candidate +].
+
+@own_candidate_late
+on-arrival: resources -= 1;
+
+We will run our own candidate after all.
+
+- @braun_r1
+- @schumacher_r1
+- @juchacz_r1
 
 @eckener_r1
 subtitle: -1 resource - A unity candidate could unite the democratic parties.
@@ -1020,18 +1159,87 @@ on-arrival: {!
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
 !}
 
-**Second Round**
+**Second Round Runoff**
 
-No candidate achieved a majority. The top two candidates advance to the runoff:
+No candidate achieved a majority in the first round. The top two candidates advance:
 
-1. [+ round1_winner +] - [+ round1_winner_votes +]%
-2. [+ round1_runner_up +] - [+ round1_runner_up_votes +]%
+**[+ round1_winner +]** - [+ round1_winner_votes +]%
+**[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
 
-All other parties must now choose which of these two to support.
+---
 
-[? if nsdap_candidate == dnvp_candidate and nsdap_candidate != round1_winner and nsdap_candidate != round1_runner_up : The far-right parties have consolidated behind [+ nsdap_candidate +]. ?]
+**All eliminated candidates' supporters must now choose:**
 
+**Far Right:**
+[? if nsdap_candidate != round1_winner and nsdap_candidate != round1_runner_up : - NSDAP (was: [+ nsdap_candidate +]) → Now supporting: **[+ nsdap_candidate +]** ?]
+[? if nsdap_candidate = round1_winner or nsdap_candidate = round1_runner_up : - NSDAP: **[+ nsdap_candidate +]** (in runoff) ?]
+
+[? if dnvp_candidate != round1_winner and dnvp_candidate != round1_runner_up and dnvp_candidate != nsdap_candidate : - DNVP (was: [+ dnvp_candidate +]) → Now supporting: **[+ dnvp_candidate +]** ?]
+[? if dnvp_candidate = round1_winner or dnvp_candidate = round1_runner_up : - DNVP: **[+ dnvp_candidate +]** (in runoff) ?]
+[? if dnvp_candidate = nsdap_candidate : - DNVP: Supporting **[+ nsdap_candidate +]** (far-right united) ?]
+
+**Left:**
+[? if kpd_candidate != round1_winner and kpd_candidate != round1_runner_up : - KPD (was: [+ kpd_candidate +]) → Now supporting: **[+ kpd_candidate +]** ?]
+[? if kpd_candidate = round1_winner or kpd_candidate = round1_runner_up : - KPD: **[+ kpd_candidate +]** (in runoff) ?]
+
+[? if sapd_formed and sapd_candidate != round1_winner and sapd_candidate != round1_runner_up : - SAPD (was: [+ sapd_candidate +]) → Now supporting: **[+ sapd_candidate +]** ?]
+[? if sapd_formed and (sapd_candidate = round1_winner or sapd_candidate = round1_runner_up) : - SAPD: **[+ sapd_candidate +]** (in runoff) ?]
+
+**SPD:**
+[? if spd_candidate != round1_winner and spd_candidate != round1_runner_up : - **SPD (was: [+ spd_candidate +]) → Now supporting: [+ spd_candidate +]** ?]
+[? if spd_candidate = round1_winner or spd_candidate = round1_runner_up : - **SPD: [+ spd_candidate +] (in runoff)** ?]
+
+[? if srpd_formed and srpd_candidate != round1_winner and srpd_candidate != round1_runner_up : - SRPD (was: [+ srpd_candidate +]) → Now supporting: **[+ srpd_candidate +]** ?]
+
+**Center/Liberal:**
+[? if z_candidate != round1_winner and z_candidate != round1_runner_up : - Z (was: [+ z_candidate +]) → Now supporting: **[+ z_candidate +]** ?]
+[? if z_candidate = round1_winner or z_candidate = round1_runner_up : - Z: **[+ z_candidate +]** (in runoff) ?]
+
+[? if bvp_candidate != round1_winner and bvp_candidate != round1_runner_up : - BVP (was: [+ bvp_candidate +]) → Now supporting: **[+ bvp_candidate +]** ?]
+[? if bvp_candidate = round1_winner or bvp_candidate = round1_runner_up : - BVP: **[+ bvp_candidate +]** (in runoff) ?]
+
+[? if ddp_candidate != round1_winner and ddp_candidate != round1_runner_up : - [+ ddp_name +] (was: [+ ddp_candidate +]) → Now supporting: **[+ ddp_candidate +]** ?]
+[? if ddp_candidate = round1_winner or ddp_candidate = round1_runner_up : - [+ ddp_name +]: **[+ ddp_candidate +]** (in runoff) ?]
+
+[? if dvp_candidate != round1_winner and dvp_candidate != round1_runner_up : - DVP (was: [+ dvp_candidate +]) → Now supporting: **[+ dvp_candidate +]** ?]
+[? if dvp_candidate = round1_winner or dvp_candidate = round1_runner_up : - DVP: **[+ dvp_candidate +]** (in runoff) ?]
+
+[? if wp_candidate != round1_winner and wp_candidate != round1_runner_up : - WP (was: [+ wp_candidate +]) → Now supporting: **[+ wp_candidate +]** ?]
+[? if wp_candidate = round1_winner or wp_candidate = round1_runner_up : - WP: **[+ wp_candidate +]** (in runoff) ?]
+
+[? if cnbl_candidate != round1_winner and cnbl_candidate != round1_runner_up : - CNBL (was: [+ cnbl_candidate +]) → Now supporting: **[+ cnbl_candidate +]** ?]
+[? if cnbl_candidate = round1_winner or cnbl_candidate = round1_runner_up : - CNBL: **[+ cnbl_candidate +]** (in runoff) ?]
+
+---
+
+**Current Projected Second Round:**
+
+[? if spd_candidate = round1_winner or z_candidate = round1_winner or ddp_candidate = round1_winner or dvp_candidate = round1_winner or bvp_candidate = round1_winner : **[+ round1_winner +]** is projected to have: SPD [? if spd_candidate = round1_winner : ✓ ?], Z [? if z_candidate = round1_winner : ✓ ?], [+ ddp_name +] [? if ddp_candidate = round1_winner : ✓ ?], DVP [? if dvp_candidate = round1_winner : ✓ ?], BVP [? if bvp_candidate = round1_winner : ✓ ?], WP [? if wp_candidate = round1_winner : ✓ ?] ?]
+
+[? if spd_candidate = round1_runner_up or z_candidate = round1_runner_up or ddp_candidate = round1_runner_up or dvp_candidate = round1_runner_up or bvp_candidate = round1_runner_up : **[+ round1_runner_up +]** is projected to have: SPD [? if spd_candidate = round1_runner_up : ✓ ?], Z [? if z_candidate = round1_runner_up : ✓ ?], [+ ddp_name +] [? if ddp_candidate = round1_runner_up : ✓ ?], DVP [? if dvp_candidate = round1_runner_up : ✓ ?], BVP [? if bvp_candidate = round1_runner_up : ✓ ?], WP [? if wp_candidate = round1_runner_up : ✓ ?] ?
+
+- @r2_analysis: Analyze the situation.
 - @r2_menu: What should we do?
+
+@r2_analysis
+
+**Strategic Analysis:**
+
+[? if spd_candidate = round1_winner : Our candidate is in the lead! We should consolidate support. ?]
+[? if spd_candidate = round1_runner_up : Our candidate is in second place. We need to build a broader coalition. ?]
+[? if spd_candidate != round1_winner and spd_candidate != round1_runner_up : Our candidate was eliminated. We must choose wisely. ?]
+
+**Coalition Math:**
+- If all democratic parties unite behind [+ round1_winner +]: ~[+ democratic_coalition_estimate +]%
+- Far-right consolidated support: ~[+ far_right_estimate +]%
+- Communist bloc: ~[+ communist_estimate +]%
+
+**Key Questions:**
+- Can we unite the Weimar Coalition?
+- Will the KPD support a democratic candidate or abstain?
+- Can we peel away moderate conservatives from the far-right?
+
+- @r2_menu: Back to actions.
 
 @r2_menu
 
@@ -1251,11 +1459,21 @@ The Nazis waste no time consolidating power. [? if president != "Hitler" : The n
 - @game_over
 
 @seldte_victory
-on-arrival: chancellor = "Hitler"; chancellor_party = "NSDAP"
+on-arrival: chancellor = "Seldte"; chancellor_party = "DNVP"; nationalism += 20
 
-With Seldte's victory, the far-right consolidates. [? if not hitler_deported : He appoints Hitler as chancellor. ?][? if hitler_deported : He overturns Hitler's deportation and appoints him chancellor. ?]
+Franz Seldte, leader of the Stahlhelm, becomes President and immediately declares martial law.
 
-- @game_over
+[? if presidential_powers >= 1 : However, our constitutional reforms limit his ability to rule by decree... ?]
+
+[? if presidential_powers = 0 : With full presidential powers at his disposal, Seldte establishes a military-backed authoritarian regime. He appoints himself Chancellor and begins dismantling democratic institutions. ?]
+
+[? if nsdap_banned = 0 and hitler_deported = 0 : The NSDAP is furious - they expected Seldte to be their puppet, but the old Stahlhelm general has his own plans. Hitler is placed under house arrest. ?]
+
+[? if nsdap_banned = 0 and hitler_deported = 1 : The NSDAP protests, but with Hitler in exile, they lack the strength to challenge Seldte's military regime. ?]
+
+[? if nsdap_banned = 1 : With the Nazis already banned, Seldte consolidates a conservative-nationalist dictatorship without fascist competition. ?]
+
+Germany enters an era of military authoritarianism under the old veterans of the Great War.
 
 @thalmann_victory
 go-to: thalmann_democrat if presidential_powers; thalmann_civil_war if not presidential_powers
