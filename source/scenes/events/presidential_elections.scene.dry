@@ -18,6 +18,226 @@ All major parties are preparing their candidates for the race.
 
 @party_candidates
 on-arrival: {!
+
+    // Calculate conservative unity strength if it forms
+    if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+        Q.conservative_unity_estimate = (Q.z_r || 0) + (Q.dnvp_r || 0) + (Q.bvp_r || 0);
+        
+        if (Q.dvp_candidate === Q.z_dnvp_joint_candidate) {
+            Q.conservative_unity_estimate += (Q.dvp_r || 0);
+        }
+        if (Q.wp_candidate === Q.z_dnvp_joint_candidate) {
+            Q.conservative_unity_estimate += (Q.wp_r || 0);
+        }
+        if (Q.cnbl_candidate === Q.z_dnvp_joint_candidate) {
+            Q.conservative_unity_estimate += (Q.cnbl_r || 0);
+        }
+        
+        Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
+    }
+
+    Q.party_relations = {
+    
+    // === KPD (Communists) ===
+    KPD: {
+        SAPD: 40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
+        SPD: Q.kpd_relation,
+        SRPD: Q.kpd_relation - 10,
+        DDP: 15,
+        Z: 10,
+        BVP: 5,
+        DVP: 5,
+        WP: 5,
+        CNBL: 0,
+        DNVP: 0,
+        NSDAP: 0
+    },
+    
+    // === SAPD (Left Socialists) ===
+    SAPD: {
+        KPD: 40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
+        SPD: 50 + (Q.left_strength >= 50 ? 15 : 0),
+        SRPD: 55,
+        DDP: 35,
+        Z: 30,
+        BVP: 25,
+        DVP: 20,
+        WP: 15,
+        CNBL: 15,
+        DNVP: 10,
+        NSDAP: 0
+    },
+    
+    // === SPD (Social Democrats) ===
+    SPD: {
+        KPD: Q.kpd_relation,
+        SAPD: 50 + (Q.left_strength >= 50 ? 15 : 0),
+        SRPD: 65,
+        DDP: Q.ddp_relation,
+        Z: Q.z_relation,
+        BVP: Q.bvp_relation || 40,
+        DVP: Q.dvp_relation,
+        WP: Q.wp_relation || 30,
+        CNBL: Q.cnbl_relation || 25,
+        DNVP: Q.dnvp_relation,
+        NSDAP: Q.nsdap_relation || 5
+    },
+    
+    // === SRPD (Reformist Socialists - if formed) ===
+    SRPD: {
+        KPD: Q.kpd_relation - 10,
+        SAPD: 55,
+        SPD: 65,
+        DDP: Q.ddp_relation + 10,
+        Z: Q.z_relation + 5,
+        BVP: (Q.bvp_relation || 40) + 5,
+        DVP: Q.dvp_relation - 5,
+        WP: (Q.wp_relation || 30) - 5,
+        CNBL: (Q.cnbl_relation || 25) + 5,
+        DNVP: Q.dnvp_relation - 10,
+        NSDAP: 0
+    },
+    
+    // === DDP (Liberals) ===
+    DDP: {
+        KPD: 15,
+        SAPD: 35,
+        SPD: Q.ddp_relation,
+        SRPD: Q.ddp_relation + 10,
+        Z: 70,
+        BVP: 60,
+        DVP: 65 - (Q.dvp_right_shift || 0) * 8,
+        WP: 55,
+        CNBL: 45,
+        DNVP: Q.dnvp_line === 3 ? 15 : 35,
+        NSDAP: 10
+    },
+    
+    // === Z (Center Party) ===
+    Z: {
+        KPD: 10,
+        SAPD: 30,
+        SPD: Q.z_relation,
+        SRPD: Q.z_relation + 5,
+        DDP: 70,
+        BVP: 80,
+        DVP: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
+        WP: 50,
+        CNBL: 30,
+        DNVP: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
+        NSDAP: Math.max(5, 30 - Q.nazi_urgency * 4)
+    },
+    
+    // === BVP (Bavarian People's Party) ===
+    BVP: {
+        KPD: 5,
+        SAPD: 25,
+        SPD: Q.bvp_relation || 40,
+        SRPD: (Q.bvp_relation || 40) + 5,
+        DDP: 60,
+        Z: 80,
+        DVP: 55,
+        WP: 45,
+        CNBL: 65,
+        DNVP: 50,
+        NSDAP: 25 - (Q.nazi_urgency * 2)
+    },
+    
+    // === DVP (People's Party) ===
+    DVP: {
+        KPD: 5,
+        SAPD: 20,
+        SPD: Q.dvp_relation,
+        SRPD: Q.dvp_relation - 5,
+        DDP: 65 - (Q.dvp_right_shift || 0) * 8,
+        Z: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
+        BVP: 55,
+        WP: 70,
+        CNBL: 30,
+        DNVP: 50 + (Q.dvp_right_shift || 0) * 15,
+        NSDAP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10
+    },
+    
+    // === WP (Business Party) ===
+    WP: {
+        KPD: 5,
+        SAPD: 15,
+        SPD: Q.wp_relation || 30,
+        SRPD: (Q.wp_relation || 30) - 5,
+        DDP: 55,
+        Z: 50,
+        BVP: 45,
+        DVP: 70,
+        CNBL: 40,
+        DNVP: 45,
+        NSDAP: 30 + (Q.capital_strike_progress * 3)
+    },
+
+    // === CNBL ===
+    CNBL: {
+        KPD: 5,
+        SAPD: 15,
+        SPD: Q.wp_relation || 25,
+        SRPD: (Q.wp_relation || 30) + 5,
+        DDP: 35,
+        Z: 40,
+        BVP: 55,
+        DVP: 35,
+        WP: 40,
+        DNVP: 40,
+        NSDAP: 20 + (Q.capital_strike_progress * 3)
+    },
+    
+    // === DNVP (Nationalists) ===
+    DNVP: {
+        KPD: 0,
+        SAPD: 5,
+        SPD: Q.dnvp_relation,
+        SRPD: Q.dnvp_relation - 5,
+        DDP: Q.dnvp_line === 3 ? 15 : 35,
+        Z: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
+        BVP: 50,
+        DVP: 50 + (Q.dvp_right_shift || 0) * 15,
+        WP: 45,
+        CNBL: 35,
+        NSDAP: Q.dnvp_line === 3 ? 60 : 35
+    },
+    
+    // === NSDAP (Nazis) ===
+    NSDAP: {
+        KPD: 0,
+        SAPD: 0,
+        SPD: Q.nsdap_relation || 5,
+        SRPD: 0,
+        DDP: 10,
+        Z: Math.max(5, 30 - Q.nazi_urgency * 4),
+        BVP: 25 - (Q.nazi_urgency * 2),
+        DVP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10,
+        WP: 30 + (Q.capital_strike_progress * 3),
+        CNBL: 25,
+        DNVP: Q.dnvp_line === 3 ? 60 : 35
+    }
+};
+
+    // ========================================
+    // HELPER FUNCTION: Get relation between two parties
+    // ========================================
+    function getRelation(party1, party2) {
+        if (!Q.party_relations[party1] || !Q.party_relations[party1][party2]) {
+            return 0;
+        }
+        return Q.party_relations[party1][party2];
+    }
+    
+    // ========================================
+    // HELPER FUNCTION: Check if party would support candidate
+    // ========================================
+    function wouldSupport(party, candidate_party, threshold) {
+        threshold = threshold || 40; // Default threshold
+        var relation = getRelation(party, candidate_party);
+        return relation >= threshold;
+    }
+
     // === INITIALIZE VARIABLES ===
     Q.is_unity_candidate = 0;
     Q.is_cultural_candidate = 0;
@@ -53,21 +273,24 @@ on-arrival: {!
     // ========================================
     // SPECIAL: Z-DNVP JOINT CANDIDATE
     // ========================================
-    // Check if conditions exist for a joint conservative candidate
     Q.z_dnvp_joint_possible = 0;
     Q.z_dnvp_joint_candidate = null;
 
     if (!Q.dnvp_banned && (Q.dnvp_line === 1 || Q.dnvp_line === 0 || Q.dnvp_line === 2)) {
         // DNVP is moderate/traditional, not Hugenberg radicals
+    
+        var z_dnvp_relation = getRelation("Z", "DNVP");
+        var dnvp_z_relation = getRelation("DNVP", "Z");
+        var z_bvp_relation = getRelation("Z", "BVP");
+    
+        if (z_dnvp_relation >= 40 && dnvp_z_relation >= 40 && z_bvp_relation >= 70) {
+            // Good mutual relations between conservative parties
         
-        if (Q.z_relation >= 40 && Q.dnvp_relation >= 15 && Q.bvp_relation >= 35) {
-            // Good relations between conservative parties
-            
             if ((Q.nsdap_r >= 20 || Q.kpd_r >= 12) && Q.year >= 1930) {
                 // Extremist threat is severe - conservatives unite
                 Q.z_dnvp_joint_possible = 1;
-                
-                // Determine the joint candidate
+            
+                // Determine the joint candidate based on party strength and leadership
                 if (Q.z_party_leader === "Kaas" && Q.dnvp_line === 0) {
                     // Both right-wing - pick based on strength
                     if (Q.z_r >= Q.dnvp_r) {
@@ -91,6 +314,10 @@ on-arrival: {!
             }
         }
     }
+
+
+
+
 
     // ========================================
     // Z (CENTER PARTY)
@@ -121,7 +348,14 @@ on-arrival: {!
         Q.bvp_default_candidate = "Schäffer";
         Q.bvp_candidate = null;
     }
-    
+
+
+
+
+
+
+
+
     // ========================================
     // DNVP (NATIONALISTS)
     // ========================================
@@ -187,7 +421,14 @@ on-arrival: {!
             Q.dnvp_candidate = "Seldte";
         }
     }
-    
+
+
+
+
+
+
+
+
     // ========================================
     // KPD (COMMUNISTS)
     // ========================================
@@ -261,10 +502,43 @@ on-arrival: {!
             Q.dvp_default_candidate = "Reinhold";
         
         } else {
-            // DEFAULT POST-STRESEMANN DVP LOGIC
+        // POST-STRESEMANN DVP
+        
+        // Check if DVP joins conservative unity ticket
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // DVP considers joining based on several factors
+            
+            if (Q.dvp_right_shift >= 2 && Q.dnvp_relation >= 40) {
+                // Right-shifted DVP naturally joins conservative bloc
+                Q.dvp_candidate = Q.z_dnvp_joint_candidate;
+                Q.dvp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.z_relation >= 50 && Q.dnvp_line === 1) {
+                // Good Z relations + democratic DNVP = join unity ticket
+                Q.dvp_candidate = Q.z_dnvp_joint_candidate;
+                Q.dvp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.in_grand_coalition && Q.dnvp_line === 1 && Q.nsdap_r >= 25) {
+                // In grand coalition, Nazis very strong, DNVP democratic - join for stability
+                Q.dvp_candidate = Q.z_dnvp_joint_candidate;
+                Q.dvp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.dvp_relation >= 50) {
+                // Good SPD relations - wait to see what SPD does
+                Q.dvp_candidate = null;
+                Q.dvp_default_candidate = null;
+                
+            } else {
+                // DVP stays independent liberal
+                Q.dvp_candidate = "Gessler";
+                Q.dvp_default_candidate = "Gessler";
+            }
+            
+        } else {
+            // No joint ticket - normal DVP logic
+            
             if (Q.dvp_right_shift >= 2) {
-                // Right-shifted DVP
-                if (Q.dnvp_line === 1 && Q.dnvp_relation < 30 && Q.dvp_relation < 50) {
+                if (Q.dnvp_line === 1 && Q.dnvp_relation >= 50) {
                     Q.dvp_candidate = "Westarp";
                     Q.dvp_default_candidate = "Westarp";
                 } else {
@@ -272,16 +546,19 @@ on-arrival: {!
                     Q.dvp_default_candidate = "Gessler";
                 }
             } else if (Q.dvp_relation >= 50) {
-                // Very good SPD relations - will wait for SPD choice
                 Q.dvp_candidate = null;
                 Q.dvp_default_candidate = null;
             } else {
-                // Independent liberal DVP - runs Gessler
                 Q.dvp_candidate = "Gessler";
                 Q.dvp_default_candidate = "Gessler";
             }
         }
     }
+    }
+
+
+
+
     
     // ========================================
     // DDP/DStP (DEMOCRATS)
@@ -353,56 +630,140 @@ on-arrival: {!
             }
         }
     }
-    
-    // ========================================
+
+
     // WP (ECONOMIC PARTY)
     // ========================================
     if (Q.wp_r && Q.wp_r > 2) {
-        if (Q.capital_strike_progress >= 5 || Q.inflation >= 6 || Q.unemployed >= 15) {
-            // Crisis - run own protest candidate
-            Q.wp_candidate = "Drewitz";
-            Q.wp_default_candidate = "Drewitz";
-        } else if (Q.dvp_candidate && Q.dvp_relation >= 40) {
-            // Follow DVP (economic liberals)
-            Q.wp_candidate = Q.dvp_candidate;
-            Q.wp_default_candidate = Q.dvp_candidate;
+        // WP is large enough to have its own candidate considerations
+        
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // Conservative unity ticket exists
+            
+            if (Q.capital_strike_progress >= 5 || Q.inflation >= 6 || Q.unemployed >= 15) {
+                // Severe economic crisis - WP runs protest candidate
+                Q.wp_candidate = "Drewitz";
+                Q.wp_default_candidate = "Drewitz";
+                
+            } else if (Q.dnvp_relation >= 45 && Q.z_relation >= 35 && Q.economic_minister_party === "WP") {
+                // In government with conservatives - join unity ticket
+                Q.wp_candidate = Q.z_dnvp_joint_candidate;
+                Q.wp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.dvp_candidate === Q.z_dnvp_joint_candidate && Q.dvp_relation >= 45) {
+                // DVP joined, WP follows liberal allies
+                Q.wp_candidate = Q.z_dnvp_joint_candidate;
+                Q.wp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.nsdap_r >= 30 && (Q.dnvp_line === 1 || Q.dnvp_line === 2)) {
+                // Nazi threat extreme, moderate DNVP - join unity for stability
+                Q.wp_candidate = Q.z_dnvp_joint_candidate;
+                Q.wp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.dvp_candidate && Q.dvp_relation >= 40) {
+                // Follow DVP (natural liberal allies)
+                Q.wp_candidate = Q.dvp_candidate;
+                Q.wp_default_candidate = Q.dvp_candidate;
+                
+            } else {
+                // Independent middle-class candidate
+                Q.wp_candidate = "Drewitz";
+                Q.wp_default_candidate = "Drewitz";
+            }
+            
         } else {
-            // Independent middle-class candidate
-            Q.wp_candidate = "Drewitz";
-            Q.wp_default_candidate = "Drewitz";
+            // No joint ticket - normal WP logic
+            
+            if (Q.capital_strike_progress >= 5 || Q.inflation >= 6 || Q.unemployed >= 15) {
+                Q.wp_candidate = "Drewitz";
+                Q.wp_default_candidate = "Drewitz";
+            } else if (Q.dvp_candidate && Q.dvp_relation >= 40) {
+                Q.wp_candidate = Q.dvp_candidate;
+                Q.wp_default_candidate = Q.dvp_candidate;
+            } else {
+                Q.wp_candidate = "Drewitz";
+                Q.wp_default_candidate = "Drewitz";
+            }
         }
     } else {
-        // Too small - fold into DVP
-        Q.wp_candidate = Q.dvp_candidate;
-        Q.wp_default_candidate = Q.dvp_candidate;
+        // Too small - fold into DVP or conservatives
+        if (Q.dvp_candidate) {
+            Q.wp_candidate = Q.dvp_candidate;
+            Q.wp_default_candidate = Q.dvp_candidate;
+        } else if (Q.z_dnvp_joint_candidate) {
+            Q.wp_candidate = Q.z_dnvp_joint_candidate;
+            Q.wp_default_candidate = Q.z_dnvp_joint_candidate;
+        } else {
+            Q.wp_candidate = "Gessler";
+            Q.wp_default_candidate = "Gessler";
+        }
     }
     
     // ========================================
     // CNBL (AGRARIAN PARTY)
     // ========================================
     if (Q.cnbl_r && Q.cnbl_r > 1.5) {
-        if (Q.agricultural_finance < 2 || Q.land_reform >= 2) {
-            // Agricultural crisis or hostile policy - protest candidate
-            Q.cnbl_candidate = "Hamkens";
-            Q.cnbl_default_candidate = "Hamkens";
-        } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned && Q.dnvp_relation >= 40) {
-            // Support moderate DNVP (conservative alliance)
-            Q.cnbl_candidate = Q.dnvp_candidate;
-            Q.cnbl_default_candidate = Q.dnvp_candidate;
-        } else if (Q.dnvp_line === 3 && !Q.nsdap_banned && Q.year >= 1932) {
-            // Radicalized - join Nazis
-            Q.cnbl_candidate = Q.nsdap_candidate;
-            Q.cnbl_default_candidate = Q.nsdap_candidate;
+        // CNBL is large enough to be relevant
+        
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // Conservative unity ticket exists
+            
+            if (Q.agricultural_finance < 2 || Q.land_reform >= 2) {
+                // Agricultural crisis or hostile policy - protest candidate
+                Q.cnbl_candidate = "Hamkens";
+                Q.cnbl_default_candidate = "Hamkens";
+                
+            } else if (Q.dnvp_relation >= 50 && Q.dnvp_line !== 3) {
+                // Strong DNVP ties, moderate DNVP - join unity
+                Q.cnbl_candidate = Q.z_dnvp_joint_candidate;
+                Q.cnbl_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.bvp_candidate === Q.z_dnvp_joint_candidate && Q.bvp_relation >= 40) {
+                // BVP in unity ticket, good relations - Catholic agrarian solidarity
+                Q.cnbl_candidate = Q.z_dnvp_joint_candidate;
+                Q.cnbl_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.z_relation >= 45 && Q.agricultural_minister_party === "Z") {
+                // Z controls agriculture ministry and in unity ticket - join
+                Q.cnbl_candidate = Q.z_dnvp_joint_candidate;
+                Q.cnbl_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else if (Q.nsdap_r >= 25 && Q.rural_nsdap_support < 15) {
+                // Nazis strong but not in countryside - join anti-Nazi unity
+                Q.cnbl_candidate = Q.z_dnvp_joint_candidate;
+                Q.cnbl_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else {
+                // Independent agrarian
+                Q.cnbl_candidate = "Hamkens";
+                Q.cnbl_default_candidate = "Hamkens";
+            }
+            
         } else {
-            // Independent agrarian
-            Q.cnbl_candidate = "Hamkens";
-            Q.cnbl_default_candidate = "Hamkens";
+            // No joint ticket - normal CNBL logic
+            
+            if (Q.agricultural_finance < 2 || Q.land_reform >= 2) {
+                Q.cnbl_candidate = "Hamkens";
+                Q.cnbl_default_candidate = "Hamkens";
+            } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned && Q.dnvp_relation >= 40) {
+                Q.cnbl_candidate = Q.dnvp_candidate;
+                Q.cnbl_default_candidate = Q.dnvp_candidate;
+            } else if (Q.dnvp_line === 3 && !Q.nsdap_banned && Q.year >= 1932) {
+                Q.cnbl_candidate = Q.nsdap_candidate;
+                Q.cnbl_default_candidate = Q.nsdap_candidate;
+            } else {
+                Q.cnbl_candidate = "Hamkens";
+                Q.cnbl_default_candidate = "Hamkens";
+            }
         }
     } else {
         // Too small - fold into conservative bloc
-        if (!Q.dnvp_banned) {
+        if (!Q.dnvp_banned && Q.dnvp_candidate) {
             Q.cnbl_candidate = Q.dnvp_candidate;
             Q.cnbl_default_candidate = Q.dnvp_candidate;
+        } else if (Q.z_dnvp_joint_candidate) {
+            Q.cnbl_candidate = Q.z_dnvp_joint_candidate;
+            Q.cnbl_default_candidate = Q.z_dnvp_joint_candidate;
         } else {
             Q.cnbl_candidate = Q.bvp_default_candidate;
             Q.cnbl_default_candidate = Q.bvp_default_candidate;
@@ -992,6 +1353,23 @@ on-arrival: {!
             Q.srpd_candidate = "Horsing";
         }
     }
+
+    // Calculate conservative unity strength if it forms
+    if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+        Q.conservative_unity_estimate = (Q.z_r || 0) + (Q.dnvp_r || 0) + (Q.bvp_r || 0);
+        
+        if (Q.dvp_candidate === Q.z_dnvp_joint_candidate) {
+            Q.conservative_unity_estimate += (Q.dvp_r || 0);
+        }
+        if (Q.wp_candidate === Q.z_dnvp_joint_candidate) {
+            Q.conservative_unity_estimate += (Q.wp_r || 0);
+        }
+        if (Q.cnbl_candidate === Q.z_dnvp_joint_candidate) {
+            Q.conservative_unity_estimate += (Q.cnbl_r || 0);
+        }
+        
+        Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
+    }
 !}
 go-to: r1_finalized
 
@@ -999,43 +1377,58 @@ go-to: r1_finalized
 
 The candidates have been finalized:
 
-[? if z_dnvp_joint_possible and z_dnvp_joint_candidate : **CONSERVATIVE UNITY TICKET:** Z, DNVP, and BVP have united behind [+ z_dnvp_joint_candidate +] to combat extremism! ?]
+[? if z_dnvp_joint_possible and z_dnvp_joint_candidate : 
+═══════════════════════════════════════════════════
+**CONSERVATIVE UNITY COALITION**
+═══════════════════════════════════════════════════
+
+The following parties have united behind **[+ z_dnvp_joint_candidate +]** to combat extremism:
+
+- Center Party (Z) ✓
+- DNVP (Moderate Nationalists) ✓
+- BVP (Bavarian People's Party) ✓
+[? if dvp_candidate == z_dnvp_joint_candidate : - DVP (People's Party) ✓ ?]
+[? if wp_candidate == z_dnvp_joint_candidate : - WP (Economic Party) ✓ ?]
+[? if cnbl_candidate == z_dnvp_joint_candidate : - CNBL (Agrarian League) ✓ ?]
+
+**Combined Support:** [+ conservative_unity_estimate +]%
+
+This is the broadest anti-extremist coalition in Weimar history!
+═══════════════════════════════════════════════════
+?]
 
 **Far Right:**
 [? if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
 
 [? if dnvp_candidate and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate and not dnvp_banned: - DNVP: [+ dnvp_candidate +] ?]
 [? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
-[? if z_dnvp_joint_possible and dnvp_candidate == z_dnvp_joint_candidate : - DNVP: Part of conservative unity ticket ?]
 
 **Left:**
 [? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
 [? if sapd_candidate and sapd_candidate != kpd_candidate and sapd_candidate != spd_candidate : - SAPD: [+ sapd_candidate +] ?]
-[? if sapd_candidate == spd_candidate : - SAPD: Supporting [+ spd_candidate +] ?]
 
 **Center/Liberal:**
 - SPD: [+ spd_candidate +]
 
-[? if srpd_formed = 1 and srpd_candidate : - SRPD (Social Republicans): [+ srpd_candidate +] ?]
+[? if srpd_formed = 1 and srpd_candidate : - SRPD: [+ srpd_candidate +] ?]
 
-[? if z_candidate and z_candidate != spd_candidate and z_candidate != z_dnvp_joint_candidate : - Center (Z): [+ z_candidate +] ?]
+[? if z_candidate and z_candidate != spd_candidate and not z_dnvp_joint_possible : - Center (Z): [+ z_candidate +] ?]
 [? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
-[? if z_dnvp_joint_possible and z_candidate == z_dnvp_joint_candidate : - Center (Z): **Leading conservative unity ticket** ?]
 
-[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate and bvp_candidate != z_dnvp_joint_candidate : - BVP: [+ bvp_candidate +] ?]
+[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate and not z_dnvp_joint_possible : - BVP: [+ bvp_candidate +] ?]
 [? if bvp_candidate == spd_candidate : - BVP: Supporting [+ spd_candidate +] ?]
-[? if z_dnvp_joint_possible and bvp_candidate == z_dnvp_joint_candidate : - BVP: Part of conservative unity ticket ?]
 
 [? if ddp_candidate and ddp_candidate != spd_candidate and ddp_candidate != z_candidate : - [+ ddp_name +]: [+ ddp_candidate +] ?]
 [? if ddp_candidate == spd_candidate : - [+ ddp_name +]: Supporting [+ spd_candidate +] ?]
 
-[? if dvp_candidate and dvp_candidate != spd_candidate and dvp_candidate != z_candidate and dvp_candidate != ddp_candidate : - DVP: [+ dvp_candidate +] ?]
+[? if dvp_candidate and dvp_candidate != spd_candidate and dvp_candidate != z_candidate and dvp_candidate != ddp_candidate and dvp_candidate != z_dnvp_joint_candidate : - DVP: [+ dvp_candidate +] ?]
 [? if dvp_candidate == spd_candidate : - DVP: Supporting [+ spd_candidate +] ?]
 
-[? if wp_candidate and wp_candidate != spd_candidate and wp_candidate != z_candidate and wp_candidate != ddp_candidate and wp_candidate != dvp_candidate: - WP: [+ wp_candidate +] ?]
+[? if wp_candidate and wp_candidate != spd_candidate and wp_candidate != z_candidate and wp_candidate != dvp_candidate and wp_candidate != z_dnvp_joint_candidate : - WP: [+ wp_candidate +] ?]
 [? if wp_candidate == spd_candidate : - WP: Supporting [+ spd_candidate +] ?]
 
-[? if cnbl_candidate : - CNBL: [+ cnbl_candidate +] ?]
+[? if cnbl_candidate and cnbl_candidate != z_dnvp_joint_candidate : - CNBL: [+ cnbl_candidate +] ?]
+
 
 - @r1_menu: Continue to first round.
 
