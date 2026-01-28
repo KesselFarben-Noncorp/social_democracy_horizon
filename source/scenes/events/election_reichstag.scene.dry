@@ -685,6 +685,35 @@ var threshold = 50;
 
 Q.formation_attempts.push(formateur);
 
+// ============================================
+// CHECK FOR SOLE MAJORITY
+// ============================================
+if (formateur_votes >= threshold) {
+    Q.sole_majority_possible = 1;
+    Q.sole_majority_party = formateur;
+    
+    // If SPD has sole majority, let them decide
+    if (formateur === 'SPD') {
+        Q.spd_can_govern_alone = 1;
+        // Still calculate coalitions as options
+    } else {
+        // Other party with majority governs alone automatically
+        Q.coalition_formed = 1;
+        Q.chosen_coalition = {
+            parties: [formateur],
+            votes: formateur_votes,
+            compatibility: 100,
+            size: 1,
+            type: 'sole_majority'
+        };
+        Q.spd_in_chosen_coalition = 0;
+        return; // Skip coalition evaluation
+    }
+} else {
+    Q.sole_majority_possible = 0;
+    Q.spd_can_govern_alone = 0;
+}
+
 // Helper: Get relation between two parties (handles missing values)
 function get_relation(party1, party2) {
     if (party1 === party2) return 100;
@@ -738,7 +767,6 @@ function coalition_compatibility(parties) {
     for (var i = 0; i < parties.length; i++) {
         if (parties[i] === formateur) continue;
         
-        var rel = (Q.party_relations[formateur] && Q.party_relations[formateur][parties[i]]);
         var rel = get_relation(formateur, parties[i]);
         if (typeof rel === 'undefined') rel = 50;
         if (rel < 35) return -1;
@@ -751,7 +779,6 @@ function coalition_compatibility(parties) {
         for (var j = i + 1; j < parties.length; j++) {
             if (parties[i] === formateur || parties[j] === formateur) continue;
             
-            var rel = (Q.party_relations[parties[i]] && Q.party_relations[parties[i]][parties[j]]);
             var rel = get_relation(parties[i], parties[j]);
             if (typeof rel === 'undefined') rel = 50;
             if (rel < 30) return -1;
@@ -771,6 +798,19 @@ var other_parties = Q.party_votes.filter(function(p) {
 });
 
 Q.possible_coalitions = [];
+
+// ============================================
+// ADD SOLE MAJORITY AS OPTION (if possible)
+// ============================================
+if (Q.sole_majority_possible && formateur === 'SPD') {
+    Q.possible_coalitions.push({
+        parties: [formateur],
+        votes: formateur_votes,
+        compatibility: 100,
+        size: 1,
+        type: 'sole_majority'
+    });
+}
 
 // ============================================
 // EVALUATE 2-PARTY COALITIONS
@@ -914,6 +954,9 @@ if (Q.unity_government_possible && Q.possible_coalitions.length === 0) {
 // ============================================
 
 function classify_coalition(parties) {
+    // Sole majority
+    if (parties.length === 1) return 'sole_majority';
+    
     var has_spd = parties.indexOf('SPD') >= 0;
     var has_kpd = parties.indexOf('KPD') >= 0;
     var has_sapd = parties.indexOf('SAPD') >= 0;
@@ -960,10 +1003,15 @@ if (Q.possible_coalitions.length === 0) {
     Q.coalition_formed = 0;
 } else {
     // Sort by preferences:
-    // 1. Smallest size (easier to manage)
-    // 2. Highest compatibility (better relations)
-    // 3. Smallest majority (less wasted votes)
+    // 1. Sole majority first (if available)
+    // 2. Smallest size (easier to manage)
+    // 3. Highest compatibility (better relations)
+    // 4. Smallest majority (less wasted votes)
     Q.possible_coalitions.sort(function(a, b) {
+        // Prioritize sole majority
+        if (a.type === 'sole_majority' && b.type !== 'sole_majority') return -1;
+        if (b.type === 'sole_majority' && a.type !== 'sole_majority') return 1;
+        
         if (a.size !== b.size) return a.size - b.size;
         if (Math.abs(a.compatibility - b.compatibility) > 5) {
             return b.compatibility - a.compatibility;
