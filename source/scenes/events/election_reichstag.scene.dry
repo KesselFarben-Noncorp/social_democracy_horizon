@@ -38,6 +38,11 @@ var new_party_sum = 0;
 for (var party of Q.parties) {
     Q['old_' + party + '_r'] = Q[party + '_r'] ?? 0;
     
+    // Handle banned parties - set support to 0
+    if (Q[party + '_banned']) {
+        Q[party + '_support'] = 0;
+    }
+    
     if (Q.constitutional_reform > 0) {
         if (Q[party + '_votes'] < Q.electoral_threshold || 
             (Q.electoral_threshold > 1 && party === 'other') ||
@@ -60,7 +65,11 @@ if (Q.math_broken) {
 }
 
 for (var party of Q.parties) {
-    if (!Q.math_broken) {
+    // If party is banned, force everything to 0
+    if (Q[party + '_banned'] && !Q.math_broken) {
+        Q[party + '_r'] = 0;
+        Q[party + '_votes'] = 0;
+    } else if (!Q.math_broken) {
         // NORMAL: Votes sum to 100%
         if (new_party_sum > 0) {
             Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
