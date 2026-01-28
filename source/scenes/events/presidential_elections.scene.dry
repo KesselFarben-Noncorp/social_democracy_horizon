@@ -1360,39 +1360,37 @@ go-to: r1_finalized
 
 The candidates have been finalized:
 
-[? if z_dnvp_joint_possible and z_dnvp_joint_candidate : 
-═══════════════════════════════════════════════════
+[? if z_dnvp_joint_possible and z_dnvp_joint_candidate : ═══════════════════════════════════════════════════
 **CONSERVATIVE UNITY COALITION**
 ═══════════════════════════════════════════════════
 
-The following parties have united behind **[+ z_dnvp_joint_candidate +]** to form right coalition:
+The following parties have united behind **[+ z_dnvp_joint_candidate +]** to combat extremism:
 - Center Party (Z) ✓
 - DNVP (Moderate Nationalists) ✓
-- BVP (Bavarian People's Party) ✓
-[? if dvp_candidate == z_dnvp_joint_candidate : - DVP (People's Party) ✓ ?]
-[? if wp_candidate == z_dnvp_joint_candidate : - WP (Economic Party) ✓ ?]
-[? if cnbl_candidate == z_dnvp_joint_candidate : - CNBL (Agrarian League) ✓ ?]
+- BVP (Bavarian People's Party) ✓ ?]
+[? if z_dnvp_joint_possible and dvp_candidate == z_dnvp_joint_candidate : - DVP (People's Party) ✓ ?]
+[? if z_dnvp_joint_possible and wp_candidate == z_dnvp_joint_candidate : - WP (Economic Party) ✓ ?]
+[? if z_dnvp_joint_possible and cnbl_candidate == z_dnvp_joint_candidate : - CNBL (Agrarian League) ✓ ?]
 
-**Combined Support:** [+ conservative_unity_estimate +]%
+[? if z_dnvp_joint_possible and z_dnvp_joint_candidate : **Combined Support:** [+ conservative_unity_estimate +]%
 
 This is the broadest anti-extremist coalition in Weimar history!
-═══════════════════════════════════════════════════
-?]
+═══════════════════════════════════════════════════ ?]
 
 **Far Right:**
 [? if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
-
-[? if dnvp_candidate and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate and not dnvp_banned: - DNVP: [+ dnvp_candidate +] ?]
-[? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
+[? if dnvp_candidate and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate and not dnvp_banned : - DNVP: [+ dnvp_candidate +] ?]
+[? if dnvp_candidate == nsdap_candidate and not dnvp_banned : - DNVP: Supporting [+ nsdap_candidate +] ?]
 
 **Left:**
 [? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
 [? if sapd_candidate and sapd_candidate != kpd_candidate and sapd_candidate != spd_candidate : - SAPD: [+ sapd_candidate +] ?]
+[? if sapd_candidate == spd_candidate : - SAPD: Supporting [+ spd_candidate +] ?]
 
 **Center/Liberal:**
 - SPD: [+ spd_candidate +]
 
-[? if srpd_formed = 1 and srpd_candidate : - SRPD: [+ srpd_candidate +] ?]
+[? if srpd_formed == 1 and srpd_candidate : - SRPD: [+ srpd_candidate +] ?]
 
 [? if z_candidate and z_candidate != spd_candidate and not z_dnvp_joint_possible : - Center (Z): [+ z_candidate +] ?]
 [? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
@@ -1410,7 +1408,6 @@ This is the broadest anti-extremist coalition in Weimar history!
 [? if wp_candidate == spd_candidate : - WP: Supporting [+ spd_candidate +] ?]
 
 [? if cnbl_candidate and cnbl_candidate != z_dnvp_joint_candidate : - CNBL: [+ cnbl_candidate +] ?]
-
 
 - @r1_menu: Continue to first round.
 
