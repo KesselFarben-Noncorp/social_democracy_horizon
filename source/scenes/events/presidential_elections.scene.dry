@@ -1353,23 +1353,6 @@ on-arrival: {!
             Q.srpd_candidate = "Horsing";
         }
     }
-
-    // Calculate conservative unity strength if it forms
-    if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
-        Q.conservative_unity_estimate = (Q.z_r || 0) + (Q.dnvp_r || 0) + (Q.bvp_r || 0);
-        
-        if (Q.dvp_candidate === Q.z_dnvp_joint_candidate) {
-            Q.conservative_unity_estimate += (Q.dvp_r || 0);
-        }
-        if (Q.wp_candidate === Q.z_dnvp_joint_candidate) {
-            Q.conservative_unity_estimate += (Q.wp_r || 0);
-        }
-        if (Q.cnbl_candidate === Q.z_dnvp_joint_candidate) {
-            Q.conservative_unity_estimate += (Q.cnbl_r || 0);
-        }
-        
-        Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
-    }
 !}
 go-to: r1_finalized
 
