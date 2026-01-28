@@ -2,8 +2,8 @@ title: Foreign Policy
 new-page: true
 is-card: true
 tags: govt_affairs, cabinet
-on-arrival: month_actions += 1; foreign_policy_timer += 8 if eu = 0; foreign_policy_timer += 4 if eu = 1; 
-view-if: spd_in_government = 1 and foreign_minister_party = "SPD" and  foreign_policy_timer <= 0
+on-arrival: month_actions += 1; foreign_policy_timer += 12 if eu = 0 and breitscheid_advisor = 1 and foreign_minister_party != "SPD"; foreign_policy_timer += 9 if eu = 0 and foreign_minister_party = "SPD"; foreign_policy_timer += 9 if eu = 1 and breitscheid_advisor = 1 and foreign_minister_party != "SPD"; foreign_policy_timer += 6 if eu = 1 and foreign_minister_party = "SPD"; 
+view-if: (spd_in_government = 1 or breitscheid_advisor = 1) and foreign_minister_party = "SPD" and foreign_policy_timer <= 0
 card-image: img/portraits/BreitscheidRudolf.jpg
 go-to: fp_menu
 #subtitle: International relations and dealing with Versailles.
@@ -161,7 +161,7 @@ The Allies are grateful of our exposure and repudiation of militarism. Our partn
 
 @concordat_negotiate
 title: Negotiate a Concordat between the Germany and the Vatican.
-view-if: prussian_concordat = 1 and reichskonkordat = 0 and reichskonkordat_progress < 4
+view-if: prussian_concordat = 1 and reichskonkordat = 0 and reichskonkordat_progress < 6
 on-arrival: reichskonkordat_progress += 3; reichskonkordat_progress -= 1 if abortion_rights; reichskonkordat_progress -= 1 if family_law; z_relation += 3*(1-dissent)
 
 The Roman Catholic Church is interested in furthering relations with the German Republic, seeing us as preferable to the old anti-Catholic policies of the Empire. We are working towards the signing of a Concordat, an agreement between the Vatican and the Republic that formally recognizes the Church's rights and interests in the country. The Center Party is especially interested in making this agreement.
@@ -183,7 +183,7 @@ choose-if: eu = 0 or customs_union = 0
 unavailable-subtitle: [? if eu = 1: European Union supercedes our pact! ?] [? if customs_union = 1: Customs union with Austria, first step of integration, caused heavy dissent within Italian Leadership against us! ?]
 on-arrival: sdapo_strength += 1; west_relation -= 2; eu_progress -= 1; reparations_negotiation -= 1; czech_relation += 2; hungary_relation += 2; austria_relation += 2; tyrole_signed = 1; foreign_policy_timer -= 2
 
-We may sign up the Tyrole - Danubian Non Aggression pact, promising to not fund German oriented organizations in South Tyrole or Austria and them promising to not assist own oriented Heimwehr or other fasci organizations, annexing Free City of Fiume or invading Balkan/Central European countries.
+We may sign up the Tyrole - Danubian non-aggression pact with the Italian State, promising to not fund German oriented organizations in South Tyrole or Austria and them in their stead promising to not assist own oriented Heimwehr or other fasci organizations, annexing Free City of Fiume or involving in Balkan/Central European countries.
 
 @support_austria
 title: Diplomatically support Austrian democracy against the Dollfuß dictatorship.
