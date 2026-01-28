@@ -11,6 +11,8 @@ tags: party_affairs
 Whether or not we are in an electoral campaign, the party is always trying to broaden its voter base. Who should we focus our campaign efforts on?
 [? if nazi_urgency > 1: Awareness of National Socialism and its threat amongst society allows us to begin mobilization earlier, granting additional votes among workers and the unemployed. ?]
 
+[? if ideology = "left": Perhaps, switching our ideology could perhaps broaden our voter base? ?]
+
 - @workers: The urban working class, our traditional support base.
 - @new_middle: The new middle class of government employees and white-collar workers.
 - @old_middle: The old middle class of small businessmen and artisans.
@@ -39,8 +41,9 @@ on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; 
 
 @new_middle
 subtitle: -1 resources
+view-if: ideology != "left"
 choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from campaigning among the bourgeois middle class. ?]
 on-arrival: new_middle_spd += 6*(1-dissent); new_middle_spd -= 4 if socialism <= 49 and peoples_party == 0; resources -= 1; peoples_party_support += 1; new_middle_spd -= upper_tax_rates * 1.5
 
 We have increased our campaigning among the new middle class, white collars and servants of the state. Campaign touches the issues of the middle class - middle class protection - targetted against higher classes, minimum wages, democratic practices, education and science funding.
@@ -51,8 +54,9 @@ We have increased our campaigning among the new middle class, white collars and 
 
 @old_middle
 subtitle: -1 resources
+view-if: ideology != "left" and ideology != "center"
 choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from campaigning among the petit bourgeois. ?][? if ideology = "center" : Our centrist stance doesn't appeal strongly enough to the old middle class. ?]
 on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1; old_middle_spd -= upper_tax_rates * 1.5; old_middle_spd -= (nationalism / 60)
 
 We have increased our campaigning among the old middle class. While not the most friendly class, we campaigned on the protection of small owners and businessmen from the hands of reactionary past of Kaiserreich.
@@ -63,8 +67,9 @@ We have increased our campaigning among the old middle class. While not the most
 
 @rural
 subtitle: -1 resources
+view-if: ideology != "left" and ideology != "labor"
 choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from appealing to rural farmers. ?][? if ideology = "labor" : Our labor-focused ideology makes it difficult to appeal to rural landowners. ?]
 on-arrival: rural_spd += 5*(1-dissent); rural_spd -= 3*(1-dissent) if peoples_party == 0; resources -= 1; peoples_party_support += 1; rural_spd += 3*(1-dissent) if rural_policy >= 2; rural_spd *= 1.09 if state_buyer = 1
 
 We have increased our campaigning among farmers and rural workers. Our main issue will be guarantee and protection of farmers.
@@ -76,8 +81,9 @@ We have increased our campaigning among farmers and rural workers. Our main issu
 
 @unemployed
 subtitle: -1 resources
+view-if: ideology != "reformist"
 choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "reformist" : Our reformist ideology focuses on those with jobs rather than the unemployed. ?]
 on-arrival: unemployed_spd += 6*(1-dissent); resources -= 1; unemployed_spd -= 3 if welfare < 0; unemployed_spd += 5*(1-dissent) if wtb_adopted = 1; unemployed_spd += 3*(1-dissent) if welfare >= 2; unemployed_spd += 2 if nazi_urgency > 4;
 
 We have increased our campaigning among the unemployed.
@@ -87,9 +93,9 @@ We have increased our campaigning among the unemployed.
 
 @catholics
 subtitle: -1 resources
-choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
-view-if: peoples_party == 1
+view-if: ideology != "left"
+choose-if: resources >= 1 and peoples_party == 1
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from appealing to religious Catholics. ?][? if peoples_party == 0 : We need to be a people's party to effectively campaign among Catholics. ?]
 on-arrival: catholics_spd += 6*(1-dissent); resources -= 1; catholics_spd *= 1.03 if reichskonkordat = 1;  catholics_spd *= 1.01 if prussian_concordat = 1
 
 We have increased our campaigning among Catholics.
