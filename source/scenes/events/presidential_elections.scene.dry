@@ -212,21 +212,31 @@ on-arrival: {!
 The parties are preparing their candidates:
 
 **Far Right:**
-- NSDAP: [+ nsdap_candidate +]
-[? if dnvp_candidate and dnvp_candidate != nsdap_candidate : - DNVP: [+ dnvp_candidate +] ?]
-[? if dnvp_candidate == nsdap_candidate : - DNVP: Supporting [+ nsdap_candidate +] ?]
+[if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
+
+[? if dnvp_candidate and dnvp_candidate != nsdap_candidate and not dnvp_banned: - DNVP: [+ dnvp_candidate +] ?]
+
+[? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
 
 **Left:**
 [? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
+
 [? if sapd_candidate and sapd_candidate != kpd_candidate : - SAPD: [+ sapd_candidate +] ?]
 
 **Center/Liberal Parties:**
+
 - Center (Z): To be determined
+
 - BVP: To be determined
+
 - [+ ddp_name +]: To be determined
+
 - DVP: To be determined
+
 - WP: To be determined
-- CNBL: TBD
+
+- CNBL: To be determined
+
 [? if srpd_formed = 1: SRPD: To be determined ?]
 
 **SPD:**
@@ -243,7 +253,9 @@ Who should represent the SPD in this election?
 - @gessler_r1: Support an independent liberal candidate.
 - @stresemann_r1: Support Gustav Stresemann (if alive and DVP amenable).
 - @westarp_r1: Support Kuno von Westarp (if DNVP line 1 - moderate).
-- @schaffer_r1: Support Franz Schäffer (BVP - conservative but republican).
+- @schaffer_r1: Support Franz Schäffer (BVP).
+- @drewitz_r1: Support Max Drewitz (WP - Economic Party).
+- @hamkens_r1: Support the CNBL candidate (agrarian interests).
 - @rosenfeld_r1: Support Kurt Rosenfeld (SAPD - if formed).
 - @horsing_r1: Support Otto Hörsing (SRPD - if formed).
 - @thalmann_r1: Support the KPD candidate (if relations are good).
@@ -253,6 +265,30 @@ Who should represent the SPD in this election?
 - @juchacz_r1: Nominate Marie Juchacz.
 - @cultural_figure: Nominate a nonpartisan cultural figure.
 - @abstain_r1: Don't field a candidate, see who emerges.
+
+@drewitz_r1
+subtitle: Support the middle-class economic candidate - unusual coalition.
+view-if: wp_candidate and (wp_candidate = "Drewitz" or wp_default_candidate = "Drewitz")
+choose-if: (reformist_strength >= 40 or neorevisionist_strength >= 35) and wp_relation >= 45
+unavailable-subtitle: [? if reformist_strength < 40 and neorevisionist_strength < 35 : The party left wing blocks this. ?][? if wp_relation < 45 : WP relations not good enough. ?]
+on-arrival: spd_candidate = "Drewitz"; wp_relation += 8; ddp_relation += 4; dvp_relation += 3; left_dissent += 12; labor_dissent += 8; workers_spd -= 3; old_middle_spd += 3; new_middle_spd += 2; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+We will support Max Drewitz of the Economic Party (WP). This is a bold attempt to win middle-class voters and build a broad anti-extremist coalition.
+
+This will anger our left wing and trade unions.
+
+@hamkens_r1
+subtitle: Support the agrarian candidate - extraordinary rural outreach.
+view-if: cnbl_candidate and (cnbl_candidate = "Hamkens" or cnbl_candidate = "Behrens")
+choose-if: (reformist_strength >= 45 or neorevisionist_strength >= 40) and cnbl_relation >= 50 and agricultural_policy_seen
+unavailable-subtitle: [? if reformist_strength < 45 and neorevisionist_strength < 40 : The party left wing blocks this. ?][? if cnbl_relation < 50 : CNBL relations not good enough. ?][? if not agricultural_policy_seen : We haven't engaged enough with agricultural policy. ?]
+on-arrival: spd_candidate = cnbl_candidate; cnbl_relation += 10; bvp_relation += 4; z_relation += 2; left_dissent += 15; labor_dissent += 10; center_dissent += 5; workers_spd -= 4; rural_spd += 4; old_middle_spd += 2; is_unity_candidate = 1;
+go-to: finalize_candidates
+
+We will support [+ cnbl_candidate +] of the CNBL. This unprecedented move signals our commitment to representing rural Germany alongside workers.
+
+This causes major dissent across the party, especially among urban workers and the left.
 
 @rosenfeld_r1
 subtitle: Support the SAPD candidate - healing the socialist split.
@@ -345,9 +381,29 @@ The field is now clear. Who should we support?
 
 - @support_z_late: Support [+ z_candidate +]
 - @support_dvp_late: Support [+ dvp_candidate +] (if DVP not supporting Z)
+- @support_wp_late: Support [+ wp_candidate +] (if WP running)
+- @support_cnbl_late: Support [+ cnbl_candidate +] (if CNBL running)
 - @support_dnvp_late: Support [+ dnvp_candidate +] (if moderate DNVP)
 - @support_kpd_late: Support [+ kpd_candidate +] (if left-wing)
 - @own_candidate_late: Run our own candidate after all
+
+@support_wp_late
+view-if: wp_candidate
+choose-if: (reformist_strength >= 40 or neorevisionist_strength >= 35) and wp_relation >= 45
+unavailable-subtitle: [? if reformist_strength < 40 and neorevisionist_strength < 35 : The left wing blocks this. ?][? if wp_relation < 45 : Relations not good enough. ?]
+on-arrival: spd_candidate = wp_candidate; wp_relation += 8; left_dissent += 12; is_unity_candidate = 1;
+go-to: r1_finalized
+
+We will support [+ wp_candidate +] of the Economic Party.
+
+@support_cnbl_late
+view-if: cnbl_candidate
+choose-if: (reformist_strength >= 45 or neorevisionist_strength >= 40) and cnbl_relation >= 50
+unavailable-subtitle: [? if reformist_strength < 45 and neorevisionist_strength < 40 : The left wing blocks this. ?][? if cnbl_relation < 50 : Relations not good enough. ?]
+on-arrival: spd_candidate = cnbl_candidate; cnbl_relation += 10; left_dissent += 15; labor_dissent += 10;
+go-to: r1_finalized
+
+We will support [+ cnbl_candidate +] of the CNBL - an extraordinary rural outreach.
 
 @support_z_late
 view-if: z_candidate
@@ -990,29 +1046,53 @@ go-to: election_end if has_majority; r2_start if not has_majority
 **First Round Results:**
 
 [? if Hitler_running : Hitler - [+ Hitler_votes_disp +]% ?]
+
 [? if Goring_running : Göring - [+ Goring_votes_disp +]% ?]
+
 [? if Goebbels_running : Goebbels - [+ Goebbels_votes_disp +]% ?]
+
 [? if Seldte_running : Seldte - [+ Seldte_votes_disp +]% ?]
+
 [? if Westarp_running : Westarp - [+ Westarp_votes_disp +]% ?]
+
 [? if Thalmann_running : Thälmann - [+ Thalmann_votes_disp +]% ?]
+
 [? if Munzenberg_running : Münzenberg - [+ Munzenberg_votes_disp +]% ?]
+
 [? if Adenauer_running : Adenauer - [+ Adenauer_votes_disp +]% ?]
+
 [? if Kaas_running : Kaas - [+ Kaas_votes_disp +]% ?]
+
 [? if Bruning_running : Brüning - [+ Bruning_votes_disp +]% ?]
+
 [? if Gessler_running : Gessler - [+ Gessler_votes_disp +]% ?]
+
 [? if Stresemann_running : Stresemann - [+ Stresemann_votes_disp +]% ?]
+
 [? if Eckener_running : Eckener - [+ Eckener_votes_disp +]% ?]
+
 [? if Braun_running : Braun - [+ Braun_votes_disp +]% ?]
+
 [? if Schumacher_running : Schumacher - [+ Schumacher_votes_disp +]% ?]
+
 [? if Juchacz_running : Juchacz - [+ Juchacz_votes_disp +]% ?]
+
 [? if Einstein_running : Einstein - [+ Einstein_votes_disp +]% ?]
+
 [? if Ossietzky_running : Ossietzky - [+ Ossietzky_votes_disp +]% ?]
+
 [? if Mann_running : Mann - [+ Mann_votes_disp +]% ?]
+
 [? if Rosenfeld_running : Rosenfeld - [+ Rosenfeld_votes_disp +]% ?]
+
 [? if Schaffer_running : Schäffer - [+ Schaffer_votes_disp +]% ?]
+
 [? if Drewitz_running: "Max Drewitz - [+ Drewitz_votes_disp +]% ?]
+
 [? if Horsing_running: "Otto Hörsing - [+ Horsing_votes_disp +]% ?]
+
 [? if Hamkens_running: "Hamkens - [+ Hamkens_votes_disp +]% ?]
+
 [? if Behrens_running: "Behrens - [+ Behrens_votes_disp +]% ?]
 
 @r2_start
