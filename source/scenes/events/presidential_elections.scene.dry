@@ -33,7 +33,10 @@ on-arrival: {!
     }
     
     // === NSDAP (NAZIS) ===
-    if (Q.hitler_dead) {
+    if (Q.nsdap_banned) {
+        // If NSDAP is banned, no candidate at all
+        Q.nsdap_candidate = null;
+    } else if (Q.hitler_dead) {
         Q.nsdap_candidate = "Goebbels";
     } else if (Q.hitler_deported) {
         Q.nsdap_candidate = "Göring";
@@ -42,12 +45,15 @@ on-arrival: {!
     }
     
     // === DNVP (NATIONALISTS) ===
-    if (Q.dnvp_line === 1) {
-        // Moderate nationalist line
-        Q.dnvp_candidate = "Westarp";
-    } else if (Q.dnvp_banned) {
+    if (Q.dnvp_banned) {
         // If banned, no candidate
         Q.dnvp_candidate = null;
+    } else if (Q.dnvp_line === 1) {
+        // Moderate nationalist line
+        Q.dnvp_candidate = "Westarp";
+    } else if (Q.nsdap_banned) {
+        // If NSDAP is banned, DNVP can't support them
+        Q.dnvp_candidate = "Seldte";
     } else if (Q.dnvp_relation_nsdap >= 60) {
         // Strong Nazi alliance
         Q.dnvp_candidate = Q.nsdap_candidate;
@@ -100,7 +106,7 @@ on-arrival: {!
 
     // === CNBL (CHRISTLICH-NATIONALER BAUERN- UND LANDVOLKPARTEI) ===
     if (Q.cnbl_r && Q.cnbl_r > 1.5) { // Only if they have meaningful representation
-        if (Q.agricultural_prices && Q.agricultural_prices < -12) {
+        if (Q.agricultural_finance && Q.agricultural_finance < 2) {
             // Deep agricultural crisis - run own protest candidate
             Q.cnbl_candidate = "Hamkens"; // Wilhelm Hamkens, agricultural specialist
         } else if (Q.land_reform >= 2 || Q.pro_consumer >= 2) {
@@ -108,7 +114,7 @@ on-arrival: {!
             Q.cnbl_candidate = "Hamkens";
         } else if (Q.state_buyer = 1 && Q.agricultural_finance >= 1) {
             // Government helping agriculture - might support establishment
-            if (Q.dnvp_candidate && Q.dnvp_line !== 3) {
+            if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned) {
                 // Support moderate DNVP (traditional conservatives)
                 Q.cnbl_candidate = Q.dnvp_candidate;
             } else if (Q.z_candidate && Q.bvp_candidate) {
@@ -118,7 +124,7 @@ on-arrival: {!
                 // Still run own but weakly
                 Q.cnbl_candidate = "Behrens"; // Wilhelm Behrens, Landvolk leader
             }
-        } else if (Q.dnvp_line === 3 && Q.nsdap_r >= 12) {
+        } else if (Q.dnvp_line === 3 && Q.nsdap_r >= 12 && !Q.nsdap_banned) {
             // Hugenberg DNVP + strong Nazis = rural radicalization
             // Split between staying independent or going Nazi
             if (Q.year >= 1932) {
@@ -126,7 +132,7 @@ on-arrival: {!
             } else {
                 Q.cnbl_candidate = "Behrens"; // Still independent protest
             }
-        } else if (Q.dnvp_candidate && Q.dnvp_line !== 3) {
+        } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned) {
             // Default: align with moderate conservative-nationalists
             Q.cnbl_candidate = Q.dnvp_candidate;
         } else {
@@ -134,8 +140,12 @@ on-arrival: {!
             Q.cnbl_candidate = "Hamkens";
         }
     } else {
-        // Too small - fold into conservative camp
-        Q.cnbl_candidate = Q.dnvp_candidate || Q.bvp_candidate;
+        // Too small - fold into conservative camp (but check if those are banned)
+        if (!Q.dnvp_banned) {
+            Q.cnbl_candidate = Q.dnvp_candidate;
+        } else {
+            Q.cnbl_candidate = Q.bvp_candidate;
+        }
     }
 
     // === WP (WIRTSCHAFTSPARTEI / ECONOMIC PARTY) ===
@@ -167,7 +177,7 @@ on-arrival: {!
     
     // === SAPD (SOCIALIST WORKERS' PARTY) ===
     if (Q.sapd_formed) {
-        if (Q.kpd_relation >= 60 && Q.spd_sapd_relation < 40) {
+        if (Q.kpd_relation >= 60 && Q.spd_sapd_relation < 40 && !Q.kpd_banned) {
             Q.sapd_candidate = Q.kpd_candidate;
         } else {
             Q.sapd_candidate = "Rosenfeld"; // Default SAPD candidate
@@ -189,7 +199,14 @@ on-arrival: {!
 
     
     // === OTHER PARTIES ===
-    Q.other_candidate = "Seldte"; // Conservative default
+    // Other parties default to conservative, but not if conservatives are banned
+    if (!Q.dnvp_banned) {
+        Q.other_candidate = "Seldte";
+    } else if (!Q.nsdap_banned) {
+        Q.other_candidate = Q.nsdap_candidate;
+    } else {
+        Q.other_candidate = "Gessler"; // Liberal fallback
+    }
 !}
 
 The parties are preparing their candidates:
