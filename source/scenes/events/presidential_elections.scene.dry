@@ -23,18 +23,24 @@ on-arrival: {!
     Q.is_cultural_candidate = 0;
     
     // Reset all candidate variables
-    var all_candidates = ["Hitler", "Göring", "Goring", "Seldte", "Westarp", "Eckener", "Adenauer", 
-                          "Kaas", "Gessler", "Stresemann", "Thälmann", "Thalmann", "Münzenberg", 
-                          "Munzenberg", "Braun", "Schumacher", "Juchacz", "Einstein", "Mann", 
-                          "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", "Drewitz", "Horsing", "Hamkens", "Behrens"];
+    var all_candidates = [
+    "Hitler", "Göring", "Goring", "Goebbels", "Seldte", "Westarp", "Treviranus", 
+    "Lambach", "Lindeiner", "Hugenberg", "Eckener", "Adenauer", "Kaas", "Brüning", 
+    "Bruning", "Gessler", "Stresemann", "Scholz", "Dingeldey", "Curtius", "Reinhold",
+    "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
+    "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
+    "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" 
+];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
         Q[all_candidates[i] + '_running'] = 0;
     }
     
-    // === NSDAP (NAZIS) ===
+    // ========================================
+    // NSDAP (NAZIS)
+    // ========================================
     if (Q.nsdap_banned) {
-        // If NSDAP is banned, no candidate at all
         Q.nsdap_candidate = null;
     } else if (Q.hitler_dead) {
         Q.nsdap_candidate = "Goebbels";
@@ -43,169 +49,405 @@ on-arrival: {!
     } else {
         Q.nsdap_candidate = "Hitler";
     }
-    
-    // === DNVP (NATIONALISTS) ===
-    if (Q.dnvp_banned) {
-        // If banned, no candidate
-        Q.dnvp_candidate = null;
-    } else if (Q.dnvp_line === 1) {
-        // Moderate nationalist line
-        Q.dnvp_candidate = "Westarp";
-    } else if (Q.nsdap_banned) {
-        // If NSDAP is banned, DNVP can't support them
-        Q.dnvp_candidate = "Seldte";
-    } else if (Q.dnvp_relation_nsdap >= 60) {
-        // Strong Nazi alliance
-        Q.dnvp_candidate = Q.nsdap_candidate;
-    } else if (Q.dnvp_relation_nsdap >= 40 && Q.nsdap_r >= Q.dnvp_r) {
-        // Moderate Nazi alliance, Nazis stronger
-        Q.dnvp_candidate = Q.nsdap_candidate;
-    } else {
-        // Independent DNVP candidate
-        Q.dnvp_candidate = "Seldte";
+
+    // ========================================
+    // SPECIAL: Z-DNVP JOINT CANDIDATE
+    // ========================================
+    // Check if conditions exist for a joint conservative candidate
+    Q.z_dnvp_joint_possible = 0;
+    Q.z_dnvp_joint_candidate = null;
+
+    if (!Q.dnvp_banned && (Q.dnvp_line === 1 || Q.dnvp_line === 0 || Q.dnvp_line === 2)) {
+        // DNVP is moderate/traditional, not Hugenberg radicals
+        
+        if (Q.z_relation >= 40 && Q.dnvp_relation >= 15 && Q.bvp_relation >= 35) {
+            // Good relations between conservative parties
+            
+            if ((Q.nsdap_r >= 20 || Q.kpd_r >= 12) && Q.year >= 1930) {
+                // Extremist threat is severe - conservatives unite
+                Q.z_dnvp_joint_possible = 1;
+                
+                // Determine the joint candidate
+                if (Q.z_party_leader === "Kaas" && Q.dnvp_line === 0) {
+                    // Both right-wing - pick based on strength
+                    if (Q.z_r >= Q.dnvp_r) {
+                        Q.z_dnvp_joint_candidate = "Kaas";
+                    } else {
+                        Q.z_dnvp_joint_candidate = "Westarp";
+                    }
+                } else if (Q.z_party_leader === "Brüning" || Q.z_party_leader === "Bruning") {
+                    // Brüning as technocratic unity candidate
+                    Q.z_dnvp_joint_candidate = "Brüning";
+                } else if (Q.dnvp_line === 1) {
+                    // Democratic DNVP - Westarp leads
+                    Q.z_dnvp_joint_candidate = "Westarp";
+                } else if (Q.bvp_r >= 3 && Q.z_r >= Q.dnvp_r) {
+                    // Strong Catholic bloc - BVP candidate
+                    Q.z_dnvp_joint_candidate = "Schäffer";
+                } else {
+                    // Default: Adenauer as consensus builder
+                    Q.z_dnvp_joint_candidate = "Adenauer";
+                }
+            }
+        }
     }
-    
-    // === KPD (COMMUNISTS) ===
-    if (Q.kpd_banned) {
-        Q.kpd_candidate = null;
-    } else if (Q.kpd_party_leader === "Conciliators") {
-        Q.kpd_candidate = "Münzenberg";
-    } else if (Q.kpd_party_leader === "Thälmann") {
-        Q.kpd_candidate = "Thälmann";
-    } else {
-        Q.kpd_candidate = "Thälmann"; // Default
-    }
-    
-    // === Z (CENTER PARTY) ===
-    // Will be set after SPD chooses, as they might support unity candidate
-    Q.z_candidate = null;
-    if (Q.z_party_leader === "Kaas") {
+
+    // ========================================
+    // Z (CENTER PARTY)
+    // ========================================
+    if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+        // Joint conservative candidate takes priority
+        Q.z_candidate = Q.z_dnvp_joint_candidate;
+        Q.z_default_candidate = Q.z_dnvp_joint_candidate;
+    } else if (Q.z_party_leader === "Kaas") {
         Q.z_default_candidate = "Kaas";
     } else if (Q.z_party_leader === "Joos") {
         Q.z_default_candidate = "Adenauer";
-    } else if (Q.z_party_leader === "Brüning") {
+    } else if (Q.z_party_leader === "Brüning" || Q.z_party_leader === "Bruning") {
         Q.z_default_candidate = "Brüning";
     } else {
         Q.z_default_candidate = "Adenauer";
     }
+    Q.z_candidate = null; // Will finalize after SPD
+
+    // ========================================
+    // BVP (BAVARIAN PEOPLE'S PARTY)
+    // ========================================
+    if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+        // BVP automatically joins Z-DNVP conservative coalition
+        Q.bvp_default_candidate = Q.z_dnvp_joint_candidate;
+        Q.bvp_candidate = null; // Will finalize after SPD
+    } else {
+        Q.bvp_default_candidate = "Schäffer";
+        Q.bvp_candidate = null;
+    }
     
-    // === BVP (BAVARIAN PEOPLE'S PARTY) ===
-    // Will follow Z or go independent
-    Q.bvp_candidate = null;
-    Q.bvp_default_candidate = "Schäffer"; // Franz Schäffer, BVP leader
+    // ========================================
+    // DNVP (NATIONALISTS)
+    // ========================================
+    if (Q.dnvp_banned) {
+        Q.dnvp_candidate = null;
+    } else if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+        // Join the conservative unity ticket
+        Q.dnvp_candidate = Q.z_dnvp_joint_candidate;
+    } else {
+        // DNVP candidate depends on internal faction control
     
-    // === DVP (PEOPLE'S PARTY) ===
+        if (Q.dnvp_line === 1) {
+            // MODERATE/CONSTITUTIONAL DNVP (Westarp faction)
+            // Committed to parliamentary democracy
+            Q.dnvp_candidate = "Westarp";
+        
+        } else if (Q.dnvp_line === 0) {
+            // TRADITIONAL CONSERVATIVE DNVP (Pre-Hugenberg consensus)
+            // Old guard conservatives, not yet radicalized
+        
+            if (Q.dnvp_party_leader === "Westarp") {
+                Q.dnvp_candidate = "Westarp";
+            } else if (Q.dnvp_party_leader === "Treviranus") {
+                Q.dnvp_candidate = "Treviranus";
+            } else if (Q.dnvp_party_leader === "Lambach") {
+                Q.dnvp_candidate = "Lambach";
+            } else if (Q.dnvp_party_leader === "Lindeiner-Wildau") {
+                Q.dnvp_candidate = "Lindeiner";
+            } else {
+                // Default traditional conservative
+                Q.dnvp_candidate = "Treviranus";
+            }
+        
+        } else if (Q.dnvp_line === 2) {
+            // MODERATE NATIONALIST (Post-split compromise)
+            // Westarp returns to leadership after Hugenberg crisis
+            Q.dnvp_candidate = "Westarp";
+        
+        } else if (Q.dnvp_line === 3) {
+            // HUGENBERG DNVP (Far-right/proto-fascist)
+            // Will support or merge with Nazis
+        
+            if (Q.nsdap_banned) {
+                // Nazis banned - DNVP runs own far-right candidate
+                Q.dnvp_candidate = "Hugenberg";
+            } else if (Q.hitler_dead) {
+                // Hitler dead - DNVP might lead far-right
+                if (Q.dnvp_relation_nsdap >= 70) {
+                    Q.dnvp_candidate = "Goebbels"; // Support remaining Nazi leadership
+                } else {
+                    Q.dnvp_candidate = "Hugenberg";
+                }
+            } else if (Q.hitler_deported) {
+                // Hitler deported - DNVP backs Göring
+                Q.dnvp_candidate = "Göring";
+            } else {
+                // Normal Hugenberg DNVP - supports Hitler
+                Q.dnvp_candidate = "Hitler";
+            }
+        
+        } else {
+            // FALLBACK (shouldn't happen, but just in case)
+            Q.dnvp_candidate = "Seldte";
+        }
+    }
+    
+    // ========================================
+    // KPD (COMMUNISTS)
+    // ========================================
+    if (Q.kpd_banned) {
+        Q.kpd_candidate = null;
+    } else if (Q.kpd_party_leader === "Conciliators") {
+        Q.kpd_candidate = "Münzenberg";
+    } else {
+        Q.kpd_candidate = "Thälmann";
+    }
+    
+    // ========================================
+    // DVP (PEOPLE'S PARTY)
+    // ========================================
     if (!Q.stresemann_dead && Q.year <= 1929) {
+        // Stresemann is alive - he runs
+        Q.dvp_candidate = "Stresemann";
         Q.dvp_default_candidate = "Stresemann";
-    } else if (Q.dvp_relation >= 45) {
-        Q.dvp_default_candidate = null; // Will support unity/SPD
     } else {
-        Q.dvp_default_candidate = "Gessler";
-    }
-    Q.dvp_candidate = null;
-
-    // === CNBL (CHRISTLICH-NATIONALER BAUERN- UND LANDVOLKPARTEI) ===
-    if (Q.cnbl_r && Q.cnbl_r > 1.5) { // Only if they have meaningful representation
-        if (Q.agricultural_finance && Q.agricultural_finance < 2) {
-            // Deep agricultural crisis - run own protest candidate
-            Q.cnbl_candidate = "Hamkens"; // Wilhelm Hamkens, agricultural specialist
-        } else if (Q.land_reform >= 2 || Q.pro_consumer >= 2) {
-            // Hostile policies toward landowners - run own candidate in opposition
-            Q.cnbl_candidate = "Hamkens";
-        } else if (Q.state_buyer = 1 && Q.agricultural_finance >= 1) {
-            // Government helping agriculture - might support establishment
-            if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned) {
-                // Support moderate DNVP (traditional conservatives)
-                Q.cnbl_candidate = Q.dnvp_candidate;
-            } else if (Q.z_candidate && Q.bvp_candidate) {
-                // Catholic agrarians acceptable
-                Q.cnbl_candidate = Q.z_candidate;
+        // POST-STRESEMANN DVP - Multiple factions compete
+    
+        if (Q.dvp_party_leader === "Scholz") {
+            // Ernst Scholz - right-liberal, business-oriented
+            if (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3) {
+                // Right-shifted or crisis - support conservatives
+                if (Q.dnvp_line === 1 && Q.dnvp_relation >= 50) {
+                    Q.dvp_candidate = "Westarp";
+                    Q.dvp_default_candidate = "Westarp";
+                } else {
+                    Q.dvp_candidate = "Scholz";
+                    Q.dvp_default_candidate = "Scholz";
+                }
+            } else if (Q.dvp_relation >= 50 && Q.in_grand_coalition) {
+                // In grand coalition with good SPD relations
+                Q.dvp_candidate = null; // Wait for SPD
+                Q.dvp_default_candidate = null;
             } else {
-                // Still run own but weakly
-                Q.cnbl_candidate = "Behrens"; // Wilhelm Behrens, Landvolk leader
+                // Independent liberal
+                Q.dvp_candidate = "Gessler";
+                Q.dvp_default_candidate = "Gessler";
             }
-        } else if (Q.dnvp_line === 3 && Q.nsdap_r >= 12 && !Q.nsdap_banned) {
-            // Hugenberg DNVP + strong Nazis = rural radicalization
-            // Split between staying independent or going Nazi
-            if (Q.year >= 1932) {
-                Q.cnbl_candidate = Q.nsdap_candidate; // Absorbed into Nazi movement
+        
+        } else if (Q.dvp_party_leader === "Dingeldey") {
+            // Eduard Dingeldey - centrist, pragmatic
+            if (Q.z_relation >= 45 && Q.dvp_relation >= 40) {
+                // Strong coalition ties - wait or join unity
+                Q.dvp_candidate = null;
+                Q.dvp_default_candidate = "Gessler";
+            } else if (Q.dvp_right_shift >= 1) {
+                Q.dvp_candidate = "Dingeldey";
+                Q.dvp_default_candidate = "Dingeldey";
             } else {
-                Q.cnbl_candidate = "Behrens"; // Still independent protest
+                Q.dvp_candidate = "Gessler";
+                Q.dvp_default_candidate = "Gessler";
             }
-        } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned) {
-            // Default: align with moderate conservative-nationalists
-            Q.cnbl_candidate = Q.dnvp_candidate;
+        
+        } else if (Q.dvp_party_leader === "Curtius") {
+            // Julius Curtius - moderate, pro-republic
+            if (Q.dvp_relation >= 45 || Q.in_grand_coalition) {
+                // Pro-coalition - wait for SPD
+                Q.dvp_candidate = null;
+                Q.dvp_default_candidate = null;
+            } else {
+                Q.dvp_candidate = "Curtius";
+                Q.dvp_default_candidate = "Curtius";
+            }
+        
+        } else if (Q.finance_minister === "Reinhold" && Q.economic_policy_seen) {
+            // Peter Reinhold (Finance Minister) - technocratic liberal
+            Q.dvp_candidate = "Reinhold";
+            Q.dvp_default_candidate = "Reinhold";
+        
         } else {
-            // Independent agrarian protest candidate
-            Q.cnbl_candidate = "Hamkens";
+            // DEFAULT POST-STRESEMANN DVP LOGIC
+            if (Q.dvp_right_shift >= 2) {
+                // Right-shifted DVP
+                if (Q.dnvp_line === 1 && Q.dnvp_relation < 30 && Q.dvp_relation < 50) {
+                    Q.dvp_candidate = "Westarp";
+                    Q.dvp_default_candidate = "Westarp";
+                } else {
+                    Q.dvp_candidate = "Gessler";
+                    Q.dvp_default_candidate = "Gessler";
+                }
+            } else if (Q.dvp_relation >= 50) {
+                // Very good SPD relations - will wait for SPD choice
+                Q.dvp_candidate = null;
+                Q.dvp_default_candidate = null;
+            } else {
+                // Independent liberal DVP - runs Gessler
+                Q.dvp_candidate = "Gessler";
+                Q.dvp_default_candidate = "Gessler";
+            }
         }
+    }
+    
+    // ========================================
+    // DDP/DStP (DEMOCRATS)
+    // ========================================
+    if (Q.ddp_name === "DStP") {
+        // STATE PARTY (DStP) - more nationalist-liberal
+        if (Q.jungdo_strength >= 300 && Q.year >= 1930) {
+            // Jungdo influence strong - Arthur Mahraun (Jungdo leader)
+            Q.ddp_own_candidate = "Mahraun";
+        } else if (Q.ddp_party_leader === "Koch-Weser" || !Q.ddp_party_leader) {
+            // Koch-Weser faction (centrist liberal)
+            Q.ddp_own_candidate = "Koch-Weser";
+        } else if (Q.ddp_party_leader === "Maier") {
+            // Reinhold Maier (southwestern liberal)
+            Q.ddp_own_candidate = "Maier";
+        } else if (Q.economic_democracy >= 2 || Q.reformist_strength >= 50) {
+            // Hermann Lüders (left-liberal, economic reformer)
+            Q.ddp_own_candidate = "Lüders";
+        } else {
+            // Default - Koch-Weser
+            Q.ddp_own_candidate = "Koch-Weser";
+        }
+        
+        // DStP decision logic
+        if (Q.ddp_relation >= 55) {
+            // Excellent SPD relations - will wait for SPD choice
+            Q.ddp_candidate = null;
+            Q.ddp_default_candidate = null;
+        } else {
+            // Run own candidate
+            Q.ddp_candidate = Q.ddp_own_candidate;
+            Q.ddp_default_candidate = Q.ddp_own_candidate;
+        }
+        
     } else {
-        // Too small - fold into conservative camp (but check if those are banned)
-        if (!Q.dnvp_banned) {
-            Q.cnbl_candidate = Q.dnvp_candidate;
+        // CLASSIC DDP (Democratic Party) - progressive liberals
+        if (Q.womens_rights >= 4 && Q.pro_republic > 80 && Q.nationalism < 20) {
+            // Marie-Elisabeth Lüders (women's rights champion)
+            Q.ddp_own_candidate = "Lüders";
+        } else if (Q.ddp_party_leader === "Dietrich" || Q.finance_minister === "Dietrich") {
+            // Hermann Dietrich (agrarian liberal, finance expert)
+            Q.ddp_own_candidate = "Dietrich";
+        } else if (Q.ddp_party_leader === "Heuss") {
+            // Theodor Heuss (cultural liberal, intellectual)
+            Q.ddp_own_candidate = "Heuss";
+        } else if (Q.rb_strength >= 800 && Q.rb_militancy > 0.30 && Q.year >= 1932) {
+            // Ernst Lemmer (Reichsbanner liberal, militant democrat)
+            Q.ddp_own_candidate = "Lemmer";
         } else {
-            Q.cnbl_candidate = Q.bvp_candidate;
+            // Default - Heuss (most prominent)
+            Q.ddp_own_candidate = "Heuss";
+        }
+        
+        // Classic DDP decision logic
+        if (Q.ddp_relation >= 45) {
+            // Good SPD relations - will wait for SPD choice
+            Q.ddp_candidate = null;
+            Q.ddp_default_candidate = null;
+        } else {
+            // Run own candidate or Gessler as unity liberal
+            if (Q.dvp_candidate === "Gessler" || Q.z_relation >= 35) {
+                // Liberal unity with DVP or coalition potential
+                Q.ddp_candidate = "Gessler";
+                Q.ddp_default_candidate = "Gessler";
+            } else {
+                // Independent DDP candidate
+                Q.ddp_candidate = Q.ddp_own_candidate;
+                Q.ddp_default_candidate = Q.ddp_own_candidate;
+            }
         }
     }
-
-    // === WP (WIRTSCHAFTSPARTEI / ECONOMIC PARTY) ===
-    if (Q.wp_r && Q.wp_r > 2) { // Only if they have meaningful representation
-        if (Q.capital_strike_progress >= 5 || Q.inflation >= 6) {
-            // During crisis, run own candidate
-            Q.wp_candidate = "Drewitz"; // Max Drewitz, WP leader
+    
+    // ========================================
+    // WP (ECONOMIC PARTY)
+    // ========================================
+    if (Q.wp_r && Q.wp_r > 2) {
+        if (Q.capital_strike_progress >= 5 || Q.inflation >= 6 || Q.unemployed >= 15) {
+            // Crisis - run own protest candidate
+            Q.wp_candidate = "Drewitz";
+            Q.wp_default_candidate = "Drewitz";
         } else if (Q.dvp_candidate && Q.dvp_relation >= 40) {
-            // Usually align with DVP (liberal economics)
+            // Follow DVP (economic liberals)
             Q.wp_candidate = Q.dvp_candidate;
-        } else if (Q.ddp_candidate === "Gessler") {
-            // Support liberal centrists
-            Q.wp_candidate = "Gessler";
+            Q.wp_default_candidate = Q.dvp_candidate;
         } else {
             // Independent middle-class candidate
             Q.wp_candidate = "Drewitz";
+            Q.wp_default_candidate = "Drewitz";
         }
     } else {
-        Q.wp_candidate = Q.dvp_candidate || Q.ddp_candidate; // Fold into liberals
+        // Too small - fold into DVP
+        Q.wp_candidate = Q.dvp_candidate;
+        Q.wp_default_candidate = Q.dvp_candidate;
     }
     
-    // === DDP/DStP (DEMOCRATS) ===
-    if (Q.ddp_relation >= 40) {
-        Q.ddp_default_candidate = null; // Will support unity/SPD
+    // ========================================
+    // CNBL (AGRARIAN PARTY)
+    // ========================================
+    if (Q.cnbl_r && Q.cnbl_r > 1.5) {
+        if (Q.agricultural_finance < 2 || Q.land_reform >= 2) {
+            // Agricultural crisis or hostile policy - protest candidate
+            Q.cnbl_candidate = "Hamkens";
+            Q.cnbl_default_candidate = "Hamkens";
+        } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned && Q.dnvp_relation >= 40) {
+            // Support moderate DNVP (conservative alliance)
+            Q.cnbl_candidate = Q.dnvp_candidate;
+            Q.cnbl_default_candidate = Q.dnvp_candidate;
+        } else if (Q.dnvp_line === 3 && !Q.nsdap_banned && Q.year >= 1932) {
+            // Radicalized - join Nazis
+            Q.cnbl_candidate = Q.nsdap_candidate;
+            Q.cnbl_default_candidate = Q.nsdap_candidate;
+        } else {
+            // Independent agrarian
+            Q.cnbl_candidate = "Hamkens";
+            Q.cnbl_default_candidate = "Hamkens";
+        }
     } else {
-        Q.ddp_default_candidate = "Gessler";
+        // Too small - fold into conservative bloc
+        if (!Q.dnvp_banned) {
+            Q.cnbl_candidate = Q.dnvp_candidate;
+            Q.cnbl_default_candidate = Q.dnvp_candidate;
+        } else {
+            Q.cnbl_candidate = Q.bvp_default_candidate;
+            Q.cnbl_default_candidate = Q.bvp_default_candidate;
+        }
     }
-    Q.ddp_candidate = null;
     
-    // === SAPD (SOCIALIST WORKERS' PARTY) ===
+    // ========================================
+    // SAPD (SOCIALIST WORKERS' PARTY)
+    // ========================================
     if (Q.sapd_formed) {
         if (Q.kpd_relation >= 60 && Q.spd_sapd_relation < 40 && !Q.kpd_banned) {
+            // Close to KPD, distant from SPD
             Q.sapd_candidate = Q.kpd_candidate;
         } else {
-            Q.sapd_candidate = "Rosenfeld"; // Default SAPD candidate
+            // Independent left-socialist
+            Q.sapd_candidate = "Rosenfeld";
         }
     } else {
         Q.sapd_candidate = null;
     }
-
-    // === SRPD (SOCIAL REPUBLICANS) ===
+    
+    // ========================================
+    // SRPD (SOCIAL REPUBLICANS)
+    // ========================================
     if (Q.srpd_formed) {
-        if (Q.ddp_relation >= 60 && Q.z_relation >= 60) {
-            Q.srpd_candidate = Q.spd_candidate;
+        if (Q.srpd_relation >= 60) {
+            // Very close to SPD - will likely follow
+            Q.srpd_candidate = null; // Wait for SPD
         } else {
-            Q.srpd_candidate = "Horsing"; // Default SRPD candidate
+            // Independent social republican
+            Q.srpd_candidate = "Horsing";
         }
     } else {
         Q.srpd_candidate = null;
     }
-
     
-    // === OTHER PARTIES ===
-    // Other parties default to conservative, but not if conservatives are banned
-    if (!Q.dnvp_banned) {
-        Q.other_candidate = "Seldte";
-    } else if (!Q.nsdap_banned) {
+    // ========================================
+    // OTHER (Minor parties/splinters)
+    // ========================================
+    if (!Q.dnvp_banned && Q.dnvp_candidate) {
+        Q.other_candidate = Q.dnvp_candidate;
+    } else if (!Q.nsdap_banned && Q.nsdap_candidate) {
         Q.other_candidate = Q.nsdap_candidate;
     } else {
-        Q.other_candidate = "Gessler"; // Liberal fallback
+        Q.other_candidate = "Gessler";
     }
 !}
 
@@ -562,240 +804,192 @@ Carl von Ossietzky, the pacifist journalist, will be our candidate.
 
 @finalize_candidates
 on-arrival: {!
-    // === FINALIZE OTHER PARTIES' CANDIDATES BASED ON SPD CHOICE ===
+    // ========================================
+    // FINALIZE BASED ON SPD CHOICE
+    // ========================================
     
-    var ddp_name_var = Q.ddp_name || "DDP";
-    
-    // === Z (CENTER PARTY) ===
-    if (Q.is_unity_candidate && (Q.spd_candidate === "Eckener" || Q.spd_candidate === Q.z_default_candidate)) {
-        // Join unity candidate
-        if (Q.z_relation >= 40 || (Q.z_relation >= 25 && Q.z_party_leader === "Joos")) {
-            Q.z_candidate = Q.spd_candidate;
-            if (Q.z_relation < 40) {
-                Q.Seldte_bonus += 2.5; // BVP breaks away
-            }
-        } else {
-            Q.z_candidate = Q.z_default_candidate;
-        }
-    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.spd_candidate === "Juchacz" || Q.is_cultural_candidate) {
-        // SPD running own candidate
-        if (Q.spd_candidate === "Juchacz") {
-            // Higher threshold for supporting woman candidate
-            if (Q.z_relation >= 60 || (Q.z_relation >= 45 && Q.z_party_leader === "Joos")) {
-                Q.z_candidate = Q.spd_candidate;
-            } else {
-                Q.z_candidate = Q.z_default_candidate;
-            }
-        } else {
-            // Regular SPD candidate
-            if (Q.z_relation >= 55 || (Q.z_relation >= 40 && Q.z_party_leader === "Joos")) {
-                Q.z_candidate = Q.spd_candidate;
-                if (Q.z_relation < 40) {
-                    Q.Seldte_bonus += 2.5; // BVP breaks away
-                }
-            } else {
-                Q.z_candidate = Q.z_default_candidate;
-            }
-        }
-    } else if (Q.spd_candidate === Q.kpd_candidate) {
-        // SPD supporting KPD - Z definitely runs own
+    // ========================================
+    // Z (CENTER PARTY)
+    // ========================================
+    if (Q.spd_candidate === Q.kpd_candidate) {
+        // SPD supporting communists - Z runs own
         Q.z_candidate = Q.z_default_candidate;
-    } else if (Q.spd_candidate === "Gessler") {
-        // SPD supporting liberal
-        if (Q.z_relation >= 35) {
-            Q.z_candidate = "Gessler";
-    } else if (
-        Q.wp_candidate &&
-        Q.wp_candidate !== Q.kpd_candidate &&
-        Q.pro_republic >= 60 &&
-        Q.z_relation <= 50
-    ) {
-        // Center supports moderate bourgeois WP candidate
-        Q.z_candidate = Q.wp_candidate;
+        
+    } else if (Q.is_unity_candidate) {
+        // SPD proposing unity candidate
+        if (Q.spd_candidate === Q.z_default_candidate) {
+            // SPD directly supports Z candidate - accept
+            Q.z_candidate = Q.spd_candidate;
+        } else if (Q.z_relation >= 50 || (Q.z_relation >= 35 && Q.z_party_leader === "Joos")) {
+            // Good relations - join unity
+            Q.z_candidate = Q.spd_candidate;
+        } else if (Q.z_relation >= 30) {
+            // Moderate relations - might join with incentive
+            if (Q.spd_candidate === "Eckener" || Q.spd_candidate === "Gessler") {
+                Q.z_candidate = Q.spd_candidate;
+            } else {
+                Q.z_candidate = Q.z_default_candidate;
+            }
+        } else {
+            // Poor relations - run own
+            Q.z_candidate = Q.z_default_candidate;
+        }
+        
+    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate) {
+        // SPD running own candidate
+        if (Q.z_relation >= 60 || (Q.z_relation >= 45 && Q.z_party_leader === "Joos")) {
+            // Excellent relations - support SPD
+            Q.z_candidate = Q.spd_candidate;
+        } else {
+            // Run own candidate
+            Q.z_candidate = Q.z_default_candidate;
+        }
+        
+    } else if (Q.spd_candidate === "Juchacz") {
+        // Woman candidate - higher threshold
+        if (Q.z_relation >= 65 || (Q.z_relation >= 50 && Q.z_party_leader === "Joos")) {
+            Q.z_candidate = Q.spd_candidate;
         } else {
             Q.z_candidate = Q.z_default_candidate;
         }
+        
     } else {
+        // Default - run own
         Q.z_candidate = Q.z_default_candidate;
     }
     
-    // === BVP (BAVARIAN PEOPLE'S PARTY) ===
-    if (Q.z_candidate === Q.spd_candidate && Q.z_relation < 40) {
-        // Conservative BVP breaks with Z
-        if (Q.dnvp_candidate === "Seldte" || Q.dnvp_candidate === "Westarp") {
+    // ========================================
+    // BVP (BAVARIAN PEOPLE'S PARTY)
+    // ========================================
+    if (Q.z_candidate === Q.spd_candidate && Q.bvp_relation < 40) {
+        // Conservative BVP breaks with Z over SPD support
+        if (!Q.dnvp_banned && Q.dnvp_candidate) {
             Q.bvp_candidate = Q.dnvp_candidate;
         } else {
             Q.bvp_candidate = Q.bvp_default_candidate;
         }
     } else if (Q.z_candidate === Q.kpd_candidate) {
-        // Never follow Z to support communists
+        // Never support communists
         Q.bvp_candidate = Q.bvp_default_candidate;
-    } else if (Q.z_candidate && Q.z_relation >= 25) {
-        // Follow Z lead
+    } else if (Q.z_candidate) {
+        // Follow Z (usual case)
         Q.bvp_candidate = Q.z_candidate;
-    } else if (
-        Q.wp_candidate &&
-        Q.bvp_relation >= 50 &&
-        Q.inflation > 6 &&
-        Q.unemployed > 8
-    ) {
-        Q.bvp_candidate = Q.wp_candidate;
     } else {
         // Independent
         Q.bvp_candidate = Q.bvp_default_candidate;
     }
     
-    // === DVP (PEOPLE'S PARTY) ===
-    if (Q.dvp_default_candidate === "Stresemann") {
-        Q.dvp_candidate = "Stresemann";
-    } else if (Q.is_unity_candidate && Q.dvp_relation >= 40 && Q.spd_candidate !== Q.kpd_candidate) {
+    // ========================================
+    // DVP (PEOPLE'S PARTY)
+    // ========================================
+    if (Q.dvp_candidate) {
+        // Already decided (Stresemann running, or independent)
+        // Keep existing choice
+    } else if (Q.is_unity_candidate && Q.spd_candidate !== Q.kpd_candidate) {
+        // SPD proposing unity, DVP considering
+        if (Q.dvp_relation >= 45) {
+            Q.dvp_candidate = Q.spd_candidate;
+        } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate) {
+            Q.dvp_candidate = Q.z_candidate;
+        } else {
+            Q.dvp_candidate = "Gessler";
+        }
+    } else if (Q.dvp_relation >= 55 && Q.spd_candidate !== Q.kpd_candidate) {
+        // Excellent SPD relations - support them
         Q.dvp_candidate = Q.spd_candidate;
-    } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate && Q.dvp_relation >= 30) {
+    } else if (Q.z_candidate && Q.z_relation >= 35) {
+        // Support Z instead
         Q.dvp_candidate = Q.z_candidate;
-    } else if (
-        Q.wp_candidate &&
-        Q.wp_candidate !== Q.spd_candidate &&
-        Q.dvp_relation >= 45 &&
-        (Q.inflation > 5 || Q.unemployed > 8)
-    ) {
-        Q.dvp_candidate = Q.wp_candidate;
-    } else if (Q.spd_candidate === "Juchacz") {
-        // Less likely to support woman candidate
-        if (Q.dvp_relation >= 60) {
-            Q.dvp_candidate = Q.spd_candidate;
-        } else {
-            Q.dvp_candidate = Q.dvp_default_candidate || "Gessler";
-        }
-    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate) {
-        if (Q.dvp_relation >= 50) {
-            Q.dvp_candidate = Q.spd_candidate;
-        } else {
-            Q.dvp_candidate = Q.dvp_default_candidate || "Gessler";
-        }
     } else {
-        Q.dvp_candidate = Q.dvp_default_candidate || "Gessler";
+        // Independent liberal
+        Q.dvp_candidate = "Gessler";
     }
-
-    // === WP (ECONOMIC / MIDDLE CLASS PARTY) ===
-    if (Q.wp_default_candidate === "Drewitz") {
-        Q.wp_candidate = "Drewitz";
-    } else if (Q.is_unity_candidate && Q.wp_relation >= 40 && Q.spd_candidate !== Q.kpd_candidate) {
-        Q.wp_candidate = Q.spd_candidate;
-    } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate && Q.wp_relation >= 30) {
-        Q.wp_candidate = Q.z_candidate;
-    } else if (Q.spd_candidate === "Juchacz") {
-        // Less likely to support woman candidate
-        if (Q.wp_relation >= 60) {
-            Q.wp_candidate = Q.spd_candidate;
-        } else {
-            Q.wp_candidate = Q.wp_default_candidate || "Gessler";
-        }
-    } else if (
-        Q.spd_candidate === "Braun" ||
-        Q.spd_candidate === "Schumacher" ||
-        Q.is_cultural_candidate
-    ) {
-        if (Q.wp_relation >= 50) {
-            Q.wp_candidate = Q.spd_candidate;
-        } else {
-            Q.wp_candidate = Q.wp_default_candidate || "Gessler";
-        }
-    } else {
-        Q.wp_candidate = Q.wp_default_candidate || "Gessler";
-    }
-
-    // === CNBL (AGRARIAN PROTEST PARTY) ===
-    if (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens") {
-        Q.cnbl_candidate = Q.cnbl_default_candidate;
-    } else if (Q.is_unity_candidate && Q.cnbl_relation >= 35 && Q.spd_candidate !== Q.kpd_candidate) {
-        // Unlikely but possible if SPD makes major rural outreach
-        Q.cnbl_candidate = Q.spd_candidate;
-    } else if (Q.dnvp_candidate && Q.dnvp_line !== 3 && Q.cnbl_relation >= 40) {
-        // Support moderate DNVP (traditional conservatives)
-        Q.cnbl_candidate = Q.dnvp_candidate;
-    } else if (Q.z_candidate && Q.bvp_candidate && Q.cnbl_relation >= 35) {
-        // Catholic agrarians acceptable
-        Q.cnbl_candidate = Q.z_candidate;
-    } else if (Q.spd_candidate === "Juchacz") {
-        // Very unlikely to support woman candidate (conservative rural values)
-        if (Q.cnbl_relation >= 65) {
-            Q.cnbl_candidate = Q.spd_candidate;
-        } else {
-            Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hamkens";
-        }
-    } else if (
-        Q.spd_candidate === "Braun" ||
-        Q.spd_candidate === "Severing" ||
-        Q.is_cultural_candidate
-    ) {
-        // Prussian politicians or cultural progressives - rural distrust
-        if (Q.cnbl_relation >= 55 && Q.land_reform < 2) {
-            Q.cnbl_candidate = Q.spd_candidate;
-        } else {
-            Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hamkens";
-        }
-    } else if (Q.land_reform >= 2 || Q.pro_consumer >= 2) {
-        // Hostile agricultural policies - never support SPD
-        Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hamkens";
-    } else if (Q.state_buyer >= 2 && Q.agricultural_finance >= 1) {
-        // Government helping agriculture - might support establishment
-        if (Q.spd_candidate && Q.cnbl_relation >= 45) {
-            Q.cnbl_candidate = Q.spd_candidate;
+    
+    // ========================================
+    // DDP/DStP (DEMOCRATS)
+    // ========================================
+    if (Q.ddp_candidate) {
+        // Already decided (running own or Gessler)
+        // Keep existing choice
+    } else if (Q.is_unity_candidate && Q.spd_candidate !== Q.kpd_candidate) {
+        // SPD proposing unity
+        if (Q.ddp_relation >= 35) {
+            Q.ddp_candidate = Q.spd_candidate;
         } else if (Q.z_candidate) {
-            Q.cnbl_candidate = Q.z_candidate;
+            Q.ddp_candidate = Q.z_candidate;
         } else {
-            Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hamkens";
+            Q.ddp_candidate = "Gessler";
         }
-    } else {
-    Q.cnbl_candidate = Q.cnbl_default_candidate || Q.dnvp_candidate || "Hamkens";
-    }
-    
-    // === DDP/DStP (DEMOCRATS) ===
-    if (Q.is_unity_candidate && Q.ddp_relation >= 30 && Q.spd_candidate !== Q.kpd_candidate) {
+    } else if (Q.ddp_relation >= 50 && Q.spd_candidate !== Q.kpd_candidate) {
+        // Excellent SPD relations
         Q.ddp_candidate = Q.spd_candidate;
-    } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate && Q.ddp_relation >= 25) {
+    } else if (Q.z_candidate && Q.z_relation >= 30) {
+        // Support Z
         Q.ddp_candidate = Q.z_candidate;
-    } else if (
-        Q.wp_candidate &&
-        Q.wp_candidate !== Q.kpd_candidate &&
-        Q.ddp_relation >= 35 &&
-        Q.pro_republic_factor >= 0.6
-    ) {
-        Q.ddp_candidate = Q.wp_candidate;
-    } else if (Q.spd_candidate === "Juchacz") {
-        if (Q.ddp_relation >= 50) {
-            Q.ddp_candidate = Q.spd_candidate;
-        } else {
-            Q.ddp_candidate = Q.ddp_default_candidate || "Gessler";
-        }
-    } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate) {
-        if (Q.ddp_relation >= 40) {
-            Q.ddp_candidate = Q.spd_candidate;
-        } else {
-            Q.ddp_candidate = Q.ddp_default_candidate || "Gessler";
-        }
     } else {
-        Q.ddp_candidate = Q.ddp_default_candidate || "Gessler";
+        // Independent liberal
+        Q.ddp_candidate = Q.ddp_name === "DStP" ? "Koch-Weser" : "Gessler";
     }
     
-    // === SAPD ===
+    // ========================================
+    // WP (ECONOMIC PARTY)
+    // ========================================
+    if (Q.wp_default_candidate && Q.wp_default_candidate === "Drewitz") {
+        // Running protest candidate - keep it
+        Q.wp_candidate = "Drewitz";
+    } else if (Q.dvp_candidate) {
+        // Follow DVP
+        Q.wp_candidate = Q.dvp_candidate;
+    } else if (Q.is_unity_candidate && Q.wp_relation >= 40) {
+        Q.wp_candidate = Q.spd_candidate;
+    } else {
+        Q.wp_candidate = Q.dvp_candidate || "Gessler";
+    }
+    
+    // ========================================
+    // CNBL (AGRARIAN PARTY)
+    // ========================================
+    if (Q.cnbl_default_candidate && (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens")) {
+        // Running protest - keep it
+        Q.cnbl_candidate = Q.cnbl_default_candidate;
+    } else if (Q.cnbl_default_candidate === Q.nsdap_candidate || Q.cnbl_default_candidate === Q.dnvp_candidate) {
+        // Already aligned with conservatives
+        Q.cnbl_candidate = Q.cnbl_default_candidate;
+    } else if (Q.z_candidate && Q.cnbl_relation >= 35) {
+        Q.cnbl_candidate = Q.z_candidate;
+    } else {
+        Q.cnbl_candidate = Q.cnbl_default_candidate || "Hamkens";
+    }
+    
+    // ========================================
+    // SAPD
+    // ========================================
     if (Q.sapd_formed) {
         if (Q.sapd_candidate === Q.kpd_candidate && Q.spd_candidate === Q.kpd_candidate) {
             // United left
             Q.sapd_candidate = Q.kpd_candidate;
-        } else if (Q.spd_sapd_relation >= 50 && Q.left_strength >= 40) {
+        } else if (Q.spd_sapd_relation >= 55) {
+            // Good SPD relations - support them
             Q.sapd_candidate = Q.spd_candidate;
         } else {
+            // Independent or stay with KPD
             Q.sapd_candidate = Q.sapd_candidate || "Rosenfeld";
         }
     }
-
-    // === SRPD ===
+    
+    // ========================================
+    // SRPD
+    // ========================================
     if (Q.srpd_formed) {
-        if (Q.srpd_relation >= 50 && Q.left_strength < 40) {
+        if (Q.srpd_relation >= 60) {
+            // Very close - follow SPD
+            Q.srpd_candidate = Q.spd_candidate;
+        } else if (Q.is_unity_candidate && Q.srpd_relation >= 45) {
+            // Unity candidate appeal
             Q.srpd_candidate = Q.spd_candidate;
         } else {
-            Q.srpd_candidate = Q.srpd_candidate || "Horsing";
+            // Independent
+            Q.srpd_candidate = "Horsing";
         }
     }
 !}
@@ -805,10 +999,14 @@ go-to: r1_finalized
 
 The candidates have been finalized:
 
+[? if z_dnvp_joint_possible and z_dnvp_joint_candidate : **CONSERVATIVE UNITY TICKET:** Z, DNVP, and BVP have united behind [+ z_dnvp_joint_candidate +] to combat extremism! ?]
+
 **Far Right:**
-- NSDAP: [+ nsdap_candidate +]
-[? if dnvp_candidate and dnvp_candidate != nsdap_candidate : - DNVP: [+ dnvp_candidate +] ?]
-[? if dnvp_candidate == nsdap_candidate : - DNVP: Supporting [+ nsdap_candidate +] ?]
+[? if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
+
+[? if dnvp_candidate and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate and not dnvp_banned: - DNVP: [+ dnvp_candidate +] ?]
+[? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
+[? if z_dnvp_joint_possible and dnvp_candidate == z_dnvp_joint_candidate : - DNVP: Part of conservative unity ticket ?]
 
 **Left:**
 [? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
@@ -818,13 +1016,15 @@ The candidates have been finalized:
 **Center/Liberal:**
 - SPD: [+ spd_candidate +]
 
-[? if srpd_formed = 1 and srpd_candidate : SRPD (Social Republicans): [+ srpd_candidate +] ?]
+[? if srpd_formed = 1 and srpd_candidate : - SRPD (Social Republicans): [+ srpd_candidate +] ?]
 
-[? if z_candidate and z_candidate != spd_candidate : - Center (Z): [+ z_candidate +] ?]
+[? if z_candidate and z_candidate != spd_candidate and z_candidate != z_dnvp_joint_candidate : - Center (Z): [+ z_candidate +] ?]
 [? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
+[? if z_dnvp_joint_possible and z_candidate == z_dnvp_joint_candidate : - Center (Z): **Leading conservative unity ticket** ?]
 
-[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate : - BVP: [+ bvp_candidate +] ?]
+[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate and bvp_candidate != z_dnvp_joint_candidate : - BVP: [+ bvp_candidate +] ?]
 [? if bvp_candidate == spd_candidate : - BVP: Supporting [+ spd_candidate +] ?]
+[? if z_dnvp_joint_possible and bvp_candidate == z_dnvp_joint_candidate : - BVP: Part of conservative unity ticket ?]
 
 [? if ddp_candidate and ddp_candidate != spd_candidate and ddp_candidate != z_candidate : - [+ ddp_name +]: [+ ddp_candidate +] ?]
 [? if ddp_candidate == spd_candidate : - [+ ddp_name +]: Supporting [+ spd_candidate +] ?]
@@ -835,8 +1035,7 @@ The candidates have been finalized:
 [? if wp_candidate and wp_candidate != spd_candidate and wp_candidate != z_candidate and wp_candidate != ddp_candidate and wp_candidate != dvp_candidate: - WP: [+ wp_candidate +] ?]
 [? if wp_candidate == spd_candidate : - WP: Supporting [+ spd_candidate +] ?]
 
-CNBL: [+ cnbl_candidate +]
-
+[? if cnbl_candidate : - CNBL: [+ cnbl_candidate +] ?]
 
 - @r1_menu: Continue to first round.
 
@@ -928,38 +1127,58 @@ set-jump: post_r1
 on-arrival: {!
     // === CALCULATE ROUND 1 RESULTS ===
     
-    var candidate_descs = {
-        Hitler: "Adolf Hitler (NSDAP)",
-        Göring: "Hermann Göring (NSDAP)",
-        Goring: "Hermann Göring (NSDAP)",
-        Goebbels: "Joseph Goebbels (NSDAP)",
-        Seldte: "Franz Seldte (DNVP/Stahlhelm)",
-        Westarp: "Kuno von Westarp (DNVP)",
-        Eckener: "Hugo Eckener (Unity)",
-        Adenauer: "Konrad Adenauer (Z)",
-        Kaas: "Ludwig Kaas (Z)",
-        Brüning: "Heinrich Brüning (Z)",
-        Bruning: "Heinrich Brüning (Z)",
-        Gessler: "Otto Gessler (Liberal)",
-        Stresemann: "Gustav Stresemann (DVP)",
-        Thälmann: "Ernst Thälmann (KPD)",
-        Thalmann: "Ernst Thälmann (KPD)",
-        Münzenberg: "Willi Münzenberg (KPD)",
-        Munzenberg: "Willi Münzenberg (KPD)",
-        Braun: "Otto Braun (SPD)",
-        Schumacher: "Kurt Schumacher (SPD)",
-        Juchacz: "Marie Juchacz (SPD)",
-        Einstein: "Albert Einstein (Independent)",
-        Mann: "Heinrich Mann (Independent)",
-        Ossietzky: "Carl von Ossietzky (Independent)",
-        Rosenfeld: "Kurt Rosenfeld (SAPD)",
-        Schäffer: "Franz Schäffer (BVP)",
-        Schaffer: "Franz Schäffer (BVP)",
-        Drewitz: "Max Drewitz (WP)",
-        Horsing: "Otto Hörsing (SRPD)",
-        Hamkens: "Hamkens (CNBL)",
-        Behrens: "Behrens (CNBL)"
-    };
+   var candidate_descs = {
+    Hitler: "Adolf Hitler (NSDAP)",
+    Göring: "Hermann Göring (NSDAP)",
+    Goring: "Hermann Göring (NSDAP)",
+    Goebbels: "Joseph Goebbels (NSDAP)",
+    Seldte: "Franz Seldte (DNVP/Stahlhelm)",
+    Westarp: "Kuno von Westarp (DNVP)",
+    Eckener: "Hugo Eckener (Unity)",
+    Adenauer: "Konrad Adenauer (Z)",
+    Kaas: "Ludwig Kaas (Z)",
+    Brüning: "Heinrich Brüning (Z)",
+    Bruning: "Heinrich Brüning (Z)",
+    Gessler: "Otto Gessler (Liberal)",
+    Stresemann: "Gustav Stresemann (DVP)",
+    Thälmann: "Ernst Thälmann (KPD)",
+    Thalmann: "Ernst Thälmann (KPD)",
+    Münzenberg: "Willi Münzenberg (KPD)",
+    Munzenberg: "Willi Münzenberg (KPD)",
+    Braun: "Otto Braun (SPD)",
+    Schumacher: "Kurt Schumacher (SPD)",
+    Juchacz: "Marie Juchacz (SPD)",
+    Einstein: "Albert Einstein (Independent)",
+    Mann: "Heinrich Mann (Independent)",
+    Ossietzky: "Carl von Ossietzky (Independent)",
+    Rosenfeld: "Kurt Rosenfeld (SAPD)",
+    Schäffer: "Franz Schäffer (BVP)",
+    Schaffer: "Franz Schäffer (BVP)",
+    Drewitz: "Max Drewitz (WP)",
+    Horsing: "Otto Hörsing (SRPD)",
+    Hamkens: "Wilhelm Hamkens (CNBL)",
+    Behrens: "Wilhelm Behrens (CNBL)",
+    // DDP candidates
+    Lemmer: "Ernst Lemmer (DDP)",
+    Heuss: "Theodor Heuss (DDP)",
+    Dietrich: "Hermann Dietrich (DDP)",
+    Lüders: "Hermann Lüders (DDP)", // or Marie-Elisabeth depending on context
+    // DStP candidates
+    Mahraun: "Arthur Mahraun (DStP/Jungdo)",
+    "Koch-Weser": "Erich Koch-Weser (DStP)",
+    Maier: "Reinhold Maier (DStP)"
+    // DNVP candidates
+    Treviranus: "Gottfried Treviranus (DNVP)",
+    Lambach: "Walter Lambach (DNVP)",
+    Lindeiner: "Hans von Lindeiner-Wildau (DNVP)",
+    Hugenberg: "Alfred Hugenberg (DNVP)",
+    // DVP (NEW)
+    Scholz: "Ernst Scholz (DVP)",
+    Dingeldey: "Eduard Dingeldey (DVP)",
+    Curtius: "Julius Curtius (DVP)",
+    Reinhold: "Peter Reinhold (DVP)",
+    
+};
     
     // Mark running candidates
     for (var k in candidate_descs) {
@@ -1464,37 +1683,57 @@ on-arrival: {!
     Q.winner_votes_disp = Q.winner_votes.toFixed(1);
     
     var candidate_descs = {
-        Hitler: "Adolf Hitler (NSDAP)",
-        Göring: "Hermann Göring (NSDAP)",
-        Goring: "Hermann Göring (NSDAP)",
-        Goebbels: "Joseph Goebbels (NSDAP)",
-        Seldte: "Franz Seldte (DNVP)",
-        Westarp: "Kuno von Westarp (DNVP)",
-        Eckener: "Hugo Eckener",
-        Adenauer: "Konrad Adenauer (Z)",
-        Kaas: "Ludwig Kaas (Z)",
-        Brüning: "Heinrich Brüning (Z)",
-        Bruning: "Heinrich Brüning (Z)",
-        Gessler: "Otto Gessler",
-        Stresemann: "Gustav Stresemann (DVP)",
-        Thälmann: "Ernst Thälmann (KPD)",
-        Thalmann: "Ernst Thälmann (KPD)",
-        Münzenberg: "Willi Münzenberg (KPD)",
-        Munzenberg: "Willi Münzenberg (KPD)",
-        Braun: "Otto Braun (SPD)",
-        Schumacher: "Kurt Schumacher (SPD)",
-        Juchacz: "Marie Juchacz (SPD)",
-        Einstein: "Albert Einstein",
-        Mann: "Heinrich Mann",
-        Ossietzky: "Carl von Ossietzky",
-        Rosenfeld: "Kurt Rosenfeld (SAPD)",
-        Schäffer: "Franz Schäffer (BVP)",
-        Schaffer: "Franz Schäffer (BVP)",
-        Drewitz: "Max Drewitz (WP)",
-        Horsing: "Otto Hörsing (SRPD)",
-        Hamkens: "Hamkens (CNBL)",
-        Behrens: "Behrens (CNBL)"
-    };
+    Hitler: "Adolf Hitler (NSDAP)",
+    Göring: "Hermann Göring (NSDAP)",
+    Goring: "Hermann Göring (NSDAP)",
+    Goebbels: "Joseph Goebbels (NSDAP)",
+    Seldte: "Franz Seldte (DNVP/Stahlhelm)",
+    Westarp: "Kuno von Westarp (DNVP)",
+    Eckener: "Hugo Eckener (Unity)",
+    Adenauer: "Konrad Adenauer (Z)",
+    Kaas: "Ludwig Kaas (Z)",
+    Brüning: "Heinrich Brüning (Z)",
+    Bruning: "Heinrich Brüning (Z)",
+    Gessler: "Otto Gessler (Liberal)",
+    Stresemann: "Gustav Stresemann (DVP)",
+    Thälmann: "Ernst Thälmann (KPD)",
+    Thalmann: "Ernst Thälmann (KPD)",
+    Münzenberg: "Willi Münzenberg (KPD)",
+    Munzenberg: "Willi Münzenberg (KPD)",
+    Braun: "Otto Braun (SPD)",
+    Schumacher: "Kurt Schumacher (SPD)",
+    Juchacz: "Marie Juchacz (SPD)",
+    Einstein: "Albert Einstein (Independent)",
+    Mann: "Heinrich Mann (Independent)",
+    Ossietzky: "Carl von Ossietzky (Independent)",
+    Rosenfeld: "Kurt Rosenfeld (SAPD)",
+    Schäffer: "Franz Schäffer (BVP)",
+    Schaffer: "Franz Schäffer (BVP)",
+    Drewitz: "Max Drewitz (WP)",
+    Horsing: "Otto Hörsing (SRPD)",
+    Hamkens: "Wilhelm Hamkens (CNBL)",
+    Behrens: "Wilhelm Behrens (CNBL)",
+    // DDP candidates
+    Lemmer: "Ernst Lemmer (DDP)",
+    Heuss: "Theodor Heuss (DDP)",
+    Dietrich: "Hermann Dietrich (DDP)",
+    Lüders: "Hermann Lüders (DDP)", // or Marie-Elisabeth depending on context
+    // DStP candidates
+    Mahraun: "Arthur Mahraun (DStP/Jungdo)",
+    "Koch-Weser": "Erich Koch-Weser (DStP)",
+    Maier: "Reinhold Maier (DStP)"
+    // DNVP candidates
+    Treviranus: "Gottfried Treviranus (DNVP)",
+    Lambach: "Walter Lambach (DNVP)",
+    Lindeiner: "Hans von Lindeiner-Wildau (DNVP)",
+    Hugenberg: "Alfred Hugenberg (DNVP)",
+    // DVP (NEW)
+    Scholz: "Ernst Scholz (DVP)",
+    Dingeldey: "Eduard Dingeldey (DVP)",
+    Curtius: "Julius Curtius (DVP)",
+    Reinhold: "Peter Reinhold (DVP)",
+    
+};
     
     Q.winner_desc = candidate_descs[Q.winner];
 !}
