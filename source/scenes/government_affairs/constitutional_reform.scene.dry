@@ -304,28 +304,28 @@ Which party, if any, should we move to ban?
 @review_evidence
 
 **NSDAP Evidence:**
-[? if sa_banned = 0 and sa_strength > 100 : ✓ Maintains illegal paramilitary (SA) - strong evidence ?]
-[? if sa_banned = 1 : ✗ SA already banned - less evidence available ?]
-[? if nsdap_putsch_seen or beer_hall_seen : ✓ History of coup attempts - strong evidence ?]
-[? if nsdap_normalized >= 0.25 : ⚠ Very popular (25%+) - banning extremely risky ?]
-[? if nsdap_normalized >= 0.15 and nsdap_normalized < 0.25 : ⚠ Popular (15-25%) - banning risky ?]
-[? if nsdap_normalized < 0.15 : ✓ Limited support - banning more feasible ?]
-[? if hitler_deported : ✓ Leader deported for anti-state activity - evidence ?]
+[? if sa_banned = 0 and sa_strength > 100 : Maintains illegal paramilitary (SA) - strong evidence ?]
+[? if sa_banned = 1 : SA already banned - less evidence available ?]
+[? if nsdap_putsch_seen or beer_hall_seen : History of coup attempts - strong evidence ?]
+[? if nsdap_normalized >= 0.25 : Very popular (25%+) - banning extremely risky ?]
+[? if nsdap_normalized >= 0.15 and nsdap_normalized < 0.25 : Popular (15-25%) - banning risky ?]
+[? if nsdap_normalized < 0.15 : Limited support - banning more feasible ?]
+[? if hitler_deported : Leader deported for anti-state activity - evidence ?]
 
 **DNVP Evidence:**
-[? if dnvp_line = 3 and sh_banned = 0 and sh_strength > 50 : ✓ Collaborates with illegal paramilitaries - evidence ?]
-[? if dnvp_line = 3 and dnvp_relation_nsdap >= 60 : ✓ Alliance with NSDAP - evidence of anti-democratic intent ?]
-[? if dnvp_line = 1 : ✗ Westarp line is constitutionally loyal - **cannot ban** ?]
-[? if dnvp_line = 2 : ⚠ Traditional conservatives - weak case, politically dangerous ?]
-[? if dnvp_coup_seen or kapp_seen : ✓ Involved in coup attempts - strong evidence ?]
+[? if dnvp_line = 3 and sh_banned = 0 and sh_strength > 50 : Collaborates with illegal paramilitaries - evidence ?]
+[? if dnvp_line = 3 and dnvp_relation_nsdap >= 60 : Alliance with NSDAP - evidence of anti-democratic intent ?]
+[? if dnvp_line = 1 : Westarp line is constitutionally loyal - **cannot ban** ?]
+[? if dnvp_line = 2 : Traditional conservatives - weak case, politically dangerous ?]
+[? if dnvp_coup_seen or kapp_seen : Involved in coup attempts - strong evidence ?]
 
 **KPD Evidence:**
-[? if rfb_banned = 0 and rfb_strength > 100 : ✓ Maintains illegal paramilitary (RFB) - evidence ?]
-[? if kpd_party_leader = "Thälmann" : ✓ Moscow-directed, rejects democracy - evidence ?]
-[? if kpd_party_leader = "Conciliators" : ⚠ Reformist leadership - weak case ?]
-[? if communist_coup_seen or red_rising_seen : ✓ History of insurrections - strong evidence ?]
-[? if kpd_relation >= 50 : ⚠ Good relations - banning would destroy united front ?]
-[? if kpd_normalized >= 0.20 : ⚠ Very popular - banning extremely risky ?]
+[? if rfb_banned = 0 and rfb_strength > 100 : Maintains illegal paramilitary (RFB) - evidence ?]
+[? if kpd_party_leader = "Thälmann" : Moscow-directed, rejects democracy - evidence ?]
+[? if kpd_party_leader = "Conciliators" : Reformist leadership - weak case ?]
+[? if communist_coup_seen or red_rising_seen : History of insurrections - strong evidence ?]
+[? if kpd_relation >= 50 : Good relations - banning would destroy united front ?]
+[? if kpd_normalized >= 0.20 : Very popular - banning extremely risky ?]
 
 - @ban_party_menu: Back to decision
 
@@ -403,9 +403,9 @@ on-arrival: {!
 **Banning the NSDAP:**
 
 **Evidence Strength:** [+ evidence_strength +]/10
-[? if evidence_strength < 5 : ⚠ Evidence is weak - court may reject the case. ?]
-[? if evidence_strength >= 5 and evidence_strength < 7 : ✓ Sufficient evidence to proceed. ?]
-[? if evidence_strength >= 7 : ✓ Strong evidence - compelling case. ?]
+[? if evidence_strength < 5 : Evidence is weak - court may reject the case. ?]
+[? if evidence_strength >= 5 and evidence_strength < 7 : Sufficient evidence to proceed. ?]
+[? if evidence_strength >= 7 : Strong evidence - compelling case. ?]
 
 **Political Support:** [+ (ban_support * 100).toFixed(1) +]%
 Required: [+ (ban_threshold * 100).toFixed(1) +]%
@@ -517,7 +517,7 @@ go-to: nsdap_ban_civil_war if nsdap_ban_violence >= 3; nsdap_ban_unrest if nsdap
 @nsdap_ban_civil_war
 on-arrival: civil_war_seen = 1; in_civil_war = 1
 
-⚠⚠⚠ **CIVIL WAR**
+**CIVIL WAR**
 
 The banning of the NSDAP has triggered a massive violent response. SA units across Germany have risen in armed rebellion. The Reichswehr is mobilizing, but street battles rage in multiple cities.
 
@@ -606,7 +606,7 @@ go-to: dnvp_westarp_cannot_ban if dnvp_line == 1; dnvp_ban_show if dnvp_line != 
 
 **Banning the DNVP:**
 
-**⚠ CANNOT BAN**
+**CANNOT BAN**
 
 Kuno von Westarp's DNVP has accepted the constitutional order and operates within democratic norms. Banning them would be a flagrant abuse of power and destroy our credibility.
 
@@ -702,9 +702,7 @@ on-arrival: {!
 
 **Banning the KPD:**
 
-[? if left_strength >= 40 or kpd_relation >= 50 :
-
-**WARNING**
+[? if left_strength >= 40 or kpd_relation >= 50 : **WARNING**
 
 Banning the KPD would **destroy the united front** strategy and alienate millions of workers. Our own left wing would revolt.
 
@@ -741,10 +739,6 @@ on-arrival: kpd_banned = 1; rfb_strength *= 0.05; constitutional_reform_timer = 
 
 This decision will haunt us. Communist workers feel betrayed. Our left wing is in open revolt. The united front is dead.
 
-[? if left_strength >= 35 : 
-
-Some leftists are threatening to split from the SPD...
-
-?]
+[? if left_strength >= 35 : Some leftists are threatening to split from the SPD... ?]
 
 - @root: Continue...
