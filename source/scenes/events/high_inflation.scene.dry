@@ -7,38 +7,108 @@ tags: event
 
 = High Inflation
 
-Inflation has risen. People of all social classes are seeing their purchasing power fall. Memories of the hyperinflation period of 1923 echo through the public conscious, even though the present inflation is not nearly as severe.
+Inflation has risen to [+ inflation +]%. People of all social classes are seeing their purchasing power fall. Memories of the hyperinflation period of 1923 echo through the public consciousness, even though the present inflation is not nearly as severe.
 
 The people and the press are clamoring for action to reduce inflation.
 
 - @taxes: Raise taxes.
 - @welfare: Reduce welfare and social spending.
 - @price_controls: Impose price and wage controls.
-- @bank: Surely the Reichsbank has a plan this time?
+- @bank: Consult with the Reichsbank.
 - @nothing: Realistically, there is nothing we can do.
 
 @taxes
-on-arrival: upper_tax_rates += 1; lower_tax_rates += 1; budget += 2; unemployed += 1.5; capital_strike_progress -= 1; inflation -= 1; new_middle_spd -= 3; old_middle_spd -= 3; workers_spd -= 3; rural_spd -= 3; kpd_coalition_dissent += 1; kpd_relation -= 5; left_dissent += 5; economic_growth -= 0.4
+on-arrival: upper_tax_rates += 1; lower_tax_rates += 1; budget += 2; unemployed += 1.5; capital_strike_progress -= 1; inflation -= 1; new_middle_spd -= 3; old_middle_spd -= 3; workers_spd -= 3; rural_spd -= 3; kpd_coalition_dissent += 1 if in_left_front or in_popular_front; kpd_relation -= 5; left_dissent += 5; economic_growth -= 0.4
 
-Raising taxes is unpopular among everyone, but it might be what it takes to keep inflation under control.
+Raising taxes is unpopular among everyone, but it might be what it takes to keep inflation under control. The fiscal contraction dampens demand and slows price growth.
 
 @welfare
-on-arrival: welfare -= 1; budget += 1; capital_strike_progress -= 2; unemployed += 1.5; new_middle_spd += 4*(1-dissent); old_middle_spd += 4*(1-dissent); workers_spd -= 5; unemployed_spd -= 5; inflation -= 1; left_dissent += 5; labor_dissent += 5; center_dissent += 5; kpd_coalition_dissent += 1; economic_growth -= 0.4
+on-arrival: welfare -= 1; budget += 1; capital_strike_progress -= 2; unemployed += 1.5; new_middle_spd += 4*(1-dissent) if dissent <= 0.6; old_middle_spd += 4*(1-dissent) if dissent <= 0.6; workers_spd -= 5; unemployed_spd -= 5; inflation -= 1; left_dissent += 5; labor_dissent += 5; center_dissent += 5; kpd_coalition_dissent += 1 if in_left_front or in_popular_front; economic_growth -= 0.4
 
 Reducing the amount of government spending should reduce the inflation rate, according to classical economics. But it imposes pain upon the people who are suffering the most.
 
+Our working-class base is furious. The left wing denounces this as betrayal.
+
 @price_controls
-on-arrival: capital_strike_progress += 3; inflation -= 3; coalition_dissent += 1; unemployed += 1; old_middle_spd -= 4; new_middle_spd -= 3; rural_spd -= 5; workers_spd -= 2; unemployed_spd += 3; labor_dissent += 6; dvp_relation -= 6; z_relation -= 4; ddp_relation -= 4; economic_growth -= 0.4
+on-arrival: capital_strike_progress += 3; inflation -= 3; coalition_dissent += 1 if in_weimar_coalition or in_grand_coalition; unemployed += 1; old_middle_spd -= 4; new_middle_spd -= 3; rural_spd -= 5; workers_spd -= 2; unemployed_spd += 3; labor_dissent += 6; dvp_relation -= 6; z_relation -= 4; ddp_relation -= 4; bvp_relation -= 5; economic_growth -= 0.4
 
 Price controls are very unpopular with the bourgeoisie and their representatives, as well as rural producers, while wage controls hurt organized workers. However, the policies do stem the tide of inflation, at least somewhat.
 
-@bank
-on-arrival: capital_strike_progress += 2
+The coalition partners are livid. Business interests threaten capital strike.
 
-Unfortunately, but perhaps expectedly, the Reichsbank is refusing to help the government, claiming that our socialist policies are solely to blame. Reichsbank president [? if year <= 1930 : Hjalmar Schacht ?][? if year > 1930 : Hans Luther ?] is all but calling for the fall of the government.
+@bank
+go-to: bank_schacht_2 if schacht_plan_adopted = 1; bank_schacht if reichsbank_president = "Schacht" and not schacht_plan_adopted or (year <= 1930 and reichsbank_president != "Blessing" and reichsbank_president != "Hilferding"); bank_luther if reichsbank_president = "Luther"; bank_blessing if reichsbank_president = "Blessing"; bank_hilferding if reichsbank_president = "Hilferding"; bank_voegler if reichsbank_president = "Vögler"
+
+@bank_schacht
+on-arrival: capital_strike_progress += 2; schacht_relation -= 5
+
+Unfortunately, but perhaps expectedly, Reichsbank President Hjalmar Schacht is refusing to help the government, claiming that our socialist policies are solely to blame for inflation.
+
+"The Reichsbank cannot rescue a government from the consequences of its own fiscal irresponsibility," Schacht declares publicly. "Return to sound money and balanced budgets, or accept the inflationary consequences."
+
+He is all but calling for the fall of the government. The financial press applauds his "principled stand."
+
+@bank_schacht_2
+on-arrival: capital_strike_progress -= 1; schacht_relation += 4; inflation -= 0.5; fiscal_stance += 0.17; demand_impulse -= 0.05; price_pressure -= 0.06; price_pressure += 0.11
+
+Schacht supported us, fortunately! 
+
+@bank_luther
+on-arrival: capital_strike_progress += 1; reichsbank_independent = 2
+
+Reichsbank President Hans Luther responds with cold bureaucratic orthodoxy. "The Reichsbank's mandate is price stability through monetary discipline. We cannot accommodate government fiscal excess."
+
+He tightens credit conditions slightly, which may help with inflation but will do nothing for unemployment. Luther offers no creative solutions—only orthodox monetary restraint.
+
+The Reichsbank maintains its aloof independence. We're on our own.
+
+@bank_blessing
+on-arrival: inflation -= 1.5; capital_strike_progress -= 1; reichsbank_cooperation = 1; economic_growth -= 0.2; neorevisionist_strength += 2
+
+Reichsbank President Karl Blessing responds constructively. "The current inflation is concerning but manageable. The Reichsbank can assist without sacrificing our broader economic strategy."
+
+Blessing proposes a coordinated approach:
+- Modest credit tightening to slow price growth
+- But maintaining enough liquidity to avoid depression
+- Coordination with fiscal policy rather than confrontation
+
+This is unprecedented—the Reichsbank actually helping rather than sabotaging the government. Blessing's modern monetary approach means we can fight inflation without crushing the economy.
+
+The inflation moderates. Business confidence remains intact. We've found a partner in the Reichsbank.
+
+[? if unemployed >= 12 : Most importantly, we can address inflation without abandoning our fight against unemployment. ?]
+
+@bank_hilferding
+on-arrival: inflation -= 2; capital_strike_progress += 1; socialism += 2; left_strength += 2; dvp_relation -= 5; z_relation -= 3
+
+Reichsbank President Rudolf Hilferding coordinates directly with the government on anti-inflation measures. This level of fiscal-monetary coordination is unprecedented in capitalist economics.
+
+Hilferding implements selective credit controls, targeting speculative excess while maintaining support for productive investment. He combines monetary tightening with price guidance to key industries.
+
+"Inflation control need not mean economic stagnation," Hilferding argues. "With socialist coordination, we can maintain growth while stabilizing prices."
+
+The inflation is brought under control through planned coordination. This demonstrates the potential of democratic socialist economic management.
+
+The bourgeois parties are alarmed by this display of socialist planning power.
+
+@bank_voegler
+on-arrival: capital_strike_progress -= 2; inflation -= 1; unemployed += 2; workers_spd -= 3; reichsbank_independent = 1; business_power += 1
+
+Reichsbank President Albert Vögler implements harsh monetary discipline. Credit is severely tightened. Interest rates rise sharply.
+
+"Business confidence requires price stability," Vögler declares. "The Reichsbank will not hesitate to impose the discipline that government lacks."
+
+The approach is effective at fighting inflation—through economic pain. Unemployment rises as credit dries up. Small businesses struggle. Workers suffer.
+
+But capital is pleased. The Reichsbank serves business interests first.
 
 @nothing
-on-arrival: capital_strike_progress += 1
+on-arrival: capital_strike_progress += 1; high_inflation_timer += 3; inflation += 0.5; pro_republic -= 2
 
-Realistically, there is nothing we can do to stem the tide of inflation.
+Realistically, there is nothing we can do to stem the tide of inflation without the tools of monetary policy or painful fiscal contraction.
 
+The inflation continues. Public confidence in our economic management erodes. The press attacks our "helplessness."
+
+[? if reichsbank_president = "Schacht" or reichsbank_president = "Luther" or reichsbank_president = "Vögler" : The Reichsbank's obstruction leaves us without the monetary tools needed to fight inflation. ?]
+
+This is the price of governing without full economic control.
