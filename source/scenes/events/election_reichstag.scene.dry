@@ -160,6 +160,8 @@ Q.in_unity_government = 0;
 Q.spd_toleration = 0;
 Q.in_bourgeois_coalition = 0;
 Q.in_right_coalition = 0;
+Q.in_social_christian_coalition = 0;
+Q.in_social_liberal_coalition = 0;
 
 // Reset KPD goals
 Q.kpd_goals_seen = 0;
@@ -979,7 +981,9 @@ function classify_coalition(parties) {
     if (has_spd && has_z && has_ddp && parties.length === 3) return 'weimar';
     if (has_spd && has_z && has_ddp && has_dvp && has_bvp) return 'grand';
     if (has_spd && has_z && has_ddp && has_dvp && parties.length === 4) return 'grand_small';
-    
+    if (has_spd && has_z && parties.length === 2) return 'social_christian';
+    if (has_spd && has_ddp && parties.length === 2) return 'social_liberal';
+
     // Bourgeois coalitions
     if (!has_spd && !has_kpd && !has_sapd && has_z && has_ddp && has_dvp) return 'bourgeois';
     if (!has_spd && !has_kpd && !has_sapd && has_z && has_dvp && has_bvp) return 'bourgeois_catholic';
@@ -1352,6 +1356,12 @@ if (Q.coalition_type === 'weimar') {
 } else if (Q.coalition_type === 'grand' || Q.coalition_type === 'grand_small') {
     Q.in_grand_coalition = 1;
     Q.coalition_name = "Grand Coalition";
+} else if (Q.coalition_type === 'social_christian') {
+    Q.in_social_christian_coalition = 1;
+    Q.coalition_name = "Social - Christian Coalition";
+} else if (Q.coalition_type === 'social_liberal') {
+    Q.in_social_liberal_coalition = 1;
+    Q.coalition_name = "Social - Liberal Coalition";
 } else if (Q.coalition_type === 'left_front') {
     Q.in_left_front = 1;
     Q.coalition_name = "Left Front";
