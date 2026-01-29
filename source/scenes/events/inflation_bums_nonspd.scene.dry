@@ -1,9 +1,9 @@
 title: The Inflation Crisis
 subtitle: The Government Responds
 new-page: true
-view-if: inflation >= 8 and spd_in_government = 0 and inflation_crisis_event = 0
+view-if: inflation >= 8 and spd_in_government = 0 and inflation_crisis_event = 0 and high_inflation_timer < 1
 tags: event, economics
-on-arrival: inflation_crisis_event = 1; month_actions += 1
+on-arrival: inflation_crisis_event = 1; high_inflation_timer += 6
 face-image: img/crisis.jpg
 
 = The Inflation Crisis
@@ -37,7 +37,12 @@ if (Q.finance_minister_party && Q.finance_minister_party !== "I") {
 
 Q.inflation_policy_party = policy_party;
 !}
-go-to: kpd_response if inflation_policy_party = "KPD"; sapd_response if inflation_policy_party = "SAPD"; srpd_response if inflation_policy_party = "SRPD"; dvp_response if inflation_policy_party = "DVP"; z_response if inflation_policy_party = "Z"; bvp_response if inflation_policy_party = "BVP"; ddp_response if inflation_policy_party = "DDP"; wp_response if inflation_policy_party = "WP"; dnvp_response if inflation_policy_party = "DNVP"; papen_response if chancellor = "Papen"; schleicher_response if chancellor = "Schleicher"; bruning_response if chancellor = "Brüning"
+go-to: kpd_response if inflation_policy_party = "KPD"; sapd_response if inflation_policy_party = "SAPD"; srpd_response if inflation_policy_party = "SRPD"; dvp_response if inflation_policy_party = "DVP"; z_response if inflation_policy_party = "Z"; bvp_response if inflation_policy_party = "BVP"; ddp_response if inflation_policy_party = "DDP"; wp_response if inflation_policy_party = "WP"; dnvp_response if inflation_policy_party = "DNVP"; papen_response if chancellor = "Papen"; schleicher_response if chancellor = "Schleicher"; bruning_response if chancellor = "Brüning"; nsdap if inflation_policy_party = "NSDAP"       
+
+@nsdap
+on-arrival: inflation =* 0.9; fiscal_stance += 0.30; demand_impulse -= 0.35; price_pressure += 0.15;
+
+Nsdap??? What are you doing then?
 
 @kpd_response
 on-arrival: inflation -= 0.5; economic_growth += 0.3; unemployed -= 1; budget -= 3; workers_kpd += 8; workers_spd -= 3; unemployed_kpd += 5; old_middle_dnvp += 5; new_middle_dnvp += 4; capital_strike_progress += 5; coup_progress += 4; fiscal_stance -= 0.30; demand_impulse += 0.35; price_pressure += 0.15;
