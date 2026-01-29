@@ -890,6 +890,20 @@ if (Q.month_actions >= 1) {
         Q.nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
     }
 
+    if (Q.civil_war_end_modifier_national === 1) {
+        nationalist_parties = Q.nationalist_parties.filter(p => p !== 'nsdap');
+        nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dnvp');
+        nationalist_parties = Q.nationalist_parties.filter(p => p !== 'other');
+        nationalist_parties = Q.nationalist_parties.filter(p => p !== 'dvp');
+    } else if (Q.civil_war_end_modifier_national === 0) {
+        Q.nationalist_parties.push('dnvp');
+        Q.nationalist_parties.push('nsdap');
+        Q.nationalist_parties.push('other');
+        if (Q.dvp_right_shift && !Q.nationalist_parties.includes('dvp')) {
+            Q.nationalist_parties.push('dvp');
+        }
+    }
+
     Q.dominant_nat = null;
     Q.max_support = -Infinity;
 
