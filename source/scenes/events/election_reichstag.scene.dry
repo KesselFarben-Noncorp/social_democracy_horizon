@@ -645,6 +645,13 @@ if (Q.president === "Hindenburg") {
     } else {
         Q.formateur = Q.party_votes[0].party;
     }
+} else if (Q.president === "Hitler") {
+    // Hitler always gives NSDAP first chance if viable
+    if (Q.nsdap_r >= 20) {
+        Q.formateur = "NSDAP";
+    } else {
+        Q.formateur = Q.party_votes[1].party;
+    }
 } else {
     // Constitutional default: largest party
     Q.formateur = Q.party_votes[0].party;
@@ -992,6 +999,7 @@ function classify_coalition(parties) {
     if (has_z && has_dvp && has_dnvp && !has_nsdap) return 'right';
     if (has_dvp && has_dnvp && !has_z && !has_nsdap) return 'right_business';
     if (has_dnvp && has_nsdap) return 'far_right';
+    if (has_nsdap) return 'far_right';
     
     // Unity
     if (parties.length >= 5) return 'unity';
@@ -2344,6 +2352,18 @@ Q.ministry_leverage = leverage;
 
 [? if in_popular_front : This unprecedented coalition will face severe pressure from both the far-left and far-right. ?]
 
+- @hitler_crushed: Reactionaries are ousted.
+- @root: Continue on...
+
+@hitler_crushed
+subtitle: Time of reaction has ended.
+view-if: ((spd_r + ddp_r + z_r + (dvp_r / dvp_right_shift) + srpd_r + sapd_r) > nsdap_r) and civil_war_end_modifier_national = 1
+on-arrival: civil_war_end_modifier_national = 0
+
+Period of the fear against [+ president +] has ended and we may finally rest freely as the democracy is saved once more by us and our allies...
+
+- @root: Democracy marches on...
+
 @coalition_failure
 on-arrival: {!
 // ============================================
@@ -2403,30 +2423,276 @@ Q.spd_in_government = 0;
 Q.kpd_in_government = 0;
 
 // President's choice of minority chancellor
+// ========================================
+// HINDENBURG'S CHANCELLOR SELECTION
+// ========================================
+
 if (Q.president === "Hindenburg") {
-    // Hindenburg preferences: Z > DVP > DNVP
-    if (Q.z_r >= 12) {
-        Q.chancellor_party = "Z";
-        Q.chancellor = Q.z_party_leader === "Brüning" ? "Brüning" : "Marx";
-    } else if (Q.dvp_r >= 8) {
-        Q.chancellor_party = "DVP";
-        Q.chancellor = "Curtius";
-    } else if (Q.dnvp_r >= 10 && Q.year >= 1931) {
-        Q.chancellor_party = "DNVP";
-        Q.chancellor = Q.dnvp_line === 3 ? "Hugenberg" : "Westarp";
-    } else {
-        // Presidential cabinet with no party
-        Q.chancellor = "Papen";
-        Q.chancellor_party = "I";
+    // Hindenburg's decision is heavily influenced by:
+    // 1. Camarilla advice
+    // 2. His own declining mental state
+    // 3. Political crisis level
+    // 4. Year (his preferences evolve)
+    
+    var hindenburg_choice_influenced_by_camarilla = Q.camarilla_strength >= 60;
+    var hindenburg_senile = Q.hindenburg_senility >= 50;
+    var severe_crisis = Q.unemployed >= 20 || Q.inflation >= 8 || Q.political_crisis_level >= 4;
+    
+    // ========================================
+    // 1928-1929: Traditional Parliamentary Phase
+    // ========================================
+    if (Q.year <= 1929 && !severe_crisis) {
+        // Hindenburg still respects parliamentary norms
+        if (Q.z_r >= 12 && Q.dvp_r >= 8) {
+            // Weimar Coalition preference
+            Q.chancellor_party = "Z";
+            Q.chancellor = Q.z_party_leader === "Brüning" ? "Brüning" : "Marx";
+        } else if (Q.dvp_r >= 10) {
+            Q.chancellor_party = "DVP";
+            Q.chancellor = Q.stresemann_dead ? "Curtius" : "Stresemann";
+        } else if (Q.z_r >= 12) {
+            Q.chancellor_party = "Z";
+            Q.chancellor = Q.z_party_leader === "Brüning" ? "Brüning" : "Marx";
+        } else {
+            // Reluctant minority government
+            Q.chancellor_party = "I";
+            Q.chancellor = "Luther"; // Hans Luther - technocrat
+        }
     }
     
-    // SPD toleration decision
-    if (Q.chancellor_party !== "DNVP" && Q.pro_republic >= 35) {
-        Q.spd_toleration = 1;
-    } else {
-        Q.spd_toleration = 0;
-        Q.new_elections_imminent = 1;
+    // ========================================
+    // 1930: The Brüning Era Begins
+    // ========================================
+    else if (Q.year == 1930 || (Q.year == 1931 && Q.month < 10)) {
+        // Schleicher's Presidential Cabinet strategy
+        if (hindenburg_choice_influenced_by_camarilla || Q.schleicher_bruning_plotted) {
+            Q.chancellor = "Brüning";
+            Q.chancellor_party = "Z";
+            Q.presidential_cabinet = true; // Not responsible to Reichstag
+            Q.schleicher_influence += 10;
+        } else if (Q.z_r >= 15) {
+            Q.chancellor = "Brüning";
+            Q.chancellor_party = "Z";
+        } else {
+            Q.chancellor = "Curtius";
+            Q.chancellor_party = "DVP";
+        }
     }
+    
+    // ========================================
+    // 1931-Early 1932: Crisis Deepens - More Options
+    // ========================================
+    else if ((Q.year == 1931 && Q.month >= 10) || (Q.year == 1932 && Q.month < 6)) {
+        
+        // Camarilla might push for alternatives to Brüning
+        if (hindenburg_choice_influenced_by_camarilla && Q.camarilla_tired_of_bruning) {
+            
+            // Option 1: Carl Goerdeler (technocratic mayor)
+            if (Q.economic_minister === "Goerdeler" || Q.goerdeler_prominence >= 3) {
+                Q.chancellor = "Goerdeler";
+                Q.chancellor_party = "I"; // Independent technocrat
+                Q.presidential_cabinet = true;
+            }
+            
+            // Option 2: Kurt von Schleicher (if he's ready to step forward)
+            else if (Q.camarilla_composition.schleicher >= 80 && Q.year >= 1932) {
+                Q.chancellor = "Schleicher";
+                Q.chancellor_party = "I"; // Military
+                Q.presidential_cabinet = true;
+                Q.military_dictatorship_brewing = true;
+            }
+            
+            // Option 3: Papen (Schleicher's puppet)
+            else if (Q.papen_in_camarilla && Q.camarilla_composition.papen >= 60) {
+                Q.chancellor = "Papen";
+                Q.chancellor_party = "I"; // "Cabinet of Barons"
+                Q.presidential_cabinet = true;
+                Q.center_split_risk = true; // Papen causes Z split
+            }
+            
+            // Fallback: Continue with Brüning
+            else {
+                Q.chancellor = "Brüning";
+                Q.chancellor_party = "Z";
+                Q.presidential_cabinet = true;
+            }
+            
+        } else {
+            // Hindenburg still trusts Brüning
+            Q.chancellor = "Brüning";
+            Q.chancellor_party = "Z";
+            Q.presidential_cabinet = true;
+        }
+    }
+    
+    // ========================================
+    // Mid-1932: The Papen Experiment
+    // ========================================
+    else if (Q.year == 1932 && Q.month >= 6 && Q.month < 12) {
+        
+        // Historical Papen appointment (unless prevented)
+        if (Q.papen_appointment_prevented) {
+            
+            // Alternative 1: Schleicher steps in early
+            if (Q.camarilla_composition.schleicher >= 75) {
+                Q.chancellor = "Schleicher";
+                Q.chancellor_party = "I";
+                Q.presidential_cabinet = true;
+            }
+            
+            // Alternative 2: Goerdeler technocratic government
+            else if (Q.goerdeler_prominence >= 4) {
+                Q.chancellor = "Goerdeler";
+                Q.chancellor_party = "I";
+                Q.presidential_cabinet = true;
+            }
+            
+            // Alternative 3: Continue Brüning (if SPD saved him)
+            else if (Q.bruning_saved_by_spd) {
+                Q.chancellor = "Brüning";
+                Q.chancellor_party = "Z";
+                Q.presidential_cabinet = true;
+            }
+            
+            // Alternative 4: General Hammerstein (military emergency)
+            else if (severe_crisis && Q.reichswehr_loyalty >= 2) {
+                Q.chancellor = "Hammerstein";
+                Q.chancellor_party = "I";
+                Q.presidential_cabinet = true;
+                Q.military_emergency_government = true;
+            }
+            
+            else {
+                Q.chancellor = "Papen";
+                Q.chancellor_party = "I";
+            }
+            
+        } else {
+            // Historical appointment
+            Q.chancellor = "Papen";
+            Q.chancellor_party = "I";
+            Q.presidential_cabinet = true;
+            Q.camarilla_composition.papen = 85; // Papen becomes dominant
+        }
+    }
+    
+    // ========================================
+    // Late 1932: Schleicher's Turn
+    // ========================================
+    else if (Q.year == 1932 && Q.month >= 12 || (Q.year == 1933 && Q.month == 1)) {
+        
+        // After Papen fails, Schleicher tries to govern
+        if (!Q.schleicher_appointment_prevented) {
+            Q.chancellor = "Schleicher";
+            Q.chancellor_party = "I";
+            Q.presidential_cabinet = true;
+            Q.schleicher_querfront_attempt = true; // "Querfront" - cross-front strategy
+        }
+        
+        // Alternative if Schleicher prevented
+        else if (Q.hammerstein_coup_ready) {
+            Q.chancellor = "Hammerstein";
+            Q.chancellor_party = "I";
+            Q.military_emergency_government = true;
+        }
+        
+        else if (Q.goerdeler_prominence >= 5) {
+            Q.chancellor = "Goerdeler";
+            Q.chancellor_party = "I";
+        }
+        
+        // Desperate return to Papen
+        else {
+            Q.chancellor = "Papen";
+            Q.chancellor_party = "I";
+            Q.papen_second_term = true;
+        }
+    }
+    
+    // ========================================
+    // 1933: The Hitler Decision
+    // ========================================
+    else if (Q.year >= 1933 && Q.month >= 1) {
+        
+        // The camarilla's final push for Hitler
+        var camarilla_wants_hitler = 
+            Q.nsdap_r >= 30 && 
+            Q.camarilla_final_plot && 
+            !Q.hitler_appointment_prevented;
+        
+        var hindenburg_desperate = 
+            Q.hindenburg_senility >= 50 || 
+            (Q.political_crisis_level >= 5 && Q.hindenburg_interventions >= 3);
+        
+        if (camarilla_wants_hitler && (hindenburg_desperate || hindenburg_senile)) {
+            // The fatal decision
+            Q.chancellor = "Hitler";
+            Q.chancellor_party = "NSDAP";
+            Q.presidential_cabinet = true; // Initially
+            Q.cabinet_of_barons = true; // Papen as Vice-Chancellor
+            Q.nazi_takeover_begins = true;
+            
+        } else if (Q.hammerstein_coup_attempted) {
+            // Military takes over to prevent Hitler
+            Q.chancellor = "Hammerstein";
+            Q.chancellor_party = "I";
+            Q.military_dictatorship = true;
+            
+        } else if (Q.schleicher_querfront_success) {
+            // Schleicher's cross-coalition works
+            Q.chancellor = "Schleicher";
+            Q.chancellor_party = "I";
+            Q.presidential_cabinet = true;
+            
+        } else if (Q.goerdeler_emergency_government) {
+            Q.chancellor = "Goerdeler";
+            Q.chancellor_party = "I";
+            
+        } else if (!Q.hitler_appointment_prevented && Q.nsdap_r >= 35) {
+            // Hitler becomes inevitable
+            Q.chancellor = "Hitler";
+            Q.chancellor_party = "NSDAP";
+            Q.nazi_takeover_begins = true;
+            
+        } else {
+            // Last desperate alternatives
+            if (Q.papen_in_camarilla) {
+                Q.chancellor = "Papen";
+                Q.papen_dictatorship_attempt = true;
+            } else {
+                Q.chancellor = "Schleicher";
+                Q.military_emergency_government = true;
+            }
+        }
+    }
+    
+    // ========================================
+    // SPECIAL OVERRIDE: DNVP/Nazi Coalition Government
+    // ========================================
+    if (Q.dnvp_line === 3 && Q.nsdap_r >= 25 && Q.dnvp_r >= 8 && Q.year >= 1931) {
+        // Hugenberg-Hitler "national opposition" government
+        if (Q.camarilla_goals.install_hitler >= 60 && !Q.hitler_appointment_prevented) {
+            Q.chancellor = "Hitler";
+            Q.chancellor_party = "NSDAP";
+            Q.vice_chancellor = "Hugenberg";
+            Q.vice_chancellor_party = "DNVP";
+            Q.hugenberg_hitler_pact = true;
+        }
+    }
+    
+    // ========================================
+    // EMERGENCY OVERRIDE: Total Crisis
+    // ========================================
+    if (Q.unemployed >= 25 || Q.street_violence >= 8 || Q.sa_strength >= 500) {
+        // Hindenburg might impose military emergency
+        if (Q.hindenburg_trust_military >= 70 && !Q.military_dictatorship) {
+            Q.chancellor = "Hammerstein";
+            Q.chancellor_party = "I";
+            Q.military_emergency_government = true;
+            Q.article_48_permanent = true;
+        }
+    }
+}
     
 } else if (Q.president === "Braun") {
     // Braun tries to form SPD minority or emergency government
@@ -2436,6 +2702,19 @@ if (Q.president === "Hindenburg") {
     Q.in_emergency_government = 1;
     
     // Braun uses Article 48
+    Q.presidential_powers_active = 1;
+
+} else if (Q.president === "Hitler") {
+    // Hitler tries to form NSDAP minority or emergency government
+    Q.chancellor_party = "NSDAP";
+    Q.chancellor = Q.year >= 1934 ? "Goring" : "Goebbels";
+    Q.nsdap_in_government = 1;
+    Q.pro_republic -= 10;
+    Q.nationalism += 5;
+    Q.rb_strength /= 0.9;
+    Q.sa_strength *= 1.1;
+    
+    // Hitler uses Article 48
     Q.presidential_powers_active = 1;
 }
 
@@ -2494,6 +2773,8 @@ President [+ president +] has invoked Article 48 of the Constitution to appoint 
 [? if president = "Hindenburg" and spd_toleration = 0 : The SPD refuses to tolerate this government. New elections have been scheduled for [+ next_election_month : month +] [+ next_election_year +]. ?]
 
 [? if president = "Braun" : President Braun has appointed an SPD emergency government, using presidential decree powers to govern. This is an unprecedented constitutional maneuver. ?]
+
+[? if president = "Hitler" : President Hitler has appointed an NSDAP government, using presidential decree powers to govern. We should resist Hitler by all means... ?]
 
 **Cabinet (Civil Service/Presidential Appointments):**
 - Foreign: [+ foreign_minister +]
