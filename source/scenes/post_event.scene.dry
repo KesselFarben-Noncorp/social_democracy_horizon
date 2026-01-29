@@ -718,71 +718,71 @@ if (Q.month_actions >= 1) {
         Q.economic_expansion += Q.economic_growth/2;
     }
     /////////////////////////////// update opinions based on economy
-    if (Q.unemployed > 15 && Q.pro_republic > 40) {
+    if (Q.unemployed > 15 && Q.pro_republic > 40 && civil_war_end_modifier_national != 1) {
         Q.pro_republic -= 1;
     }
-    if (Q.unemployed > 30 && Q.pro_republic > 20) {
+    if (Q.unemployed > 30 && Q.pro_republic > 20 && civil_war_end_modifier_national != 1) {
         Q.pro_republic -= 1;
     }
-    if (Q.inflation >= 8 && Q.pro_republic > 40) {
+    if (Q.inflation >= 8 && Q.pro_republic > 40 && civil_war_end_modifier_national != 1) {
         Q.pro_republic -= 1;
     }
-    if (Q.inflation <= 8 && Q.pro_republic < 50) {
+    if (Q.inflation <= 8 && Q.pro_republic < 50 && civil_war_end_modifier_national != 1) {
         Q.pro_republic += 1;
     }
-    if (Q.unemployed < 10 && Q.pro_republic < 50) {
+    if (Q.unemployed < 10 && Q.pro_republic < 50 && civil_war_end_modifier_national != 1) {
         Q.pro_republic += 1;
     }
-    if (Q.economic_growth > 5 && Q.pro_republic < 80) {
+    if (Q.economic_growth > 5 && Q.pro_republic < 80 && civil_war_end_modifier_national != 1) {
         Q.pro_republic += 1;
     }
-    if (Q.unemployed < 3 && Q.pro_republic < 70) {
+    if (Q.unemployed < 3 && Q.pro_republic < 70 && civil_war_end_modifier_national != 1) {
         Q.pro_republic += 1;
     }
-    if (Q.unemployed > 10 && Q.nationalism < 50) {
+    if (Q.unemployed > 10 && Q.nationalism < 50 && civil_war_end_modifier_national != 1) {
         Q.nationalism += 1;
     }
-    if (Q.unemployed > 20 && Q.nationalism < 65) {
+    if (Q.unemployed > 20 && Q.nationalism < 65 && civil_war_end_modifier_national != 1) {
         Q.nationalism += 2;
     }
-    if (Q.unemployed > 30 && Q.nationalism < 75) {
+    if (Q.unemployed > 30 && Q.nationalism < 75 && civil_war_end_modifier_national != 1) {
         Q.nationalism += 2;
     }
-    if (Q.unemployed > 50 && Q.nationalism < 100) {
+    if (Q.unemployed > 50 && Q.nationalism < 100 && civil_war_end_modifier_national != 1) {
         Q.nationalism += 2;
     }
-    if (Q.unemployed < 10 && Q.nationalism > 35) {
+    if (Q.unemployed < 10 && Q.nationalism > 35 && civil_war_end_modifier_national != 1) {
         Q.nationalism -= 1;
     }
-    if (Q.unemployed < 5 && Q.nationalism > 25) {
+    if (Q.unemployed < 5 && Q.nationalism > 25 && civil_war_end_modifier_national != 1) {
         Q.nationalism -= 1;
     }
-    if (Q.inflation < 5 && Q.inflation > -5 && Q.nationalism > 15) {
+    if (Q.inflation < 5 && Q.inflation > -5 && Q.nationalism > 15 && civil_war_end_modifier_national != 1) {
         Q.nationalism -= 1;
     }
 
-    if (Q.unemployed > 10 && Q.socialism < 40) {
+    if (Q.unemployed > 10 && Q.socialism < 40 && civil_war_end_modifier_national != 1) {
         Q.socialism += 1;
     }
-    if (Q.unemployed > 20 && Q.socialism < 50) {
+    if (Q.unemployed > 20 && Q.socialism < 50 && civil_war_end_modifier_national != 1) {
         Q.socialism += 2;
     }
-    if (Q.unemployed > 30 && Q.socialism < 65) {
+    if (Q.unemployed > 30 && Q.socialism < 65 && civil_war_end_modifier_national != 1) {
         Q.socialism += 2;
     }
-    if (Q.unemployed > 40 && Q.socialism < 75) {
+    if (Q.unemployed > 40 && Q.socialism < 75 && civil_war_end_modifier_national != 1) {
         Q.socialism += 2;
     }
-    if (Q.unemployed > 50 && Q.socialism < 100) {
+    if (Q.unemployed > 50 && Q.socialism < 100 && civil_war_end_modifier_national != 1) {
         Q.socialism += 2;
     }
-    if (Q.unemployed < 10 && Q.socialism > 45) {
+    if (Q.unemployed < 10 && Q.socialism > 45 && civil_war_end_modifier_national != 1) {
         Q.socialism -= 1;
     }
-    if (Q.unemployed < 5 && Q.socialism > 25) {
+    if (Q.unemployed < 5 && Q.socialism > 25 && civil_war_end_modifier_national != 1) {
         Q.socialism -= 1;
     }
-    if (Q.inflation < 5 && Q.inflation > -5 && Q.socialism > 15) {
+    if (Q.inflation < 5 && Q.inflation > -5 && Q.socialism > 15 && civil_war_end_modifier_national != 1)  {
         Q.socialism -= 1;
     }
 
@@ -1068,15 +1068,15 @@ if (Q.month_actions >= 1) {
         };
     } else if (Q.civil_war_end_modifier_national = 1) {
         Q.ideology_caps = {
-        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 1.55) + (Q.unrest_factor * 1.2),
-        dnvp: Q.dnvp_banned ? 0 : (Q.dnvp_line === 1  ? (Q.nationalism * 1.5 + Q.pro_republic * 0.2)  : Q.nationalism * 1.80),
+        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 1.55) + (Q.unrest_factor * 1.2) ,
+        dnvp: Q.dnvp_banned ? 0 : (Q.dnvp_line === 1  ? (Q.nationalism * 1.5 + Q.pro_republic * 0.2)  : Q.nationalism * 1.95),
         dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 0.3,
         wp: (Q.pro_republic * 0.10) + (Q.inflation * 0.14),
         cnbl: (Q.pro_republic * 0.12 + Q.nationalism) + (Q.rural * 0.55),
         kpd: Q.kpd_banned ? 0 : Q.socialism * 1.15,
         sapd:  Q.socialism * 0.15,
         srpd:  (Q.socialism * 0.15) + (Q.rb_strength * 0.001) + (Q.pro_republic * 0.50),
-        spd:   Q.pro_republic * 0.3 * (Q.rb_strength * 0.01),
+        spd:   Q.pro_republic * 0.7 * (Q.rb_strength * 0.01),
         ddp:   Q.pro_republic * 0.1,
         z:     Q.pro_republic * 0.5,
         bvp: Math.min(4.5, Q.pro_republic * 0.1 + Q.catholics * 0.03),
