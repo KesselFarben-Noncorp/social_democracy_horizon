@@ -600,9 +600,11 @@ on-arrival: {!
     }
 !}
 
-**Banning the DNVP:**
+go-to: dnvp_westarp_cannot_ban if dnvp_line == 1; dnvp_ban_show if dnvp_line != 1
 
-[? if dnvp_line = 1 : 
+@dnvp_westarp_cannot_ban
+
+**Banning the DNVP:**
 
 **⚠ CANNOT BAN**
 
@@ -612,9 +614,9 @@ The Constitutional Court would reject this case immediately.
 
 - @ban_party_menu: Back
 
-?]
+@dnvp_ban_show
 
-[? if dnvp_line != 1 :
+**Banning the DNVP:**
 
 **Evidence Strength:** [+ evidence_strength +]/10
 [? if evidence_strength < 6 : ⚠ Evidence is weak - conservatives in court may block this. ?]
@@ -631,8 +633,6 @@ Required: [+ (ban_threshold * 100).toFixed(1) +]%
 
 - @ban_dnvp_confirm: Proceed with banning the DNVP
 - @ban_party_menu: Reconsider
-
-?]
 
 @ban_dnvp_confirm
 choose-if: can_ban_dnvp
