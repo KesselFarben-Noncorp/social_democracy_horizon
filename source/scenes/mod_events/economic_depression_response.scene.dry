@@ -1,0 +1,466 @@
+title: Economic Minister's Response to Crisis
+subtitle: [+ economic_minister_party +] proposes policy changes
+new-page: true
+is-card: true
+view-if: unemployed >= 17 and economic_minister_party != "SPD" and party_economic_response_timer = 0 and sandbox = 1
+on-arrival: party_economic_response_timer = 6; month_actions += 1
+card-image: img/unemployment.jpg
+frequency: 200
+tags: govt_affairs, economy
+
+= Economic Crisis Response
+
+Economic Minister [? if economic_minister : [+ economic_minister +] ?] of the [+ economic_minister_party +] has proposed measures to address the economic crisis.
+
+**Current Situation:**
+- Unemployment: [+ unemployed +]%
+- Inflation: [+ inflation +]%
+- Growth: [+ economic_growth +]%
+- Budget: [+ budget +]
+
+[? if economic_minister_party = "KPD" : The KPD proposes radical socialist measures. ?]
+[? if economic_minister_party = "SAPD" : The SAPD proposes left-socialist economic planning. ?]
+[? if economic_minister_party = "SRPD" : The SRPD proposes social-liberal policies. ?]
+[? if economic_minister_party = "DDP" or economic_minister_party = "DStP" : The [+ economic_minister_party +] proposes liberal market reforms. ?]
+[? if economic_minister_party = "Z" : The Center Party proposes balanced Christian-social policies. ?]
+[? if economic_minister_party = "DVP" : The DVP proposes business-friendly stimulus. ?]
+[? if economic_minister_party = "BVP" : The BVP proposes regional development programs. ?]
+[? if economic_minister_party = "WP" : The WP proposes middle-class support measures. ?]
+[? if economic_minister_party = "CNBL" : The CNBL proposes agricultural support. ?]
+[? if economic_minister_party = "DNVP" : The DNVP proposes conservative fiscal policies. ?]
+[? if economic_minister_party = "NSDAP" : The NSDAP proposes nationalist economic programs. ?]
+
+- @review_proposal: Review the proposal
+- @easy_discard
+
+@review_proposal
+go-to: kpd_proposal if economic_minister_party = "KPD"; sapd_proposal if economic_minister_party = "SAPD"; srpd_proposal if economic_minister_party = "SRPD"; ddp_proposal if economic_minister_party = "DDP" or economic_minister_party = "DStP"; z_proposal if economic_minister_party = "Z"; dvp_proposal if economic_minister_party = "DVP"; bvp_proposal if economic_minister_party = "BVP"; wp_proposal if economic_minister_party = "WP"; cnbl_proposal if economic_minister_party = "CNBL"; dnvp_proposal if economic_minister_party = "DNVP"; nsdap_proposal if economic_minister_party = "NSDAP"
+
+# ========================================
+# KPD - COMMUNIST
+# ========================================
+
+@kpd_proposal
+
+**KPD Economic Program:**
+
+"The capitalist crisis proves the system's failure! We must transition to a planned economy!"
+
+**Proposals:**
+1. **Nationalize key industries** - Banks, heavy industry, utilities
+2. **Direct job creation** - Massive public works, guaranteed employment
+3. **Price controls** - Freeze prices and rents
+4. **Wealth redistribution** - Confiscate capital, distribute to workers
+
+**Effects:**
+- Massive deficit spending (budget -3 to -5)
+- High inflation risk (+2 to +4 inflation)
+- Major employment reduction (-4 to -6 unemployment)
+- Capital flight and business opposition
+- Radical restructuring of economy
+
+- @accept_kpd: Accept the KPD program
+- @reject_proposal: Reject and propose alternatives
+- @compromise_kpd: Negotiate a compromise
+
+@accept_kpd
+on-arrival: budget -= 4; inflation += 3; unemployed -= 5; demand_impulse += 3; capital_pressure += 3; workers_kpd += 3; workers_spd += 2; old_middle_spd -= 3; new_middle_spd -= 2; dvp_relation -= 20; z_relation -= 15; nationalization_progress += 2; socialism += 10; capital_strike_progress += 2
+achievement: rote_wirtschaft if nationalization_progress >= 5
+
+We have accepted the KPD's radical program. The economy is being fundamentally restructured along socialist lines. Business owners are in panic.
+
+- @root
+
+@compromise_kpd
+on-arrival: budget -= 2; unemployed -= 3; demand_impulse += 1.5; workers_kpd += 1; kpd_relation += 5; left_strength += 3
+go-to: root
+
+We negotiate a compromise: expanded public works and some nationalizations, but no full planned economy transition.
+
+# ========================================
+# SAPD - LEFT SOCIALIST
+# ========================================
+
+@sapd_proposal
+
+**SAPD Economic Program:**
+
+"We need democratic socialism, not capitalist chaos or Stalinist centralization!"
+
+**Proposals:**
+1. **Economic democracy** - Worker co-management in all firms
+2. **Socialized credit** - Public banking to direct investment
+3. **Progressive public works** - Infrastructure and housing
+4. **Selective nationalization** - Strategic industries only
+
+**Effects:**
+- Moderate deficit (budget -2 to -3)
+- Controlled inflation (+1 to +2)
+- Significant employment reduction (-3 to -4 unemployment)
+- Economic restructuring toward worker control
+
+- @accept_sapd: Accept the SAPD program
+- @reject_proposal: Reject and propose alternatives
+- @compromise_sapd: Negotiate a compromise
+
+@accept_sapd
+on-arrival: budget -= 2.5; inflation += 1.5; unemployed -= 3.5; demand_impulse += 2; economic_democracy += 2; workers_spd += 2; workers_sapd += 2; left_strength += 5; kpd_relation += 3; dvp_relation -= 12
+
+We implement the SAPD's democratic socialist program. Worker councils gain real economic power.
+
+- @root
+
+@compromise_sapd
+on-arrival: budget -= 1.5; unemployed -= 2; economic_democracy += 1; workers_spd += 1
+go-to: root
+
+Compromise: some worker co-management and expanded public investment, but limited restructuring.
+
+# ========================================
+# SRPD - SOCIAL REPUBLICAN
+# ========================================
+
+@srpd_proposal
+
+**SRPD Economic Program:**
+
+"Social liberalism with republican solidarity - market efficiency with social protection!"
+
+**Proposals:**
+1. **Counter-cyclical spending** - Targeted stimulus when needed
+2. **Social insurance expansion** - Protect the vulnerable
+3. **Public-private partnerships** - Infrastructure investment
+4. **Moderate regulation** - Stabilize markets without stifling them
+
+**Effects:**
+- Small deficit (budget -1 to -2)
+- Minimal inflation (0 to +1)
+- Moderate employment reduction (-2 to -3 unemployment)
+- Balanced approach, broad coalition appeal
+
+- @accept_srpd: Accept the SRPD program
+- @reject_proposal: Reject and propose alternatives
+
+@accept_srpd
+on-arrival: budget -= 1.5; inflation += 0.5; unemployed -= 2.5; demand_impulse += 1; welfare += 1; workers_spd += 1; new_middle_spd += 2; ddp_relation += 5; z_relation += 3; reformist_strength += 3
+
+We implement the SRPD's balanced social-liberal program. A pragmatic middle path.
+
+- @root
+
+# ========================================
+# DDP/DStP - LIBERAL
+# ========================================
+
+@ddp_proposal
+
+**[+ economic_minister_party +] Economic Program:**
+
+"Free markets with social responsibility - let the economy heal itself with modest support!"
+
+**Proposals:**
+1. **Balanced budget priority** - Restore fiscal credibility
+2. **Targeted relief** - Help most vulnerable without distorting markets
+3. **Structural reforms** - Remove market barriers, encourage competition
+4. **International cooperation** - Restore trade and credit
+
+**Effects:**
+- Minimal deficit or balanced (budget 0 to -1)
+- Deflationary pressure (inflation -1 to 0)
+- Slow employment recovery (-1 to -2 unemployment)
+- Market confidence restored
+- Long-term structural improvement
+
+- @accept_ddp: Accept the liberal program
+- @reject_proposal: Reject and propose alternatives
+- @compromise_ddp: Negotiate more spending
+
+@accept_ddp
+on-arrival: budget -= 0.5; inflation -= 0.5; unemployed -= 1.5; supply_impulse += 1; new_middle_spd += 1; old_middle_spd += 1; ddp_relation += 8; dvp_relation += 5; workers_spd -= 2; labor_dissent += 5
+
+We implement the [+ economic_minister_party +]'s liberal program. Workers are disappointed by the limited response.
+
+- @root
+
+@compromise_ddp
+on-arrival: budget -= 1.2; unemployed -= 2; demand_impulse += 0.5; ddp_relation += 4
+go-to: root
+
+Compromise: we add more public works while maintaining fiscal discipline.
+
+# ========================================
+# Z - CENTER PARTY
+# ========================================
+
+@z_proposal
+
+**Center Party Economic Program:**
+
+"Christian solidarity and fiscal responsibility - help the suffering without wrecking the future!"
+
+**Proposals:**
+1. **Voluntary unemployment insurance expansion** - Subsidiarity principle
+2. **Agricultural support** - Help rural families
+3. **Catholic charity partnerships** - Church-state cooperation
+4. **Moderate public works** - Infrastructure with private sector
+
+**Effects:**
+- Small deficit (budget -1.5 to -2)
+- Low inflation (0 to +1)
+- Moderate employment reduction (-2 to -3 unemployment)
+- Broad coalition support
+- Regional focus (helps rural areas)
+
+- @accept_z: Accept the Center program
+- @reject_proposal: Reject and propose alternatives
+
+@accept_z
+on-arrival: budget -= 1.8; inflation += 0.3; unemployed -= 2.3; rural_spd += 1; catholics_spd += 1; welfare += 1; z_relation += 8; bvp_relation += 5; agricultural_policy_seen = 1
+
+We implement the Center Party's Christian-social program. A balanced, coalition-friendly approach.
+
+- @root
+
+# ========================================
+# DVP - PEOPLE'S PARTY
+# ========================================
+
+@dvp_proposal
+
+**DVP Economic Program:**
+
+"Business confidence and international credit - restore Germany's creditworthiness!"
+
+**Proposals:**
+1. **Fiscal consolidation** - Balance the budget to restore confidence
+2. **Business tax relief** - Encourage private investment
+3. **International loans** - Seek foreign credit
+4. **Export promotion** - Boost trade to create jobs
+
+**Effects:**
+- Budget surplus priority (budget +1 to 0)
+- Deflationary (inflation -1 to -2)
+- Minimal employment impact (-0.5 to -1.5 unemployment)
+- Business confidence boost
+- Depends on international cooperation
+
+- @accept_dvp: Accept the DVP program
+- @reject_proposal: Reject and propose alternatives
+- @compromise_dvp: Add some public works
+
+@accept_dvp
+on-arrival: budget += 0.5; inflation -= 1; unemployed -= 1; supply_impulse += 0.5; capital_pressure -= 1; old_middle_spd += 2; new_middle_spd += 1; dvp_relation += 10; workers_spd -= 3; labor_dissent += 8; unemployed_spd -= 2
+
+We implement the DVP's business-friendly program. Workers feel abandoned as unemployment persists.
+
+- @root
+
+@compromise_dvp
+on-arrival: budget -= 0.5; unemployed -= 1.8; dvp_relation += 5; labor_dissent += 3
+go-to: root
+
+Compromise: business tax relief combined with modest public works.
+
+# ========================================
+# BVP - BAVARIAN PEOPLE'S PARTY
+# ========================================
+
+@bvp_proposal
+
+**BVP Economic Program:**
+
+"Bavaria first - regional development and Catholic solidarity!"
+
+**Proposals:**
+1. **Bavarian infrastructure projects** - Regional focus
+2. **Agricultural subsidies** - Support rural Catholic communities
+3. **Regional autonomy** - Let states manage their economies
+4. **Traditional industries protection** - Breweries, crafts, tourism
+
+**Effects:**
+- Moderate deficit (budget -1.5 to -2)
+- Low inflation (0 to +1)
+- Regional employment impact (-1.5 to -2.5 unemployment)
+- Strengthens federalism
+- Limited national impact
+
+- @accept_bvp: Accept the BVP program
+- @reject_proposal: Reject and propose alternatives
+
+@accept_bvp
+on-arrival: budget -= 1.7; unemployed -= 2; rural_spd += 2; catholics_spd += 2; bvp_relation += 10; z_relation += 3; prussian_loyalty_strength -= 0.05
+
+We implement the BVP's Bavaria-focused program. Other regions feel neglected.
+
+- @root
+
+# ========================================
+# WP - ECONOMIC PARTY
+# ========================================
+
+@wp_proposal
+
+**WP Economic Program:**
+
+"Save the middle class - protect small business and artisans!"
+
+**Proposals:**
+1. **Small business loans** - State credit for Mittelstand
+2. **Tax relief for middle class** - Reduce burden on shopkeepers
+3. **Protection from chain stores** - Limit department stores
+4. **Professional guilds support** - Strengthen artisan organizations
+
+**Effects:**
+- Small deficit (budget -1 to -1.5)
+- Minimal inflation (0 to +0.5)
+- Limited employment impact (-1 to -1.5 unemployment)
+- Middle-class support
+- Protectionist elements
+
+- @accept_wp: Accept the WP program
+- @reject_proposal: Reject and propose alternatives
+
+@accept_wp
+on-arrival: budget -= 1.2; unemployed -= 1.3; old_middle_spd += 2; new_middle_spd += 1; wp_relation += 10; dvp_relation -= 3; workers_spd -= 1; labor_churn += 0.25; capital_drift += 0.15; investment_effect += 0.12
+
+We implement the WP's middle-class protection program. Workers see little benefit.
+
+- @root
+
+# ========================================
+# CNBL - AGRARIAN PARTY
+# ========================================
+
+@cnbl_proposal
+
+**CNBL Economic Program:**
+
+"Save German agriculture - the crisis stems from rural collapse!"
+
+**Proposals:**
+1. **Agricultural price supports** - Guarantee minimum prices
+2. **Debt relief for farmers** - Moratorium on farm foreclosures
+3. **Rural infrastructure** - Roads, electrification
+4. **Import tariffs** - Protect German farmers
+
+**Effects:**
+- Moderate deficit (budget -2 to -2.5)
+- Food price inflation (+1 to +2)
+- Rural employment protection (-1 to -2 unemployment)
+- Urban consumer costs rise
+- Protectionist trade policy
+
+- @accept_cnbl: Accept the CNBL program
+- @reject_proposal: Reject and propose alternatives
+
+@accept_cnbl
+on-arrival: budget -= 2.2; inflation += 1.5; unemployed -= 1.5; rural_spd += 3; workers_spd -= 2; unemployed_spd -= 1; cnbl_relation += 10; trade_pressure -= 1; agricultural_policy_seen = 1
+
+We implement the CNBL's agricultural program. Rural areas stabilize but urban workers pay more for food.
+
+- @root
+
+# ========================================
+# DNVP - NATIONALISTS
+# ========================================
+
+@dnvp_proposal
+
+**DNVP Economic Program:**
+
+[? if dnvp_line = 1 : "Conservative stability - balanced budgets and national discipline!" ?]
+[? if dnvp_line = 2 or dnvp_line = 3 : "National autarky - break free from international capital!" ?]
+
+**Proposals:**
+1. **Strict austerity** - Balance budget immediately
+2. **Gold standard defense** - Maintain currency credibility
+[? if dnvp_line >= 2 : 3. **Autarky programs** - Reduce imports, national self-sufficiency ?]
+[? if dnvp_line < 2 : 3. **Traditional industries** - Support Junker estates ?]
+4. **Reduce welfare** - Cut "waste" to balance books
+
+**Effects:**
+- Budget surplus (budget +1 to +2)
+- Strong deflation (inflation -2 to -3)
+- Increased unemployment (+1 to +2 unemployment)
+- Social suffering
+- Conservative credibility
+
+- @accept_dnvp: Accept the DNVP program
+- @reject_proposal: Reject and propose alternatives
+
+@accept_dnvp
+on-arrival: budget += 1.5; inflation -= 2; unemployed += 1.5; old_middle_spd += 1; rural_spd += 1; workers_spd -= 4; unemployed_spd -= 4; labor_dissent += 15; dnvp_relation += 10; kpd_relation -= 15
+
+We implement the DNVP's harsh austerity. The working class suffers terribly.
+
+- @root
+
+# ========================================
+# NSDAP - NAZIS
+# ========================================
+
+@nsdap_proposal
+
+**NSDAP Economic Program:**
+
+"National renewal through work and will! Break the chains of Versailles and Jewish finance!"
+
+**Proposals:**
+1. **Massive work creation** - Autobahns, rearmament preparation
+2. **National discipline** - Wage and price controls
+3. **Anti-Semitic persecution** - Exclude Jews from economy
+4. **Autarky** - Economic self-sufficiency
+
+**Effects:**
+- Huge deficit (budget -4 to -6)
+- Controlled inflation through repression
+- Major employment reduction (-5 to -7 unemployment)
+- Authoritarian economic controls
+- International isolation
+- Moral catastrophe
+
+- @accept_nsdap: Accept the Nazi program
+- @reject_proposal: Reject this madness
+
+@accept_nsdap
+on-arrival: budget -= 5; unemployed -= 6; demand_impulse += 4; nationalism += 15; antisemitism += 3; workers_nsdap += 3; unemployed_nsdap += 4; workers_spd -= 2; pro_republic -= 10; z_relation -= 25; ddp_relation -= 30; kpd_relation -= 30
+achievement: fascist_economics
+
+We have accepted the Nazi economic program. Germany embarks on a dark path of autarky, militarization, and persecution.
+
+- @root
+
+# ========================================
+# REJECTION AND ALTERNATIVES
+# ========================================
+
+@reject_proposal
+on-arrival: coalition_dissent += 1; economic_minister_party_relation -= 5
+
+We reject the [+ economic_minister_party +]'s proposal. Tensions within the coalition rise.
+
+What should we propose instead?
+
+- @propose_keynesian: Propose deficit-financed public works
+- @propose_orthodox: Propose balanced-budget approach
+- @propose_middle: Propose moderate compromise
+
+@propose_keynesian
+choose-if: (finance_minister_party = "SPD" or chancellor_party = "SPD") and (left_strength >= 30 or neorevisionist_strength >= 25)
+unavailable-subtitle: We lack the authority or internal support to override the Economic Minister with radical proposals.
+on-arrival: budget -= 3; unemployed -= 4; demand_impulse += 2; coalition_dissent += 2; economic_minister_party_relation -= 10; left_strength += 3
+go-to: root
+
+We override the Economic Minister and implement aggressive stimulus. Coalition tensions rise sharply.
+
+@propose_orthodox
+on-arrival: budget += 0.5; inflation -= 1; unemployed += 1; coalition_dissent += 1; economic_minister_party_relation -= 8; reformist_strength += 2
+go-to: root
+
+We insist on fiscal orthodoxy. The Economic Minister is overruled. Unemployment worsens.
+
+@propose_middle
+on-arrival: budget -= 1.5; unemployed -= 2; coalition_dissent += 0.5; economic_minister_party_relation -= 3
+go-to: root
+
+We negotiate a middle path that satisfies no one fully but keeps the coalition together.
