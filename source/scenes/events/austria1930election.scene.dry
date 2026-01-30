@@ -455,7 +455,7 @@ This is a historic victory for the Austrian left. The Social Democrats will gove
 @sdapo_minority
 title: SDAPÖ minority government
 subtitle: Social Democrats govern alone without stable majority
-choose-if: sdapo_vote >= 35 and !austria_crisis
+choose-if: sdapo_vote >= 35 and not austria_crisis
 unavailable-subtitle: [? if sdapo_vote < 35 : SDAPÖ too weak. ?][? if austria_crisis : Crisis requires stable coalition. ?]
 on-arrival: relation_austria += 1; austria_govt = 0; aus_government_stability = -1; years_in_government = 0
 
@@ -466,7 +466,7 @@ This is a weak government that will struggle to pass controversial legislation. 
 @grand_coalition_austria
 title: SDAPÖ-CS Grand Coalition
 subtitle: The two largest parties share power
-choose-if: aus_grand_coalition >= 50 and !heimwehr_kingmaker
+choose-if: aus_grand_coalition >= 50 and not heimwehr_kingmaker
 unavailable-subtitle: [? if aus_grand_coalition < 50 : Grand Coalition lacks majority. ?][? if heimwehr_kingmaker : Heimwehr is kingmaker - cannot exclude them. ?]
 on-arrival: relation_austria += 2; austria_govt = 1; aus_in_grand_coalition = 1; coalition_complexity = 2; years_in_government = 0
 
@@ -476,7 +476,7 @@ This broad coalition provides stability but makes bold reforms difficult. Both p
 
 **Government Composition:**
 - Coalition Partners: SDAPÖ + CS
-- Coalition Strength: [+ aus_grand_coalition.toFixed(1) +]%
+- Coalition Strength: [+ aus_grand_coalition +]%
 
 [? if grand_coalition_needed : This coalition is necessary for democratic stability. ?]
 
@@ -493,7 +493,7 @@ This bourgeois coalition will pursue conservative economic policies and maintain
 
 **Government Composition:**
 - Coalition Partners: CS + GDVP
-- Coalition Strength: [+ aus_center_bloc.toFixed(1) +]%
+- Coalition Strength: [+ aus_center_bloc +]%
 
 @right_coalition_austria
 title: Heimwehr-backed right-wing coalition
@@ -509,6 +509,6 @@ The Christian Socials and Greater Germans accept Heimwehr support, giving fascis
 **Government Composition:**
 - Leading Party: CS or Heimwehr
 - Coalition Partners: CS + GDVP + Heimwehr
-- Coalition Strength: [+ aus_right_bloc.toFixed(1) +]%
+- Coalition Strength: [+ aus_right_bloc +]%
 
 [? if heimwehr_vote >= 20 : ⚠ The Heimwehr may move to establish outright dictatorship. ?]
