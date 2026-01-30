@@ -422,8 +422,8 @@ Q.old_turnout = Q.turnout;
 - Grand Coalition (SDAPÖ + CS): [+ aus_grand_coalition +]%
 
 [? if austria_democratic_stable : **System Status:** Democratic stability maintained. ?]
-[? if austria_crisis : **System Status:** ⚠ Democratic system under severe stress! ?]
-[? if !austria_democratic_stable and !austria_crisis : **System Status:** Fragile coalition politics. ?]
+[? if austria_crisis : **System Status:** Democratic system under severe stress! ?]
+[? if not austria_democratic_stable and not austria_crisis : **System Status:** Fragile coalition politics. ?]
 
 What government will form?
 
@@ -504,11 +504,12 @@ on-arrival: relation_austria -= 3; austria_govt = -1; aus_in_right_coalition = 1
 
 The Heimwehr has forced its way into government!
 
-The Christian Socials and Greater Germans accept Heimwehr support, giving fascist paramilitaries significant influence over Austrian policy. Democracy in Austria is under threat.
+The Christian Socials and Greater Germans accept Heimwehr support, giving fascist paramilitaries significant influence over Austrian policy. Facade of democracy finally shatters.
 
 **Government Composition:**
 - Leading Party: CS or Heimwehr
 - Coalition Partners: CS + GDVP + Heimwehr
 - Coalition Strength: [+ aus_right_bloc +]%
 
-[? if heimwehr_vote >= 20 : ⚠ The Heimwehr may move to establish outright dictatorship. ?]
+[? if heimwehr_vote >= 20 : 
+The Heimwehr may move to establish outright dictatorship. ?]
