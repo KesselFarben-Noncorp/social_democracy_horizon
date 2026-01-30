@@ -15,202 +15,500 @@ The First Austrian Republic holds its legislative elections today. This marks th
 @austria
 on-arrival: {!
 
-// ==============================
-// AUSTRIAN ELECTION SYSTEM — CYCLICAL
-// ==============================
+// ================= INITIALIZATION =================
+// Store previous results (initialize if undefined)
+Q.old_sdapo_vote     = Q.old_sdapo_vote ?? 36;
+Q.old_cs_vote        = Q.old_cs_vote ?? 34;
+Q.old_gdvp_vote      = Q.old_gdvp_vote ?? 18;
+Q.old_heimwehr_vote  = Q.old_heimwehr_vote ?? 7;
+Q.old_kpoe_vote      = Q.old_kpoe_vote ?? 4;
+Q.old_aus_minor_vote = Q.old_aus_minor_vote ?? 6;
 
-// --- Store previous results
-Q.old_sdapo_vote     = 36;
-Q.old_cs_vote        = 34;
-Q.old_gdvp_vote      = 18;
-Q.old_heimwehr_vote  = 7;
-Q.old_kpoe_vote      = 4;
-Q.old_aus_minor_vote = 6;
-
-// --- Base ideological blocs (long-term electorate structure)
+// Base: current state or historical default
 let base = {
-    sdapo: 34,
-    cs: 32,
-    gdvp: 16,
-    heimwehr: 6,
-    kpoe: 5,
-    minor: 7
+    sdapo: Q.sdapo_vote || 36,
+    cs: Q.cs_vote || 34,
+    gdvp: Q.gdvp_vote || 18,
+    heimwehr: Q.heimwehr_vote || 7,
+    kpoe: Q.kpoe_vote || 4,
+    minor: Q.aus_minor_vote || 6
 };
 
-// --- Dynamic vote factors
-let vf = { sdapo:1, cs:1, gdvp:1, heimwehr:1, kpoe:1, minor:1 };
+// Dynamic multipliers (start at 1.0 = no change)
+let vf = { 
+    sdapo: 1.0, 
+    cs: 1.0, 
+    gdvp: 1.0, 
+    heimwehr: 1.0, 
+    kpoe: 1.0, 
+    minor: 1.0 
+};
 
-// ================= ECONOMY =================
-let econ_stress = (Q.unemployed * 0.6 + Math.max(Q.inflation,0) * 0.4) / 25;
+// ================= ECONOMIC CONDITIONS =================
+// Composite stress measure (0-4+ scale)
+let unemployment_impact = (Q.unemployed || 0) * 0.08; // 0-2.4 at 30% unemployment
+let inflation_impact = Math.max(Q.inflation || 0, 0) * 0.06; // Only positive inflation
+let deflation_impact = Math.max(-(Q.inflation || 0), 0) * 0.04; // Deflation less politically salient
+let econ_stress = unemployment_impact + inflation_impact + deflation_impact;
 
-vf.sdapo += econ_stress * 0.05;
-vf.kpoe  += econ_stress * 0.04;
-vf.cs    -= econ_stress * 0.03;
-vf.gdvp  -= econ_stress * 0.02;
+// Crisis benefits left
+vf.sdapo += econ_stress * 0.08; // Workers turn to Social Democrats
+vf.kpoe += econ_stress * 0.06; // Radical workers to Communists
 
-// Growth benefit
+// Crisis hurts incumbents and moderates
+vf.cs -= econ_stress * 0.05; // Christian Socials lose credibility
+vf.gdvp -= econ_stress * 0.04; // Liberal nationalists lose middle class
+
+// Heimwehr benefits from chaos but less than left
+vf.heimwehr += econ_stress * 0.03;
+
+// Growth rewards incumbents
 if (Q.economic_growth >= 3) {
-    vf.cs += 0.03;
-    vf.gdvp += 0.02;
+    if (Q.austria_govt === 1) { // CS government
+        vf.cs += 0.05;
+        vf.gdvp += 0.03;
+    } else if (Q.austria_govt === 0) { // SDAPO government
+        vf.sdapo += 0.05;
+    }
+} else if (Q.economic_growth <= -1) {
+    // Recession punishes incumbents extra
+    if (Q.austria_govt === 1) {
+        vf.cs -= 0.04;
+    } else if (Q.austria_govt === 0) {
+        vf.sdapo -= 0.04;
+    }
 }
 
-// ================= POLITICAL RADICALIZATION =================
-let radicalism = (Q.political_violence || 5)/1000 + (Q.polarization || 8)/200;
+// ================= POLITICAL VIOLENCE & RADICALIZATION =================
+let violence_level = (Q.political_violence || 0) / 800; // 0-1.25 scale at 1000 violence
+let polarization_level = (Q.polarization || 0) / 150; // 0-0.67 scale at 100 polarization
+let radicalism = violence_level + polarization_level;
 
-vf.heimwehr += radicalism * 0.08;
-vf.kpoe     += radicalism * 0.05;
-vf.cs       -= radicalism * 0.04;
-vf.gdvp     -= radicalism * 0.03;
+// Violence radicalizes electorate
+vf.heimwehr += radicalism * 0.12; // Fascists gain most from street violence
+vf.kpoe += radicalism * 0.08; // Communists also gain
+vf.sdapo += radicalism * 0.02; // SDAPO gets some defensive mobilization
 
-// ================= IDEOLOGICAL MOOD =================
-vf.sdapo += Q.socialism/300;
-vf.cs    += Q.pro_republic/400;
-vf.gdvp  += Q.nationalism/400;
-vf.heimwehr += Q.nationalism/300;
+// Moderates hurt by radicalization
+vf.cs -= radicalism * 0.06; // Centrists scared away
+vf.gdvp -= radicalism * 0.05; // Liberals flee to extremes
 
-// ================= URBAN–RURAL BALANCE =================
-vf.sdapo += (Q.urbanization || 50)/1000;
-vf.cs    += (100 - (Q.urbanization || 50))/1200;
-
-// ================= INCUMBENT FATIGUE =================
-if (Q.austria_govt !== undefined) {
-    let fatigue = Math.min((Q.gov_stability || 50)/200, 0.06);
-
-    if (Q.austria_govt == 0) vf.sdapo -= fatigue;
-    if (Q.austria_govt == 1) vf.cs    -= fatigue;
-    if (Q.austria_govt == -1) vf.heimwehr -= fatigue;
+// Paramilitary strength matters
+if (Q.heimwehr_strength > 50) {
+    vf.heimwehr += (Q.heimwehr_strength / 1000) * 0.15;
+    vf.cs -= (Q.heimwehr_strength / 1000) * 0.08; // CS loses control
 }
 
-// ================= APPLY FACTORS =================
-Q.sdapo_vote     = base.sdapo     * vf.sdapo;
-Q.cs_vote        = base.cs        * vf.cs;
-Q.gdvp_vote      = base.gdvp      * vf.gdvp;
-Q.heimwehr_vote  = base.heimwehr  * vf.heimwehr;
-Q.kpoe_vote      = base.kpoe      * vf.kpoe;
-Q.aus_minor_vote = base.minor     * vf.minor;
+// ================= IDEOLOGICAL CLIMATE =================
+// National mood shifts parties
+let socialism_mood = (Q.socialism || 40) / 100; // 0.2-0.8 typical range
+let republic_mood = (Q.pro_republic || 50) / 100;
+let nationalism_mood = (Q.nationalism || 40) / 100;
+
+vf.sdapo += (socialism_mood - 0.4) * 0.25; // Centered at 40
+vf.kpoe += (socialism_mood - 0.5) * 0.15;
+
+vf.cs += (republic_mood - 0.5) * 0.20; // CS benefits from pro-republic mood
+vf.sdapo += (republic_mood - 0.5) * 0.15;
+
+vf.gdvp += (nationalism_mood - 0.4) * 0.25;
+vf.heimwehr += (nationalism_mood - 0.4) * 0.30; // Heimwehr most nationalist
+
+// ================= GERMAN INFLUENCE =================
+// Spillover from Weimar politics
+if (Q.nsdap_r !== undefined) {
+    let nazi_threat = Q.nsdap_r / 100; // 0-0.4 typical
+    vf.heimwehr += nazi_threat * 0.20; // Austrian fascists energized
+    vf.cs -= nazi_threat * 0.08; // CS worried about radicalism
+    vf.sdapo += nazi_threat * 0.05; // Defensive mobilization
+}
+
+if (Q.kpd_r !== undefined) {
+    let communist_threat = Q.kpd_r / 100;
+    vf.kpoe += communist_threat * 0.15;
+    vf.heimwehr += communist_threat * 0.10; // Red scare helps fascists
+}
+
+// SPD strength encourages SDAPO
+if (Q.spd_r !== undefined) {
+    let spd_strength = Q.spd_r / 100;
+    vf.sdapo += spd_strength * 0.08;
+}
+
+// ================= URBANIZATION & DEMOGRAPHICS =================
+let urban_level = (Q.urbanization || 50) / 100; // 0.4-0.65 typical
+
+vf.sdapo += (urban_level - 0.5) * 0.15; // Urban = SDAPO
+vf.kpoe += (urban_level - 0.5) * 0.10;
+
+vf.cs += (0.5 - urban_level) * 0.20; // Rural = CS
+vf.heimwehr += (0.5 - urban_level) * 0.10; // Rural nationalism
+
+// ================= GOVERNMENT PERFORMANCE =================
+let govt_stability = Q.gov_stability || 50;
+let govt_effectiveness = (100 - (Q.crisis_urgency || 0) * 10) / 100; // 0.5-1.0
+
+// Incumbent fatigue based on time in office
+let incumbent_penalty = 0;
+if (Q.austria_govt !== undefined && Q.years_in_government) {
+    incumbent_penalty = Math.min(Q.years_in_government * 0.015, 0.12);
+}
+
+// Apply to governing party
+if (Q.austria_govt === 0) { // SDAPO government
+    vf.sdapo -= incumbent_penalty;
+    vf.sdapo += (govt_effectiveness - 0.75) * 0.15; // Performance matters
+    
+    // Opposition benefits from government weakness
+    if (govt_stability < 40) {
+        vf.cs += 0.05;
+        vf.heimwehr += 0.04;
+    }
+    
+} else if (Q.austria_govt === 1) { // CS government
+    vf.cs -= incumbent_penalty;
+    vf.cs += (govt_effectiveness - 0.75) * 0.15;
+    
+    if (govt_stability < 40) {
+        vf.sdapo += 0.05;
+        vf.heimwehr += 0.03;
+    }
+    
+} else if (Q.austria_govt === -1) { // Heimwehr government (authoritarian)
+    vf.heimwehr -= incumbent_penalty * 1.5; // Authoritarians face more backlash
+    vf.sdapo += 0.08; // Opposition to dictatorship
+    vf.kpoe += 0.05;
+    vf.cs += 0.03; // CS regains moderate vote
+}
+
+// ================= COALITION DYNAMICS =================
+// Grand coalition fatigue
+if (Q.austria_coalition === "grand" && Q.years_in_government >= 2) {
+    vf.sdapo -= 0.03;
+    vf.cs -= 0.03;
+    vf.heimwehr += 0.04; // "They're all the same!"
+    vf.kpoe += 0.03;
+}
+
+// ================= AUSTRIA-GERMANY RELATIONSHIP =================
+// Anschluss sentiment
+if (Q.anschluss_support !== undefined) {
+    let anschluss_mood = Q.anschluss_support / 100;
+    vf.gdvp += anschluss_mood * 0.25; // Greater German nationalists
+    vf.heimwehr += anschluss_mood * 0.15;
+    vf.cs -= anschluss_mood * 0.12; // CS defends independence
+    vf.sdapo -= anschluss_mood * 0.08;
+}
+
+// German economic success/failure
+if (Q.unemployed !== undefined && Q.austria_unemployed !== undefined) {
+    let germany_better = (Q.austria_unemployed - Q.unemployed) / 30;
+    if (germany_better > 0) {
+        vf.gdvp += germany_better * 0.10; // "Look at Germany!"
+    }
+}
+
+// ================= CATHOLIC CHURCH INFLUENCE =================
+if (Q.secularization !== undefined) {
+    let secular_trend = Q.secularization / 5; // 0-1 scale
+    vf.cs -= secular_trend * 0.08; // Secularization hurts CS
+    vf.sdapo += secular_trend * 0.04;
+}
+
+// Church mobilization for CS
+if (Q.church_backing_cs) {
+    vf.cs += 0.06;
+}
+
+// ================= APPLY FACTORS TO BASE =================
+Q.sdapo_vote = base.sdapo * vf.sdapo;
+Q.cs_vote = base.cs * vf.cs;
+Q.gdvp_vote = base.gdvp * vf.gdvp;
+Q.heimwehr_vote = base.heimwehr * vf.heimwehr;
+Q.kpoe_vote = base.kpoe * vf.kpoe;
+Q.aus_minor_vote = base.minor * vf.minor;
+
+// Floor to prevent negative/collapse
+Q.sdapo_vote = Math.max(Q.sdapo_vote, 15);
+Q.cs_vote = Math.max(Q.cs_vote, 12);
+Q.gdvp_vote = Math.max(Q.gdvp_vote, 5);
+Q.heimwehr_vote = Math.max(Q.heimwehr_vote, 2);
+Q.kpoe_vote = Math.max(Q.kpoe_vote, 1);
+Q.aus_minor_vote = Math.max(Q.aus_minor_vote, 2);
 
 // ================= TURNOUT MODEL =================
-let turnout = 78;
-turnout += econ_stress * 6;
-turnout += radicalism * 8;
-turnout -= (Q.gov_stability || 50)/50;
+let base_turnout = 76;
 
-Q.turnout = Math.max(60, Math.min(93, Math.round(turnout)));
+// Crisis mobilizes
+base_turnout += econ_stress * 3; // Up to +12 in severe crisis
+base_turnout += radicalism * 5; // Up to +6 with high polarization
 
-// High turnout favors mass parties
-if (Q.turnout > 85) {
-    Q.sdapo_vote *= 1.03;
-    Q.cs_vote *= 1.02;
+// Stability demobilizes
+base_turnout -= (govt_stability / 100) * 8; // Up to -8 if very stable
+
+// Competitive elections boost turnout
+let competitiveness = Math.abs(Q.sdapo_vote - Q.cs_vote) / 100;
+base_turnout -= competitiveness * 15; // Close races = higher turnout
+
+Q.turnout = Math.max(62, Math.min(92, Math.round(base_turnout)));
+
+// High turnout mobilization effects
+if (Q.turnout >= 85) {
+    Q.sdapo_vote *= 1.04; // Mass parties benefit
+    Q.cs_vote *= 1.03;
+    Q.kpoe_vote *= 1.02;
+    Q.heimwehr_vote *= 0.98; // Elite-backed party hurt slightly
+    Q.gdvp_vote *= 0.97;
+}
+
+// Low turnout elite advantage
+if (Q.turnout <= 68) {
+    Q.cs_vote *= 1.03;
+    Q.gdvp_vote *= 1.02;
+    Q.sdapo_vote *= 0.98;
+    Q.kpoe_vote *= 0.96;
 }
 
 // ================= NORMALIZATION =================
-function norm() {
+function normalize() {
     let total = Q.sdapo_vote + Q.cs_vote + Q.gdvp_vote +
                 Q.heimwehr_vote + Q.kpoe_vote + Q.aus_minor_vote;
-    Q.sdapo_vote     = Q.sdapo_vote     / total * 100;
-    Q.cs_vote        = Q.cs_vote        / total * 100;
-    Q.gdvp_vote      = Q.gdvp_vote      / total * 100;
-    Q.heimwehr_vote  = Q.heimwehr_vote  / total * 100;
-    Q.kpoe_vote      = Q.kpoe_vote      / total * 100;
-    Q.aus_minor_vote = Q.aus_minor_vote / total * 100;
+    
+    Q.sdapo_vote = (Q.sdapo_vote / total) * 100;
+    Q.cs_vote = (Q.cs_vote / total) * 100;
+    Q.gdvp_vote = (Q.gdvp_vote / total) * 100;
+    Q.heimwehr_vote = (Q.heimwehr_vote / total) * 100;
+    Q.kpoe_vote = (Q.kpoe_vote / total) * 100;
+    Q.aus_minor_vote = (Q.aus_minor_vote / total) * 100;
 }
-norm();
+normalize();
 
-// ================= COALITION STRENGTH =================
-Q.aus_left_bloc   = Q.sdapo_vote + Q.kpoe_vote;
+// Round to one decimal
+Q.sdapo_vote = Math.round(Q.sdapo_vote * 10) / 10;
+Q.cs_vote = Math.round(Q.cs_vote * 10) / 10;
+Q.gdvp_vote = Math.round(Q.gdvp_vote * 10) / 10;
+Q.heimwehr_vote = Math.round(Q.heimwehr_vote * 10) / 10;
+Q.kpoe_vote = Math.round(Q.kpoe_vote * 10) / 10;
+Q.aus_minor_vote = Math.round(Q.aus_minor_vote * 10) / 10;
+
+// ================= COALITION MATH =================
+Q.aus_left_bloc = Q.sdapo_vote + Q.kpoe_vote;
 Q.aus_center_bloc = Q.cs_vote + Q.gdvp_vote;
-Q.aus_right_bloc  = Q.heimwehr_vote + Q.gdvp_vote + Q.aus_minor_vote;
+Q.aus_right_bloc = Q.heimwehr_vote + Q.gdvp_vote;
+Q.aus_grand_coalition = Q.sdapo_vote + Q.cs_vote;
 
-// Legitimacy thresholds instead of hard bans
-Q.left_legit   = Q.kpoe_vote < 0.6 * Q.sdapo_vote;
-Q.right_legit  = Q.heimwehr_vote < 0.55 * Q.aus_right_bloc;
-Q.center_legit = Q.cs_vote > 15 && Q.gdvp_vote > 8;
+// ================= LEGITIMACY & GOVERNMENT FORMATION =================
+// Can SDAPO govern alone or with small partners?
+Q.sdapo_majority = Q.sdapo_vote >= 50;
+Q.sdapo_near_majority = Q.sdapo_vote >= 45;
 
-// Hung parliament logic
-Q.hung_parliament =
-    Q.aus_left_bloc < 50 &&
-    Q.aus_center_bloc < 50 &&
-    Q.aus_right_bloc < 50 ? 1 : 0;
+// Can CS govern?
+Q.cs_can_govern = Q.aus_center_bloc >= 50 || (Q.cs_vote + Q.heimwehr_vote >= 50);
+
+// Is grand coalition necessary?
+Q.grand_coalition_needed = !Q.sdapo_majority && !Q.cs_can_govern && Q.aus_grand_coalition >= 50;
+
+// Extremist veto - too strong to ignore
+Q.heimwehr_kingmaker = Q.heimwehr_vote >= 15 && Q.heimwehr_vote > Q.gdvp_vote;
+Q.kpoe_relevant = Q.kpoe_vote >= 10;
+
+// System stability
+Q.austria_democratic_stable = Q.heimwehr_vote < 20 && Q.kpoe_vote < 15 && (Q.sdapo_majority || Q.grand_coalition_needed);
+Q.austria_crisis = Q.heimwehr_vote >= 25 || Q.kpoe_vote >= 18 || (Q.heimwehr_vote + Q.kpoe_vote >= 35);
 
 // ================= CHANGE TRACKING =================
-Q.str_change_sdapo     = Q.sdapo_vote - Q.old_sdapo_vote;
-Q.str_change_cs        = Q.cs_vote - Q.old_cs_vote;
-Q.str_change_gdvp      = Q.gdvp_vote - Q.old_gdvp_vote;
-Q.str_change_heimwehr  = Q.heimwehr_vote - Q.old_heimwehr_vote;
-Q.str_change_kpoe      = Q.kpoe_vote - Q.old_kpoe_vote;
-Q.str_change_aus_minor = Q.aus_minor_vote - Q.old_aus_minor_vote;
+// Calculate raw changes
+Q.sdapo_change = Q.sdapo_vote - Q.old_sdapo_vote;
+Q.cs_change = Q.cs_vote - Q.old_cs_vote;
+Q.gdvp_change = Q.gdvp_vote - Q.old_gdvp_vote;
+Q.heimwehr_change = Q.heimwehr_vote - Q.old_heimwehr_vote;
+Q.kpoe_change = Q.kpoe_vote - Q.old_kpoe_vote;
+Q.aus_minor_change = Q.aus_minor_vote - Q.old_aus_minor_vote;
 
-// --- Persist voting history
+// Format for display with + sign and one decimal
+Q.str_change_sdapo = (Q.sdapo_change >= 0 ? "+" : "") + Q.sdapo_change.toFixed(1) + "%";
+Q.str_change_cs = (Q.cs_change >= 0 ? "+" : "") + Q.cs_change.toFixed(1) + "%";
+Q.str_change_gdvp = (Q.gdvp_change >= 0 ? "+" : "") + Q.gdvp_change.toFixed(1) + "%";
+Q.str_change_heimwehr = (Q.heimwehr_change >= 0 ? "+" : "") + Q.heimwehr_change.toFixed(1) + "%";
+Q.str_change_kpoe = (Q.kpoe_change >= 0 ? "+" : "") + Q.kpoe_change.toFixed(1) + "%";
+Q.str_change_aus_minor = (Q.aus_minor_change >= 0 ? "+" : "") + Q.aus_minor_change.toFixed(1) + "%";
+
+// Format vote shares for display
+Q.sdapo_vote_str = Q.sdapo_vote.toFixed(1) + "%";
+Q.cs_vote_str = Q.cs_vote.toFixed(1) + "%";
+Q.gdvp_vote_str = Q.gdvp_vote.toFixed(1) + "%";
+Q.heimwehr_vote_str = Q.heimwehr_vote.toFixed(1) + "%";
+Q.kpoe_vote_str = Q.kpoe_vote.toFixed(1) + "%";
+Q.aus_minor_vote_str = Q.aus_minor_vote.toFixed(1) + "%";
+
+// Track turnout change
+Q.turnout_change = Q.turnout - (Q.old_turnout || 78);
+Q.str_change_turnout = (Q.turnout_change >= 0 ? "+" : "") + Q.turnout_change.toFixed(0) + "%";
+
+// ================= PERSIST VOTING HISTORY =================
 Q.election_records = Q.election_records || [];
 Q.election_records.push({
-    date: new Date(Q.year, Q.month - 1),
+    year: Q.year,
+    month: Q.month,
     sdapo: Q.sdapo_vote,
     cs: Q.cs_vote,
     gdvp: Q.gdvp_vote,
     heimwehr: Q.heimwehr_vote,
     kpoe: Q.kpoe_vote,
-    other: Q.aus_minor_vote
+    other: Q.aus_minor_vote,
+    turnout: Q.turnout
 });
 
+// ================= UPDATE PREVIOUS RESULTS =================
+Q.old_sdapo_vote = Q.sdapo_vote;
+Q.old_cs_vote = Q.cs_vote;
+Q.old_gdvp_vote = Q.gdvp_vote;
+Q.old_heimwehr_vote = Q.heimwehr_vote;
+Q.old_kpoe_vote = Q.kpoe_vote;
+Q.old_aus_minor_vote = Q.aus_minor_vote;
+Q.old_turnout = Q.turnout;
+
 !}
-	
 
-	
-= Election Results
-	
+= Austrian Election Results - [+ year +]
 
-	
-{!<table>!}
-	
-<tr><td>Party</td><td>Vote Share</td><td>% Change</td></tr>
-	
-<tr><td>SDAPÖ</td><td>[+ sdapo_vote+]%</td><td>[+ str_change_sdapo +]</td></tr>
-	
-<tr><td>CS</td><td>[+ cs_vote +]%</td><td>[+ str_change_cs +]</td></tr>
-	
-<tr><td>GDVP</td><td>[+ gdvp_vote +]%</td><td>[+ str_change_gdvp +]</td></tr>
-	
-<tr><td>Heimwehr</td><td>[+ heimwehr_vote +]%</td><td>[+ str_change_heimwehr +]</td></tr>
-	
-<tr><td>KPÖ</td><td>[+ kpoe_vote +]%</td><td>[+ str_change_kpoe +]</td></tr>
-	
-<tr><td>Other</td><td>[+ aus_minor_vote +]%</td><td>[+ str_change_aus_minor +]</td></tr>
-	
-<tr><td>Turnout</td><td>[+ turnout +]%</td><td></td></tr>
-	
+{!<table style="width:100%; border-collapse: collapse;">!}
+<tr style="border-bottom: 2px solid #333;">
+    <td style="padding: 8px; font-weight: bold;">Party</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Vote Share</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Change</td>
+</tr>
+<tr style="background-color: #fee;">
+    <td style="padding: 8px;">SDAPÖ (Social Democrats)</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sdapo_vote_str +]</td>
+    <td style="padding: 8px; text-align: right; [? if sdapo_change > 0 : color: green; ?][? if sdapo_change < 0 : color: red; ?]">[+ str_change_sdapo +]</td>
+</tr>
+<tr style="background-color: #ffe;">
+    <td style="padding: 8px;">CS (Christian Socials)</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cs_vote_str +]</td>
+    <td style="padding: 8px; text-align: right; [? if cs_change > 0 : color: green; ?][? if cs_change < 0 : color: red; ?]">[+ str_change_cs +]</td>
+</tr>
+<tr style="background-color: #eef;">
+    <td style="padding: 8px;">GDVP (Greater Germans)</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ gdvp_vote_str +]</td>
+    <td style="padding: 8px; text-align: right; [? if gdvp_change > 0 : color: green; ?][? if gdvp_change < 0 : color: red; ?]">[+ str_change_gdvp +]</td>
+</tr>
+<tr style="background-color: #ddd;">
+    <td style="padding: 8px;">Heimwehr (Fascists)</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ heimwehr_vote_str +]</td>
+    <td style="padding: 8px; text-align: right; [? if heimwehr_change > 0 : color: green; ?][? if heimwehr_change < 0 : color: red; ?]">[+ str_change_heimwehr +]</td>
+</tr>
+<tr style="background-color: #fcc;">
+    <td style="padding: 8px;">KPÖ (Communists)</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpoe_vote_str +]</td>
+    <td style="padding: 8px; text-align: right; [? if kpoe_change > 0 : color: green; ?][? if kpoe_change < 0 : color: red; ?]">[+ str_change_kpoe +]</td>
+</tr>
+<tr style="background-color: #eee;">
+    <td style="padding: 8px;">Other Parties</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ aus_minor_vote_str +]</td>
+    <td style="padding: 8px; text-align: right; [? if aus_minor_change > 0 : color: green; ?][? if aus_minor_change < 0 : color: red; ?]">[+ str_change_aus_minor +]</td>
+</tr>
+<tr style="border-top: 2px solid #333;">
+    <td style="padding: 8px; font-weight: bold;">Voter Turnout</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ turnout +]%</td>
+    <td style="padding: 8px; text-align: right; [? if turnout_change > 0 : color: green; ?][? if turnout_change < 0 : color: red; ?]">[+ str_change_turnout +]</td>
+</tr>
 {!</table>!}
-	
-What happens next?...
-	
-- @right_coalition_austria
-- @center_right_austria
-- @popular_front_austria
+
+**Coalition Strength:**
+- Left Bloc (SDAPÖ + KPÖ): [+ aus_left_bloc +]%
+- Center Bloc (CS + GDVP): [+ aus_center_bloc +]%
+- Right Bloc (Heimwehr + GDVP + Others): [+ aus_right_bloc +]%
+- Grand Coalition (SDAPÖ + CS): [+ aus_grand_coalition +]%
+
+[? if austria_democratic_stable : **System Status:** Democratic stability maintained. ?]
+[? if austria_crisis : **System Status:** ⚠ Democratic system under severe stress! ?]
+[? if !austria_democratic_stable and !austria_crisis : **System Status:** Fragile coalition politics. ?]
+
+What government will form?
+
+- @popular_front_austria: SDAPÖ forms government with KPÖ support
+- @sdapo_minority: SDAPÖ minority government
+- @grand_coalition_austria: SDAPÖ-CS Grand Coalition
+- @center_right_austria: CS-GDVP centrist government
+- @right_coalition_austria: Heimwehr-backed right-wing coalition
 
 @popular_front_austria
-choose-if: aus_left_bloc >= 50 and left_legit == 1
 title: SDAPÖ forms government with KPÖ support
-subtitle: Popular Front government established.
-unavailable-subtitle: This coalition is impossible!
-on-arrival: relation_austria += 2; austria_govt = 0; aus_in_popular_front = 1.
-achievement: wien_freeien
-	
-Social Democracy aligned government secured win!
+subtitle: Popular Front government established
+choose-if: aus_left_bloc >= 50 and kpoe_vote < (sdapo_vote * 0.6)
+unavailable-subtitle: [? if aus_left_bloc < 50 : Left bloc lacks majority ([+ aus_left_bloc +]%). ?][? if kpoe_vote >= (sdapo_vote * 0.6) : KPÖ too strong - they'd dominate coalition. ?]
+on-arrival: relation_austria += 3; austria_govt = 0; aus_in_popular_front = 1; kpd_relation += 5; left_strength += 3; pro_republic += 2; years_in_government = 0
+achievement: wien_freien
+
+The SDAPÖ has secured a Popular Front government with Communist support!
+
+This is a historic victory for the Austrian left. The Social Democrats will govern with KPÖ parliamentary support, implementing progressive reforms while maintaining democratic institutions.
+
+[? if nsdap_r >= 20 or dnvp_r >= 15 : The Austrian Popular Front serves as inspiration for German socialists fighting fascism. ?]
+
+**Government Composition:**
+- Chancellor: SDAPÖ
+- Parliamentary Support: KPÖ
+- Coalition Strength: [+ aus_left_bloc.toFixed(1) +]%
+
+@sdapo_minority
+title: SDAPÖ minority government
+subtitle: Social Democrats govern alone without stable majority
+choose-if: sdapo_vote >= 35 and !austria_crisis
+unavailable-subtitle: [? if sdapo_vote < 35 : SDAPÖ too weak. ?][? if austria_crisis : Crisis requires stable coalition. ?]
+on-arrival: relation_austria += 1; austria_govt = 0; aus_government_stability = -1; years_in_government = 0
+
+The SDAPÖ forms a minority government, dependent on issue-by-issue parliamentary support.
+
+This is a weak government that will struggle to pass controversial legislation. Early elections may be necessary.
+
+@grand_coalition_austria
+title: SDAPÖ-CS Grand Coalition
+subtitle: The two largest parties share power
+choose-if: aus_grand_coalition >= 50 and !heimwehr_kingmaker
+unavailable-subtitle: [? if aus_grand_coalition < 50 : Grand Coalition lacks majority. ?][? if heimwehr_kingmaker : Heimwehr is kingmaker - cannot exclude them. ?]
+on-arrival: relation_austria += 2; austria_govt = 1; aus_in_grand_coalition = 1; coalition_complexity = 2; years_in_government = 0
+
+The SDAPÖ and Christian Socials form a Grand Coalition government.
+
+This broad coalition provides stability but makes bold reforms difficult. Both parties must compromise their programs.
+
+**Government Composition:**
+- Coalition Partners: SDAPÖ + CS
+- Coalition Strength: [+ aus_grand_coalition.toFixed(1) +]%
+
+[? if grand_coalition_needed : This coalition is necessary for democratic stability. ?]
 
 @center_right_austria
-choose-if: aus_center_bloc >= aus_left_bloc and aus_center_bloc >= aus_right_bloc and center_legit == 1
-title: CS and GDVP form a centrist government
-unavailable-subtitle: This coalition is impossible!
-subtitle: Moderate coalition keeps Austria stable.
-on-arrival: relation_austria += 1; austria_govt = 1; aus_in_grand_coalition = 1
+title: CS-GDVP centrist government
+subtitle: Moderate bourgeois coalition
+choose-if: aus_center_bloc >= 50 and cs_vote >= 25
+unavailable-subtitle: [? if aus_center_bloc < 50 : Center bloc lacks majority ([+ aus_center_bloc) +]%). ?][? if cs_vote < 25 : CS too weak to lead government. ?]
+on-arrival: relation_austria -= 1; austria_govt = 1; aus_in_center_right = 1; years_in_government = 0
 
-	
-Centrist government forms!
+The Christian Socials and Greater German People's Party form a centrist government, excluding the SDAPÖ.
+
+This bourgeois coalition will pursue conservative economic policies and maintain distance from Berlin's socialist government.
+
+**Government Composition:**
+- Coalition Partners: CS + GDVP
+- Coalition Strength: [+ aus_center_bloc.toFixed(1) +]%
 
 @right_coalition_austria
-choose-if: aus_right_bloc > aus_center_bloc and aus_right_bloc > aus_left_bloc and right_legit == 1
-title: Heimwehr-backed right-wing coalition takes power
-unavailable-subtitle: This coalition is impossible!
-subtitle: Radical-right influence grows in Austrian politics.
-on-arrival: relation_austria -= 2; austria_govt = -1; aus_in_right_coalition = 1
+title: Heimwehr-backed right-wing coalition
+subtitle: Radical right gains influence over Austrian government
+choose-if: (heimwehr_vote + cs_vote + gdvp_vote >= 50) and heimwehr_vote >= 12
+unavailable-subtitle: [? if heimwehr_vote + cs_vote + gdvp_vote < 50 : Right bloc lacks majority. ?][? if heimwehr_vote < 12 : Heimwehr too weak to demand inclusion. ?]
+on-arrival: relation_austria -= 3; austria_govt = -1; aus_in_right_coalition = 1; pro_republic -= 5; years_in_government = 0
 
-Radical right takes over the mantle of Austria! 
+The Heimwehr has forced its way into government!
+
+The Christian Socials and Greater Germans accept Heimwehr support, giving fascist paramilitaries significant influence over Austrian policy. Democracy in Austria is under threat.
+
+**Government Composition:**
+- Leading Party: CS or Heimwehr
+- Coalition Partners: CS + GDVP + Heimwehr
+- Coalition Strength: [+ aus_right_bloc.toFixed(1) +]%
+
+[? if heimwehr_vote >= 20 : ⚠ The Heimwehr may move to establish outright dictatorship. ?]
