@@ -1680,9 +1680,9 @@ go-to: election_end if has_majority; r2_start if not has_majority
 
 [? if Horsing_running: Otto Hörsing - [+ Horsing_votes_disp +]% ?]
 
-[? if Hamkens_running: "Hamkens - [+ Hamkens_votes_disp +]% ?]
+[? if Hamkens_running: Hamkens - [+ Hamkens_votes_disp +]% ?]
 
-[? if Behrens_running: "Behrens - [+ Behrens_votes_disp +]% ?]
+[? if Behrens_running: Behrens - [+ Behrens_votes_disp +]% ?]
 
 @r2_start
 on-arrival: {!
@@ -1833,9 +1833,8 @@ on-arrival: {!
 
 No candidate achieved a majority in the first round. The top two candidates advance:
 
-**[+ round1_winner +]** - [+ round1_winner_votes +]%
-
-**[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
+1. **[+ round1_winner +]** - [+ round1_winner_votes +]% ||
+2. **[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
 
 ---
 
@@ -1889,28 +1888,7 @@ No candidate achieved a majority in the first round. The top two candidates adva
 
 [? if spd_candidate = round1_runner_up or z_candidate = round1_runner_up or ddp_candidate = round1_runner_up or dvp_candidate = round1_runner_up or bvp_candidate = round1_runner_up : **[+ round1_runner_up +]** is projected to have: SPD [? if spd_candidate = round1_runner_up : + ?], Z [? if z_candidate = round1_runner_up : + ?], [+ ddp_name +] [? if ddp_candidate = round1_runner_up : + ?], DVP [? if dvp_candidate = round1_runner_up : + ?], BVP [? if bvp_candidate = round1_runner_up : + ?], WP [? if wp_candidate = round1_runner_up : + ?] ?
 
-- @r2_analysis: Analyze the situation.
 - @r2_menu: What should we do?
-
-@r2_analysis
-
-**Strategic Analysis:**
-
-[? if spd_candidate = round1_winner : Our candidate is in the lead! We should consolidate support. ?]
-[? if spd_candidate = round1_runner_up : Our candidate is in second place. We need to build a broader coalition. ?]
-[? if spd_candidate != round1_winner and spd_candidate != round1_runner_up : Our candidate was eliminated. We must choose wisely. ?]
-
-**Coalition Math:**
-- If all democratic parties unite behind [+ round1_winner +]: ~[+ democratic_coalition_estimate +]%
-- Far-right consolidated support: ~[+ far_right_estimate +]%
-- Communist bloc: ~[+ communist_estimate +]%
-
-**Key Questions:**
-- Can we unite the Weimar Coalition?
-- Will the KPD support a democratic candidate or abstain?
-- Can we peel away moderate conservatives from the far-right?
-
-- @r2_menu: Back to actions.
 
 @r2_menu
 
