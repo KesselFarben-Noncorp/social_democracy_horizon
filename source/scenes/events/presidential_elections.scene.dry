@@ -5,6 +5,7 @@ view-if: (year = next_presidential_election_year and month >= next_presidential_
 on-arrival: presidential_election_active = 1; round = 0; last_presidential_election = year;
 max-visits: 999
 tags: event
+face-image: img/reichstag_2.jpg
 
 = Presidential Election
 
@@ -1659,7 +1660,7 @@ go-to: election_end if has_majority; r2_start if not has_majority
 
 [? if Braun_running : Braun - [+ Braun_votes_disp +]% ?]
 
-[? if Schmid_
+[? if Schmid_running: Schmid - [+ Schmid_votes_disp +]% ?]
 
 [? if Schumacher_running : Schumacher - [+ Schumacher_votes_disp +]% ?]
 
@@ -1675,9 +1676,9 @@ go-to: election_end if has_majority; r2_start if not has_majority
 
 [? if Schaffer_running : Schäffer - [+ Schaffer_votes_disp +]% ?]
 
-[? if Drewitz_running: "Max Drewitz - [+ Drewitz_votes_disp +]% ?]
+[? if Drewitz_running: Max Drewitz - [+ Drewitz_votes_disp +]% ?]
 
-[? if Horsing_running: "Otto Hörsing - [+ Horsing_votes_disp +]% ?]
+[? if Horsing_running: Otto Hörsing - [+ Horsing_votes_disp +]% ?]
 
 [? if Hamkens_running: "Hamkens - [+ Hamkens_votes_disp +]% ?]
 
@@ -1833,6 +1834,7 @@ on-arrival: {!
 No candidate achieved a majority in the first round. The top two candidates advance:
 
 **[+ round1_winner +]** - [+ round1_winner_votes +]%
+
 **[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
 
 ---
