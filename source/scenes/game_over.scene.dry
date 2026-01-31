@@ -9,7 +9,7 @@ Q.game_over = 1;
 this.achieve('game_completed');
 
 // Conservative Revolution
-if (Q.dnvp_votes >= 30) {
+if (Q.dnvp_votes >= 20) {
     this.achieve('konservolution');
 }
 
@@ -113,6 +113,10 @@ if ((Q.nationalization_progress >= 1 && Q.wtb_implemented >= 1) || (Q.wtb_implem
 // Syndikalismus - support factory takeovers by workers.
 if (Q.factory_takeovers >= 2) {
     this.achieve("syndikalismus");
+}
+// Commonwealth - people's true unions.
+if (Q.commonwealth_cooperation >= 2) {
+    this.achieve("commonwealth");
 }
 // Stolperstein - lose the civil war against Hitler.
 if ((Q.chancellor_party == "NSDAP" || Q.chancellor == "Hitler" || Q.president == "Hitler") && Q.total_defeat) {
@@ -408,7 +412,7 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if game_achievement_klassenkampf: **Klassenkampf** - SPD worker support is at least 80%, while middle-class and rural supports are less than 20%. ?]
 
-[? if game_achievement_konservolution: **Die Konservative Revolution** - DNVP secures 30% of the votes! ?]
+[? if game_achievement_konservolution: **Die Konservative Revolution** - DNVP secures 20% of the votes! ?]
 
 [? if game_achievement_durchbruch: **Der Nationale Durchbruch** - NSDAP secures 30% of the votes! ?]
 
@@ -445,6 +449,9 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 [? if game_achievement_stolperstein: **Stolperstein** - we lost, but history might memorialize us... ?]
 
 [? if game_achievement_faustischer_pakt: **Faustischer Pakt** - Accepted Hjalmar Schacht's nationalist economic plan. Effective, but at what cost to democratic principles?. ?]
+
+[? if game_achievement_commonwealth: **Co-operative Commonwealth** - British dream of proletariat, German reality of workers. ?]
+
 
 
 = Completed Achievements Overall
@@ -526,10 +533,6 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if achievement_klassenkampf: **Klassenkampf** - SPD worker support is at least 80%, while middle-class and rural supports are less than 20%. ?]
 
-[? if achievement_konservolution: **Die Konservative Revolution** - DNVP secures 30% of the votes! ?]
-
-[? if achievement_durchbruch: **Der Nationale Durchbruch** - NSDAP secures 30% of the votes! ?]
-
 [? if achievement_raterepublik: **Räterepublik** - begin the transformation to a socialist economy. ?]
 
 [? if achievement_polykrise: **Polykrise** - survive a capital strike and a fascist coup. ?]
@@ -537,8 +540,6 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 [? if achievement_syndikalismus: **Syndikalismus** - support factory takeovers by the workers. ?]
 
 [? if achievement_drei_pfeile: **Drei Pfeile** - defeat a coup without a civil war. ?]
-
-[? if achievement_ruhrland: **Rheinland in Fire** - French reoccupy the Rheinland following catastrophy of Young Plan. ?]
 
 [? if achievement_ausnahmezustand: **Ausnahmezustand** - use emergency powers to cancel elections. ?]
 
@@ -558,12 +559,7 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if achievement_arbeiter_von_wien : **Arbeiter von Wien** - SDAPÖ victory in Austria. ?]
 
-[? if achievement_wien_freeien: **Rot in Wien, Rot im Staat** - SDAPÖ secures victory in Austrian election. ?] 
-
 [? if achievement_stolperstein: **Stolperstein** - we lost, but history might memorialize us... ?]
-
-[? if achievement_faustischer_pakt: **Faustischer Pakt** - Accepted Hjalmar Schacht's nationalist economic plan. Effective, but at what cost to democratic principles?. ?]
-
 
 = Incomplete Achievements
 
@@ -643,10 +639,6 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if not achievement_klassenkampf: **Klassenkampf** - SPD worker support is at least 80%, while middle-class and rural supports are less than 20%. ?]
 
-[? if not achievement_konservolution: **Die Konservative Revolution** - DNVP secures 30% of the votes! ?]
-
-[? if not achievement_durchbruch: **Der Nationale Durchbruch** - NSDAP secures 30% of the votes! ?]
-
 [? if not achievement_raterepublik: **Räterepublik** - begin the transformation to a socialist economy. ?]
 
 [? if not achievement_polykrise: **Polykrise** - survive a capital strike and a fascist coup. ?]
@@ -654,8 +646,6 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 [? if not achievement_syndikalismus: **Syndikalismus** - support factory takeovers by the workers. ?]
 
 [? if not achievement_drei_pfeile: **Drei Pfeile** - defeat a coup without a civil war. ?]
-
-[? if not achievement_ruhrland: **Rheinland in Fire** - French reoccupy the Rheinland. ?]
 
 [? if not achievement_ausnahmezustand: **Ausnahmezustand** - use emergency powers to cancel elections. ?]
 
@@ -675,13 +665,37 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
 [? if not achievement_arbeiter_von_wien : **Arbeiter von Wien** - SDAPÖ victory in Austria. ?]
 
-[? if not achievement_wien_freeien: **Rot in Wien, Rot im Staat** - SDAPÖ secures victory in Austrian election. ?] 
-
 [? if not achievement_stolperstein: **Stolperstein** - we lost, but history might memorialize us... ?]
 
-= Modification Achievements
+
+= Modification Achievements - Complete
+
+[? if achievement_konservolution: **Die Konservative Revolution** - DNVP secures 20% of the votes! ?]
+
+[? if achievement_durchbruch: **Der Nationale Durchbruch** - NSDAP secures 30% of the votes! ?]
+
+[? if achievement_ruhrland: **Rheinland in Fire** - French reoccupy the Rheinland. ?]
+
+[? if achievement_wien_freeien: **Rot in Wien, Rot im Staat** - SDAPÖ secures victory in Austrian election. ?] 
+
+[? if achievement_faustischer_pakt: **Faustischer Pakt** - Accepted Hjalmar Schacht's nationalist economic plan. Effective, but at what cost to democratic principles?. ?]
+
+[? if achievement_commonwealth: **Co-operative Commonwealth** - British dream of proletariat, German reality of workers. ?]
+
+
+= Modification Achievements - Incomplete
+
+[? if not achievement_konservolution: **Die Konservative Revolution** - DNVP secures 20% of the votes! ?]
+
+[? if not achievement_durchbruch: **Der Nationale Durchbruch** - NSDAP secures 30% of the votes! ?]
+
+[? if not achievement_ruhrland: **Rheinland in Fire** - French reoccupy the Rheinland. ?]
+
+[? if not achievement_wien_freeien: **Rot in Wien, Rot im Staat** - SDAPÖ secures victory in Austrian election. ?] 
 
 [? if not achievement_faustischer_pakt: **Faustischer Pakt** - Accepted Hjalmar Schacht's nationalist economic plan. Effective, but at what cost to democratic principles?. ?]
+
+[? if not achievement_commonwealth: **Co-operative Commonwealth** - British dream of proletariat, German reality of workers. ?]
 
 
 @end_game
