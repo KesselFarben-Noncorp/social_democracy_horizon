@@ -1897,15 +1897,13 @@ We have switched our support to [+ spd_candidate +].
 @r2_convince
 
 - @convince_z_r2: Try to convince the Center Party.
-- @convince_
-ddp_r2: Try to convince the [+ ddp_name +].
+- @convince_ddp_r2: Try to convince the [+ ddp_name +].
 - @convince_dvp_r2: Try to convince the DVP.
 - @convince_kpd_r2: Try to convince the KPD.
 - @r2_menu: Back.
 
 @convince_z_r2
 view-if: z_candidate != spd_candidate
-max-visits: 1
 
 - @pay_z_r2: Offer resources (-2 resources).
 - @r2_convince: Back.
@@ -1921,7 +1919,6 @@ The Center Party now supports [+ spd_candidate +]!
 
 @convince_ddp_r2
 view-if: ddp_candidate != spd_candidate
-max-visits: 1
 on-arrival: ddp_candidate = spd_candidate if ddp_relation >= 35;
 go-to: r2_convince
 
@@ -1930,7 +1927,6 @@ go-to: r2_convince
 
 @convince_dvp_r2
 view-if: dvp_candidate != spd_candidate
-max-visits: 1
 on-arrival: dvp_candidate = spd_candidate if dvp_relation >= 45;
 go-to: r2_convince
 
@@ -1941,7 +1937,6 @@ go-to: r2_convince
 view-if: kpd_candidate != spd_candidate
 choose-if: kpd_relation >= 55
 unavailable-subtitle: Relations not good enough.
-max-visits: 1
 on-arrival: kpd_candidate = spd_candidate; sapd_candidate = spd_candidate;
 go-to: r2_convince
 
