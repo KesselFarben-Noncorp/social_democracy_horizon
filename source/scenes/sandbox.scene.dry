@@ -638,6 +638,32 @@ on-arrival: intelligence_network = 0; toggle = 0
 Here you go, intelligence network = 0 now.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @very-well
 
 Inflation: [+ inflation +]
@@ -797,6 +823,7 @@ Inflation penalty: [+ inflation_penalty +]
 - @miscellanious_austria: Austria and event statuses
 - @spd: SPD info
 - @governmentvar: Government variables
+- @hindenburg: Camarilla and Hindenburg himself.
 - @sandbox_menu: Back
 
 @governmentvar
@@ -1011,6 +1038,192 @@ DNVP [+ dnvp_party_leader +]
 NSDAP [+ nsdap_party_leader +]
 KPD [+ kpd_party_leader +]
 Economic Party [+ wp_party_leader +]
+
+- @sandbox_menu: Back
+
+@hindenburg
+
+**═══════════════════════════════════════**
+**PRESIDENT PAUL VON HINDENBURG**
+**═══════════════════════════════════════**
+
+**Age:** [+ hindenburg_age +] years old
+**Health:** [+ hindenburg_health +]/100
+[? if hindenburg_health >= 80 : *(Vigorous for his age)* ?]
+[? if hindenburg_health >= 60 and hindenburg_health < 80 : *(Declining, tires easily)* ?]
+[? if hindenburg_health >= 40 and hindenburg_health < 60 : *(Poor health, often confused)* ?]
+[? if hindenburg_health < 40 : *(Gravely ill, barely functional)* ?]
+
+**Mental Acuity:** [+ (100 - hindenburg_senility) +]/100
+[? if hindenburg_senility >= 60 : *(Severely senile, confuses past and present)* ?]
+[? if hindenburg_senility >= 40 and hindenburg_senility < 60 : *(Memory failing, easily manipulated)* ?]
+[? if hindenburg_senility >= 20 and hindenburg_senility < 40 : *(Some cognitive decline)* ?]
+[? if hindenburg_senility < 20 : *(Sharp for his age)* ?]
+
+**─────────────────────────────────────**
+**HINDENBURG'S POLITICAL VIEWS**
+**─────────────────────────────────────**
+
+**Trust in Parliamentary Democracy:** [+ hindenburg_trust_reichstag +]/100
+[? if hindenburg_trust_reichstag >= 60 : *(Still respects parliament)* ?]
+[? if hindenburg_trust_reichstag >= 40 and hindenburg_trust_reichstag < 60 : *(Growing doubts about democracy)* ?]
+[? if hindenburg_trust_reichstag >= 20 and hindenburg_trust_reichstag < 40 : *(Deeply disillusioned with parliament)* ?]
+[? if hindenburg_trust_reichstag < 20 : *(Contempt for parliamentary system)* ?]
+
+**Trust in Reichswehr:** [+ hindenburg_trust_military +]/100
+**Monarchist Sentiment:** [+ hindenburg_monarchist_sentiment +]/100
+
+**Trust in Political Parties:**
+- SPD (Social Democrats): [+ hindenburg_trust_spd +]/100
+- Z (Center Party): [+ hindenburg_trust_z +]/100
+- DNVP (Nationalists): [+ hindenburg_trust_dnvp +]/100
+
+**─────────────────────────────────────**
+**PRESIDENTIAL ACTIONS TAKEN**
+**─────────────────────────────────────**
+
+**Article 48 Emergency Decrees Used:** [+ hindenburg_interventions +] times
+**Reichstag Dissolutions:** [+ hindenburg_reichstag_dissolutions +] times
+**Governments Dismissed:** [+ hindenburg_government_dismissals +] times
+
+[? if presidential_cabinet : **Current Government:** Presidential Cabinet (not responsible to Reichstag) ?]
+[? if not presidential_cabinet : **Current Government:** Parliamentary government ?]
+
+**═══════════════════════════════════════**
+**THE CAMARILLA (INNER CIRCLE)**
+**═══════════════════════════════════════**
+
+**Overall Influence:** [+ camarilla_strength +]/100
+[? if camarilla_strength >= 80 : *(Complete control - Hindenburg is their puppet)* ?]
+[? if camarilla_strength >= 60 and camarilla_strength < 80 : *(Strong influence - they filter all information)* ?]
+[? if camarilla_strength >= 40 and camarilla_strength < 60 : *(Moderate influence - they shape his views)* ?]
+[? if camarilla_strength < 40 : *(Limited influence - Hindenburg still independent)* ?]
+
+**Internal Unity:** [+ camarilla_unified +]/100
+[? if camarilla_unified < 40 : *(Fractured - members compete against each other)* ?]
+
+**─────────────────────────────────────**
+**KEY MEMBERS**
+**─────────────────────────────────────**
+
+**Otto Meißner** (State Secretary)
+- Influence: [+ meissner_influence +]/100
+- Role: *Bureaucratic gatekeeper, controls access to Hindenburg*
+[? if meissner_exposed : - **STATUS: EXPOSED** for corruption ?]
+[? if not meissner_exposed : - Status: Operating freely ?]
+
+**Kurt von Schleicher** (General, Political Intriguer)
+- Influence: [+ schleicher_influence +]/100
+- Role: *"Political general", military power broker, master schemer*
+[? if schleicher_exposed : - **STATUS: EXPOSED** for illegal political-military dealings ?]
+[? if not schleicher_exposed : - Status: Operating in shadows ?]
+[? if schleicher_cabinet : - **CURRENTLY CHANCELLOR** ?]
+
+**Oskar von Hindenburg** (President's Son)
+- Influence: [+ oskar_influence +]/100
+- Role: *Devoted son, ensures father's comfort, protects Junker interests*
+[? if oskar_bribed : - **STATUS: BRIBED** via Osthilfe scandal ?]
+[? if oskar_convinced : - **STATUS: CONVINCED** to oppose camarilla manipulation ?]
+[? if not oskar_bribed and not oskar_convinced : - Status: Loyal to father and Junkers ?]
+
+**Elard von Oldenburg-Januschau** (Junker Representative)
+- Influence: [+ oldenburg_influence +]/100
+- Role: *Reactionary Junker, demands agricultural subsidies, anti-democratic*
+[? if oldenburg_scandal : - **STATUS: SCANDAL** over agricultural subsidies exposed ?]
+[? if not oldenburg_scandal : - Status: Representing East Elbian estates ?]
+
+[? if papen_in_camarilla : **Franz von Papen** (Aristocratic Schemer)
+- Influence: [+ papen_influence +]/100
+- Role: *"Gentleman rider", charming dilettante, Schleicher's creation*
+[? if papen_cabinet : - **CURRENTLY CHANCELLOR** ?]
+[? if papen_dismissed : - STATUS: Dismissed from chancellorship ?] ?]
+
+**Alfred Hugenberg** (Media Mogul - Indirect Influence)
+- Influence: [+ hugenberg_influence +]/100
+- Role: *DNVP leader, vast propaganda network, pro-Nazi*
+
+**─────────────────────────────────────**
+**CAMARILLA GOALS & PRIORITIES**
+**─────────────────────────────────────**
+
+**Destroy Parliamentary Democracy:** [+ camarilla_goal_destroy_parliament +]/100
+**Install Military Dictatorship:** [+ camarilla_goal_military_dictatorship +]/100
+**Restore Monarchy:** [+ camarilla_goal_restore_monarchy +]/100
+**Crush the Left (SPD/KPD):** [+ camarilla_goal_crush_left +]/100
+**Protect Junker Estates:** [+ camarilla_goal_protect_junkers +]/100
+[? if papen_in_camarilla : **Install Papen as Chancellor:** [+ camarilla_goal_install_papen +]/100 ?]
+[? if year >= 1932 : **Willingness to Use Hitler:** [+ camarilla_goal_install_hitler +]/100 ?]
+
+**═══════════════════════════════════════**
+**ACTIVE PLOTS & SCANDALS**
+**═══════════════════════════════════════**
+
+[? if schleicher_bruning_plot : **⚠ Schleicher plotting to install Brüning as Presidential Cabinet** ?]
+[? if bruning_cabinet : **✓ Brüning Presidential Cabinet installed** ?]
+[? if camarilla_tired_of_bruning : **⚠ Camarilla has turned against Brüning** ?]
+[? if bruning_dismissed : **✓ Brüning dismissed by Hindenburg** ?]
+
+[? if papen_appointment_plot : **⚠ Plot to install Papen as Chancellor** ?]
+[? if papen_cabinet : **✓ Papen Cabinet installed ("Cabinet of Barons")** ?]
+[? if papen_dismissed : **✓ Papen dismissed** ?]
+
+[? if schleicher_querfront_attempt : **⚠ Schleicher attempting "Querfront" strategy** ?]
+[? if schleicher_querfront_success : **✓ Querfront succeeded! Strasser split from NSDAP!** ?]
+[? if schleicher_querfront_attempted and not schleicher_querfront_success : **✗ Querfront failed** ?]
+
+[? if hammerstein_coup_ready : **⚠ General Hammerstein ready to launch coup against Nazis** ?]
+[? if hammerstein_coup_attempted and hammerstein_coup_success : **✓ Hammerstein coup succeeded! Military emergency government!** ?]
+[? if hammerstein_coup_attempted and not hammerstein_coup_success : **✗ Hammerstein coup failed catastrophically** ?]
+
+[? if camarilla_final_plot : **⚠⚠⚠ CAMARILLA PLOTTING TO INSTALL HITLER AS CHANCELLOR ⚠⚠⚠** ?]
+[? if nazi_takeover_begins : **✗✗✗ HITLER APPOINTED CHANCELLOR - NAZI TAKEOVER BEGINS ✗✗✗** ?]
+
+**─────────────────────────────────────**
+**OSTHILFE SCANDAL (EASTERN AID)**
+**─────────────────────────────────────**
+
+[? if osthilfe_scandal : Agricultural subsidy scandal active ?]
+[? if hindenburg_estate_neudeck : Hindenburg received Neudeck estate as gift/bribe ?]
+[? if oskar_bribed : Oskar von Hindenburg bribed with land and money ?]
+[? if osthilfe_investigation : **⚠ SPD investigating Osthilfe corruption** ?]
+[? if osthilfe_exposed : **✓ OSTHILFE SCANDAL EXPOSED PUBLICLY** ?]
+[? if osthilfe_cover_up : **✗ Camarilla successfully covered up scandal** ?]
+
+**═══════════════════════════════════════**
+**SPD COUNTER-EFFORTS**
+**═══════════════════════════════════════**
+
+**Attempts to Improve Relations with Hindenburg:** [+ hindenburg_relationship_efforts +]
+**Attempts to Counter Camarilla:** [+ camarilla_counter_efforts +]
+
+[? if bruning_saved_by_spd : **✓ Successfully saved Brüning from dismissal** ?]
+[? if papen_appointment_prevented : **✓ Successfully prevented Papen appointment** ?]
+[? if schleicher_appointment_prevented : **✓ Successfully prevented Schleicher appointment** ?]
+[? if hitler_appointment_prevented : **✓ Successfully prevented Hitler appointment** ?]
+
+**═══════════════════════════════════════**
+**ALTERNATIVE SCENARIOS**
+**═══════════════════════════════════════**
+
+[? if goerdeler_prominence >= 3 : **Carl Goerdeler** (Technocratic Mayor) - Prominence: [+ goerdeler_prominence +]/10 ?]
+[? if military_emergency_government : **⚠ MILITARY EMERGENCY GOVERNMENT IN POWER** ?]
+[? if military_dictatorship : **⚠ MILITARY DICTATORSHIP ESTABLISHED** ?]
+[? if article_48_permanent : **⚠ Article 48 has become permanent rule** ?]
+
+**═══════════════════════════════════════**
+**HISTORICAL CONTEXT**
+**═══════════════════════════════════════**
+
+Current Date: [+ month_name +] [+ year +]
+
+[? if year <= 1929 : Hindenburg still respects parliamentary norms, but growing frustrated. ?]
+[? if year == 1930 or year == 1931 : Presidential Cabinet era - Brüning rules by decree. ?]
+[? if year == 1932 and month < 6 : Camarilla turning against Brüning. ?]
+[? if year == 1932 and month >= 6 and month < 12 : Papen's reactionary experiment. ?]
+[? if year == 1932 and month >= 12 : Schleicher's desperate gambit. ?]
+[? if year >= 1933 : The final crisis - will Hitler become Chancellor? ?]
+
+[? if hindenburg_age >= 84 : Hindenburg is very old. His health is failing. Time is running out. ?]
 
 - @sandbox_menu: Back
 
