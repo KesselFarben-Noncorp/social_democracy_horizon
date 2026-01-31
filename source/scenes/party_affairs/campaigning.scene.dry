@@ -25,24 +25,6 @@ Whether or not we are in an electoral campaign, the party is always trying to br
 - @finish_game: End of the game.
 - @easy_discard
 
-@middle
-subtitle: -1 resources
-view-if: ideology != "left" and ideology != "centrist" and peoples_party == 1
-choose-if: resources >= 1
-unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
-on-arrival: old_middle_spd += 3*(1-dissent); resources -= 1; old_middle_spd -= 2 if nationalism >= ( pro_republic / 2 ) and peoples_party == 0; old_middle_spd -= upper_tax_rates * 1.1; old_middle_spd -= (nationalism / 60); new_middle_spd += 4*(1-dissent); new_middle_spd -= 2 if (socialism * 1.5) <= nationalism and peoples_party == 0; resources -= 1; new_middle_spd -= upper_tax_rates * 1.3
-
-We have campaigned across the two middle classes, prioritizing the issues of the shrinking middle class.
-
-@women
-subtitle: -1 resources
-view-if: peoples_party == 1 or womens_rights >= 6
-choose-if: resources >= 1
-unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
-on-arrival: new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); workers_spd += 3*(1-dissent); rural_spd += 1*(1-dissent); unemployed_spd += 2*(1-dissent); new_middle_spd += new_middle / (womens_rights * 1.1); old_middle_spd += old_middle / (womens_rights * 1,25); workers_spd *= 1.01 if abortion_rights > 0; new_middle_spd *= 1.01 if abortion_rights > 0; old_middle_spd *= 1.01 if abortion_rights > 0; catholics_spd *= 0.99 if abortion_rights > 0; new_middle_spd += (womens_work / 40); old_middle_spd += (womens_work / 50); workers_spd += (womens_work / 30); new_middle_spd += (family_law / 50); new_middle_ddp += (family_law / 100); workers_spd += (family_law / 40) 
-
-We have campaigned across the women of all kinds of classes, especially focusing on dismantling patriarchic past and equalizing rights between men and women in progressive society.
-
 @workers
 subtitle: -1 resources
 choose-if: resources >= 1
@@ -85,6 +67,15 @@ We have increased our campaigning among the old middle class. While not the most
 [? if peoples_party > 0: As a people's party, it is now easier to increase support among them with us dropping socialist rhetorics. ?]
 [? if upper_tax_rates > 0: Taxes impacting old mittlestand has decreased effectiveness of our campaign. ?]
 
+@middle
+subtitle: -1 resources
+view-if: ideology != "left" and ideology != "centrist" and peoples_party == 1
+choose-if: resources >= 1
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
+on-arrival: old_middle_spd += 3*(1-dissent); resources -= 1; old_middle_spd -= 2 if nationalism >= ( pro_republic / 2 ) and peoples_party == 0; old_middle_spd -= upper_tax_rates * 1.1; old_middle_spd -= (nationalism / 60); new_middle_spd += 4*(1-dissent); new_middle_spd -= 2 if (socialism * 1.5) <= nationalism and peoples_party == 0; resources -= 1; new_middle_spd -= upper_tax_rates * 1.3
+
+We have campaigned across the two middle classes, prioritizing the issues of the shrinking middle class.
+
 @rural
 subtitle: -1 resources
 view-if: ideology != "left" and ideology != "labor"
@@ -98,6 +89,15 @@ We have increased our campaigning among farmers and rural workers. Our main issu
 [? if peoples_party > 0: As a people's party, we face fewer obstacles in rural campaigning. ?]
 [? if rural_policy >= 2: Our rural policies have eased support-building efforts. ?]
 [? if state_buyer = 1: State monopoly on prices of the agricultural products benefits primarily rurals, which are satisfied with our achievements and grateful for it. Junkers are not. ?]
+
+@women
+subtitle: -1 resources
+view-if: peoples_party == 1 or womens_rights >= 6
+choose-if: resources >= 1
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
+on-arrival: new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); workers_spd += 3*(1-dissent); rural_spd += 1*(1-dissent); unemployed_spd += 2*(1-dissent); new_middle_spd += new_middle / (womens_rights * 1.1); old_middle_spd += old_middle / (womens_rights * 1.25); workers_spd *= 1.01 if abortion_rights > 0; new_middle_spd *= 1.01 if abortion_rights > 0; old_middle_spd *= 1.01 if abortion_rights > 0; catholics_spd *= 0.99 if abortion_rights > 0; new_middle_spd += (womens_work / 40); old_middle_spd += (womens_work / 50); workers_spd += (womens_work / 30); new_middle_spd += (family_law / 50); new_middle_ddp += (family_law / 100); workers_spd += (family_law / 40) 
+
+We have campaigned across the women of all kinds of classes, especially focusing on dismantling patriarchic past and equalizing rights between men and women in progressive society.
 
 @unemployed
 subtitle: -1 resources
