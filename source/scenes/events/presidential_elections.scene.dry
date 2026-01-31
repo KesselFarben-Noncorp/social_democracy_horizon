@@ -1831,62 +1831,29 @@ on-arrival: {!
 
 **Second Round Runoff**
 
-No candidate achieved a majority in the first round. The top two candidates advance:
+No candidate achieved a majority in the first round. The top two candidates advance to a runoff:
 
-1. **[+ round1_winner +]** - [+ round1_winner_votes +]% ||
+1. **[+ round1_winner +]** - [+ round1_winner_votes +]%
 2. **[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
 
 ---
 
-**All eliminated candidates' supporters must now choose:**
-
-**Far Right:**
-[? if nsdap_candidate != round1_winner and nsdap_candidate != round1_runner_up : - NSDAP (was: [+ nsdap_candidate +]) → Now supporting: **[+ nsdap_candidate +]** ?]
-[? if nsdap_candidate = round1_winner or nsdap_candidate = round1_runner_up : - NSDAP: **[+ nsdap_candidate +]** (in runoff) ?]
-
-[? if dnvp_candidate != round1_winner and dnvp_candidate != round1_runner_up and dnvp_candidate != nsdap_candidate : - DNVP (was: [+ dnvp_candidate +]) → Now supporting: **[+ dnvp_candidate +]** ?]
-[? if dnvp_candidate = round1_winner or dnvp_candidate = round1_runner_up : - DNVP: **[+ dnvp_candidate +]** (in runoff) ?]
-[? if dnvp_candidate = nsdap_candidate : - DNVP: Supporting **[+ nsdap_candidate +]** (far-right united) ?]
+**Party Endorsements for Second Round:**
 
 **Left:**
-[? if kpd_candidate != round1_winner and kpd_candidate != round1_runner_up : - KPD (was: [+ kpd_candidate +]) → Now supporting: **[+ kpd_candidate +]** ?]
-[? if kpd_candidate = round1_winner or kpd_candidate = round1_runner_up : - KPD: **[+ kpd_candidate +]** (in runoff) ?]
+- SPD: [? if spd_candidate = round1_winner or spd_candidate = round1_runner_up : **[+ spd_candidate +]** (our candidate in runoff) ?][? if spd_candidate != round1_winner and spd_candidate != round1_runner_up : Endorsing **[+ spd_runoff_endorsement +]** ?]
+- KPD: [? if kpd_candidate = round1_winner or kpd_candidate = round1_runner_up : **[+ kpd_candidate +]** (in runoff) ?][? if kpd_candidate != round1_winner and kpd_candidate != round1_runner_up : Endorsing **[+ kpd_runoff_endorsement +]** ?]
+[? if sapd_formed : - SAPD: [? if sapd_candidate = round1_winner or sapd_candidate = round1_runner_up : **[+ sapd_candidate +]** (in runoff) ?][? if sapd_candidate != round1_winner and sapd_candidate != round1_runner_up : Endorsing **[+ sapd_runoff_endorsement +]** ?] ?]
 
-[? if sapd_formed and sapd_candidate != round1_winner and sapd_candidate != round1_runner_up : - SAPD (was: [+ sapd_candidate +]) → Now supporting: **[+ sapd_candidate +]** ?]
-[? if sapd_formed and (sapd_candidate = round1_winner or sapd_candidate = round1_runner_up) : - SAPD: **[+ sapd_candidate +]** (in runoff) ?]
+**Center:**
+- Z: [? if z_candidate = round1_winner or z_candidate = round1_runner_up : **[+ z_candidate +]** (in runoff) ?][? if z_candidate != round1_winner and z_candidate != round1_runner_up : Endorsing **[+ z_runoff_endorsement +]** ?]
+- BVP: [? if bvp_candidate = round1_winner or bvp_candidate = round1_runner_up : **[+ bvp_candidate +]** (in runoff) ?][? if bvp_candidate != round1_winner and bvp_candidate != round1_runner_up : Endorsing **[+ bvp_runoff_endorsement +]** ?]
+- [+ ddp_name +]: [? if ddp_candidate = round1_winner or ddp_candidate = round1_runner_up : **[+ ddp_candidate +]** (in runoff) ?][? if ddp_candidate != round1_winner and ddp_candidate != round1_runner_up : Endorsing **[+ ddp_runoff_endorsement +]** ?]
+- DVP: [? if dvp_candidate = round1_winner or dvp_candidate = round1_runner_up : **[+ dvp_candidate +]** (in runoff) ?][? if dvp_candidate != round1_winner and dvp_candidate != round1_runner_up : Endorsing **[+ dvp_runoff_endorsement +]** ?]
 
-**SPD:**
-[? if spd_candidate != round1_winner and spd_candidate != round1_runner_up : - **SPD (was: [+ spd_candidate +]) → Now supporting: [+ spd_candidate +]** ?]
-[? if spd_candidate = round1_winner or spd_candidate = round1_runner_up : - **SPD: [+ spd_candidate +] (in runoff)** ?]
-
-[? if srpd_formed and srpd_candidate != round1_winner and srpd_candidate != round1_runner_up : - SRPD (was: [+ srpd_candidate +]) → Now supporting: **[+ srpd_candidate +]** ?]
-
-**Center/Liberal:**
-[? if z_candidate != round1_winner and z_candidate != round1_runner_up : - Z (was: [+ z_candidate +]) → Now supporting: **[+ z_candidate +]** ?]
-[? if z_candidate = round1_winner or z_candidate = round1_runner_up : - Z: **[+ z_candidate +]** (in runoff) ?]
-
-[? if bvp_candidate != round1_winner and bvp_candidate != round1_runner_up : - BVP (was: [+ bvp_candidate +]) → Now supporting: **[+ bvp_candidate +]** ?]
-[? if bvp_candidate = round1_winner or bvp_candidate = round1_runner_up : - BVP: **[+ bvp_candidate +]** (in runoff) ?]
-
-[? if ddp_candidate != round1_winner and ddp_candidate != round1_runner_up : - [+ ddp_name +] (was: [+ ddp_candidate +]) → Now supporting: **[+ ddp_candidate +]** ?]
-[? if ddp_candidate = round1_winner or ddp_candidate = round1_runner_up : - [+ ddp_name +]: **[+ ddp_candidate +]** (in runoff) ?]
-
-[? if dvp_candidate != round1_winner and dvp_candidate != round1_runner_up : - DVP (was: [+ dvp_candidate +]) → Now supporting: **[+ dvp_candidate +]** ?]
-[? if dvp_candidate = round1_winner or dvp_candidate = round1_runner_up : - DVP: **[+ dvp_candidate +]** (in runoff) ?]
-
-[? if wp_candidate != round1_winner and wp_candidate != round1_runner_up : - WP (was: [+ wp_candidate +]) → Now supporting: **[+ wp_candidate +]** ?]
-[? if wp_candidate = round1_winner or wp_candidate = round1_runner_up : - WP: **[+ wp_candidate +]** (in runoff) ?]
-
-[? if cnbl_candidate != round1_winner and cnbl_candidate != round1_runner_up : - CNBL (was: [+ cnbl_candidate +]) → Now supporting: **[+ cnbl_candidate +]** ?]
-[? if cnbl_candidate = round1_winner or cnbl_candidate = round1_runner_up : - CNBL: **[+ cnbl_candidate +]** (in runoff) ?]
-
----
-
-**Current Projected Second Round:**
-
-[? if spd_candidate = round1_winner or z_candidate = round1_winner or ddp_candidate = round1_winner or dvp_candidate = round1_winner or bvp_candidate = round1_winner : **[+ round1_winner +]** is projected to have: SPD [? if spd_candidate = round1_winner : + ?], Z [? if z_candidate = round1_winner : + ?], [+ ddp_name +] [? if ddp_candidate = round1_winner : + ?], DVP [? if dvp_candidate = round1_winner : + ?], BVP [? if bvp_candidate = round1_winner : + ?], WP [? if wp_candidate = round1_winner : + ?] ?]
-
-[? if spd_candidate = round1_runner_up or z_candidate = round1_runner_up or ddp_candidate = round1_runner_up or dvp_candidate = round1_runner_up or bvp_candidate = round1_runner_up : **[+ round1_runner_up +]** is projected to have: SPD [? if spd_candidate = round1_runner_up : + ?], Z [? if z_candidate = round1_runner_up : + ?], [+ ddp_name +] [? if ddp_candidate = round1_runner_up : + ?], DVP [? if dvp_candidate = round1_runner_up : + ?], BVP [? if bvp_candidate = round1_runner_up : + ?], WP [? if wp_candidate = round1_runner_up : + ?] ?
+**Right:**
+- DNVP: [? if dnvp_candidate = round1_winner or dnvp_candidate = round1_runner_up : **[+ dnvp_candidate +]** (in runoff) ?][? if dnvp_candidate != round1_winner and dnvp_candidate != round1_runner_up : Endorsing **[+ dnvp_runoff_endorsement +]** ?]
+- NSDAP: [? if nsdap_candidate = round1_winner or nsdap_candidate = round1_runner_up : **[+ nsdap_candidate +]** (in runoff) ?][? if nsdap_candidate != round1_winner and nsdap_candidate != round1_runner_up : Endorsing **[+ nsdap_runoff_endorsement +]** ?]
 
 - @r2_menu: What should we do?
 
@@ -1930,7 +1897,8 @@ We have switched our support to [+ spd_candidate +].
 @r2_convince
 
 - @convince_z_r2: Try to convince the Center Party.
-- @convince_ddp_r2: Try to convince the [+ ddp_name +].
+- @convince_
+ddp_r2: Try to convince the [+ ddp_name +].
 - @convince_dvp_r2: Try to convince the DVP.
 - @convince_kpd_r2: Try to convince the KPD.
 - @r2_menu: Back.
