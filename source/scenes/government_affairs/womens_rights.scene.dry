@@ -15,6 +15,8 @@ For better or for worse, the Socialists stand virtually alone in supporting incr
 
 - @labor: Institute policies that help women in the workforce.
 - @family: Reform marriage, divorce, and property law.
+- @labor_2: Institute policies that help women in the workforce.
+- @family_2: Reform marriage, divorce, and property law.
 - @welfare: Improve welfare for single mothers and children.
 - @liberalize: Attempt to liberalize abortion laws.
 - @return: Do not enact any policies for now.
@@ -35,6 +37,23 @@ max-visits: 2
 
 These policies aim to ensure that women have equal rights within a marriage, including the right to divorce. The more conservative segments of society treat our reforms as deleterious to the social fabric.
 
+@labor_2
+subtitle: Paid maternal leave policies, equal pay policies, and so on. - 0.2 budget
+view-if: womens_work >= 3
+choose-if: budget >= 0.2
+unavailable-subtitle: Not enough of budget to not go below zero level.
+on-arrival: womens_work += 1; womens_rights += 1; new_middle_spd += 4*(1-dissent); workers_spd += 4*(1 - dissent); economic_growth += 0.1; budget -= 0.2
+
+Equality of workplace policies between two sexes means there is a much less strain and pressure on our women, however in practice unnoticeable practices still benefit men above women, explained by "bigger results compared to women as result of biological reasons". We hope to finally make women far happier than ever, as long as nothing goes wrong.
+
+@family_2
+subtitle: Change family and inheritance law to treat women more equally. - 0.2 budget
+view-if: family_law >= 2
+choose-if: budget >= 0.2
+unavailable-subtitle: Not enough of budget to not go below zero level.
+on-arrival: family_law += 1; womens_rights += 2; new_middle_spd += 3*(1-dissent); workers_spd += 3*(1-dissent); z_relation -= 2; new_middle_ddp += 1; budget -= 0.2
+
+Expansion of the family law policies instate equalization of the relationship status between men and women equal in all aspects, however in practice it's not followed so much as we hoped it would be. Our enforcement strenghtens.
 
 @welfare
 subtitle: -1 budget
@@ -42,7 +61,6 @@ choose-if: budget > 0
 on-arrival: welfare += 1; workers_spd += 5*(1-dissent); unemployed_spd += 5*(1-dissent); budget -= 1; womens_rights += 1; coalition_dissent += 1 if welfare >= 1 and unemployed >= 15; unemployed -= 0.4; inflation += 0.2; economic_growth += 0.3;
 
 We have increased welfare spending on women and children. [? if welfare >= 1 and unemployed >= 15 : Some of our coalition partners consider increased welfare spending profligate at this time. ?]
-
 
 @liberalize
 max-visits: 1
