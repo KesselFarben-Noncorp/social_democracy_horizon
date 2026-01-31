@@ -250,7 +250,7 @@ on-arrival: {!
     "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
     "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
     "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
-    "Lüders", "Mahraun", "Koch-Weser", "Maier" 
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid"
 ];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
@@ -828,17 +828,17 @@ The parties are preparing their candidates:
 
 **Center/Liberal Parties:**
 
- Center (Z): To be determined
+ Center (Z): [+ z_candidate +]
 
- BVP: To be determined
+ BVP: [+ bvp_candidate +]
 
- [+ ddp_name +]: To be determined
+ [+ ddp_name +]: [+ ddp_candidate +]
 
- DVP: To be determined
+ DVP: [+ dvp_candidate +]
 
- WP: To be determined
+ WP: [+ wp_candidate +]
 
- CNBL: To be determined
+ CNBL: [+ cnbl_candidate +] 
 
 [? if srpd_formed = 1: SRPD: To be determined ?]
 
@@ -865,6 +865,7 @@ Who should represent the SPD in this election?
 - @munzenberg_r1: Support the KPD candidate (if relations are good).
 - @braun_r1: Nominate Otto Braun.
 - @schumacher_r1: Nominate Kurt Schumacher.
+- @schmid_r1: Nominate Carlo Schmid.
 - @juchacz_r1: Nominate Marie Juchacz.
 - @cultural_figure: Nominate a nonpartisan cultural figure.
 - @abstain_r1: Don't field a candidate, see who emerges.
@@ -1045,6 +1046,7 @@ We will run our own candidate after all.
 
 - @braun_r1: Otto Braun - Prussian strongman
 - @schumacher_r1: Kurt Schumacher - War hero and rising star
+- @schmid_r1: Carlo Schmid - New head of the Social Democracy
 - @juchacz_r1: Marie Juchacz - Historic first woman candidate
 
 @eckener_r1
@@ -1105,6 +1107,15 @@ on-arrival: spd_candidate = "Braun"; resources -= 2; is_unity_candidate = 0;
 go-to: finalize_candidates
 
 We have convinced Otto Braun to run for president.
+
+@schmid_r1
+view-if: peoples_party >= 1 and ideology != "left"
+choose-if: resources >= 2
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?]
+on-arrival: spd_candidate = "Schmid"; resources -= 2; is_unity_candidate = 0; ideology = "reformist"; z_relation += 5; ddp_relation += 5; dvp_relation += 5; bvp_relation += 5
+go-to: finalize_candidates
+
+We will run the candidate from Reformist fraction - Carlo Schmid.
 
 @schumacher_r1
 subtitle: -2 resources
@@ -1502,6 +1513,7 @@ on-arrival: {!
     Munzenberg: "Willi Münzenberg (KPD)",
     Braun: "Otto Braun (SPD)",
     Schumacher: "Kurt Schumacher (SPD)",
+    Schmid: "Carlo Schmid (SPD)",
     Juchacz: "Marie Juchacz (SPD)",
     Einstein: "Albert Einstein (Independent)",
     Mann: "Heinrich Mann (Independent)",
@@ -1513,21 +1525,26 @@ on-arrival: {!
     Horsing: "Otto Hörsing (SRPD)",
     Hamkens: "Wilhelm Hamkens (CNBL)",
     Behrens: "Wilhelm Behrens (CNBL)",
+    // DDP candidates
     Lemmer: "Ernst Lemmer (DDP)",
     Heuss: "Theodor Heuss (DDP)",
     Dietrich: "Hermann Dietrich (DDP)",
-    Lüders: "Hermann Lüders (DDP)", 
+    Lüders: "Hermann Lüders (DDP)", // or Marie-Elisabeth depending on context
+    // DStP candidates
     Mahraun: "Arthur Mahraun (DStP/Jungdo)",
     "Koch-Weser": "Erich Koch-Weser (DStP)",
     Maier: "Reinhold Maier (DStP)",
+    // DNVP candidates
     Treviranus: "Gottfried Treviranus (DNVP)",
     Lambach: "Walter Lambach (DNVP)",
     Lindeiner: "Hans von Lindeiner-Wildau (DNVP)",
     Hugenberg: "Alfred Hugenberg (DNVP)",
+    // DVP (NEW)
     Scholz: "Ernst Scholz (DVP)",
     Dingeldey: "Eduard Dingeldey (DVP)",
     Curtius: "Julius Curtius (DVP)",
     Reinhold: "Peter Reinhold (DVP)",
+    
 };
     
     // Mark running candidates
@@ -1642,6 +1659,8 @@ go-to: election_end if has_majority; r2_start if not has_majority
 
 [? if Braun_running : Braun - [+ Braun_votes_disp +]% ?]
 
+[? if Schmid_
+
 [? if Schumacher_running : Schumacher - [+ Schumacher_votes_disp +]% ?]
 
 [? if Juchacz_running : Juchacz - [+ Juchacz_votes_disp +]% ?]
@@ -1673,7 +1692,7 @@ on-arrival: {!
     // Ideological blocks for consolidation logic
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
-    var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing"];
+    var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
     var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
     var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
@@ -2052,6 +2071,7 @@ on-arrival: {!
     Munzenberg: "Willi Münzenberg (KPD)",
     Braun: "Otto Braun (SPD)",
     Schumacher: "Kurt Schumacher (SPD)",
+    Schmid: "Carlo Schmid (SPD)",
     Juchacz: "Marie Juchacz (SPD)",
     Einstein: "Albert Einstein (Independent)",
     Mann: "Heinrich Mann (Independent)",
@@ -2103,7 +2123,7 @@ Q.next_presidential_election_year = Q.year + 7;
 Q.next_presidential_election_month = 3; // Always March
 !}
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
-go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
+go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
 
 [+ winner_desc +] is now President of Germany.
 
