@@ -1122,6 +1122,9 @@ go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_co
 
 
 
+
+
+
 # ============================================
 # SPD AS FORMATEUR - PLAYER CHOOSES COALITION
 # ============================================
@@ -1626,102 +1629,7 @@ Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
 Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 !}
-go-to: spd_chancellor_preference if spd_in_government and candidate_0_party = "SPD"; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
-
-# ============================================
-# SPD CHANCELLOR PREFERENCE (if SPD largest party)
-# ============================================
-
-@spd_chancellor_preference
-
-= SPD Chancellor Candidate Selection
-
-The SPD is the largest party in the coalition. Before presenting candidates to our coalition partners, we must decide which SPD figure to put forward as our preferred chancellor candidate.
-
-**Available SPD Chancellor Candidates:**
-
-[? if not muller_dead : **Hermann Müller** - Former Chancellor (1928-1930), experienced in coalition management, moderate reformist, respected across party lines. ?]
-
-**Otto Wels** - Party Chairman since 1919, staunch republican, strong anti-Nazi credentials, represents party orthodoxy.
-
-**Otto Braun** - Minister-President of Prussia, executive experience, pragmatic administrator, controls largest state government.
-
-[? if spd_toleration = 0 : **Rudolf Hilferding** - Leading Marxist economist, intellectual heavyweight, appeals to left wing, controversial with bourgeois parties. ?]
-
-**Who should the SPD put forward?**
-
-- @prefer_mueller: Hermann Müller - Experience and moderation
-- @prefer_wels: Otto Wels - Party unity and legitimacy
-- @prefer_braun: Otto Braun - Executive competence
-- @prefer_hilferding: Rudolf Hilferding - Left credibility
-
-@prefer_mueller
-view-if: not muller_dead
-on-arrival: {!
-Q.spd_chancellor_preference = "mueller";
-// Boost Müller's weight in candidate list
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Müller") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-// Re-sort
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-!}
-
-Müller's experience and moderate reputation make him a strong choice for coalition building.
-
-- @continue_to_negotiation: Continue to coalition negotiations
-
-@prefer_wels
-on-arrival: {!
-Q.spd_chancellor_preference = "wels";
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Wels") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-!}
-
-Wels as party chairman brings legitimacy and unity to our coalition offer.
-
-- @continue_to_negotiation: Continue to coalition negotiations
-
-@prefer_braun
-on-arrival: {!
-Q.spd_chancellor_preference = "braun";
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Braun") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-!}
-
-Braun's proven administrative record in Prussia demonstrates he can lead effectively.
-
-- @continue_to_negotiation: Continue to coalition negotiations
-
-@prefer_hilferding
-view-if: spd_toleration = 0
-on-arrival: {!
-Q.spd_chancellor_preference = "hilferding";
-for (var i = 0; i < Q.chancellor_candidates.length; i++) {
-    if (Q.chancellor_candidates[i].name === "Hilferding") {
-        Q.chancellor_candidates[i].weight = 120;
-        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.2;
-    }
-}
-Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
-Q.left_strength += 5;
-Q.left_dissent -= 5;
-!}
-
-Hilferding's intellectual credentials and left-wing appeal strengthen our socialist credibility.
+go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
 
 - @continue_to_negotiation: Continue to coalition negotiations
 
