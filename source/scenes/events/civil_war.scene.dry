@@ -153,7 +153,34 @@ on-arrival: war_choices += 1;
 
 @war_outcome
 view-if: war_choices >= 2
-go-to: defeat if total_defeat = 1; long_war if long_war = 1; republic_victory if republic_victory = 1
+go-to: defeat if total_defeat = 1; long_war if long_war = 1; victory_router if republic_victory = 1 
+
+@victory_router
+on-arrival: {!
+// Determine nature of victory based on party orientation and KPD involvement
+
+// Socialist victory conditions:
+// 1. KPD is leading (chancellor or president)
+// 2. Strong KPD alliance (relation >= 60) AND high left_strength in SPD
+// 3. Very high left_strength in SPD (>= 60) AND economic_democracy >= 5
+// 4. In Left Front or Popular Front coalition AND high socialism metric
+
+if (Q.chancellor_party == "KPD" || Q.president == "Thälmann") {
+    Q.victory_type = "socialist";
+} else if (Q.kpd_relation >= 60 && Q.rfb_power > Q.rb_power*0.8) {
+    // KPD contributed heavily to victory
+    Q.victory_type = "socialist";
+} else if (Q.left_strength >= 60 && Q.economic_democracy >= 3) {
+    Q.victory_type = "socialist";
+} else if ((Q.in_left_front || Q.in_popular_front) && Q.socialism >= 20) {
+    Q.victory_type = "socialist";
+} else if (Q.left_strength >= 50 && Q.socialism >= 20 && Q.kpd_relation >= 50) {
+    Q.victory_type = "socialist";
+} else {
+    Q.victory_type = "republican";
+}
+!}
+go-to: socialist_victory if victory_type == "socialist"; republic_victory if victory_type == "republican"
 
 @defeat
 on-arrival: sandbox = 1; civil_war_end = "national"
@@ -223,8 +250,30 @@ on-arrival: sandbox = 1; civil_war_end = "republic"
 
 = Victory for the Republic
 
-The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. Today, the forces of the republic prevail over the fascists and the reactionaries. There is a new revolution in Germany. Let us hope it produces a longer-lasting peace than the previous one.
+The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. Today, the forces of the republic prevail over the fascists and the reactionaries. 
+
+[? if kpd_relation >= 60 : The Communists fought alongside us, and together we have defended democratic Germany. ?]
+
+The Weimar Republic has survived its greatest test. Democracy, not dictatorship, will shape Germany's future. Let us hope this victory produces a longer-lasting peace than the revolution of 1918.
 
 - @game_over: Game over.
 - @root: You may continue.
 
+@socialist_victory
+on-arrival: sandbox = 1; civil_war_end = "socialist"
+
+= Victory for the Revolution
+
+The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. But this is more than a defensive victory - it is a revolutionary transformation.
+
+[? if chancellor_party == "KPD" or president == "Thälmann" : Under Communist leadership, the workers have seized power. ?]
+[? if kpd_relation >= 60 and chancellor_party != "KPD" : Fighting alongside the KPD, we have forged a new workers' state. The divisions between Social Democrats and Communists are overcome in the heat of battle. ?]
+[? if left_strength >= 60 : The left wing of the SPD has proven ascendant. We have moved beyond reformism to revolutionary socialism. ?]
+
+The councils are taking control of the factories. The old order is being swept away. A socialist Germany rises from the ashes of civil war - though whether it will be democratic socialism or soviet dictatorship remains to be seen.
+
+[? if economic_democracy >= 5 : Our years of building economic democracy have borne fruit - the workers already control much of the economy. ?]
+[? if kpd_relation < 50 : Without KPD support, we have achieved a purely Social Democratic revolution. ?]
+
+- @game_over: Game over.
+- @root: The revolution continues.
