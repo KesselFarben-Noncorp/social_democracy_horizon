@@ -1359,26 +1359,7 @@ if (Q.month_actions >= 1) {
                 Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
             }
 
-            // === CAP ENFORCEMENT WITH DIMINISHING RETURNS ===
-            Q.cap = Q.ideology_caps[Q.party] || Infinity;
-            Q.projected = Q.base + Q.delta;
-
-            if (Q.projected > Q.cap) {
-                // Calculate how close we are to cap (0 = at floor, 1 = at cap)
-                Q.cap_proximity = Math.min(1, Q.base / Q.cap);
-    
-                // Apply diminishing returns as we approach cap
-                // When at 80% of cap, drift is halved
-                // When at 90% of cap, drift is quartered
-                // When at 100% of cap, drift is nearly zero
-                Q.diminishing_factor = Math.pow(1 - Q.cap_proximity, 2);
-    
-                // Reduce positive delta based on proximity to cap
-                if (Q.delta > 0) {
-                    Q.delta *= Q.diminishing_factor;
-                }
-                // Negative delta (losses) not affected - easier to fall than rise
-            }
+            Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
 
             Q[Q.c+'_'+Q.party] = Math.max(Q.base + Q.delta, 0.5);
             Q.class_total += Q[Q.c+'_'+Q.party];
