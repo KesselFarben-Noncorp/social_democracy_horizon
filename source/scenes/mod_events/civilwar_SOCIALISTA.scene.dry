@@ -1,0 +1,95 @@
+title: Post Civil War recovery...
+subtitle: The revolution has won, but the struggle to build a new society begins. We must consolidate our victory.
+new-page: true
+tags: event
+view-if: civil_war_end = "socialist"
+on-arrival: sa_strength *= 0; sh_strength *= 0.1; rfb_strength *= 0.9; rb_strength *= 0.85; civil_war_end = 0; civil_war_end_modifier_national = 0; socialism += 2; economic_democracy += 1
+
+= Revolution - Red Banner - The New Order
+
+The cost of the great war has ended another generation of people who sought peace.
+
+However, the working class has proven itself the true master of history. The old order lies in ruins, and a new socialist Germany rises from the ashes.
+
+Now, we must focus all our efforts on building the new society and ensuring the forces of reaction can never threaten us again.
+
+Revolutionary justice for the counter-revolutionaries:
+
+- @hitler: Hitler...
+
+@hitler
+
+[? if hitler_deported = 1: Hitler was located in Austria [? if austria_govt = 0: and their government cooperated in extraditing him to face revolutionary justice. ?] [? if austria_govt = 1: but their government delayed extradition. Eventually, people's tribunals tried him in absentia. ?] [? if austria_govt = -1: and their government refused extradition, sheltering the fascist murderer and his associates. ?] ?]
+
+[? if hitler_deported = 0: Hitler's whereabouts remain unknown. The people's militias continue searching for the fascist leader. ?]
+
+[? if chancellor_party == "KPD" or kpd_relation >= 60: The revolutionary tribunals show no mercy for fascist leaders. Summary justice is swift. ?]
+[? if left_strength >= 60 and chancellor_party == "SPD": Even our moderate comrades agree - there can be no compromise with fascism. ?]
+
+- @NSDAP: NSDAP...
+
+@NSDAP
+
+The National Socialist German Workers' Party is completely destroyed as an organization. 
+
+[? if kpd_relation >= 60 or chancellor_party == "KPD": Revolutionary tribunals have executed the leadership. Lower-ranking members face re-education in labor camps or, if they renounce fascism, reintegration into society. ?]
+[? if kpd_relation < 60 and left_strength >= 50: We have tried the leadership and imprisoned them indefinitely. Lower members must undergo political re-education. ?]
+
+[? if strasser_deported = 0: Strasser's "Black Front" presents a complication - some see him as redeemable, others as another fascist in left-wing clothing. For now, he is watched closely. ?]
+
+- @SA: Sturmabteilung
+
+@SA
+
+The Storm Troopers, shock troops of fascist reaction, have been crushed.
+
+Ernst Röhm and other SA leaders faced revolutionary justice. [? if kpd_relation >= 60: Most were executed after brief trials. ?][? if kpd_relation < 60: Most were imprisoned for life. ?]
+
+Small Werwolf resistance groups operate in East Prussia and rural areas where our control is tenuous. The workers' militias hunt them relentlessly.
+
+- @SH: Stahlhelm
+
+@SH
+
+The Stahlhelm, armed wing of the old imperial order, has been disbanded.
+
+[? if kpd_relation >= 60 or chancellor_party == "KPD": Unlike the SA, many Stahlhelm members were simply reactionaries rather than fascists. After re-education, some are permitted to live quietly. Leaders face harsher judgment. ?]
+[? if left_strength >= 60 and kpd_relation < 60: We have taken a more measured approach than our communist allies would prefer, but the organization is permanently destroyed. ?]
+
+Franz Seldte has been imprisoned. Duesterberg faces trial. The organization is dissolved forever.
+
+- @Reaction: The Reactionaries
+
+@Reaction
+
+Franz von Papen, architect of reaction, [? if kpd_relation >= 60: faced revolutionary justice and was executed as an enemy of the people. ?][? if kpd_relation < 60: has been imprisoned for life for treason against the republic and the working class. ?]
+
+Alfred Hugenberg fled Germany before he could be apprehended. His entire media empire has been [? if kpd_relation >= 60 or socialism >= 7: expropriated and placed under workers' control. ?][? if kpd_relation < 60 and socialism < 7: seized by the state and restructured as public media. ?]
+
+General Kurt von Schleicher was killed during the final battles. His intrigues died with him.
+
+The DNVP is banned permanently. Its members must renounce monarchism and accept [? if kpd_relation >= 60: the dictatorship of the proletariat. ?][? if kpd_relation < 60: the new socialist order. ?]
+
+[? if economic_democracy >= 5 or socialism >= 6: Junker estates are being expropriated and redistributed to agricultural workers' cooperatives. The landed aristocracy's power is broken forever. ?]
+[? if economic_democracy < 5 and socialism < 6: Major Junker estates implicated in the rebellion are being confiscated. The question of broader land reform remains open. ?]
+
+- @Hindenburg: Hindenburg, the old field marshal.
+
+@Hindenburg
+on-arrival: president = chancellor; next_presidential_election_year = year + 1; hindenburg_dead = 1 if prussian_coup_seen_2; nsdap_banned = 1; dnvp_banned = 1; next_election_time = time + 2; prussian_coup_seen_2 = 0 if prussian_coup_seen_2 = 0
+
+[? if prussian_coup_seen_2 = 0: Hindenburg, symbol of the old imperial order, [? if kpd_relation >= 60: was arrested and executed for treason after a revolutionary tribunal. ?][? if kpd_relation < 60: was arrested and died shortly after in custody, whether from age or other causes remains unclear. ?] ?]
+
+[? if prussian_coup_seen_2 = 1: Hindenburg died during the coup attempt, killed in the fighting. Some say accidentally, others claim revolutionary justice. ?]
+
+The old order's greatest symbol is gone. A new era begins.
+
+...
+
+[? if kpd_relation >= 60 or chancellor_party == "KPD": The dictatorship of the proletariat is established. The workers' councils will govern Germany. ?]
+[? if left_strength >= 60 and kpd_relation < 60: We have achieved a democratic socialist revolution - the workers control the economy, but democratic institutions remain. ?]
+[? if in_left_front or in_popular_front: The unity forged in battle must now build the new society. ?]
+
+The revolution has only begun. Now comes the hard work of construction.
+
+- @root: Forward to socialism...
