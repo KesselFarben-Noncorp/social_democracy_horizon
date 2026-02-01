@@ -1165,8 +1165,11 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'spd':
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90) + (Q.young_socialists * 0.09), 0.2);
-                    
+                    Q.base_pull = Math.sqrt(Q.socialism_factor * Q.pro_republic_factor) * 1.6;
+                    Q.ideology_factor = Q.random_factor(
+                        Q.base_pull * (Q.spd_in_government ? 1.15 : 0.90),
+                        0.2
+                    );
                     if (Q.ideology === 'left') {
                         if (Q.c === 'workers' || Q.c === 'unemployed') {
                             Q.ideology_factor *= 1.15;
