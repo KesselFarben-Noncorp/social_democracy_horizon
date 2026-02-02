@@ -989,51 +989,6 @@ if (Q.month_actions >= 1) {
         }
     }
 
-
-
-
-
-
-    // Alternative siphoning: Socialist parties if KPD/SAPD dominant
-    if (Q.sapd_formed || Q.kpd_r >= 15 && !Q.kpd_banned) {
-        var socialist_parties = ['kpd', 'sapd', 'spd', 'srpd'].filter(function(p) {
-            return Q[p + '_formed'] !== 0 || p === 'kpd' || p === 'spd';
-        });
-        
-        var dominant_socialist = null;
-        var max_socialist_support = -Infinity;
-        
-        for (Q.p of socialist_parties) {
-            Q.support = 0;
-            for (Q.c of Q.classes) {
-                Q.support += Q[Q.c + '_' + Q.p] || 0;
-            }
-            if (Q.support > max_socialist_support) {
-                max_socialist_support = Q.support;
-                dominant_socialist = Q.p;
-            }
-        }
-        
-        // Minor siphoning on the left (much weaker than nationalist siphoning)
-        if (dominant_socialist && Q.unrest_factor >= 1.5) {
-            var left_siphon = 0.005 * Q.unrest_factor;
-            
-            for (Q.p of socialist_parties) {
-                if (Q.p === dominant_socialist) continue;
-                
-                // Workers and unemployed shift left more easily
-                var workers_delta = Q.workers[Q.p] * left_siphon * 1.3;
-                var unemployed_delta = Q.unemployed[Q.p] * left_siphon * 1.5;
-                
-                Q['workers_' + Q.p] -= workers_delta;
-                Q['unemployed_' + Q.p] -= unemployed_delta;
-                
-                Q['workers_' + dominant_socialist] += workers_delta;
-                Q['unemployed_' + dominant_socialist] += unemployed_delta;
-            }
-        }
-    }
-
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
@@ -1050,7 +1005,7 @@ if (Q.month_actions >= 1) {
         ddp:   Q.pro_republic * 1.4,
         z:     Q.pro_republic * 1.35,
         bvp: Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05),
-        other: ((Q.nationalism + Q.pro_republic) / 3) * 1.3
+        other: ((Q.nationalism + Q.pro_republic) / 8) * 1.3
     };
 
   // Reworked drift per class
@@ -1225,7 +1180,7 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'spd':
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90) + (Q.young_socialists * 0.09), 0.2);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90), 0.2);
                     
                     if (Q.ideology === 'left') {
                         if (Q.c === 'workers' || Q.c === 'unemployed') {
