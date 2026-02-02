@@ -931,6 +931,63 @@ This is a game of alternate history. As Horizon modification author, I care abou
 - @1928_main: Begin (normal difficulty)
 - @1928_hard: Begin (hard difficulty)
 - @1928_historical: Begin (historical mode)
+- @challenge: Challenges and Conditions
+
+@challenge
+
+Choose your challenges!
+
+- @spartacus: Spartacist Victory!
+- @gang: All of the gang is here! 
+#- @democracy: Democracy simulator, extremists are banned.
+
+@spartacus
+
+= Spartacus
+
+Spartacists have won and only left wing parties remain, as others are banned.
+
+- @spartacus_2: True
+- @spartacus_3: False
+- @challenge: Back.
+
+@spartacus_2:
+view-if: spartac_challenge = 0
+on-arrival: spartac_challenge = 1
+go-to: spartacus
+
+Turned on!
+
+@spartacus_3:
+view-if: spartac_challenge = 1
+on-arrival: spartac_challenge = 0
+go-to: spartacus
+
+Turned off!
+
+@gang
+
+= Gang
+
+Everyone, even splitters are here! Let's see how party dynamics will go.
+
+- @gang_2: True
+- @gang_3: False
+- @challenge: Back.
+
+@gang2:
+view-if: gang_challenge = 0
+on-arrival: gang_challenge = 1
+go-to: gang
+
+Turned on!
+
+@gang_3:
+view-if: gang_challenge = 1
+on-arrival: gang_challenge = 0
+go-to: gang
+
+Turned off!
 
 @1928_easy
 on-arrival: difficulty = -1; resources = 4; dues = 3; rb_strength = 2500; kpd_relation = 28; z_relation = 52; dvp_relation = 47; budget = 4;
@@ -965,6 +1022,7 @@ go-to: 1928_main
 audio: shuffle music/1928_1930/FruhlingsliedMendelssohn.mp3 music/1928_1930/AUF_HOHEN_BERGEN_noise_reduced.mp3 music/1928_1930/MarekWeber.mp3 music/1928_1930/BAUERNKAPELLE.mp3 music/1928_1933/DERLINDENBAUM_normalized.mp3 music/1928_1933/ZurSonne_zurFreiheit.mp3 music/1928_1933/arbeiter_marseille.mp3 music/1928_1933/Wann_wir_schreiten_Seit_an_Seit.mp3 music/1930_1933/Internationale-de_normalized.ogg music/1928_1930/LiedDerPompadour.mp3 music/1928_1933/SozialistenMarsch.mp3
 new-page: true
 go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
+on-arrival: z_banned = 1 if spartac_challenge = 1; dvp_banned = 1 if spartac_challenge = 1; bvp_banned = 1 if spartac_challenge = 1; dnvp_banned = 1 if spartac_challenge = 1; nsdap_banned = 1 if spartac_challenge = 1; wp_banned = 1 if spartac_challenge = 1; cnbl_banned if spartac_challenge = 1;         srpd_formed = 1 if gang_challenge = 1; sapd_formed = 1 if gang_challenge = 1; csvd_flee = 1 if gang_challenge = 1      
 
 = 1927
 
