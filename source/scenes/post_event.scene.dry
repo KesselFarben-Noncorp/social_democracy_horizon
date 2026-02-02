@@ -1016,7 +1016,7 @@ if (Q.month_actions >= 1) {
         
         // Minor siphoning on the left (much weaker than nationalist siphoning)
         if (dominant_socialist && Q.unrest_factor >= 1.5) {
-            var left_siphon = 0.015 * Q.unrest_factor + (Q.young_socialists * 0.03);
+            var left_siphon = 0.005 * Q.unrest_factor;
             
             for (Q.p of socialist_parties) {
                 if (Q.p === dominant_socialist) continue;
@@ -1205,7 +1205,7 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'kpd':
                     Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor + (Q.young_socialists * 0.18), 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor, 0.25);
                     break;
                 case 'sapd':
                     if (Q.sapd_formed === 1) {
