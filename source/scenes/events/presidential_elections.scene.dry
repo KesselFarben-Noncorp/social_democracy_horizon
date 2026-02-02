@@ -50,6 +50,7 @@ on-arrival: {!
         DVP: 5,
         WP: 5,
         CNBL: 0,
+        CSVD: 0,  // Added
         DNVP: 0,
         NSDAP: 0
     },
@@ -65,6 +66,7 @@ on-arrival: {!
         DVP: 20,
         WP: 15,
         CNBL: 15,
+        CSVD: 20,  // Added - some respect for Christian social values
         DNVP: 10,
         NSDAP: 0
     },
@@ -80,6 +82,7 @@ on-arrival: {!
         DVP: Q.dvp_relation,
         WP: Q.wp_relation || 30,
         CNBL: Q.cnbl_relation || 25,
+        CSVD: Q.csvd_relation || 35,  // Added - could work with moderate conservatives
         DNVP: Q.dnvp_relation,
         NSDAP: Q.nsdap_relation || 5
     },
@@ -95,6 +98,7 @@ on-arrival: {!
         DVP: Q.dvp_relation - 5,
         WP: (Q.wp_relation || 30) - 5,
         CNBL: (Q.cnbl_relation || 25) + 5,
+        CSVD: (Q.csvd_relation || 35) + 5,  // Added - both are moderate splinter parties
         DNVP: Q.dnvp_relation - 10,
         NSDAP: 0
     },
@@ -110,6 +114,7 @@ on-arrival: {!
         DVP: 65 - (Q.dvp_right_shift || 0) * 8,
         WP: 55,
         CNBL: 45,
+        CSVD: 60,  // Added - both moderate, pro-constitutional, anti-extremist
         DNVP: Q.dnvp_line === 3 ? 15 : 35,
         NSDAP: 10
     },
@@ -125,6 +130,7 @@ on-arrival: {!
         DVP: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         WP: 50,
         CNBL: 30,
+        CSVD: 55,  // Added - both Christian parties, but confessional divide (Catholic vs Protestant)
         DNVP: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
         NSDAP: Math.max(5, 30 - Q.nazi_urgency * 4)
     },
@@ -140,6 +146,7 @@ on-arrival: {!
         DVP: 55,
         WP: 45,
         CNBL: 65,
+        CSVD: 50,  // Added - both Christian conservatives, but Catholic-Protestant divide
         DNVP: 50,
         NSDAP: 25 - (Q.nazi_urgency * 2)
     },
@@ -155,6 +162,7 @@ on-arrival: {!
         BVP: 55,
         WP: 70,
         CNBL: 30,
+        CSVD: 55,  // Added - moderate bourgeois parties, potential coalition
         DNVP: 50 + (Q.dvp_right_shift || 0) * 15,
         NSDAP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10
     },
@@ -170,23 +178,41 @@ on-arrival: {!
         BVP: 45,
         DVP: 70,
         CNBL: 40,
+        CSVD: 50,  // Added - both bourgeois parties
         DNVP: 45,
         NSDAP: 30 + (Q.capital_strike_progress * 3)
     },
 
-    // === CNBL ===
+    // === CNBL (Agrarian League) ===
     CNBL: {
         KPD: 5,
         SAPD: 15,
-        SPD: Q.wp_relation || 25,
-        SRPD: (Q.wp_relation || 30) + 5,
+        SPD: Q.cnbl_relation || 25,
+        SRPD: (Q.cnbl_relation || 25) + 5,
         DDP: 35,
         Z: 40,
         BVP: 55,
         DVP: 35,
         WP: 40,
+        CSVD: 45,  // Added - both conservative, rural base overlap
         DNVP: 40,
         NSDAP: 20 + (Q.capital_strike_progress * 3)
+    },
+    
+    // === CSVD (Christian-Social People's Service) ===
+    CSVD: {
+        KPD: 0,
+        SAPD: 20,
+        SPD: Q.csvd_relation || 35,  // Can work with SPD against extremism
+        SRPD: (Q.csvd_relation || 35) + 5,
+        DDP: 60,  // Good - both moderate, pro-constitutional
+        Z: 55,  // Decent - both Christian parties, but Protestant vs Catholic
+        BVP: 50,  // Same confessional divide as Z
+        DVP: 55,  // Good - moderate bourgeois coalition potential
+        WP: 50,  // Okay - both middle-class parties
+        CNBL: 45,  // Some overlap in rural Protestant areas
+        DNVP: Q.dnvp_line === 3 ? 10 : 65,  // Key: hostile to Hugenberg DNVP, friendly to moderate DNVP
+        NSDAP: 15  // Anti-Nazi but some voters might defect
     },
     
     // === DNVP (Nationalists) ===
@@ -201,6 +227,7 @@ on-arrival: {!
         DVP: 50 + (Q.dvp_right_shift || 0) * 15,
         WP: 45,
         CNBL: 35,
+        CSVD: Q.dnvp_line === 3 ? 10 : 65,  // Added - CSVD split FROM DNVP due to Hugenberg
         NSDAP: Q.dnvp_line === 3 ? 60 : 35
     },
     
@@ -216,6 +243,7 @@ on-arrival: {!
         DVP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10,
         WP: 30 + (Q.capital_strike_progress * 3),
         CNBL: 25,
+        CSVD: 15,  // Added - CSVD is anti-Nazi, but some voter crossover
         DNVP: Q.dnvp_line === 3 ? 60 : 35
     }
 };
@@ -251,7 +279,7 @@ on-arrival: {!
     "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
     "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
     "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
-    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid"
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2"
 ];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
@@ -769,6 +797,160 @@ on-arrival: {!
             Q.cnbl_candidate = Q.bvp_default_candidate;
             Q.cnbl_default_candidate = Q.bvp_default_candidate;
         }
+    }
+
+    // ========================================
+    // CSVD (CHRISTIAN-SOCIAL PEOPLE'S SERVICE)
+    // ========================================
+    if (Q.csvd_flee === 1) {
+        // CSVD only exists if it split from DNVP
+    
+        // CSVD's behavior depends heavily on DNVP's line
+    
+        // === SCENARIO 1: Z-DNVP CONSERVATIVE UNITY TICKET ===
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate && Q.dnvp_line !== 3) {
+            // Conservative unity ticket exists AND DNVP is moderate
+            // CSVD automatically joins - this is their ideal scenario
+            Q.csvd_candidate = Q.z_dnvp_joint_candidate;
+            Q.csvd_default_candidate = Q.z_dnvp_joint_candidate;
+            
+        // === SCENARIO 2: MODERATE DNVP EXISTS (but no unity ticket) ===
+        } else if (Q.dnvp_line === 1 || Q.dnvp_line === 2) {
+            // DNVP is moderate/constitutional - CSVD allies with them
+        
+            if (Q.dnvp_candidate && Q.dnvp_candidate !== "Hitler" && Q.dnvp_candidate !== "Hugenberg") {
+                // Support moderate DNVP candidate
+                Q.csvd_candidate = Q.dnvp_candidate;
+                Q.csvd_default_candidate = Q.dnvp_candidate;
+            
+            } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate) {
+                // If DNVP has no good candidate, support Center
+                Q.csvd_candidate = Q.z_candidate;
+                Q.csvd_default_candidate = Q.z_candidate;
+            
+            } else if (Q.dvp_candidate && Q.dvp_candidate !== Q.spd_candidate) {
+                // Or support liberal DVP
+                Q.csvd_candidate = Q.dvp_candidate;
+                Q.csvd_default_candidate = Q.dvp_candidate;
+            
+            } else {
+                // Independent moderate conservative
+                Q.csvd_candidate = "Lambach_2"; // CSVD's own figure
+                Q.csvd_default_candidate = "Lambach_2";
+            }
+        
+        // === SCENARIO 3: HUGENBERG DNVP (Line 3) - CSVD OPPOSES ===
+        } else if (Q.dnvp_line === 3) {
+            // DNVP is radicalized under Hugenberg
+            // CSVD exists BECAUSE of this - they will NOT support Hugenberg or Hitler
+        
+            if (Q.nsdap_r >= 35 && Q.kpd_r >= 15) {
+                // EXTREME CRISIS - Both extremes very strong
+                // CSVD might even work with moderate left to stop Nazis
+            
+                if (Q.z_candidate && Q.z_candidate !== "Hitler" && Q.z_candidate !== Q.kpd_candidate) {
+                    // Support Center (safest bet)
+                    Q.csvd_candidate = Q.z_candidate;
+                    Q.csvd_default_candidate = Q.z_candidate;
+                
+                } else if (Q.dvp_candidate && Q.dvp_candidate !== "Hitler") {
+                    // Support liberals
+                    Q.csvd_candidate = Q.dvp_candidate;
+                    Q.csvd_default_candidate = Q.dvp_candidate;
+                
+                } else if (Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate && Q.pro_republic >= 70) {
+                    /    / DESPERATE: Support SPD to stop Hitler
+                    // (Only if SPD hasn't allied with KPD and republic is strong)
+                    Q.csvd_candidate = Q.spd_candidate;
+                    Q.csvd_default_candidate = Q.spd_candidate;
+                
+                } else {
+                    // Run own candidate as Protestant moderate alternative
+                    Q.csvd_candidate = "Lambach_2";
+                    Q.csvd_default_candidate = "Lambach_2";
+                }
+            
+            } else if (Q.nsdap_r >= 25) {
+                // NAZI THREAT SERIOUS but not overwhelming
+                // CSVD positions as Protestant anti-Nazi option
+            
+                if (Q.z_candidate && Q.z_candidate !== "Hitler") {
+                    /        / Join with Center against Nazis
+                    Q.csvd_candidate = Q.z_candidate;
+                    Q.csvd_default_candidate = Q.z_candidate;
+                
+                } else if (Q.bvp_candidate && Q.bvp_candidate !== "Hitler") {
+                    // Even work with BVP (fellow Christian party)
+                    Q.csvd_candidate = Q.bvp_candidate;
+                    Q.csvd_default_candidate = Q.bvp_candidate;
+                
+                } else if (Q.dvp_candidate && Q.dvp_candidate !== "Hitler") {
+                    // Or liberals
+                    Q.csvd_candidate = Q.dvp_candidate;
+                    Q.csvd_default_candidate = Q.dvp_candidate;
+                
+                } else {
+                    // Independent Protestant conservative
+                    Q.csvd_candidate = "Lambach_2";
+                    Q.csvd_default_candidate = "Lambach_2";
+                }
+            
+            } else {
+                // Nazis not overwhelming yet - CSVD can be independent
+                Q.csvd_candidate = "Lambach_2";
+                Q.csvd_default_candidate = "Lambach_2";
+            }
+        
+        // === SCENARIO 4: TRADITIONAL DNVP (Line 0) ===
+        } else if (Q.dnvp_line === 0) {
+            // Traditional conservative DNVP
+            // CSVD may or may not have split yet - if they have, they're wary
+        
+            if (Q.year >= 1930 && Q.nsdap_r >= 15) {
+                // Nazis rising - CSVD wants to distinguish itself
+            
+                if (Q.z_candidate) {
+                    // Prefer Center over DNVP
+                    Q.csvd_candidate = Q.z_candidate;
+                    Q.csvd_default_candidate = Q.z_candidate;
+                
+                } else if (Q.dvp_candidate) {
+                    // Or DVP
+                    Q.csvd_candidate = Q.dvp_candidate;
+                    Q.csvd_default_candidate = Q.dvp_candidate;
+                
+                } else if (Q.dnvp_candidate && Q.dnvp_candidate !== "Hitler") {
+                    // Reluctantly support DNVP
+                    Q.csvd_candidate = Q.dnvp_candidate;
+                    Q.csvd_default_candidate = Q.dnvp_candidate;
+                
+                } else {
+                    Q.csvd_candidate = "Lambach_2";
+                    Q.csvd_default_candidate = "Lambach_2";
+                }
+            
+            } else {
+                // Early period or low Nazi threat - CSVD still allies with DNVP
+                if (Q.dnvp_candidate) {
+                    Q.csvd_candidate = Q.dnvp_candidate;
+                    Q.csvd_default_candidate = Q.dnvp_candidate;
+                } else {
+                    Q.csvd_candidate = "Lambach_2";
+                    Q.csvd_default_candidate = "Lambach_2";
+                }
+            }
+        
+        // === FALLBACK ===
+        } else {
+            // Default: Independent Protestant conservative
+            Q.csvd_candidate = "Lambach_2";
+            Q.csvd_default_candidate = "Lambach_2";
+        }
+    
+    } else {
+        // CSVD doesn't exist yet
+        Q.csvd_candidate = null;
+        Q.csvd_default_candidate = null;
     }
     
     // ========================================
@@ -1404,6 +1586,8 @@ The candidates have been finalized:
 
 [? if cnbl_candidate and cnbl_candidate != z_dnvp_joint_candidate : - CNBL: [+ cnbl_candidate +] ?]
 
+[? if csvd_candidate and csvd_candidate != z_dnvp_joint_candidate : - CSVD: [+ csvd_candidate +] ?]
+
 - @r1_menu: Continue to first round.
 
 @r1_menu
@@ -1545,7 +1729,7 @@ on-arrival: {!
     Dingeldey: "Eduard Dingeldey (DVP)",
     Curtius: "Julius Curtius (DVP)",
     Reinhold: "Peter Reinhold (DVP)",
-    
+    Lambach_2: "Walther Lambach (CSVD)",
 };
     
     // Mark running candidates
@@ -1555,7 +1739,7 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'srpd', 'wp', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'csvd', 'srpd', 'wp', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -1695,7 +1879,7 @@ on-arrival: {!
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
     var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
-    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens"];
+    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
     
@@ -1824,6 +2008,11 @@ on-arrival: {!
     if (Q.cnbl_candidate) {
         Q.cnbl_candidate = pickClosestFinalist(Q.cnbl_candidate, [center_right, center, far_right, center_left, left]);
     }
+
+    // === CSVD ===
+    if (Q.csvd_candidate) {
+        Q.csvd_candidate = pickClosestFinalist(Q.cnbl_candidate, [center_right, center, center_left, cultural, left]);
+    }
     
     // === OTHER ===
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
@@ -1933,7 +2122,7 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'wp' , 'srpd', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'wp' , 'csvd', 'srpd', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2026,6 +2215,7 @@ on-arrival: {!
     Dingeldey: "Eduard Dingeldey (DVP)",
     Curtius: "Julius Curtius (DVP)",
     Reinhold: "Peter Reinhold (DVP)",
+    Lambach_2: "Walther Lambach (CSVD)",
     
 };
     
@@ -2047,7 +2237,7 @@ Q.next_presidential_election_year = Q.year + 7;
 Q.next_presidential_election_month = 3; // Always March
 !}
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
-go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
+go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
 
 [+ winner_desc +] is now President of Germany.
 
