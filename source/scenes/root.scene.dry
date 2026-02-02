@@ -944,14 +944,64 @@ Choose your challenges!
 
 - @spartacus: Spartacist Victory!
 - @gang: All of the gang is here! 
-#- @democracy: Democracy simulator, extremists are banned.
+- @democracy: Democracy simulator, extremists are banned.
+- @new: SPD is newly formed party.
 - @start_2: Back
+
+@new
+
+= New Party
+
+SPD is newly formed party of the small unions and some social democrats. Can you make it prosper?
+
+- @new_2: True
+- @new_3: False
+- @challenge: Back.
+
+@new_2
+view-if: new_partei_challenge = 0
+on-arrival: new_partei_challenge = 1
+go-to: new
+
+Turned on!
+
+@new_3
+view-if: new_partei_challenge = 1
+on-arrival: new_partei_challenge = 0
+go-to: new
+
+Turned off!
+
+
+@democracy
+
+= Modern Democracy
+
+Turn your Weimar into modern democracy with just one trick!
+
+- @democracy_2: True
+- @democracy_3: False
+- @challenge: Back.
+
+@democracy_2
+view-if: dem_challenge = 0
+on-arrival: dem_challenge = 1
+go-to: democracy
+
+Turned on!
+
+@democracy_3
+view-if: dem_challenge = 1
+on-arrival: dem_challenge = 0
+go-to: democracy
+
+Turned off!
 
 @spartacus
 
 = Spartacus
 
-Spartacists have won and only left wing parties remain, as others are banned.
+Spartacists have won and only left wing parties remain, as others are banned. SAPD and SRPD are formed by the start.
 
 - @spartacus_2: True
 - @spartacus_3: False
@@ -975,7 +1025,7 @@ Turned off!
 
 = Gang
 
-Everyone, even splitters are here! Let's see how party dynamics will go.
+Everyone, even splitters are here! Let's see how party dynamics will go. CSVD, SRPD and SAPD are formed by the start of the game.
 
 - @gang_2: True
 - @gang_3: False
@@ -1028,7 +1078,45 @@ go-to: 1928_main
 audio: shuffle music/1928_1930/FruhlingsliedMendelssohn.mp3 music/1928_1930/AUF_HOHEN_BERGEN_noise_reduced.mp3 music/1928_1930/MarekWeber.mp3 music/1928_1930/BAUERNKAPELLE.mp3 music/1928_1933/DERLINDENBAUM_normalized.mp3 music/1928_1933/ZurSonne_zurFreiheit.mp3 music/1928_1933/arbeiter_marseille.mp3 music/1928_1933/Wann_wir_schreiten_Seit_an_Seit.mp3 music/1930_1933/Internationale-de_normalized.ogg music/1928_1930/LiedDerPompadour.mp3 music/1928_1933/SozialistenMarsch.mp3
 new-page: true
 go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
-on-arrival: z_banned = 1 if spartac_challenge = 1; dvp_banned = 1 if spartac_challenge = 1; bvp_banned = 1 if spartac_challenge = 1; dnvp_banned = 1 if spartac_challenge = 1; nsdap_banned = 1 if spartac_challenge = 1; wp_banned = 1 if spartac_challenge = 1; cnbl_banned = 1 if spartac_challenge = 1; srpd_formed = 1 if gang_challenge = 1; sapd_formed = 1 if gang_challenge = 1; csvd_flee = 1 if gang_challenge = 1; unemployed_sapd = 10 if gang_challenge; workers_srpd = 10 if gang_challenge; rural_csvd = 10 if gang_challenge;  
+on-arrival: {!
+if (Q.spartac_challenge === 1) {
+    Q.z_banned = 1;
+    Q.dvp_banned = 1;
+    Q.bvp_banned = 1;
+    Q.dnvp_banned = 1;
+    Q.nsdap_banned = 1;
+    Q.wp_banned = 1;
+    Q.cnbl_banned = 1;
+    Q.parties.push('sapd');
+    Q.parties.push('srpd');
+}
+
+if (Q.dem_challenge === 1) {
+    Q.nsdap_banned = 1;
+    Q.kpd_banned = 1;
+}
+
+if (Q.new_partei_challenge === 1) {
+    Q.rural_spd = 1;
+    Q.workers_spd = 1;
+    Q.new_middle_spd = 1;
+    Q.old_middle_spd = 1;
+    Q.unemployed_spd = 1;
+    Q.catholics_spd = 1;
+}
+
+if (Q.gang_challenge === 1) {
+    Q.srpd_formed = 1;
+    Q.sapd_formed = 1;
+    Q.csvd_flee = 1;
+    Q.unemployed_sapd = 10;
+    Q.workers_srpd = 10;
+    Q.rural_csvd = 10;
+    Q.parties.push('sapd');
+    Q.parties.push('srpd');
+    Q.parties.push('csvd');
+}
+!}
 
 = 1927
 
