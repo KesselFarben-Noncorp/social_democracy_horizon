@@ -1044,6 +1044,7 @@ if (Q.month_actions >= 1) {
         cnbl: (Q.pro_republic * 0.92 + Q.nationalism) + (Q.rural * 0.85),
         kpd: Q.kpd_banned ? 0 : Q.socialism * 1.35,
         sapd:  Q.socialism * 1.10,
+        csvd:  Q.nationalism * 1.02,
         srpd:  (Q.socialism * 1.01) + (Q.rb_strength * 0.001) + (Q.pro_republic * 1.50),
         spd:   Q.pro_republic * 2,
         ddp:   Q.pro_republic * 1.4,
@@ -1111,6 +1112,65 @@ if (Q.month_actions >= 1) {
                 case 'nsdap':
                     Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 1.05) * (Q.unrest_factor * 2.8) * Q.nat_dom * Q.street_pressure_factor, 0.3);
                     break;
+                case 'csvd':
+                    if (Q.csvd_flee === 1) {
+                        // === DNVP SPLIT FACTOR ===
+                        var dnvp_split_bonus = 0;
+                        if (Q.dnvp_line === 3) {
+                            // Hugenberg DNVP - major split
+                            dnvp_split_bonus = 0.5 + (Q.dnvp_r * 0.03); // Stronger if DNVP was strong
+                        } else if (Q.dnvp_line === 1 && Q.year >= 1930) {
+                            // Traditional DNVP but pressure to split
+                            dnvp_split_bonus = 0.2;
+                        }
+        
+                        // === PROTESTANT VOTERS ===
+                        var protestant_base = 0.3;
+                        // Stronger in rural Protestant areas
+                        if (Q.rural_spd < 15) protestant_base += 0.2;
+                        // Weaker in Catholic areas
+                        protestant_base *= (1 - Q.catholics_spd/100);
+        
+                        // === ANTI-NAZI POSITIONING ===
+                        var anti_nazi_appeal = 0;
+                        if (Q.nsdap_r >= 15 && Q.nsdap_r < 30) {
+                            // Sweet spot: Nazis strong enough to scare moderates, not so strong they're inevitable
+                            anti_nazi_appeal = 0.3;
+                            if (Q.church_resist_nazis) anti_nazi_appeal += 0.15;
+                        } else if (Q.nsdap_r >= 30) {
+                            // Nazis too strong - voters flee to them or hunker down
+                            anti_nazi_appeal = -0.2;
+                        }
+        
+                        // === WEIMAR COALITION STABILITY ===
+                        var coalition_stability = 0;
+                        if (Q.in_weimar_coalition || Q.in_grand_coalition) {
+                            coalition_stability = -0.15; // coalitition kills off popularity for csvd
+                        }
+                        if (Q.constitutional_reform >= 2) {
+                            coalition_stability += 0.1; // Democratic stability
+                        }
+        
+                        // === ECONOMIC CRISIS PENALTY ===
+                        var crisis_factor = 1.0;
+                        if (Q.unemployed >= 20) {
+                            crisis_factor = 0.6; // Severe crisis kills moderates
+                        } else if (Q.unemployed >= 12) {
+                            crisis_factor = 0.8;
+                        } else if (Q.unemployed >= 8) {
+                            crisis_factor = 0.85;
+                        } 
+        
+                        Q.ideology_factor = Q.random_factor(
+                            (Q.pro_republic_factor * 0.5) + 
+                            dnvp_split_bonus + 
+                            protestant_base + 
+                            anti_nazi_appeal + 
+                            coalition_stability,
+                            0.25
+                        ) * crisis_factor;
+                    }
+                break;
                 case 'dnvp':
                     if (Q.dnvp_line === 1) {
                         Q.ideology_factor = Q.random_factor(
