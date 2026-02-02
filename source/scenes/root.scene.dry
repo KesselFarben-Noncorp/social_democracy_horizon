@@ -946,7 +946,32 @@ Choose your challenges!
 - @gang: All of the gang is here! 
 - @democracy: Democracy simulator, extremists are banned.
 - @new: SPD is newly formed party.
+- @bauern: Agrarian Revolution
 - @start_2: Back
+
+@bauern
+
+= Agrarian Revolution
+
+Demographics only consist of dominating rurals, some workers, some merchants and unemployed. Good luck.
+
+- @bauern_2: True
+- @bauern_3: False
+- @challenge: Back.
+
+@bauern_2
+view-if: peasant_revolution = 0
+on-arrival: peasant_revolution = 1
+go-to: bauern
+
+Turned on!
+
+@bauern_3
+view-if: peasant_revolution = 1
+on-arrival: peasant_revolution = 0
+go-to: bauern
+
+Turned off!
 
 @new
 
@@ -1089,6 +1114,8 @@ if (Q.spartac_challenge === 1) {
     Q.cnbl_banned = 1;
     Q.parties.push('sapd');
     Q.parties.push('srpd');
+    Q.srpd_formed = 1;
+    Q.sapd_formed = 1;
 }
 
 if (Q.dem_challenge === 1) {
@@ -1115,6 +1142,18 @@ if (Q.gang_challenge === 1) {
     Q.parties.push('sapd');
     Q.parties.push('srpd');
     Q.parties.push('csvd');
+}
+if (Q.peasant_revolution === 1) {
+    Q.rural = 60; // Massively inflated rural population
+    Q.old_middle = 5;
+    Q.workers = 20; // Industry collapsed
+    Q.unemployed = 15;
+    // Rural parties (CNBL, DNVP, BVP) start strong
+    Q.rural_cnbl = 25;
+    Q.rural_dnvp = 30;
+    Q.rural_bvp = 20;
+    // SPD weak in cities too
+    Q.workers_spd = 15;
 }
 !}
 
