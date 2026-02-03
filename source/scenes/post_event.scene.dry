@@ -993,71 +993,128 @@ if (Q.month_actions >= 1) {
 
     Q.ideology_caps = {
         nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 1.25) + (Q.unrest_factor * 3.2),
-        dnvp: Q.dnvp_banned ? 0 : (Q.dnvp_line === 1  ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8)  : Q.nationalism * 1.35),
-        dvp:   (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
-        wp: (Q.pro_republic * 1.10) + (Q.inflation * 0.14),
-        cnbl: (Q.pro_republic * 0.92 + Q.nationalism) + (Q.rural * 0.85),
-        kpd: Q.kpd_banned ? 0 : Q.socialism * 1.35,
-        sapd:  Q.socialism * 1.10,
-        csvd:  Q.nationalism * 1.02,
-        srpd:  (Q.socialism * 1.01) + (Q.rb_strength * 0.001) + (Q.pro_republic * 1.50),
-        spd:   Q.pro_republic * 2,
-        ddp:   Q.pro_republic * 1.4,
-        z:     Q.pro_republic * 1.35,
-        bvp: Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05),
-        other: ((Q.nationalism + Q.pro_republic) / 8) * 1.3
-    };
+        dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8) : Q.nationalism * 1.35),
+        dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
+        wp:    Q.wp_banned   ? 0 : (Q.pro_republic * 1.10) + (Q.inflation * 0.14),
+        cnbl:  Q.cnbl_banned ? 0 : (Q.pro_republic * 0.92 + Q.nationalism) + (Q.rural * 0.85),
+        kpd:   Q.kpd_banned  ? 0 : Q.socialism * 1.35,
+        sapd:  Q.sapd_banned ? 0 : Q.socialism * 1.10,
+        csvd:  Q.csvd_banned ? 0 : Q.nationalism * 1.02,
+        srpd:  Q.srpd_banned ? 0 : (Q.socialism * 1.01) + (Q.rb_strength * 0.001) + (Q.pro_republic * 1.50),
+        spd:   Q.spd_banned  ? 0 : Q.pro_republic * 2,
+        ddp:   Q.ddp_banned  ? 0 : Q.pro_republic * 1.4,
+        z:     Q.z_banned    ? 0 : Q.pro_republic * 1.35,
+        bvp:   Q.bvp_banned  ? 0 : Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05),
+        other: Q.other_banned ? 0 : ((Q.nationalism + Q.pro_republic) / 8) * 1.3
+};
 
-  // Reworked drift per class
+    // Reworked drift per class
     for (Q.c of Q.classes) {
         Q.class_total = 0;
         for (Q.party of Q.parties) {
             Q.base = Q[Q.c+'_'+Q.party] || 0;
             
             // === BANNED PARTY HANDLING ===
-            // If party is banned, zero out support and redistribute
-            if ((Q.party === 'nsdap' && Q.nsdap_banned) || 
-                (Q.party === 'dnvp' && Q.dnvp_banned) ||
-                (Q.party === 'kpd' && Q.kpd_banned)) {
-                
-                // Redistribute banned party support to similar parties
+            // Redistribution map: [targetParty, share, condition]
+            const BANNED_REDISTRIBUTION = {
+                nsdap: [
+                    ['dnvp',  0.50, () => !Q.dnvp_banned],
+                    ['dvp',   0.25, () => Q.dvp_right_shift && !Q.dvp_banned],
+                    ['other', 0.25, () => true]
+                ],
+                dnvp: [
+                    ['nsdap', 0.60, () => !Q.nsdap_banned && Q.dnvp_line === 3],
+                    ['nsdap', 0.30, () => !Q.nsdap_banned && Q.dnvp_line !== 3],
+                    ['dvp',   0.20, () => !Q.dvp_banned],
+                    ['other', 0.20, () => true]
+                ],
+                dvp: [
+                    ['dnvp',  0.35, () => !Q.dnvp_banned],
+                    ['nsdap', 0.25, () => !Q.nsdap_banned && Q.dvp_right_shift],
+                    ['wp',    0.20, () => !Q.wp_banned && !Q.dvp_right_shift],
+                    ['other', 0.20, () => true]
+                ],
+                wp: [
+                    ['spd',   0.30, () => !Q.spd_banned],
+                    ['ddp',   0.25, () => !Q.ddp_banned],
+                    ['srpd',  0.20, () => !Q.srpd_banned],
+                    ['other', 0.25, () => true]
+                ],
+                cnbl: [
+                    ['z',     0.35, () => !Q.z_banned],
+                    ['bvp',   0.20, () => !Q.bvp_banned],
+                    ['dnvp',  0.20, () => !Q.dnvp_banned],
+                    ['other', 0.25, () => true]
+                ],
+                kpd: [
+                    ['sapd',  0.40, () => Q.sapd_formed && !Q.sapd_banned],
+                    ['spd',   0.35, () => !Q.spd_banned && (Q.ideology === 'left' || Q.ideology === 'neorev')],
+                    ['spd',   0.20, () => !Q.spd_banned && Q.ideology !== 'left' && Q.ideology !== 'neorev'],
+                    ['other', 0.25, () => true]
+                ],
+                sapd: [
+                    ['kpd',   0.40, () => !Q.kpd_banned],
+                    ['spd',   0.30, () => !Q.spd_banned],
+                    ['srpd',  0.15, () => !Q.srpd_banned],
+                    ['other', 0.15, () => true]
+                ],
+                csvd: [
+                    ['dnvp',  0.30, () => !Q.dnvp_banned],
+                    ['nsdap', 0.25, () => !Q.nsdap_banned],
+                    ['other', 0.45, () => true]
+                ],
+                srpd: [
+                    ['spd',   0.45, () => !Q.spd_banned],
+                    ['sapd',  0.25, () => Q.sapd_formed && !Q.sapd_banned],
+                    ['kpd',   0.15, () => !Q.kpd_banned],
+                    ['other', 0.15, () => true]
+                ],
+                spd: [
+                    ['srpd',  0.35, () => !Q.srpd_banned],
+                    ['sapd',  0.25, () => Q.sapd_formed && !Q.sapd_banned],
+                    ['ddp',   0.20, () => !Q.ddp_banned],
+                    ['other', 0.20, () => true]
+                ],
+                ddp: [
+                    ['spd',   0.30, () => !Q.spd_banned],
+                    ['wp',    0.25, () => !Q.wp_banned],
+                    ['z',     0.20, () => !Q.z_banned],
+                    ['other', 0.25, () => true]
+                ],
+                z: [
+                    ['bvp',   0.40, () => !Q.bvp_banned],
+                    ['cnbl',  0.25, () => !Q.cnbl_banned],
+                    ['ddp',   0.15, () => !Q.ddp_banned],
+                    ['other', 0.20, () => true]
+                ],
+                bvp: [
+                    ['z',     0.45, () => !Q.z_banned],
+                    ['cnbl',  0.25, () => !Q.cnbl_banned],
+                    ['other', 0.30, () => true]
+                ],
+                other: [
+                    ['dnvp',  0.20, () => !Q.dnvp_banned],
+                    ['spd',   0.20, () => !Q.spd_banned],
+                    ['z',     0.20, () => !Q.z_banned],
+                    ['other', 0.40, () => true]  // abstention
+                ]
+            };
+
+            // === BANNED CHECK (single block, covers all parties) ===
+            const banned_flag = Q.party + '_banned';
+            if (Q[banned_flag] && BANNED_REDISTRIBUTION[Q.party]) {
                 if (Q.base > 0) {
-                    if (Q.party === 'nsdap') {
-                        // NSDAP voters go to: DNVP (if not banned), DVP (if right-shift), other
-                        if (!Q.dnvp_banned) {
-                            Q[Q.c + '_dnvp'] += Q.base * 0.50;
+                    const routes = BANNED_REDISTRIBUTION[Q.party];
+                    for (let i = 0; i < routes.length; i++) {
+                        const [target, share, condition] = routes[i];
+                        if (condition()) {
+                            Q[Q.c + '_' + target] += Q.base * share;
                         }
-                        if (Q.dvp_right_shift) {
-                            Q[Q.c + '_dvp'] += Q.base * 0.25;
-                        }
-                        Q[Q.c + '_other'] += Q.base * 0.25;
-                    } else if (Q.party === 'dnvp') {
-                        // DNVP voters go to: NSDAP (if not banned), DVP, other
-                        if (!Q.nsdap_banned && Q.dnvp_line === 3) {
-                            Q[Q.c + '_nsdap'] += Q.base * 0.60;
-                        } else if (!Q.nsdap_banned) {
-                            Q[Q.c + '_nsdap'] += Q.base * 0.30;
-                        }
-                        Q[Q.c + '_dvp'] += Q.base * 0.20;
-                        Q[Q.c + '_other'] += Q.base * 0.20;
-                    } else if (Q.party === 'kpd') {
-                        // KPD voters go to: SAPD, SPD (if left-wing), abstention
-                        if (Q.sapd_formed) {
-                            Q[Q.c + '_sapd'] += Q.base * 0.40;
-                        }
-                        if (Q.ideology === 'left' || Q.ideology === 'neorev') {
-                            Q[Q.c + '_spd'] += Q.base * 0.35;
-                        } else {
-                            Q[Q.c + '_spd'] += Q.base * 0.20;
-                        }
-                        // Rest to 'other' (abstention/minor parties)
-                        Q[Q.c + '_other'] += Q.base * 0.25;
                     }
                 }
-                
+
                 // Zero out the banned party
-                Q[Q.c+'_'+Q.party] = 0;
-                Q.class_total += 0;
+                Q[Q.c + '_' + Q.party] = 0;
                 continue; // Skip normal drift calculation
             }
             
@@ -1370,8 +1427,19 @@ if (Q.month_actions >= 1) {
             // CRITICAL: If party is banned, prevent ALL positive drift
             if ((Q.party === 'nsdap' && Q.nsdap_banned) || 
                 (Q.party === 'dnvp' && Q.dnvp_banned) ||
-                (Q.party === 'kpd' && Q.kpd_banned)) {
-                Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
+                (Q.party === 'kpd' && Q.kpd_banned) ||
+                (Q.party === 'dvp' && Q.dvp_banned) ||
+                (Q.party === 'wp' && Q.wp_banned) ||
+                (Q.party === 'cnbl' && Q.cnbl_banned) ||
+                (Q.party === 'sapd' && Q.sapd_banned) ||
+                (Q.party === 'csvd' && Q.csvd_banned) ||
+                (Q.party === 'srpd' && Q.srpd_banned) ||
+                (Q.party === 'spd' && Q.spd_banned) ||
+                (Q.party === 'ddp' && Q.ddp_banned) ||
+                (Q.party === 'z' && Q.z_banned) ||
+                (Q.party === 'bvp' && Q.bvp_banned) ||
+                (Q.party === 'other' && Q.other_banned')) {
+                 Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
             }
 
             Q[Q.c+'_'+Q.party] = Math.min(Math.max(Q.base + Q.delta, 0.5), Q.ideology_caps[Q.party] || Infinity);
