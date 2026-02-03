@@ -44,8 +44,7 @@ if (Q.in_grand_coalition && Q.dvp_relation < 45) {
     // Default to largest non-SPD party
     if (Q.in_grand_coalition) Q.vonc_caller = "DVP";
     else if (Q.in_weimar_coalition) Q.vonc_caller = "Z";
-    else Q.vonc_caller = "Z";
-    Q.vonc_reason = "general_policy";
+    else Q.coalition_dissent = 2;
 }
 
 // Calculate votes needed and available
@@ -629,7 +628,6 @@ What political tactics should we employ?
 
 - @vonc_purge_left: Purge the left wing to reassure partners
 - @vonc_emergency_resources: Emergency resource mobilization
-- @vonc_delay_tactics: Delay the vote
 - @vonc_assess_options: Back to main options
 
 @vonc_purge_left
@@ -702,22 +700,6 @@ Through intense lobbying, patronage, and political dealmaking, we've temporarily
 This is extremely expensive and only delays the inevitable unless we address root causes.
 
 - @vonc_aftermath: Continue
-
-@vonc_delay_tactics
-choose-if: resources >= 2
-unavailable-subtitle: We need 2 resources
-on-arrival: {!
-Q.resources -= 2;
-Q.vonc_delayed = 1;
-!}
-
-= Vote Delayed
-
-**We've used parliamentary procedure to delay the vote.**
-
-This buys us time to find a solution, but the crisis will return soon.
-
-- @vonc_assess_options: Use this time wisely
 
 # ============================================
 # LET IT HAPPEN - GOVERNMENT FALLS
