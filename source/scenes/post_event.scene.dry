@@ -7,33 +7,18 @@ Q.last_cabinet_action = 0;
 
 // === EARLY BOUNDS CHECKING (SKIP IN CHAOS MODE) ===
 if (!Q.math_broken) {
-    Q.pro_republic = Math.round(Q.pro_republic);
-    Q.nationalism = Math.round(Q.nationalism);
-    Q.socialism = Math.round(Q.socialism);
+    Q.pro_republic = Math.round(Q.pro_republic * 10) / 10;
+    Q.nationalism  = Math.round(Q.nationalism  * 10) / 10;
+    Q.socialism    = Math.round(Q.socialism    * 10) / 10;
 
-    if (Q.pro_republic < 0) {
-        Q.pro_republic = 0;
-    }
-    if (Q.pro_republic >= 100) {
-        Q.pro_republic = 99;
-    }
-    if (Q.nationalism < 0) {
-        Q.nationalism = 0;
-    }
-    if (Q.nationalism >= 100) {
-        Q.nationalism = 99;
-    }
-    if (Q.socialism < 0) {
-        Q.socialism = 0;
-    }
-    if (Q.socialism >= 100) {
-        Q.socialism = 99;
-    }
+    Q.pro_republic = Math.max(0.1, Math.min(99.9, Q.pro_republic));
+    Q.nationalism  = Math.max(0.1, Math.min(99.9, Q.nationalism));
+    Q.socialism    = Math.max(0.1, Math.min(99.9, Q.socialism));
 } else {
     // MATH BROKEN: Political values can be anything
-    Q.pro_republic = Q.impossible_add(Q.pro_republic, 0); // "add" zero
-    Q.nationalism = Q.impossible_multiply(Q.nationalism, 1); // "multiply" by one
-    Q.socialism = Q.impossible_subtract(Q.socialism, 0); // "subtract" zero
+    Q.pro_republic = Q.impossible_add(Q.pro_republic, 0);
+    Q.nationalism  = Q.impossible_multiply(Q.nationalism, 1);
+    Q.socialism    = Q.impossible_subtract(Q.socialism, 0);
 }
 
 // === FACTION BOUNDS (SKIP IN CHAOS MODE) ===
@@ -717,112 +702,97 @@ if (Q.month_actions >= 1) {
     } else if (Q.economic_growth > 0 && Q.spd_in_government) {
         Q.economic_expansion += Q.economic_growth/2;
     }
-    /////////////////////////////// update opinions based on economy
-    if (Q.unemployed > 15 && Q.pro_republic > 40) {
-        Q.pro_republic -= 1;
-    }
-    if (Q.unemployed > 30 && Q.pro_republic > 20) {
-        Q.pro_republic -= 1;
-    }
-    if (Q.inflation >= 8 && Q.pro_republic > 40) {
-        Q.pro_republic -= 1;
-    }
-    if (Q.inflation <= 8 && Q.pro_republic < 50) {
-        Q.pro_republic += 1;
-    }
-    if (Q.unemployed < 10 && Q.pro_republic < 50) {
-        Q.pro_republic += 1;
-    }
-    if (Q.economic_growth > 5 && Q.pro_republic < 80) {
-        Q.pro_republic += 1;
-    }
-    if (Q.unemployed < 3 && Q.pro_republic < 70) {
-        Q.pro_republic += 1;
-    }
-    if (Q.unemployed > 10 && Q.nationalism < 50) {
-        Q.nationalism += 1;
-    }
-    if (Q.unemployed > 20 && Q.nationalism < 65) {
-        Q.nationalism += 2;
-    }
-    if (Q.unemployed > 30 && Q.nationalism < 75) {
-        Q.nationalism += 2;
-    }
-    if (Q.unemployed > 50 && Q.nationalism < 100) {
-        Q.nationalism += 2;
-    }
-    if (Q.unemployed < 10 && Q.nationalism > 35) {
-        Q.nationalism -= 1;
-    }
-    if (Q.unemployed < 5 && Q.nationalism > 25) {
-        Q.nationalism -= 1;
-    }
-    if (Q.inflation < 5 && Q.inflation > -5 && Q.nationalism > 15) {
-        Q.nationalism -= 1;
+
+
+
+    // === UPDATE OPINIONS BASED ON ECONOMY ===
+
+    // --- Helpers: smooth scaling between two thresholds ---
+    // Returns 0 at low, 1 at high, clamped. Linear interpolation.
+    function scale(value, low, high) {
+        return Math.max(0, Math.min(1, (value - low) / (high - low)));
     }
 
-    if (Q.unemployed > 10 && Q.socialism < 40) {
-        Q.socialism += 1;
-    }
-    if (Q.unemployed > 20 && Q.socialism < 50) {
-        Q.socialism += 2;
-    }
-    if (Q.unemployed > 30 && Q.socialism < 65) {
-        Q.socialism += 2;
-    }
-    if (Q.unemployed > 40 && Q.socialism < 75) {
-        Q.socialism += 2;
-    }
-    if (Q.unemployed > 50 && Q.socialism < 100) {
-        Q.socialism += 2;
-    }
-    if (Q.unemployed < 10 && Q.socialism > 45) {
-        Q.socialism -= 1;
-    }
-    if (Q.unemployed < 5 && Q.socialism > 25) {
-        Q.socialism -= 1;
-    }
-    if (Q.inflation < 5 && Q.inflation > -5 && Q.socialism > 15) {
-        Q.socialism -= 1;
-    }
+    // --- UNEMPLOYMENT PRESSURE ---
+    // 0-5: strong relief | 5-10: mild relief | 10-20: mild stress | 20-50: heavy stress
+    var unemp_stress   = scale(Q.unemployed, 10, 50); // 0 at 10%, 1 at 50%
+    var unemp_relief   = scale(Q.unemployed, 10, 3);  // 1 at 3%, 0 at 10% (inverted)
+    unemp_relief = 1 - scale(Q.unemployed, 3, 10);    // cleaner inversion
 
-    ///////////////////////////// change party support based on pro_republic
-    // if pro_republic is less than the support of the Weimar coalition, reduce SPD support...
-    if (Q.pro_republic < (Q.spd_votes + Q.ddp_votes + Q.z_votes - 3)) {
-        if (Q.new_middle_spd > 0) {
-            Q.new_middle_spd -= 5/12;
-            Q.new_middle_nsdap += 3/12;
-        }
-        if (Q.old_middle_spd > 0) {
-            Q.old_middle_spd -= 5/12;
-            Q.old_middle_nsdap += 2/12;
-        }
-        if (Q.rural_spd > 0) {
-            Q.rural_spd -= 5/12;
-            Q.rural_nsdap += 3/12;
-        }
-        if (Q.workers_spd_normalized > 30) {
-            Q.workers_spd -= 4/12;
-        }
-        if (Q.catholics_spd > 0) {
-            Q.catholics_spd -= 4/12;
-        }
-        if (Q.unemployed_spd_normalized > 10) {
-            Q.unemployed_spd -= 4/12;
-        }
-        if (Q.new_middle_ddp > 0) {
-            Q.new_middle_ddp -= 4/12;
-            Q.new_middle_nsdap += 3/12;
-        }
-        if (Q.old_middle_ddp > 0) {
-            Q.old_middle_ddp -= 5/12;
-            Q.old_middle_nsdap += 4/12;
-        }
-        if (Q.rural_ddp > 0) {
-            Q.rural_ddp -= 5/12;
-            Q.rural_nsdap += 4/12;
-        }
-    }
+    // --- INFLATION PRESSURE ---
+    // Stable: -5 to 5 | mild stress above 5 | heavy stress above 8+
+    var inflation_stress  = scale(Q.inflation, 5, 15);
+    var inflation_stable  = 1 - scale(Math.abs(Q.inflation), 3, 8); // 1 when near 0
+
+    // --- GROWTH BOOST ---
+    var growth_boost = scale(Q.economic_growth, 2, 8);
+
+    // ============================================
+    // PRO_REPUBLIC
+    // ============================================
+    // Rises with: low unemployment, stable inflation, growth
+    // Falls with: high unemployment, high inflation
+    var pr_push =
+        (unemp_relief   * 2.0) +   // good employment -> confidence
+        (inflation_stable * 1.0) +  // stable prices -> trust
+        (growth_boost    * 1.5);    // growth -> legitimacy
+
+    var pr_pull =
+        (unemp_stress    * 2.5) +   // unemployment -> disillusionment
+        (inflation_stress * 1.5);   // inflation -> frustration
+
+    var pr_delta = pr_push - pr_pull;
+    // Scale down so it's not too violent per tick
+    pr_delta *= 1.2;
+
+    // Soft cap: pull toward center, resist at extremes
+    if (pr_delta > 0 && Q.pro_republic > 70) pr_delta *= (1 - scale(Q.pro_republic, 70, 90));
+    if (pr_delta < 0 && Q.pro_republic < 25) pr_delta *= (1 - scale(25 - Q.pro_republic, 0, 15));
+
+    Q.pro_republic += pr_delta;
+
+    // ============================================
+    // NATIONALISM
+    // ============================================
+    // Rises with: high unemployment, instability
+    // Falls with: low unemployment, stable inflation
+    var nat_push =
+        (unemp_stress    * 3.0) +   // suffering -> blame outsiders
+        (inflation_stress * 1.5);   // chaos -> order/nation
+
+    var nat_pull =
+        (unemp_relief    * 1.5) +   // prosperity -> less grievance
+        (inflation_stable * 1.0);   // stability -> less scapegoating
+
+    var nat_delta = nat_push - nat_pull;
+    nat_delta *= 1.2;
+
+    if (nat_delta > 0 && Q.nationalism > 70) nat_delta *= (1 - scale(Q.nationalism, 70, 90));
+    if (nat_delta < 0 && Q.nationalism < 20) nat_delta *= (1 - scale(20 - Q.nationalism, 0, 15));
+
+    Q.nationalism  += nat_delta;
+
+    // ============================================
+    // SOCIALISM
+    // ============================================
+    // Rises with: high unemployment, instability
+    // Falls with: low unemployment, stable inflation
+    // Tracks nationalism pressure but answers differently: class vs nation
+    var soc_push =
+        (unemp_stress    * 3.0) +   // suffering -> class consciousness
+        (inflation_stress * 1.2);   // chaos -> redistribute
+
+    var soc_pull =
+        (unemp_relief    * 1.5) +   // prosperity -> less urgency
+        (inflation_stable * 1.0);   // stability -> less radicalism
+
+    var soc_delta = soc_push - soc_pull;
+    soc_delta *= 1.2;
+
+    if (soc_delta > 0 && Q.socialism > 70) soc_delta *= (1 - scale(Q.socialism, 70, 90));
+    if (soc_delta < 0 && Q.socialism < 20) soc_delta *= (1 - scale(20 - Q.socialism, 0, 15));
+
+    Q.socialism    += soc_delta;
     
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
@@ -986,46 +956,6 @@ if (Q.month_actions >= 1) {
             var rural_loyalty = Math.min(Q.rural_dnvp * 0.005, 0.3);
             Q.rural_nsdap -= rural_loyalty;
             Q.rural_dnvp += rural_loyalty;
-        }
-    }
-
-    // Alternative siphoning: Socialist parties if KPD/SAPD dominant
-    if (Q.sapd_formed || Q.kpd_r >= 15 && !Q.kpd_banned) {
-        var socialist_parties = ['kpd', 'sapd', 'spd', 'srpd'].filter(function(p) {
-            return Q[p + '_formed'] !== 0 || p === 'kpd' || p === 'spd';
-        });
-        
-        var dominant_socialist = null;
-        var max_socialist_support = -Infinity;
-        
-        for (Q.p of socialist_parties) {
-            Q.support = 0;
-            for (Q.c of Q.classes) {
-                Q.support += Q[Q.c + '_' + Q.p] || 0;
-            }
-            if (Q.support > max_socialist_support) {
-                max_socialist_support = Q.support;
-                dominant_socialist = Q.p;
-            }
-        }
-        
-        // Minor siphoning on the left (much weaker than nationalist siphoning)
-        if (dominant_socialist && Q.unrest_factor >= 1.5) {
-            var left_siphon = 0.019 * Q.unrest_factor;
-            
-            for (Q.p of socialist_parties) {
-                if (Q.p === dominant_socialist) continue;
-                
-                // Workers and unemployed shift left more easily
-                var workers_delta = Q.workers[Q.p] * left_siphon * 1.3;
-                var unemployed_delta = Q.unemployed[Q.p] * left_siphon * 1.5;
-                
-                Q['workers_' + Q.p] -= workers_delta;
-                Q['unemployed_' + Q.p] -= unemployed_delta;
-                
-                Q['workers_' + dominant_socialist] += workers_delta;
-                Q['unemployed_' + dominant_socialist] += unemployed_delta;
-            }
         }
     }
 
