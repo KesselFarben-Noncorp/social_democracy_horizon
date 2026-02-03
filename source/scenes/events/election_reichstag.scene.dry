@@ -694,15 +694,15 @@ on-arrival: {!
 // ============================================
 
 Q.party_votes = [
-    {party: 'KPD', votes: Q.kpd_r},
-    {party: 'SPD', votes: Q.spd_r},
-    {party: 'Z', votes: Q.z_r},
+    {party: 'KPD',   votes: Q.kpd_r},
+    {party: 'SPD',   votes: Q.spd_r},
+    {party: 'Z',     votes: Q.z_r},
     {party: 'NSDAP', votes: Q.nsdap_r},
-    {party: 'DNVP', votes: Q.dnvp_r},
-    {party: 'DVP', votes: Q.dvp_r},
-    {party: 'DDP', votes: Q.ddp_r},
-    {party: 'BVP', votes: Q.bvp_r}
-];
+    {party: 'DNVP',  votes: Q.dnvp_r},
+    {party: 'DVP',   votes: Q.dvp_r},
+    {party: 'DDP',   votes: Q.ddp_r},
+    {party: 'BVP',   votes: Q.bvp_r}
+].filter(function(p) { return p.votes > 0; });
 
 if (Q.sapd_formed && Q.sapd_r > 0) {
     Q.party_votes.push({party: 'SAPD', votes: Q.sapd_r});
@@ -717,6 +717,9 @@ if (Q.wp_r && Q.wp_r > 0) {
 }
 if (Q.cnbl_r && Q.cnbl_r > 0) {
     Q.party_votes.push({party: 'CNBL', votes: Q.cnbl_r});
+}
+if (Q.csvd_flee && Q.csvd_r && Q.csvd_r > 0) {
+    Q.party_votes.push({party: 'CSVD', votes: Q.csvd_r});
 }
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
