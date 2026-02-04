@@ -31,7 +31,6 @@ on-arrival: {!
     if (!Q.austerity_timer) { Q.austerity_timer = 0; }
     if (!Q.donors_timer) { Q.donors_timer = 0; }
     
-    Q.month_actions += 0.5;
 !}
 frequency: 300
 is-card: true
@@ -67,11 +66,10 @@ What is our fundraising strategy?
 - @easy_discard
 
 @collect_standard
-view-if: collect_timer <= 0
 subtitle: +[+ total_projected +] resources
 choose-if: collect_timer <= 0
 unavailable-subtitle: [? if collect_timer > 0 : Cannot collect dues yet. Available in [+ collect_timer +] months. ?]
-on-arrival: resources += total_projected; collect_timer = 18
+on-arrival: resources += total_projected; collect_timer = 36
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
@@ -261,10 +259,9 @@ Catholic dues reduced. This eases tensions with our religious members.
 
 @fundraising_drive
 subtitle: Intensive fundraising campaign
-view-if: drive_timer <= 0
 choose-if: drive_timer <= 0
 unavailable-subtitle: [? if drive_timer > 0 : Cannot launch another drive yet. Available in [+ drive_timer +] months. ?]
-on-arrival: drive_timer = 24;
+on-arrival: drive_timer = 48;
 go-to: fundraising_drive_roll
 
 We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
@@ -341,10 +338,9 @@ on-arrival: {!
 
 @austerity
 subtitle: Reduce party operating expenses
-view-if: austerity_timer <= 0
 choose-if: austerity_timer <= 0
 unavailable-subtitle: [? if austerity_timer > 0 : Cannot implement austerity again yet. Available in [+ austerity_timer +] months. ?]
-on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5; austerity_timer = 12
+on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5; austerity_timer = 24
 
 The party leadership implements austerity:
 - Reduce headquarters staff
@@ -358,10 +354,9 @@ We save 3 resources but reformists and centrists complain about reduced effectiv
 
 @wealthy_donors
 subtitle: Seek large donations from sympathetic wealthy individuals
-view-if: donors_timer <= 0
 choose-if: donors_timer <= 0
 unavailable-subtitle: [? if donors_timer > 0 : Cannot approach wealthy donors again yet. Available in [+ donors_timer +] months. ?]
-on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3; donors_timer = 12
+on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3; donors_timer = 24
 
 We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 5 resources.
 
