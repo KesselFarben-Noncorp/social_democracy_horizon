@@ -10,13 +10,16 @@ tags: govt_affairs, cabinet
 
 The Judiciary is one of the most reactionary components of the government, along with the military. Many jurists have held office since the days of the Emperor. They give violent fascists like Adolf Hitler laughably light sentences, while ruthlessly persecuting leftists and pacifists for lesser crimes.
 
+Current progress on judicial reformation: [+ judicial_reform +]
+
 [? if judicial_reform <= 0 : There is great demand in our membership for reforming the judiciary, although this may bring us into a collision course with our coalition allies. ?]
-[? if judicial_reform == 1 : We have started on the path to judicial reform. While some of the most antideluvian and biased justices have been replaced, many still remain. More should be done. ?]
-[? if judicial_reform >= 2 : We have successfully reformed the judiciary, to some extent. At the very least, the courts will not actively obstruct our attempts to prosecute crimes committed by the far-right. ?]
+[? if judicial_reform == 2 : We have started on the path to judicial reform. While some of the most antideluvian and biased justices have been replaced, many still remain. More should be done. ?]
+[? if judicial_reform >= 4 and full_reform_initiated >= 1 : We have successfully reformed the judiciary, to some extent. At the very least, the courts will not actively obstruct our attempts to prosecute crimes committed by the far-right. ?]
 
 - @reform: Carry out substantial judicial reforms.
 - @minor_reforms: Carry out minor judicial reforms.
 - @full_reform: Restructurize the judicial system to our tide.
+- @advantage: Revert the judicial system reforms. 
 - @as_is: Leave the judiciary as it is.
 - @easy_discard
 - @cancel_advisor_action
@@ -26,7 +29,7 @@ subtitle: -1 budget or -6 resources
 view-if: full_reform_initiated = 0
 unavailable-subtitle: Maybe prussian police, ministry police or justiciary won't cooperate? [? if budget < 1: Not enough budget. ?]  [? if resources < 6: Not enough resources!  ?]  [? if judicial_reform < 4: System is too corrupted for us in order to control and reform it.  ?] [? if interior_police_loyalty < 0.7: Interior Ministry is too disloyal in order for us to reform the judiciary adequately, as they won't cooperate with us!  ?] [? if prussian_police_loyalty < 0.7: Prussian Police is not cooperative in order to assist us with reforms within Free State of Prussia!  ?]
 choose-if: judicial_reform >= 3 and interior_police_loyalty >= 0.7 and prussian_police_loyalty >= 0.7 and (budget >= 1 or resources >= 6)
-on-arrival: budget -= 1 if resources < 6; resources -= 6 if budget < 1; resources -= 6 if (budget >= 1 and resources >= 6); pro_republic += 10; full_reform_initiated += 1; bonus_mdf_reform = 0.3;
+on-arrival: budget -= 1 if resources < 6; resources -= 6 if budget < 1; resources -= 6 if (budget >= 1 and resources >= 6); pro_republic += 10; full_reform_initiated += 1; bonus_mdf_reform = 0.3; hindenburg_patience -= 10; hindenburg_relation -= 15;
 
 We have completely reformed the justiciary, being able now to impose our own and republican decisionship. 
 
@@ -36,9 +39,19 @@ Effect: *Buff towards the persecution of the SA/SH, protection from unbanning an
 subtitle: -1 budget
 unavailable-subtitle: Not enough budget.
 choose-if: budget >= 1
-on-arrival: budget -= 1; democratization += 2; coalition_dissent += 1 if in_grand_coalition == 1; workers_spd += 5*(1-dissent) if democratization >= 3; judicial_reform += 2; pro_republic += 5*(1-dissent); coup_progress += 1; coalition_dissent += 1 if historical_mode
+on-arrival: budget -= 1; democratization += 2; coalition_dissent += 1 if in_grand_coalition == 1; workers_spd += 5*(1-dissent) if democratization >= 3; judicial_reform += 2; pro_republic += 5*(1-dissent); coup_progress += 1; coalition_dissent += 1 if historical_mode; hindenburg_patience -= 2; hindenburg_relation -= 5;
 
 We investigate jurists who have shown themselves to have biased or corrupt behavior, and try to remove them, replacing them with more democratically-oriented jurists. This obviously raises quite a great deal of ire in conservative circles, including within our coalition. 
+
+@advantage
+@subtitle: +1 budget. ([? if kpd_in_government: KPD is in government, however we may think of it, it is very risky thought to do this. ?])
+choose-if: judicial_reform > 0 and full_reform_initiated < 1
+unavailable-subtitle: [? if full_reform_initiated > 0: Judiciary was reformed, we may not take advantage of it. ?]
+on-arrival: budget += 1; nationalism += 4; democratization /= 2; judicial_reform -= 2; coup_progress -= 1; pro_republic -= 1; hindenburg_patience += 1; hindenburg_relation += 2; kpd_relation -= 10 if kpd_in_government; workers_spd *= 0.90 if kpd_in_government
+
+We take advantage of the judicial system's state and sack workers in judiciary ministry, replacing some with loyal and bureaucratic members, potentially letting reactionaries in.
+
+[? if kpd_in_government: KPD is in government, so the first thing they do is accuse us of utilizing corruption in state. ?]
 
 @minor_reforms
 on-arrival: democratization += 1; workers_spd += 3*(1-dissent) if democratization >= 3; judicial_reform += 1; pro_republic += 3*(1-dissent); judiciary_timer += 6
