@@ -1125,23 +1125,22 @@ function classify_coalition(parties) {
     return 'other';
 }
 
-// ============================================
+//// ============================================
 // FORMATEUR CHOOSES BEST COALITION
 // ============================================
 
-if (Q.possible_coalitions.length === 0) {
-    Q.coalition_formed = 0;
-} else {
     // Sort by preferences:
     // 1. Sole majority first (if available)
     // 2. Smallest size (easier to manage)
     // 3. Highest compatibility (better relations)
     // 4. Smallest majority (less wasted votes)
+
+if (Q.possible_coalitions.length === 0) {
+    Q.coalition_formed = 0;
+} else {
     Q.possible_coalitions.sort(function(a, b) {
-        // Prioritize sole majority
         if (a.type === 'sole_majority' && b.type !== 'sole_majority') return -1;
         if (b.type === 'sole_majority' && a.type !== 'sole_majority') return 1;
-        
         if (a.size !== b.size) return a.size - b.size;
         if (Math.abs(a.compatibility - b.compatibility) > 5) {
             return b.compatibility - a.compatibility;
@@ -1153,19 +1152,159 @@ if (Q.possible_coalitions.length === 0) {
     Q.coalition_formed = 1;
 }
 
-// After all coalition evaluation is complete:
-if (Q.coalition_formed && Q.spd_is_formateur) {
-    // SPD gets to choose - don't auto-select
+// === TOLERATION MECHANISM ===
+// If best coalition < 50%, try to find abstention partner
+if (Q.coalition_formed && Q.chosen_coalition.votes < 50) {
+    var deficit = 50 - Q.chosen_coalition.votes;
+    
+    for (var i = 0; i < Q.party_votes.length; i++) {
+        var candidate = Q.party_votes[i].party;
+        
+        // Skip if already in coalition
+        if (Q.chosen_coalition.parties.indexOf(candidate) >= 0) continue;
+        
+        // Check average relation with coalition members
+        var avg_rel = 0;
+        for (var j = 0; j < Q.chosen_coalition.parties.length; j++) {
+            avg_rel += get_relation(candidate, Q.chosen_coalition.parties[j]);
+        }
+        avg_rel /= Q.chosen_coalition.parties.length;
+        
+        // Toleration threshold: 40 (lower than coalition partnership at 25)
+        // Must have enough votes to bridge the gap (80% of deficit minimum)
+        if (avg_rel >= 40 && Q.party_votes[i].votes >= deficit * 0.8) {
+            Q.toleration_partner = candidate;
+            Q.toleration_votes = Q.party_votes[i].votes;
+            Q.is_minority_government = 1;
+            Q.coalition_formed = 1;
+            break;
+        }
+    }
+}
+
+// SPD decision flags
+if (Q.coalition_formed && formateur === "SPD") {
     Q.spd_must_decide = 1;
 } else if (Q.coalition_formed) {
-    // Other party formed coalition, check if SPD is invited
     Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
 }
+
 !}
-go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_coalition_review if coalition_formed and formateur != "SPD" and spd_in_chosen_coalition; coalition_success if coalition_formed and not spd_in_chosen_coalition; coalition_failure if not coalition_formed
+go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; spd_toleration_offer if is_minority_government and toleration_partner = "SPD"; player_coalition_review if coalition_formed and formateur != "SPD" and spd_in_chosen_coalition;  coalition_success if coalition_formed and not spd_in_chosen_coalition;  coalition_failure if not coalition_formed
 
+@spd_toleration_offer
+on-arrival: {!
+Q.coalition_partners_list = "";
+for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+    var party = Q.chosen_coalition.parties[i];
+    var votes = Q[party.toLowerCase() + '_r'];
+    Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
+}
+Q.effective_majority = Q.chosen_coalition.votes + Q.spd_r;
+!}
 
+= Toleration Request - [+ formateur +]
 
+**[+ formateur +] has formed a minority coalition and requests SPD toleration.**
+
+**Coalition Members:**
+[+ coalition_partners_list +]
+
+**Coalition Support:** [+ chosen_coalition.votes : votes +]%  
+**With SPD Abstention:** [+ effective_majority : votes +]%
+
+They ask us to **abstain** in confidence votes, allowing them to govern without us joining the cabinet.
+
+**Benefits:**
+- Avoid responsibility for unpopular bourgeois policies
+- Maintain our opposition profile and freedom to criticize
+- Prevent far-right government or constitutional crisis
+
+**Risks:**
+- Enable policies we oppose (cuts, rearmament, deflation)
+- Appear weak — "supporting without power"
+- Left flank (KPD, SAPD) will call us traitors
+
+**What is our decision?**
+
+- @accept_toleration: Agree to tolerate this government
+- @reject_toleration: Refuse toleration — let them find another solution
+
+@accept_toleration
+on-arrival: {!
+Q.spd_toleration = 1;
+Q.spd_in_government = 0;
+Q.in_minority_government = 1;
+
+// Improve relations with formateur
+var formateur_lower = Q.formateur.toLowerCase();
+var rel_var = formateur_lower + '_relation';
+if (Q[rel_var] !== undefined) {
+    Q[rel_var] += 5;
+}
+
+// Internal party consequences
+Q.left_dissent += 12;
+Q.labor_dissent += 8;
+Q.reformist_strength += 5;
+Q.center_strength += 3;
+
+// Weaken worker support (seen as collaborationist)
+Q.workers_spd -= 3;
+Q.unemployed_spd -= 4;
+
+// KPD exploits this
+Q.workers_kpd += 2;
+Q.unemployed_kpd += 3;
+!}
+
+= SPD Tolerates [+ formateur +] Government
+
+We have agreed to abstain in confidence votes, enabling [+ formateur +] to govern as a minority.
+
+**Consequences:**
+- SPD remains in opposition but will not vote to bring down the government
+- Left wing furious — "Class collaboration without even getting cabinet posts!"
+- Reformists relieved — "Stability without tying our hands"
+
+[+ formateur +] thanks us for our "statesmanship." The government survives.
+
+- @coalition_success: Continue
+
+@reject_toleration
+on-arrival: {!
+Q.spd_toleration = 0;
+Q.coalition_formed = 0; // Government collapses
+
+// Worsen relations sharply
+var formateur_lower = Q.formateur.toLowerCase();
+var rel_var = formateur_lower + '_relation';
+if (Q[rel_var] !== undefined) {
+    Q[rel_var] -= 10;
+}
+
+// Internal consequences
+Q.left_strength += 8;
+Q.reformist_dissent += 10;
+Q.center_dissent += 8;
+
+// Pro-republic suffers (instability)
+Q.pro_republic -= 2;
+!}
+
+= SPD Refuses Toleration
+
+We will not enable [+ formateur +]'s government, even indirectly.
+
+**Consequences:**
+- The coalition collapses without our support
+- Relations with [+ formateur +] severely damaged
+- Reformists furious — "We could have prevented chaos!"
+- Left wing celebrates our "principled stand"
+
+The President must now seek another solution.
+
+- @coalition_failure: Continue
 
 
 
@@ -1738,6 +1877,8 @@ go-to: chancellor_negotiation_spd
 **Coalition Partners:**
 
 [+ coalition_partners_list +]
+
+[? if is_minority_government : **This is a minority government tolerated by [+ toleration_partner +].** ?]
 
 **The coalition must now select a Chancellor.**
 
