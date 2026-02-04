@@ -1194,6 +1194,7 @@ go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; spd_toler
 
 @spd_toleration_offer
 on-arrival: {!
+Q.coalition_votes = Q.chosen_coalition.votes;
 Q.coalition_partners_list = "";
 for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
     var party = Q.chosen_coalition.parties[i];
@@ -1210,8 +1211,8 @@ Q.effective_majority = Q.chosen_coalition.votes + Q.spd_r;
 **Coalition Members:**
 [+ coalition_partners_list +]
 
-**Coalition Support:** [+ chosen_coalition.votes : votes +]%  
-**With SPD Abstention:** [+ effective_majority : votes +]%
+**Coalition Support:** [+ coalition_votes +]%  
+**With SPD Abstention:** [+ effective_majority +]%
 
 They ask us to **abstain** in confidence votes, allowing them to govern without us joining the cabinet.
 
