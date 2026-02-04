@@ -14,6 +14,7 @@ While this seems to be a positive development for the country, the Right is camp
 - @pro_plan: Campaign in favor of the Young Plan and against the referendum.
 - @no_plan: Do not campaign on the Young Plan, one way or another.
 - @collapse: Young Plan collapses due to non referendum reasonings.
+- @resist: Young Plan collapses due to non referendum reasonings.
 
 @pro_plan
 view-if: ruhr_labor = 0 and young_plan_catastrophy = 0
@@ -42,9 +43,15 @@ on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_
 The referendum easily fails with or without our presence in the campaign, with only around 15% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
 
 @collapse
-view-if: (west_relation < 0 and nationalism > 60) or ruhr_labor = 1 or young_plan_catastrophy = 1
+view-if: ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_catastrophy = 1)) and secret_mode = 0
 on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1
 achievement: ruhrland
 
 Young Plan collapses without yielding any power and soon French Forces are reinstated in the Rhineland, especially in the coal zones. Our ability to negotiate with Western countries, especially France, has severed and our Rhineland workers are more than unhappy. Ruhr is engulfed in the fire.
 
+@resist
+view-if: (reichswehr_strength >= 100 and reichswehr_loyalty > 0.15 and reichswehr_militancy >= 5) and secret_mode and ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_catastrophy = 1))
+on-arrival: nationalism += 15; west_relation -= 20; young_plan_catastrophy = 1; pro_republic -= 5; reichswehr_strength *= 0.9; reichswehr_loyalty *= 1.2; italy_relation += 5; soviet_relation += 3; resources += 5; budget += 2; inflation += 1.34;; new_middle_spd *= 0.98; old_middle_spd *= 1.07
+achievement: reichswehr_ruhrland
+
+We have resisted the re-occupation attempt from the France and maintained our control over Ruhr, forcing them to flee. Any cooperation with West is for now is unthinkable. We have won.
