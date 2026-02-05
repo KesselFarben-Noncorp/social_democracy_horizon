@@ -1,0 +1,160 @@
+title: The Economic Crisis Deepens
+subtitle: Brüning's Austerity vs. Lautenbach's Alternative
+new-page: true
+view-if: year >= 1931 and month >= 3 and (chancellor = "Brüning" or z_leader = "Brüning" or z_party_leader = "Brüning" or chancellor_party = "Z") and spd_in_government = 1 and bruning_austerity = 0
+tags: event, economics
+max-visits: 1
+on-arrival: bruning_austerity = 1; lautenbach_proposed = 1
+face-image: img/portraits/BruningHeinrich.jpg
+
+= The Economic Crisis Deepens
+
+The economic catastrophe has reached critical levels. [? if unemployed >= 20 : Unemployment exceeds 20%. ?] [? if unemployed >= 25 : Over a quarter of the workforce is idle. ?] The deflationary spiral accelerates—falling prices, falling wages, falling production.
+
+Chancellor Heinrich Brüning has presented his economic program to the Cabinet. His diagnosis is stark: Germany's crisis stems from excessive costs—wages too high, prices too high, government spending too profligate. The solution, he insists, is systematic deflation.
+
+"We must restore Germany's competitiveness through discipline," Brüning declares with characteristic cold precision. "Government expenditures must be slashed. Wages must fall. Only through such austerity can we reassure international creditors and revive investment."
+
+**The Brüning Program mandates:**
+
+- **Spending Cuts**: Unemployment insurance reduced by 25%. Public works programs terminated. Civil service salaries cut 10-15%.
+- **Tax Increases**: Sales taxes raised. New "crisis taxes" on employed workers.
+- **Wage Reductions**: Government arbitration to enforce wage cuts. Public sector wage freezes.
+- **Budget Balance**: Elimination of deficit within two years regardless of economic conditions.
+
+But there is an alternative.
+
+Wilhelm Lautenbach, a senior official in the Economics Ministry, has circulated a confidential memorandum arguing for the opposite approach. "Current deflationary policies are counterproductive," Lautenbach writes. "Government spending cuts reduce demand, which reduces production, which increases unemployment, which reduces demand further—a vicious cycle."
+
+**The Lautenbach Plan proposes:**
+
+- **Credit Expansion**: Reichsbank creation of 2 billion marks in credit for productive investment
+- **Public Works**: Major infrastructure projects financed through government bonds
+- **Monetary Policy**: Abandonment of gold standard restrictions to enable reflation
+- **Gradual Approach**: Phased implementation to avoid inflation fears
+
+Critically, Lautenbach frames this as technical economic management, not socialist ideology. He cites international economists, including preliminary work by J.M. Keynes. The plan emphasizes "productive credit creation" rather than "deficit spending"—terminology designed to reassure conservatives.
+
+Both plans are on the Cabinet table. Reactions are divided:
+
+Brüning is skeptical of Lautenbach. [? if unemployed < 25 : "Inflationary fantasy," he dismisses it. ?] [? if unemployed >= 25 : "Risky, but perhaps the crisis demands bold action," he concedes reluctantly. ?]
+
+The DVP prefers austerity but is intrigued by Lautenbach's emphasis on "productive investment."
+
+The Center Party is split—economic moderates see merit in Lautenbach, fiscal conservatives demand austerity.
+
+[? if schacht_relation >= 15 : Hjalmar Schacht has reviewed the Lautenbach Plan with interest, noting similarities to his own thinking about credit expansion. His endorsement could prove decisive. ?]
+
+Our own economists recognize elements of the WTB-Plan in Lautenbach's proposal, but presented in more respectable technocratic dress.
+
+As coalition partners, we must choose our position:
+
+- @accept_bruning: Accept Brüning's austerity program to preserve coalition unity.
+- @demand_modifications: Accept austerity but demand worker protections.
+- @push_lautenbach: Strongly advocate for the Lautenbach Plan as an alternative.
+- @leave_coalition: Leave the government over economic policy.
+
+@accept_bruning
+on-arrival: bruning_austerity_accepted = 1; lautenbach_plan_rejected = 1; budget += 3; unemployed += 6; economic_growth -= 0.8; workers_spd -= 8; unemployed_spd -= 10; workers_kpd += 5; unemployed_kpd += 8; workers_nsdap += 3; unemployed_nsdap += 5; left_dissent += 20; labor_dissent += 15; reformist_dissent += 8; z_relation += 5; dvp_relation += 8; dnvp_relation += 5; pro_republic -= 5; coalition_dissent -= 2; capital_strike_progress -= 1; inflation -= 0.5; fiscal_stance += 0.20; demand_impulse -= 0.25; price_pressure -= 0.15; distribution_shift -= 0.08;
+
+We capitulate to Brüning's demands. "To preserve the coalition and prevent worse alternatives, we accept the austerity program," we announce through gritted teeth.
+
+The Lautenbach Plan is shelved without serious consideration. The austerity measures roll out immediately. Unemployment insurance checks shrink. Public works sites close. Civil servants see reduced pay. The employed pay higher taxes while fearing they'll soon join the unemployment lines.
+
+The budget deficit narrows—Brüning can show creditors Germany's "fiscal discipline." But the human cost is staggering. Unemployment surges as government spending contracts and private sector wages fall. Demand collapses. The deflationary spiral accelerates.
+
+Our working-class base is devastated. "The SPD government cuts our benefits while we starve!" Workers flee to the KPD, which thunders about "social fascism." Others turn to the Nazis, who promise to smash "the system" entirely.
+
+[? if left_strength > 30 : Our left wing explodes in fury. "We've implemented reactionary economics! We're accomplices to the destruction of the working class!" ?]
+
+[? if labor_strength > 50 : The trade unions issue bitter statements. "The party of workers has betrayed its own supporters." ?]
+
+The bourgeois parties are pleased. "Finally, the SPD shows economic maturity!"
+
+We have preserved the coalition. We have implemented economic catastrophe. History will judge which mattered more.
+
+- @root: Continue.
+
+@demand_modifications
+choose-if: spd_toleration = 0
+unavailable-subtitle: [? if spd_toleration = 1 : We are only tolerating the government, not participating—we have no leverage. ?]
+on-arrival: bruning_modified = 1; lautenbach_plan_rejected = 1; budget += 2; unemployed += 4; economic_growth -= 0.5; workers_spd -= 5; unemployed_spd -= 6; workers_kpd += 3; unemployed_kpd += 5; left_dissent += 12; labor_dissent += 8; z_relation += 2; dvp_relation += 3; coalition_dissent += 1; inflation -= 0.3; fiscal_stance += 0.15; demand_impulse -= 0.18; price_pressure -= 0.10; distribution_shift -= 0.05;
+
+"We will support fiscal consolidation, but not on workers' backs!" we declare. We demand modifications: smaller unemployment insurance cuts, preservation of some public works, no wage reductions below subsistence levels.
+
+The Lautenbach Plan is quietly shelved—too radical for this coalition.
+
+After tense negotiations, Brüning grudgingly accepts a modified austerity program. The spending cuts are still severe, but less catastrophic. Some public works continue. The unemployed maintain basic support.
+
+It's austerity with a somewhat human face—but still austerity. Unemployment rises significantly, though not as drastically as under the full program. Our working-class support erodes, though less severely. The KPD and NSDAP still gain ground, but we've stemmed the worst bleeding.
+
+The bourgeois parties grumble that we've "diluted necessary measures." Brüning makes clear his displeasure. The coalition survives, but strained.
+
+We've mitigated disaster without preventing it. Perhaps that's the best we could achieve. Perhaps we should have fought harder.
+
+- @root: Continue.
+
+@push_lautenbach
+choose-if: (wtb_support >= 4 or crisis_urgency >= 5) and reformist_strength >= left_strength
+unavailable-subtitle: [? if wtb_support < 4 and crisis_urgency < 5 : The party hasn't built sufficient consensus for interventionist economics. ?] [? if reformist_strength < left_strength : The left faction would oppose this technocratic, non-socialist approach. ?]
+on-arrival: lautenbach_consideration = 1; bruning_austerity = 0;
+go-to: lautenbach_adopted if (unemployed >= 20 and z_relation >= 40) or (schacht_relation >= 25 and z_relation >= 35); lautenbach_adopted if (z_relation >= 45 and dvp_relation >= 40 and in_grand_coalition); lautenbach_adopted if (z_relation >= 45 and ddp_relation >= 40 and in_weimar_coalition); lautenbach_rejected
+
+@lautenbach_adopted
+on-arrival: lautenbach_plan_active = 1; bruning_austerity_accepted = 0; economic_plan = 5; budget -= 3; unemployed -= 3.5; economic_growth += 0.18; z_relation += 5; dvp_relation += 3; reformist_strength += 5; center_strength += 5; left_dissent += 5; workers_spd += 4*(1-dissent); new_middle_spd += 4*(1-dissent); old_middle_spd += 3*(1-dissent); pro_republic += 3; fiscal_stance -= 0.10; demand_impulse += 0.15; supply_impulse += 0.12; price_pressure += 0.05;
+
+After intensive negotiations, a miracle occurs—the coalition approves a modified Lautenbach Plan!
+
+[? if unemployed >= 25 : The catastrophic unemployment crisis convinced even conservatives that desperate times require bold measures. ?]
+
+[? if schacht_relation >= 25 : Hjalmar Schacht's endorsement proved decisive. His support gave the plan establishment credibility that no socialist proposal could achieve. ?]
+
+The Reichsbank will extend 1.5 billion marks in credit (reduced from Lautenbach's proposed 2 billion). Major infrastructure projects will proceed. Monetary policy relaxes. Gold standard restrictions ease.
+
+It's not the full program—conservatives forced compromises—but it represents a fundamental shift from deflation to reflation. Government spending increases. Credit flows. Employment begins rising.
+
+The technocratic framing proved crucial. By avoiding "socialist" rhetoric and emphasizing productive investment, Lautenbach made intervention palatable to center-right parties. The DVP accepts what they would never accept from trade unions.
+
+Our reformist and center factions are pleased—this is pragmatic economic management that works. The left wing grumbles that it's "too timid" and "capitalist," but even they acknowledge it's better than Brüning's austerity.
+
+Most importantly, the economy responds. Unemployment declines. The deflationary spiral slows. Germany demonstrates that there are alternatives to austerity.
+
+Brüning's austerity program is shelved.
+
+- @root: Continue.
+
+@lautenbach_rejected
+on-arrival: lautenbach_plan_rejected = 1; bruning_austerity_accepted = 1; budget += 2.5; unemployed += 5; economic_growth -= 0.65; workers_spd -= 7; unemployed_spd -= 8; workers_kpd += 4; unemployed_kpd += 7; workers_nsdap += 3; unemployed_nsdap += 4; left_dissent += 15; labor_dissent += 12; z_relation -= 3; dvp_relation -= 3; reformist_dissent += 8; coalition_dissent += 2; inflation -= 0.4; fiscal_stance += 0.18; demand_impulse -= 0.22; price_pressure -= 0.12; distribution_shift -= 0.06;
+
+Despite our advocacy, the coalition rejects the Lautenbach Plan. The Center Party's fiscal conservatives prevail. The DVP fears "monetary experimentation." Chancellor Brüning dismisses it as inflationary fantasy.
+
+"Germany cannot afford financial adventures," they declare.
+
+Instead, a compromise austerity program proceeds—not as severe as Brüning's original proposal, but still deflationary. Spending cuts. Wage reductions. Tax increases. The crisis deepens.
+
+Our reformists are frustrated—we had a workable alternative and the coalition refused it. The party advocated for economic sense and was ignored.
+
+The working class suffers. Unemployment continues rising. Support bleeds to KPD and NSDAP. The deflationary death spiral continues.
+
+[? if unemployed >= 25 : Historians will note that Germany had the Lautenbach Plan available in 1931—a technically sound alternative to austerity during a catastrophic crisis—and chose not to implement it. ?]
+
+- @root: Continue.
+
+@leave_coalition
+choose-if: spd_toleration = 0
+unavailable-subtitle: [? if spd_toleration = 1 : We are already only tolerating the government. ?]
+on-arrival: spd_in_government = 0; in_grand_coalition = 0; in_weimar_coalition = 0; spd_toleration = 1; chancellor = "Brüning"; chancellor_party = "Z"; bruning_austerity_accepted = 1; lautenbach_plan_rejected = 1; left_dissent -= 10; labor_dissent -= 8; reformist_dissent += 5; center_dissent += 8; pro_republic -= 3;
+
+We leave the government. "We will not implement policies that starve workers, nor will we remain while the coalition rejects sensible alternatives," we announce.
+
+Brüning forms a new government without us, governing through Article 48 emergency decrees with Hindenburg's support. The austerity program proceeds anyway—and the Lautenbach Plan is forgotten entirely.
+
+The consequences are mixed:
+
+Our working-class credibility is preserved—we opposed the cuts, at least. The left wing is satisfied. Labor unions appreciate our stand.
+
+But we've lost all influence over economic policy. Brüning implements even harsher measures without SPD moderation. And we've stepped away from defending the Republic when it needed us most.
+
+[? if pro_republic < 40 : The Republic's defenders grow fewer. Who will protect democracy now? ?]
+
+- @root: Continue.
