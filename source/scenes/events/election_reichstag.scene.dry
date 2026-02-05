@@ -3002,13 +3002,21 @@ Q.original_allocation = {
 
 // Calculate current leverage (may have changed since coalition formation)
 var coalition = Q.government_parties;
-var total_coalition_votes = 0;
 
 Q.shuffle_leverage = {};
+
+var total_coalition_votes = 0;
 
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var party_lower = party.toLowerCase();
+    total_coalition_votes += Q[party_lower + '_r'];
+}
+
+// GUARD AGAINST ZERO
+if (total_coalition_votes === 0) {
+    total_coalition_votes = 1; // Prevent division by zero
+}
     
     var base = (Q[party_lower + '_r'] / total_coalition_votes) * 100;
     
