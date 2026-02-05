@@ -1507,6 +1507,393 @@ if (Q.month_actions >= 1) {
     
     // --- End Reworked Randomized Monthly Party Drift ---
 
+
+    // ========================================
+    // HINDENBURG & CAMARILLA AUTO-UPDATE
+    // Add this section to your main turn update (after the date advancement section)
+    // ========================================
+
+    // Check if this is the first time running (initialize based on current year)
+    if (Q.president === "Hindenburg" && !Q.hindenburg_president) {
+        Q.hindenburg_president = 1;
+        Q.camarilla_exists = 1;
+    
+        // Set initial values based on current year
+
+    // === MAIN HINDENBURG/CAMARILLA UPDATE ===
+    if (Q.hindenburg_president || Q.president === "Hindenburg") {
+    
+        // === AGE & HEALTH TRACKING ===
+        Q.hindenburg_age = 78 + (Q.year - 1925) + (Q.month / 12);
+    
+        // Health decline per turn (base)
+        var health_decline_per_turn = 0.05;
+    
+        if (Q.year >= 1933) health_decline_per_turn = 0.3;
+        else if (Q.year >= 1931) health_decline_per_turn = 0.15;
+        else if (Q.year >= 1929) health_decline_per_turn = 0.1;
+    
+        // Stress from economic crisis
+        if (Q.unemployed >= 20) health_decline_per_turn += 0.1;
+        else if (Q.unemployed >= 15) health_decline_per_turn += 0.05;
+        else if (Q.unemployed >= 10) health_decline_per_turn += 0.03;
+    
+        // Stress from inflation
+        if (Q.inflation >= 10) health_decline_per_turn += 0.08;
+        else if (Q.inflation >= 5) health_decline_per_turn += 0.04;
+    
+        // Stress from political crisis
+        if (Q.coup_progress >= 5) health_decline_per_turn += 0.05;
+        if (Q.street_violence >= 6) health_decline_per_turn += 0.05;
+    
+        // Stress from using emergency powers
+        if (Q.emergency_rule) health_decline_per_turn += 0.03;
+        if (Q.hindenburg_interventions >= 3) health_decline_per_turn += 0.03;
+    
+        Q.hindenburg_health = Math.max(0, (Q.hindenburg_health || 100) - health_decline_per_turn);
+    
+        // Senility increase
+        var senility_increase_per_turn = 0.08;
+    
+        if (Q.year >= 1933) senility_increase_per_turn = 0.4;
+        else if (Q.year >= 1931) senility_increase_per_turn = 0.2;
+        else if (Q.year >= 1929) senility_increase_per_turn = 0.12;
+    
+        if (Q.hindenburg_health < 40) senility_increase_per_turn += 0.15;
+        else if (Q.hindenburg_health < 60) senility_increase_per_turn += 0.08;
+    
+        Q.hindenburg_senility = Math.min(100, (Q.hindenburg_senility || 0) + senility_increase_per_turn);
+    
+        // === TRUST IN POLITICAL INSTITUTIONS ===
+        var trust_reichstag_decline = 0.05;
+    
+        // Coalition instability
+        if (Q.coalition_dissent >= 3) trust_reichstag_decline += 0.3;
+        else if (Q.coalition_dissent >= 1) trust_reichstag_decline += 0.15;
+    
+        if (Q.grand_coalition_failed) trust_reichstag_decline += 0.5;
+        if (Q.no_majority_elections >= 2) trust_reichstag_decline += 0.2;
+    
+        // Political extremism
+        if (Q.nsdap_r >= 30) trust_reichstag_decline += 0.3;
+        else if (Q.nsdap_r >= 20) trust_reichstag_decline += 0.2;
+        else if (Q.nsdap_r >= 15) trust_reichstag_decline += 0.1;
+    
+        if (Q.kpd_r >= 18) trust_reichstag_decline += 0.2;
+        else if (Q.kpd_r >= 15) trust_reichstag_decline += 0.15;
+        else if (Q.kpd_r >= 12) trust_reichstag_decline += 0.1;
+    
+        // Street violence
+        if (Q.sa_strength >= 500) trust_reichstag_decline += 0.2;
+        else if (Q.sa_strength >= 300) trust_reichstag_decline += 0.1;
+    
+        if (Q.blutmai) trust_reichstag_decline += 0.3; // Blutmai event
+    
+        // SPD in government (he dislikes this)
+        if (Q.spd_in_government) trust_reichstag_decline += 0.1;
+    
+        Q.hindenburg_trust_reichstag = Math.max(0, (Q.hindenburg_trust_reichstag || 50) - trust_reichstag_decline);
+    
+        // Trust in specific parties
+        if (Q.spd_in_government) {
+            Q.hindenburg_trust_spd = Math.max(0, (Q.hindenburg_trust_spd || 30) - 0.05);
+        }
+        // SPD counter-efforts can improve trust
+        if (Q.hindenburg_relationship_efforts > 0) {
+            Q.hindenburg_trust_spd = Math.min(100, (Q.hindenburg_trust_spd || 30) + 0.1);
+        }
+    
+        // Trust in DNVP depends on their moderation
+        if (Q.dnvp_leader === "Hugenberg" || Q.dnvp_leader === "Hugenberg") {
+            Q.hindenburg_trust_dnvp = Math.max(50, (Q.hindenburg_trust_dnvp || 70) - 0.1);
+        }
+    
+        // === BASE CAMARILLA GROWTH ===
+        Q.camarilla_strength = (Q.camarilla_strength || 0) + 0.2;
+    
+        // === CONDITIONAL BOOSTS ===
+    
+        // 1. Health/senility
+        if (Q.hindenburg_health < 70) Q.camarilla_strength += 0.3;
+        if (Q.hindenburg_health < 50) Q.camarilla_strength += 0.5;
+        if (Q.hindenburg_senility >= 30) Q.camarilla_strength += 0.4;
+        if (Q.hindenburg_senility >= 60) Q.camarilla_strength += 0.8;
+    
+        // 2. Government instability
+        if (!Q.in_grand_coalition && !Q.in_weimar_coalition) Q.camarilla_strength += 0.3;
+        if (Q.coalition_dissent >= 2) Q.camarilla_strength += 0.5;
+        if (Q.grand_coalition_failed) Q.camarilla_strength += 0.7;
+        if (Q.presidential_cabinet) Q.camarilla_strength += 0.4;
+        if (Q.minority_government) Q.camarilla_strength += 0.3;
+        if (Q.no_majority_elections >= 2) Q.camarilla_strength += 0.4;
+    
+        // 3. Economic crisis
+        if (Q.unemployed >= 20) Q.camarilla_strength += 0.6;
+        else if (Q.unemployed >= 15) Q.camarilla_strength += 0.4;
+        else if (Q.unemployed >= 10) Q.camarilla_strength += 0.2;
+    
+        if (Q.inflation >= 10) Q.camarilla_strength += 0.6;
+        else if (Q.inflation >= 5) Q.camarilla_strength += 0.3;
+        else if (Q.inflation < -5) Q.camarilla_strength += 0.4; // Deflation also bad
+    
+        if (Q.economic_growth < -5) Q.camarilla_strength += 0.5;
+    
+        // 4. Political extremism
+        if (Q.nsdap_r >= 35) Q.camarilla_strength += 0.7;
+        else if (Q.nsdap_r >= 25) Q.camarilla_strength += 0.5;
+        else if (Q.nsdap_r >= 15) Q.camarilla_strength += 0.3;
+    
+        if (Q.kpd_r >= 18) Q.camarilla_strength += 0.5;
+        else if (Q.kpd_r >= 12) Q.camarilla_strength += 0.3;
+    
+        // 5. Street violence
+        if (Q.sa_strength >= 500) Q.camarilla_strength += 0.6;
+        else if (Q.sa_strength >= 300) Q.camarilla_strength += 0.4;
+    
+        if (Q.blutmai) Q.camarilla_strength += 0.5;
+    
+        // 6. SPD in government (camarilla opposes)
+        if (Q.spd_in_government) {
+            Q.camarilla_strength += 0.4;
+            Q.camarilla_goal_crush_left += 0.3;
+        }
+        if (Q.spd_prussia) Q.camarilla_strength += 0.2;
+    
+        // 7. Article 48 / emergency rule
+        if (Q.emergency_rule) Q.camarilla_strength += 0.5;
+        if (Q.hindenburg_interventions >= 6) Q.camarilla_strength += 0.5;
+        else if (Q.hindenburg_interventions >= 3) Q.camarilla_strength += 0.3;
+        if (Q.article_48_permanent) Q.camarilla_strength += 1.0;
+    
+        // 8. Military influence
+        if (Q.reichswehr_minister === "Groener" || Q.reichswehr_minister === "Schleicher") {
+            Q.camarilla_strength += 0.3;
+            Q.schleicher_influence += 0.4;
+        }
+        if (Q.reichswehr_loyalty <= 0.3) Q.camarilla_strength += 0.4;
+        if (Q.military_reform < 0) Q.camarilla_strength += 0.2; // Rollback of reforms
+    
+        // 9. Agricultural crisis (Junker pressure)
+        if (Q.agricultural_policy <= 0) {
+            Q.camarilla_strength += 0.3;
+            Q.oldenburg_influence += 0.4;
+        }
+        if (Q.land_reform > 0) {
+            Q.camarilla_strength += 0.5; // Junkers hate land reform
+            Q.oldenburg_influence += 0.6;
+            Q.camarilla_goal_protect_junkers += 0.5;
+        }
+    
+        // 10. Year-based progression
+        if (Q.year >= 1933) Q.camarilla_strength += 0.6;
+        else if (Q.year >= 1932) Q.camarilla_strength += 0.5;
+        else if (Q.year >= 1931) Q.camarilla_strength += 0.4;
+        else if (Q.year >= 1930) Q.camarilla_strength += 0.3;
+    
+        // === NEGATIVE CONDITIONS (SPD countering) ===
+    
+        // Good SPD-Hindenburg relations
+        if (Q.hindenburg_relation >= 50) Q.camarilla_strength -= 0.4;
+        if (Q.hindenburg_relation >= 70) Q.camarilla_strength -= 0.6;
+    
+        // Exposing members
+        if (Q.meissner_exposed) {
+            Q.camarilla_strength -= 0.3;
+            Q.meissner_influence -= 0.5;
+        }
+        if (Q.schleicher_exposed) {
+            Q.camarilla_strength -= 0.4;
+            Q.schleicher_influence -= 0.6;
+        }
+        if (Q.oskar_convinced) {
+            Q.camarilla_strength -= 0.5;
+            Q.oskar_influence -= 0.7;
+        }
+        if (Q.oldenburg_scandal) {
+            Q.camarilla_strength -= 0.3;
+            Q.oldenburg_influence -= 0.5;
+        }
+        if (Q.osthilfe_exposed) {
+            Q.camarilla_strength -= 0.8;
+            Q.oskar_influence -= 1.0;
+            Q.oldenburg_influence -= 0.8;
+        }
+    
+        // Stable democratic government
+        if (Q.in_grand_coalition || Q.in_weimar_coalition) Q.camarilla_strength -= 0.2;
+    
+        // Constitutional reforms limiting president
+        if (Q.presidential_powers === 0) Q.camarilla_strength -= 0.5;
+        else if (Q.presidential_powers === 1) Q.camarilla_strength -= 0.3;
+    
+        if (Q.constitutional_reform >= 2) Q.camarilla_strength -= 0.3;
+    
+        // Pro-republic sentiment
+        if (Q.pro_republic >= 60) Q.camarilla_strength -= 0.2;
+    
+        // === UPDATE INDIVIDUAL MEMBER INFLUENCE ===
+    
+        // Meißner (steady bureaucratic growth)
+        Q.meissner_influence = (Q.meissner_influence || 0) + 0.15;
+        if (Q.camarilla_strength >= 60) Q.meissner_influence += 0.2;
+        if (Q.interior_minister === "von Keudell" || Q.interior_minister_party === "DNVP") {
+            Q.meissner_influence += 0.1;
+        }
+    
+        // Schleicher (peaks 1930-1932)
+        if (Q.year >= 1930 && Q.year <= 1932) {
+            Q.schleicher_influence = (Q.schleicher_influence || 0) + 0.4;
+        } else if (Q.year >= 1933) {
+            Q.schleicher_influence -= 0.3; // Loses in 1933
+        } else {
+            Q.schleicher_influence = (Q.schleicher_influence || 0) + 0.2;
+        }
+    
+        if (Q.reichswehr_minister === "Schleicher") Q.schleicher_influence += 0.5;
+        if (Q.schleicher_cabinet) Q.schleicher_influence += 0.8;
+    
+        // Oskar (loyal son, grows with father's weakness)
+        Q.oskar_influence = (Q.oskar_influence || 0) + 0.15;
+        if (Q.hindenburg_health < 50) Q.oskar_influence += 0.3;    
+        if (Q.hindenburg_senility >= 40) Q.oskar_influence += 0.4;
+    
+        // Oldenburg (grows with agricultural crisis)
+        Q.oldenburg_influence = (Q.oldenburg_influence || 0) + 0.1;
+        if (Q.agricultural_policy <= 0) Q.oldenburg_influence += 0.4;
+        if (Q.land_reform > 0) Q.oldenburg_influence += 0.6; // Fighting land reform
+        if (Q.agriculture_minister_party === "DNVP") Q.oldenburg_influence += 0.2;
+    
+        // Papen (joins 1932)
+        if (Q.year >= 1932 && !Q.papen_in_camarilla) {
+            Q.papen_in_camarilla = 1;
+            Q.papen_influence = 30;
+        }
+        if (Q.papen_in_camarilla) {
+            Q.papen_influence = (Q.papen_influence || 0) + 0.5;
+            if (Q.papen_cabinet) Q.papen_influence += 0.8;
+            if (Q.chancellor === "Papen") Q.papen_influence += 1.0;
+        }
+    
+        // Hugenberg (grows with Nazi rise and DNVP radicalization)
+        Q.hugenberg_influence = (Q.hugenberg_influence || 0) + 0.1;
+        if (Q.nsdap_r >= 20) Q.hugenberg_influence += 0.3;
+        if (Q.dnvp_leader === "Hugenberg") Q.hugenberg_influence += 0.4;
+        if (Q.economic_minister === "Hugenberg") Q.hugenberg_influence += 0.5;
+    
+        // === UPDATE CAMARILLA GOALS ===
+    
+        // Destroy parliament
+        if (Q.hindenburg_trust_reichstag < 40) Q.camarilla_goal_destroy_parliament += 0.3;
+        if (Q.presidential_cabinet) Q.camarilla_goal_destroy_parliament += 0.4;
+        if (Q.hindenburg_interventions >= 5) Q.camarilla_goal_destroy_parliament += 0.5;
+        if (Q.emergency_rule) Q.camarilla_goal_destroy_parliament += 0.4;
+        if (Q.no_majority_elections >= 3) Q.camarilla_goal_destroy_parliament += 0.3;
+    
+        // Military dictatorship
+        if (Q.schleicher_influence >= 70) Q.camarilla_goal_military_dictatorship += 0.3;
+        if (Q.reichswehr_loyalty <= 0.3) Q.camarilla_goal_military_dictatorship += 0.4;
+        if (Q.coup_progress >= 5) Q.camarilla_goal_military_dictatorship += 0.5;
+    
+        // Restore monarchy
+        if (Q.hindenburg_monarchist_sentiment >= 70) Q.camarilla_goal_restore_monarchy += 0.2;
+        if (Q.pro_republic < 40) Q.camarilla_goal_restore_monarchy += 0.3;
+    
+        // Crush left
+        if (Q.spd_r + Q.kpd_r >= 40) Q.camarilla_goal_crush_left += 0.3;
+        if (Q.spd_in_government) Q.camarilla_goal_crush_left += 0.5;
+        if (Q.kpd_r >= 15) Q.camarilla_goal_crush_left += 0.4;
+        if (Q.socialism >= 30) Q.camarilla_goal_crush_left += 0.2;
+    
+        // Protect Junkers
+        Q.camarilla_goal_protect_junkers += 0.2;
+        if (Q.land_reform > 0) Q.camarilla_goal_protect_junkers += 0.5;
+        if (Q.agricultural_policy < 0) Q.camarilla_goal_protect_junkers += 0.3;
+    
+        // Install Papen (if he's in camarilla)
+        if (Q.papen_in_camarilla && Q.chancellor !== "Papen") {
+            Q.camarilla_goal_install_papen += 0.4;
+        }
+    
+        // Install Hitler
+        if (Q.year >= 1930 && Q.nsdap_r >= 18) Q.camarilla_goal_install_hitler += 0.2;
+        if (Q.year >= 1932 && Q.nsdap_r >= 30) Q.camarilla_goal_install_hitler += 0.5;
+        if (Q.year >= 1933 && Q.nsdap_r >= 33) Q.camarilla_goal_install_hitler += 1.0;
+    
+        // Cap all values
+        Q.camarilla_strength = Math.min(100, Math.max(0, Q.camarilla_strength));
+        Q.meissner_influence = Math.min(100, Math.max(0, Q.meissner_influence));
+        Q.schleicher_influence = Math.min(100, Math.max(0, Q.schleicher_influence));
+        Q.oskar_influence = Math.min(100, Math.max(0, Q.oskar_influence));
+        Q.oldenburg_influence = Math.min(100, Math.max(0, Q.oldenburg_influence));
+        Q.papen_influence = Math.min(100, Math.max(0, Q.papen_influence));
+        Q.hugenberg_influence = Math.min(100, Math.max(0, Q.hugenberg_influence));
+    
+        Q.camarilla_goal_destroy_parliament = Math.min(100, Math.max(0, Q.camarilla_goal_destroy_parliament));
+        Q.camarilla_goal_military_dictatorship = Math.min(100, Math.max(0, Q.camarilla_goal_military_dictatorship));
+        Q.camarilla_goal_restore_monarchy = Math.min(100, Math.max(0, Q.camarilla_goal_restore_monarchy));
+        Q.camarilla_goal_crush_left = Math.min(100, Math.max(0, Q.camarilla_goal_crush_left));
+        Q.camarilla_goal_protect_junkers = Math.min(100, Math.max(0, Q.camarilla_goal_protect_junkers));
+        Q.camarilla_goal_install_papen = Math.min(100, Math.max(0, Q.camarilla_goal_install_papen));
+        Q.camarilla_goal_install_hitler = Math.min(100, Math.max(0, Q.camarilla_goal_install_hitler));
+    
+        // === CALCULATE UNITY ===
+        var member_influences = [
+            Q.meissner_influence || 0,
+            Q.schleicher_influence || 0,
+            Q.oskar_influence || 0,
+            Q.oldenburg_influence || 0
+        ];
+        if (Q.papen_in_camarilla) member_influences.push(Q.papen_influence || 0);
+    
+        var mean_influence = member_influences.reduce((a, b) => a + b, 0) / member_influences.length;
+        var variance = member_influences.reduce((sum, val) => sum + Math.pow(val - mean_influence, 2), 0) / member_influences.length;
+        Q.camarilla_unified = Math.max(30, 100 - variance);
+        
+        if (Q.camarilla_goal_destroy_parliament >= 60 && Q.camarilla_goal_crush_left >= 60) {
+            Q.camarilla_unified += 10;
+        }
+        Q.camarilla_unified = Math.min(100, Q.camarilla_unified);
+    
+        // === TRIGGER EVENTS AT THRESHOLDS ===
+        if (Q.camarilla_strength >= 60 && !Q.camarilla_fully_formed) {
+            Q.camarilla_fully_formed = 1;
+        }
+    
+        if (Q.camarilla_strength >= 80 && !Q.camarilla_dominant) {
+            Q.camarilla_dominant = 1;
+            Q.hindenburg_puppet = 1;
+        }
+    
+        if (Q.year >= 1930 && Q.schleicher_influence >= 65 && !Q.schleicher_bruning_plot) {
+            Q.schleicher_bruning_plot = 1;
+        }
+    
+        if (Q.year >= 1932 && Q.month >= 3 && Q.bruning_cabinet && !Q.camarilla_tired_of_bruning) {
+            if (Q.camarilla_strength >= 70 || Q.papen_influence >= 60) {
+                Q.camarilla_tired_of_bruning = 1;
+            }
+        }
+    
+        if (Q.year >= 1933 && Q.nsdap_r >= 30 && Q.camarilla_strength >= 75 && !Q.camarilla_final_plot) {
+            Q.camarilla_final_plot = 1;
+        }
+    
+        if (Q.year >= 1931 && Q.oldenburg_influence >= 65 && !Q.osthilfe_scandal) {
+            Q.osthilfe_scandal = 1;
+            Q.hindenburg_estate_neudeck = 1;
+            Q.oskar_bribed = 1;
+        }
+    
+        // Death check
+        if (Q.year >= 1934 && Q.month >= 8) {
+            Q.hindenburg_historical_death = 1;
+        }
+        if (Q.hindenburg_health <= 0) {
+            Q.hindenburg_death_year = Q.year;
+            Q.hindenburg_historical_death = 1;
+        }
+    }
+
 }
 
 Q.has_event = 0;
