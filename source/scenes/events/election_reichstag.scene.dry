@@ -2943,3 +2943,747 @@ on-arrival: {!
 [? if kpd_in_government : **KPD Coalition Dissent:** [+ kpd_coalition_dissent +] ?]
 
 [? if kpd_coalition_dissent >= 5 : The KPD is threatening to withdraw from the coalition. ?]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================
+// MINISTRY RENEGOTIATION SCENE
+// ============================================
+
+@ministry_renegotiation
+title: Ministry Reshuffle
+subtitle: Reallocate cabinet positions within the current coalition
+
+**Current Coalition:** [+ government_coalition_type +]
+
+**Current Ministry Allocation:**
+
+[+ ministry_display_list +]
+
+The current distribution reflects the balance of power when the coalition was formed. We can attempt to renegotiate ministry positions, but this may strain coalition relations.
+
+- @begin_ministry_shuffle: Begin ministry shuffle
+- @cancel_shuffle: Keep current arrangement
+
+@begin_ministry_shuffle
+on-arrival: {!
+// Store original allocation for comparison
+Q.original_allocation = {
+    foreign: Q.foreign_minister_party,
+    interior: Q.interior_minister_party,
+    justice: Q.justice_minister_party,
+    labor: Q.labor_minister_party,
+    economic: Q.economic_minister_party,
+    finance: Q.finance_minister_party,
+    agriculture: Q.agriculture_minister_party,
+    transport: Q.transport_minister_party
+};
+
+// Calculate current leverage (may have changed since coalition formation)
+var coalition = Q.government_parties;
+var total_coalition_votes = 0;
+
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var party_lower = party.toLowerCase();
+    total_coalition_votes += Q[party_lower + '_r'];
+}
+
+Q.shuffle_leverage = {};
+
+for (var i = 0; i < coalition.length; i++) {
+    var party = coalition[i];
+    var party_lower = party.toLowerCase();
+    
+    var base = (Q[party_lower + '_r'] / total_coalition_votes) * 100;
+    
+    var relation_var = party_lower + '_relation';
+    var relation = Q[relation_var] || 50;
+    base += (relation - 50) / 5;
+    
+    if (Q.chancellor_party === party) {
+        base += 10; // Chancellor has MORE leverage in reshuffle
+    }
+    
+    // SPD-specific bonuses
+    if (party === 'SPD') {
+        if (Q.president === 'Braun') base += 5;
+        if (Q.spd_prussia) base += 3;
+        if (Q.coalition_dissent > 3) base -= 5; // Internal dissent weakens us
+    }
+    
+    Q.shuffle_leverage[party] = Math.max(base, 5);
+}
+
+// Convert to display format
+Q.shuffle_leverage_display = "";
+for (var party in Q.shuffle_leverage) {
+    var rounded = Math.round(Q.shuffle_leverage[party] * 10) / 10;
+    Q.shuffle_leverage_display += "- **" + party + "**: " + rounded + " leverage\n";
+}
+!}
+
+**Updated Leverage:**
+
+[+ shuffle_leverage_display +]
+
+- @ministry_picker: Proceed with reshuffle
+- @cancel_shuffle: Cancel
+
+@ministry_picker
+tags: ministry_shuffle_root
+
+We can now attempt to claim or drop ministries. Each change costs or returns leverage based on ministry importance.
+
+**Current SPD Ministries:**
+[? if labor_minister_party = "SPD" : Labor (cost: 5) ?]
+[? if interior_minister_party = "SPD" : Interior (cost: 10) ?]
+[? if justice_minister_party = "SPD" : Justice (cost: 10) ?]
+[? if finance_minister_party = "SPD" : Finance (cost: 15) ?]
+[? if economic_minister_party = "SPD" : Economic (cost: 15) ?]
+[? if foreign_minister_party = "SPD" : Foreign (cost: 15) ?]
+[? if agriculture_minister_party = "SPD" : Agriculture (cost: 10) ?]
+[? if transport_minister_party = "SPD" : Transport (cost: 8) ?]
+[? if reichswehr_minister_party = "SPD" : Reichswehr (cost: 20) ?]
+
+**Available Leverage:** [+ shuffle_leverage.SPD +]
+
+- @claim_labor: Claim Labor Ministry (cost: 5)
+- @claim_interior: Claim Interior Ministry (cost: 10)
+- @claim_justice: Claim Justice Ministry (cost: 10)
+- @claim_finance: Claim Finance Ministry (cost: 15)
+- @claim_economic: Claim Economic Ministry (cost: 15)
+- @claim_foreign: Claim Foreign Ministry (cost: 15)
+- @claim_agriculture: Claim Agriculture Ministry (cost: 10)
+- @claim_transport: Claim Transport Ministry (cost: 8)
+- @claim_reichswehr: Claim Reichswehr Ministry (cost: 20)
+- @drop_labor: Drop Labor Ministry (gain: 5)
+- @drop_interior: Drop Interior Ministry (gain: 10)
+- @drop_justice: Drop Justice Ministry (gain: 10)
+- @drop_finance: Drop Finance Ministry (gain: 15)
+- @drop_economic: Drop Economic Ministry (gain: 15)
+- @drop_foreign: Drop Foreign Ministry (gain: 15)
+- @drop_agriculture: Drop Agriculture Ministry (gain: 10)
+- @drop_transport: Drop Transport Ministry (gain: 8)
+- @drop_reichswehr: Drop Reichswehr Ministry (gain: 20)
+- @finalize_shuffle: Finalize reshuffle
+
+// === CLAIM MINISTRIES ===
+
+@claim_labor
+title: Claim Labor Ministry
+unavailable-subtitle: [? if labor_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 5 : Not enough leverage ?]
+choose-if: labor_minister_party != "SPD" and shuffle_leverage.SPD >= 5
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 5;
+    Q.previous_labor_party = Q.labor_minister_party;
+    Q.labor_minister_party = "SPD";
+    Q.labor_minister = "Wissell";
+    
+    // Strain relations with previous holder
+    if (Q.previous_labor_party !== 'I') {
+        var rel_var = Q.previous_labor_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 5);
+    }
+!}
+go-to: ministry_picker
+
+Rudolf Wissell has been appointed Labor Minister. [? if previous_labor_party != "I" : The [+ previous_labor_party +] is displeased. ?]
+
+@claim_interior
+title: Claim Interior Ministry
+unavailable-subtitle: [? if interior_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 10 : Not enough leverage ?]
+choose-if: interior_minister_party != "SPD" and shuffle_leverage.SPD >= 10
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 10;
+    Q.previous_interior_party = Q.interior_minister_party;
+    Q.interior_minister_party = "SPD";
+    Q.interior_minister = "Severing";
+    
+    if (Q.previous_interior_party !== 'I') {
+        var rel_var = Q.previous_interior_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 8);
+    }
+!}
+go-to: ministry_picker
+
+Carl Severing has been appointed Interior Minister. [? if previous_interior_party != "I" : The [+ previous_interior_party +] is very displeased. ?]
+
+@claim_justice
+title: Claim Justice Ministry
+unavailable-subtitle: [? if justice_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 10 : Not enough leverage ?]
+choose-if: justice_minister_party != "SPD" and shuffle_leverage.SPD >= 10
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 10;
+    Q.previous_justice_party = Q.justice_minister_party;
+    Q.justice_minister_party = "SPD";
+    Q.justice_minister = "Radbruch";
+    
+    if (Q.previous_justice_party !== 'I') {
+        var rel_var = Q.previous_justice_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 7);
+    }
+!}
+go-to: ministry_picker
+
+Gustav Radbruch has been appointed Justice Minister. [? if previous_justice_party != "I" : The [+ previous_justice_party +] is displeased. ?]
+
+@claim_finance
+title: Claim Finance Ministry
+unavailable-subtitle: [? if finance_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 15 : Not enough leverage ?]
+choose-if: finance_minister_party != "SPD" and shuffle_leverage.SPD >= 15
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 15;
+    Q.previous_finance_party = Q.finance_minister_party;
+    Q.finance_minister_party = "SPD";
+    Q.finance_minister = "Hilferding";
+    
+    if (Q.previous_finance_party !== 'I') {
+        var rel_var = Q.previous_finance_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 10);
+    }
+!}
+go-to: ministry_picker
+
+Rudolf Hilferding has been appointed Finance Minister. [? if previous_finance_party != "I" : The [+ previous_finance_party +] is very angry. ?]
+
+@claim_economic
+title: Claim Economic Ministry
+unavailable-subtitle: [? if economic_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 15 : Not enough leverage ?]
+choose-if: economic_minister_party != "SPD" and shuffle_leverage.SPD >= 15
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 15;
+    Q.previous_economic_party = Q.economic_minister_party;
+    Q.economic_minister_party = "SPD";
+    Q.economic_minister = "Schmidt";
+    
+    if (Q.previous_economic_party !== 'I') {
+        var rel_var = Q.previous_economic_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 10);
+    }
+!}
+go-to: ministry_picker
+
+Robert Schmidt has been appointed Economic Minister. [? if previous_economic_party != "I" : The [+ previous_economic_party +] is very angry. ?]
+
+@claim_foreign
+title: Claim Foreign Ministry
+unavailable-subtitle: [? if foreign_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 15 : Not enough leverage ?]
+choose-if: foreign_minister_party != "SPD" and shuffle_leverage.SPD >= 15
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 15;
+    Q.previous_foreign_party = Q.foreign_minister_party;
+    Q.foreign_minister_party = "SPD";
+    Q.foreign_minister = "Breitscheid";
+    
+    if (Q.previous_foreign_party !== 'I') {
+        var rel_var = Q.previous_foreign_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 12);
+    }
+!}
+go-to: ministry_picker
+
+Rudolf Breitscheid has been appointed Foreign Minister. [? if previous_foreign_party != "I" : The [+ previous_foreign_party +] is furious. ?]
+
+@claim_agriculture
+title: Claim Agriculture Ministry
+unavailable-subtitle: [? if agriculture_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 10 : Not enough leverage ?]
+choose-if: agriculture_minister_party != "SPD" and shuffle_leverage.SPD >= 10
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 10;
+    Q.previous_agriculture_party = Q.agriculture_minister_party;
+    Q.agriculture_minister_party = "SPD";
+    Q.agriculture_minister = "Baade";
+    
+    if (Q.previous_agriculture_party !== 'I') {
+        var rel_var = Q.previous_agriculture_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 6);
+    }
+!}
+go-to: ministry_picker
+
+Fritz Baade has been appointed Agriculture Minister. [? if previous_agriculture_party != "I" : The [+ previous_agriculture_party +] is displeased. ?]
+
+@claim_transport
+title: Claim Transport Ministry
+unavailable-subtitle: [? if transport_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 8 : Not enough leverage ?]
+choose-if: transport_minister_party != "SPD" and shuffle_leverage.SPD >= 8
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 8;
+    Q.previous_transport_party = Q.transport_minister_party;
+    Q.transport_minister_party = "SPD";
+    Q.transport_minister = "Oeser";
+    
+    if (Q.previous_transport_party !== 'I') {
+        var rel_var = Q.previous_transport_party.toLowerCase() + '_relation';
+        Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 5);
+    }
+!}
+go-to: ministry_picker
+
+Rudolf Oeser has been appointed Transport Minister. [? if previous_transport_party != "I" : The [+ previous_transport_party +] is displeased. ?]
+
+@claim_reichswehr
+title: Claim Reichswehr Ministry
+unavailable-subtitle: [? if reichswehr_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 20 : Not enough leverage ?]
+choose-if: reichswehr_minister_party != "SPD" and shuffle_leverage.SPD >= 20
+on-arrival: {!
+    Q.shuffle_leverage.SPD -= 20;
+    Q.reichswehr_minister_party = "SPD";
+    Q.reichswehr_minister = "Leber";
+    Q.reichswehr_loyalty -= 0.15;
+    Q.coalition_dissent += 1;
+    
+    // All coalition partners lose relation
+    for (var i = 0; i < Q.government_parties.length; i++) {
+        var party = Q.government_parties[i];
+        if (party !== 'SPD') {
+            var rel_var = party.toLowerCase() + '_relation';
+            Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 15);
+        }
+    }
+!}
+go-to: ministry_picker
+
+Julius Leber has been appointed Reichswehr Minister. The military is **furious**. The entire coalition is shaken.
+
+// === DROP MINISTRIES ===
+
+@drop_labor
+title: Drop Labor Ministry
+view-if: labor_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 5;
+    Q.labor_minister_party = Q.government_parties[1] || 'Z'; // Give to coalition partner
+    Q.labor_minister = 'Stegerwald';
+    Q.coalition_dissent -= 1;
+!}
+go-to: ministry_picker
+
+We have relinquished the Labor Ministry.
+
+@drop_interior
+title: Drop Interior Ministry
+view-if: interior_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 10;
+    Q.interior_minister_party = Q.government_parties[1] || 'Z';
+    Q.interior_minister = 'Wirth';
+    Q.coalition_dissent -= 1;
+!}
+go-to: ministry_picker
+
+We have relinquished the Interior Ministry.
+
+@drop_justice
+title: Drop Justice Ministry
+view-if: justice_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 10;
+    Q.justice_minister_party = Q.government_parties[1] || 'DDP';
+    Q.justice_minister = 'Koch-Weser';
+!}
+go-to: ministry_picker
+
+We have relinquished the Justice Ministry.
+
+@drop_finance
+title: Drop Finance Ministry
+view-if: finance_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 15;
+    Q.finance_minister_party = Q.government_parties[1] || 'DVP';
+    Q.finance_minister = 'Moldenhauer';
+    Q.coalition_dissent -= 2;
+!}
+go-to: ministry_picker
+
+We have relinquished the Finance Ministry.
+
+@drop_economic
+title: Drop Economic Ministry
+view-if: economic_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 15;
+    Q.economic_minister_party = Q.government_parties[1] || 'DVP';
+    Q.economic_minister = 'Curtius';
+    Q.coalition_dissent -= 2;
+!}
+go-to: ministry_picker
+
+We have relinquished the Economic Ministry.
+
+@drop_foreign
+title: Drop Foreign Ministry
+view-if: foreign_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 15;
+    Q.foreign_minister_party = Q.government_parties[1] || 'DVP';
+    Q.foreign_minister = Q.stresemann_dead ? 'Curtius' : 'Stresemann';
+    Q.coalition_dissent -= 2;
+!}
+go-to: ministry_picker
+
+We have relinquished the Foreign Ministry.
+
+@drop_agriculture
+title: Drop Agriculture Ministry
+view-if: agriculture_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 10;
+    Q.agriculture_minister_party = Q.government_parties[1] || 'Z';
+    Q.agriculture_minister = 'Hermes';
+!}
+go-to: ministry_picker
+
+We have relinquished the Agriculture Ministry.
+
+@drop_transport
+title: Drop Transport Ministry
+view-if: transport_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 8;
+    Q.transport_minister_party = Q.government_parties[1] || 'Z';
+    Q.transport_minister = 'Guerard';
+!}
+go-to: ministry_picker
+
+We have relinquished the Transport Ministry.
+
+@drop_reichswehr
+title: Drop Reichswehr Ministry
+view-if: reichswehr_minister_party = "SPD"
+on-arrival: {!
+    Q.shuffle_leverage.SPD += 20;
+    Q.reichswehr_minister_party = 'I';
+    Q.reichswehr_minister = 'Groener';
+    Q.reichswehr_loyalty += 0.10;
+    Q.coalition_dissent -= 3;
+!}
+go-to: ministry_picker
+
+We have relinquished the Reichswehr Ministry. The military is relieved.
+
+@finalize_shuffle
+on-arrival: {!
+    // Check if changes were made
+    var changes = 0;
+    for (var ministry in Q.original_allocation) {
+        var current_party_var = ministry + '_minister_party';
+        if (Q.original_allocation[ministry] !== Q[current_party_var]) {
+            changes++;
+        }
+    }
+    
+    Q.shuffle_changes_made = changes;
+    
+    // ============================================
+    // OTHER COALITION PARTIES REACT AND COMPETE
+    // ============================================
+    
+    // Calculate how much each party gained/lost
+    var ministry_delta = {};
+    for (var i = 0; i < Q.government_parties.length; i++) {
+        var party = Q.government_parties[i];
+        ministry_delta[party] = 0;
+    }
+    
+    // Count original ministries
+    for (var ministry in Q.original_allocation) {
+        var party = Q.original_allocation[ministry];
+        if (ministry_delta[party] !== undefined) {
+            ministry_delta[party]++;
+        }
+    }
+    
+    // Count current ministries
+    for (var ministry in Q.original_allocation) {
+        var current_party_var = ministry + '_minister_party';
+        var party = Q[current_party_var];
+        if (ministry_delta[party] !== undefined) {
+            ministry_delta[party]--;
+        }
+    }
+    
+    // ministry_delta is now: positive = lost ministries, negative = gained ministries
+    
+    // Parties that lost ministries want compensation
+    var compensation_needed = [];
+    for (var party in ministry_delta) {
+        if (party !== 'SPD' && ministry_delta[party] > 0) {
+            compensation_needed.push({
+                party: party,
+                losses: ministry_delta[party],
+                leverage: Q.shuffle_leverage[party]
+            });
+        }
+    }
+    
+    // Sort by leverage (strongest parties first)
+    compensation_needed.sort(function(a, b) {
+        return b.leverage - a.leverage;
+    });
+    
+    Q.coalition_demands = [];
+    
+    // ============================================
+    // COALITION PARTNERS DEMAND COMPENSATION
+    // ============================================
+    
+    var ministries = ['foreign', 'interior', 'justice', 'labor', 'economic', 'finance', 'agriculture', 'transport'];
+    var available_to_take = [];
+    
+    // Find SPD ministries that could be taken
+    for (var i = 0; i < ministries.length; i++) {
+        var ministry = ministries[i];
+        var party_var = ministry + '_minister_party';
+        if (Q[party_var] === 'SPD') {
+            available_to_take.push(ministry);
+        }
+    }
+    
+    // Each aggrieved party tries to claim something
+    for (var i = 0; i < compensation_needed.length; i++) {
+        var demand = compensation_needed[i];
+        
+        // Calculate takeover probability based on:
+        // - Their leverage vs ours
+        // - How much they lost
+        // - Coalition relations
+        var rel_var = demand.party.toLowerCase() + '_relation';
+        var relation = Q[rel_var] || 50;
+        
+        var takeover_chance = 0;
+        if (demand.leverage > Q.shuffle_leverage.SPD) {
+            takeover_chance = 0.3 + (demand.losses * 0.15);
+        } else {
+            takeover_chance = 0.1 + (demand.losses * 0.1);
+        }
+        
+        // Poor relations increase chance
+        if (relation < 40) takeover_chance += 0.2;
+        if (relation < 30) takeover_chance += 0.2;
+        
+        // Roll for each lost ministry
+        for (var j = 0; j < demand.losses; j++) {
+            if (Math.random() < takeover_chance && available_to_take.length > 0) {
+                // Take a ministry
+                var ministry_idx = Math.floor(Math.random() * available_to_take.length);
+                var taken_ministry = available_to_take[ministry_idx];
+                available_to_take.splice(ministry_idx, 1);
+                
+                // Execute takeover
+                var party_var = taken_ministry + '_minister_party';
+                Q[party_var] = demand.party;
+                
+                // Assign minister name (reuse assignment logic)
+                assign_minister(taken_ministry, demand.party);
+                
+                Q.coalition_demands.push({
+                    party: demand.party,
+                    ministry: taken_ministry,
+                    reason: 'compensation'
+                });
+                
+                changes++;
+            }
+        }
+    }
+    
+    // ============================================
+    // OPPORTUNISTIC GRABS
+    // ============================================
+    
+    // Parties that didn't lose anything might still try to grab if we look weak
+    if (Q.shuffle_leverage.SPD < 40 || Q.coalition_dissent > 3) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            var party = Q.government_parties[i];
+            if (party === 'SPD') continue;
+            if (ministry_delta[party] < 0) continue; // Already gained
+            
+            var rel_var = party.toLowerCase() + '_relation';
+            var relation = Q[rel_var] || 50;
+            
+            // Opportunistic grab chance
+            var grab_chance = 0;
+            if (Q.shuffle_leverage[party] > Q.shuffle_leverage.SPD * 1.3) {
+                grab_chance = 0.25;
+            }
+            if (relation < 35) grab_chance += 0.15;
+            if (Q.coalition_dissent > 4) grab_chance += 0.15;
+            
+            if (Math.random() < grab_chance && available_to_take.length > 0) {
+                var ministry_idx = Math.floor(Math.random() * available_to_take.length);
+                var taken_ministry = available_to_take[ministry_idx];
+                available_to_take.splice(ministry_idx, 1);
+                
+                var party_var = taken_ministry + '_minister_party';
+                Q[party_var] = party;
+                assign_minister(taken_ministry, party);
+                
+                Q.coalition_demands.push({
+                    party: party,
+                    ministry: taken_ministry,
+                    reason: 'opportunistic'
+                });
+                
+                changes++;
+            }
+        }
+    }
+    
+    Q.shuffle_changes_made = changes;
+    
+    // Coalition stability impact
+    if (changes > 5) {
+        Q.coalition_dissent += 2;
+    } else if (changes > 3) {
+        Q.coalition_dissent += 1;
+    } else if (changes > 0) {
+        Q.coalition_dissent += 0;
+    }
+    
+    // Helper function to assign minister names
+    function assign_minister(ministry, party) {
+        var minister_var = ministry + '_minister';
+        
+        if (ministry === 'foreign') {
+            if (party === 'KPD') Q[minister_var] = 'Pieck';
+            else if (party === 'SAPD') Q[minister_var] = 'Rosenfeld';
+            else if (party === 'SRPD') Q[minister_var] = 'Breitscheid';
+            else if (party === 'DDP') Q[minister_var] = 'Koch-Weser';
+            else if (party === 'Z') Q[minister_var] = 'Curtius';
+            else if (party === 'BVP') Q[minister_var] = 'Held';
+            else if (party === 'DVP') Q[minister_var] = Q.stresemann_dead ? 'Curtius' : 'Stresemann';
+            else if (party === 'WP') Q[minister_var] = 'Lambach';
+            else if (party === 'CNBL') Q[minister_var] = 'Hepp';
+            else if (party === 'DNVP') Q[minister_var] = 'Westarp';
+        } else if (ministry === 'interior') {
+            if (party === 'KPD') Q[minister_var] = 'Ulbricht';
+            else if (party === 'SAPD') Q[minister_var] = 'Seydewitz';
+            else if (party === 'SRPD') Q[minister_var] = 'Braun';
+            else if (party === 'DDP') Q[minister_var] = 'Koch-Weser';
+            else if (party === 'Z') Q[minister_var] = 'Wirth';
+            else if (party === 'BVP') Q[minister_var] = 'Schätzel';
+            else if (party === 'DVP') Q[minister_var] = 'Scholz';
+            else if (party === 'WP') Q[minister_var] = 'Petersen';
+            else if (party === 'CNBL') Q[minister_var] = 'Behrens';
+            else if (party === 'DNVP') Q[minister_var] = 'Hergt';
+        } else if (ministry === 'justice') {
+            if (party === 'KPD') Q[minister_var] = 'Heckert';
+            else if (party === 'SAPD') Q[minister_var] = 'Ledebour';
+            else if (party === 'SRPD') Q[minister_var] = 'Heilmann';
+            else if (party === 'DDP') Q[minister_var] = 'Koch-Weser';
+            else if (party === 'Z') Q[minister_var] = 'Bredt';
+            else if (party === 'BVP') Q[minister_var] = 'Gürtner';
+            else if (party === 'DVP') Q[minister_var] = 'Heinze';
+            else if (party === 'WP') Q[minister_var] = 'Drewitz';
+            else if (party === 'CNBL') Q[minister_var] = 'von Rohr';
+            else if (party === 'DNVP') Q[minister_var] = 'Schiele';
+        } else if (ministry === 'labor') {
+            if (party === 'KPD') Q[minister_var] = 'Münzenberg';
+            else if (party === 'SAPD') Q[minister_var] = 'Seydewitz';
+            else if (party === 'SRPD') Q[minister_var] = 'Aufhäuser';
+            else if (party === 'DDP') Q[minister_var] = 'Dietrich';
+            else if (party === 'Z') Q[minister_var] = 'Stegerwald';
+            else if (party === 'BVP') Q[minister_var] = 'Stützel';
+            else if (party === 'DVP') Q[minister_var] = 'Brauns';
+            else if (party === 'WP') Q[minister_var] = 'Petersen';
+            else if (party === 'CNBL') Q[minister_var] = 'Lohse';
+            else if (party === 'DNVP') Q[minister_var] = 'Schiele';
+        } else if (ministry === 'economic') {
+            if (party === 'KPD') Q[minister_var] = 'Remmele';
+            else if (party === 'SAPD') Q[minister_var] = 'Rosenfeld';
+            else if (party === 'SRPD') Q[minister_var] = 'Schmidt';
+            else if (party === 'DDP') Q[minister_var] = 'Dietrich';
+            else if (party === 'Z') Q[minister_var] = 'Bredt';
+            else if (party === 'BVP') Q[minister_var] = 'Held';
+            else if (party === 'DVP') Q[minister_var] = 'Curtius';
+            else if (party === 'WP') Q[minister_var] = 'Lambach';
+            else if (party === 'CNBL') Q[minister_var] = 'Heim';
+            else if (party === 'DNVP') Q[minister_var] = 'Schiele';
+        } else if (ministry === 'finance') {
+            if (party === 'KPD') Q[minister_var] = 'Neumann';
+            else if (party === 'SAPD') Q[minister_var] = 'Rosenfeld';
+            else if (party === 'SRPD') Q[minister_var] = 'Hilferding';
+            else if (party === 'DDP') Q[minister_var] = 'Dietrich';
+            else if (party === 'Z') Q[minister_var] = 'Köhler';
+            else if (party === 'BVP') Q[minister_var] = 'Krausneck';
+            else if (party === 'DVP') Q[minister_var] = 'Moldenhauer';
+            else if (party === 'WP') Q[minister_var] = 'Drewitz';
+            else if (party === 'CNBL') Q[minister_var] = 'Hepp';
+            else if (party === 'DNVP') Q[minister_var] = 'Schiele';
+        } else if (ministry === 'agriculture') {
+            if (party === 'KPD') Q[minister_var] = 'Hoernle';
+            else if (party === 'SAPD') Q[minister_var] = 'Baade';
+            else if (party === 'SRPD') Q[minister_var] = 'Baade';
+            else if (party === 'DDP') Q[minister_var] = 'Dietrich';
+            else if (party === 'Z') Q[minister_var] = 'Hermes';
+            else if (party === 'BVP') Q[minister_var] = 'Wutzlhofer';
+            else if (party === 'DVP') Q[minister_var] = 'Schiele';
+            else if (party === 'WP') Q[minister_var] = 'Bredt';
+            else if (party === 'CNBL') Q[minister_var] = 'Hamkens';
+            else if (party === 'DNVP') Q[minister_var] = 'Schiele';
+        } else if (ministry === 'transport') {
+            if (party === 'KPD') Q[minister_var] = 'Hoernle';
+            else if (party === 'SAPD') Q[minister_var] = 'Baade';
+            else if (party === 'SRPD') Q[minister_var] = 'Baade';
+            else if (party === 'DDP') Q[minister_var] = 'Dietrich';
+            else if (party === 'Z') Q[minister_var] = 'Guerard';
+            else if (party === 'BVP') Q[minister_var] = 'Wutzlhofer';
+            else if (party === 'DVP') Q[minister_var] = 'Schiele';
+            else if (party === 'WP') Q[minister_var] = 'Bredt';
+            else if (party === 'CNBL') Q[minister_var] = 'Hamkens';
+            else if (party === 'DNVP') Q[minister_var] = 'Schiele';
+        }
+    }
+!}
+
+[? if shuffle_changes_made > 0 : We have reshuffled the cabinet. ?]
+[? if coalition_demands.length > 0 : **Coalition partners have responded:** ?]
+
+{!
+for (var i = 0; i < Q.coalition_demands.length; i++) {
+    var demand = Q.coalition_demands[i];
+    var ministry_name = demand.ministry.charAt(0).toUpperCase() + demand.ministry.slice(1);
+    
+    if (demand.reason === 'compensation') {
+        document.write("- The **" + demand.party + "** has seized the **" + ministry_name + " Ministry** as compensation for their losses.\n\n");
+    } else {
+        document.write("- The **" + demand.party + "** has opportunistically claimed the **" + ministry_name + " Ministry**.\n\n");
+    }
+}
+!}
+
+[? if shuffle_changes_made = 0 : No changes were made to the cabinet. ?]
+
+- @ministry_shuffle_complete: Continue
+
+@ministry_shuffle_complete
+
+The ministry reshuffle is complete.
+
+@cancel_shuffle
+
+The current arrangement will remain unchanged.
