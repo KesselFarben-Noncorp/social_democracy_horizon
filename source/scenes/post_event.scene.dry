@@ -1401,9 +1401,8 @@ if (Q.month_actions >= 1) {
                     Q.ideology_factor = Q.random_factor(1, 0.1);
             }
 
-            Q.scale = Math.min(1, Math.sqrt(Q.base + 1)/5);
-            Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] * Q.scale / 12;
-            Q.delta *= (0.7 + Math.random()*0.6);
+            Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
+            Q.delta *= (0.7 + Math.random()*0.6); // Keep your existing randomness
 
             // CRITICAL: If party is banned, prevent ALL positive drift
             if ((Q.party === 'nsdap' && Q.nsdap_banned) || 
