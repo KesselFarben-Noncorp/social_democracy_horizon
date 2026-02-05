@@ -3093,10 +3093,11 @@ We can now attempt to claim or drop ministries. Each change costs or returns lev
 
 @claim_labor
 title: Claim Labor Ministry
-unavailable-subtitle: [? if labor_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 5 : Not enough leverage ?]
-choose-if: labor_minister_party != "SPD" and shuffle_leverage.SPD >= 5
+unavailable-subtitle: [? if labor_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 5 : Not enough leverage ?]
+choose-if: labor_minister_party != "SPD" and shuffle_spd_variable >= 5
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 5;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_labor_party = Q.labor_minister_party;
     Q.labor_minister_party = "SPD";
     Q.labor_minister = "Wissell";
@@ -3113,10 +3114,11 @@ Rudolf Wissell has been appointed Labor Minister. [? if previous_labor_party != 
 
 @claim_interior
 title: Claim Interior Ministry
-unavailable-subtitle: [? if interior_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 10 : Not enough leverage ?]
-choose-if: interior_minister_party != "SPD" and shuffle_leverage.SPD >= 10
+unavailable-subtitle: [? if interior_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 10 : Not enough leverage ?]
+choose-if: interior_minister_party != "SPD" and shuffle_spd_variable >= 10
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 10;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_interior_party = Q.interior_minister_party;
     Q.interior_minister_party = "SPD";
     Q.interior_minister = "Severing";
@@ -3132,10 +3134,11 @@ Carl Severing has been appointed Interior Minister. [? if previous_interior_part
 
 @claim_justice
 title: Claim Justice Ministry
-unavailable-subtitle: [? if justice_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 10 : Not enough leverage ?]
-choose-if: justice_minister_party != "SPD" and shuffle_leverage.SPD >= 10
+unavailable-subtitle: [? if justice_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 10 : Not enough leverage ?]
+choose-if: justice_minister_party != "SPD" and shuffle_spd_variable >= 10
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 10;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_justice_party = Q.justice_minister_party;
     Q.justice_minister_party = "SPD";
     Q.justice_minister = "Radbruch";
@@ -3151,10 +3154,11 @@ Gustav Radbruch has been appointed Justice Minister. [? if previous_justice_part
 
 @claim_finance
 title: Claim Finance Ministry
-unavailable-subtitle: [? if finance_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 15 : Not enough leverage ?]
-choose-if: finance_minister_party != "SPD" and shuffle_leverage.SPD >= 15
+unavailable-subtitle: [? if finance_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 15 : Not enough leverage ?]
+choose-if: finance_minister_party != "SPD" and shuffle_spd_variable >= 15
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 15;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_finance_party = Q.finance_minister_party;
     Q.finance_minister_party = "SPD";
     Q.finance_minister = "Hilferding";
@@ -3170,10 +3174,11 @@ Rudolf Hilferding has been appointed Finance Minister. [? if previous_finance_pa
 
 @claim_economic
 title: Claim Economic Ministry
-unavailable-subtitle: [? if economic_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 15 : Not enough leverage ?]
-choose-if: economic_minister_party != "SPD" and shuffle_leverage.SPD >= 15
+unavailable-subtitle: [? if economic_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 15 : Not enough leverage ?]
+choose-if: economic_minister_party != "SPD" and shuffle_spd_variable >= 15
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 15;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_economic_party = Q.economic_minister_party;
     Q.economic_minister_party = "SPD";
     Q.economic_minister = "Schmidt";
@@ -3189,10 +3194,11 @@ Robert Schmidt has been appointed Economic Minister. [? if previous_economic_par
 
 @claim_foreign
 title: Claim Foreign Ministry
-unavailable-subtitle: [? if foreign_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 15 : Not enough leverage ?]
-choose-if: foreign_minister_party != "SPD" and shuffle_leverage.SPD >= 15
+unavailable-subtitle: [? if foreign_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 15 : Not enough leverage ?]
+choose-if: foreign_minister_party != "SPD" and shuffle_spd_variable >= 15
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 15;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_foreign_party = Q.foreign_minister_party;
     Q.foreign_minister_party = "SPD";
     Q.foreign_minister = "Breitscheid";
@@ -3208,10 +3214,11 @@ Rudolf Breitscheid has been appointed Foreign Minister. [? if previous_foreign_p
 
 @claim_agriculture
 title: Claim Agriculture Ministry
-unavailable-subtitle: [? if agriculture_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 10 : Not enough leverage ?]
-choose-if: agriculture_minister_party != "SPD" and shuffle_leverage.SPD >= 10
+unavailable-subtitle: [? if agriculture_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 10 : Not enough leverage ?]
+choose-if: agriculture_minister_party != "SPD" and shuffle_spd_variable >= 10
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 10;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_agriculture_party = Q.agriculture_minister_party;
     Q.agriculture_minister_party = "SPD";
     Q.agriculture_minister = "Baade";
@@ -3227,10 +3234,11 @@ Fritz Baade has been appointed Agriculture Minister. [? if previous_agriculture_
 
 @claim_transport
 title: Claim Transport Ministry
-unavailable-subtitle: [? if transport_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 8 : Not enough leverage ?]
-choose-if: transport_minister_party != "SPD" and shuffle_leverage.SPD >= 8
+unavailable-subtitle: [? if transport_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 8 : Not enough leverage ?]
+choose-if: transport_minister_party != "SPD" and shuffle_spd_variable >= 8
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 8;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.previous_transport_party = Q.transport_minister_party;
     Q.transport_minister_party = "SPD";
     Q.transport_minister = "Oeser";
@@ -3246,10 +3254,11 @@ Rudolf Oeser has been appointed Transport Minister. [? if previous_transport_par
 
 @claim_reichswehr
 title: Claim Reichswehr Ministry
-unavailable-subtitle: [? if reichswehr_minister_party = "SPD" : Already controlled ?][? if shuffle_leverage.SPD < 20 : Not enough leverage ?]
-choose-if: reichswehr_minister_party != "SPD" and shuffle_leverage.SPD >= 20
+unavailable-subtitle: [? if reichswehr_minister_party = "SPD" : Already controlled ?][? if shuffle_spd_variable < 20 : Not enough leverage ?]
+choose-if: reichswehr_minister_party != "SPD" and shuffle_spd_variable >= 20
 on-arrival: {!
     Q.shuffle_leverage.SPD -= 20;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.reichswehr_minister_party = "SPD";
     Q.reichswehr_minister = "Leber";
     Q.reichswehr_loyalty -= 0.15;
@@ -3275,6 +3284,7 @@ title: Drop Labor Ministry
 view-if: labor_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 5;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.labor_minister_party = Q.government_parties[1] || 'Z'; // Give to coalition partner
     Q.labor_minister = 'Stegerwald';
     Q.coalition_dissent -= 1;
@@ -3288,6 +3298,7 @@ title: Drop Interior Ministry
 view-if: interior_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 10;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.interior_minister_party = Q.government_parties[1] || 'Z';
     Q.interior_minister = 'Wirth';
     Q.coalition_dissent -= 1;
@@ -3301,6 +3312,7 @@ title: Drop Justice Ministry
 view-if: justice_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 10;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.justice_minister_party = Q.government_parties[1] || 'DDP';
     Q.justice_minister = 'Koch-Weser';
 !}
@@ -3313,6 +3325,7 @@ title: Drop Finance Ministry
 view-if: finance_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 15;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.finance_minister_party = Q.government_parties[1] || 'DVP';
     Q.finance_minister = 'Moldenhauer';
     Q.coalition_dissent -= 2;
@@ -3326,6 +3339,7 @@ title: Drop Economic Ministry
 view-if: economic_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 15;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.economic_minister_party = Q.government_parties[1] || 'DVP';
     Q.economic_minister = 'Curtius';
     Q.coalition_dissent -= 2;
@@ -3339,6 +3353,7 @@ title: Drop Foreign Ministry
 view-if: foreign_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 15;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.foreign_minister_party = Q.government_parties[1] || 'DVP';
     Q.foreign_minister = Q.stresemann_dead ? 'Curtius' : 'Stresemann';
     Q.coalition_dissent -= 2;
@@ -3352,6 +3367,7 @@ title: Drop Agriculture Ministry
 view-if: agriculture_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 10;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.agriculture_minister_party = Q.government_parties[1] || 'Z';
     Q.agriculture_minister = 'Hermes';
 !}
@@ -3364,6 +3380,7 @@ title: Drop Transport Ministry
 view-if: transport_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 8;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.transport_minister_party = Q.government_parties[1] || 'Z';
     Q.transport_minister = 'Guerard';
 !}
@@ -3376,6 +3393,7 @@ title: Drop Reichswehr Ministry
 view-if: reichswehr_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 20;
+    Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
     Q.reichswehr_minister_party = 'I';
     Q.reichswehr_minister = 'Groener';
     Q.reichswehr_loyalty += 0.10;
