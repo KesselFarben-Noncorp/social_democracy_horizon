@@ -1405,8 +1405,8 @@ if (Q.month_actions >= 1) {
             Q.delta *= (0.7 + Math.random()*0.6);
 
             // CRITICAL: If party is banned, prevent ALL positive drift
-            const banned_flag = Q.party + '_banned';
-            if (Q[banned_flag]) {
+            const party_banned = Q.party + '_banned';
+            if (Q[party_banned]) {
                 Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
             }
 
