@@ -3004,12 +3004,6 @@ Q.original_allocation = {
 var coalition = Q.government_parties;
 var total_coalition_votes = 0;
 
-for (var i = 0; i < coalition.length; i++) {
-    var party = coalition[i];
-    var party_lower = party.toLowerCase();
-    total_coalition_votes += Q[party_lower + '_r'];
-}
-
 Q.shuffle_leverage = {};
 
 for (var i = 0; i < coalition.length; i++) {
@@ -3023,18 +3017,50 @@ for (var i = 0; i < coalition.length; i++) {
     base += (relation - 50) / 5;
     
     if (Q.chancellor_party === party) {
-        base += 10; // Chancellor has MORE leverage in reshuffle
+        base -= 10;
     }
     
     // SPD-specific bonuses
     if (party === 'SPD') {
         if (Q.president === 'Braun') base += 5;
         if (Q.spd_prussia) base += 3;
-        if (Q.coalition_dissent > 3) base -= 5; // Internal dissent weakens us
+        if (Q.coalition_dissent > 0) base -= 5;
     }
     
     Q.shuffle_leverage[party] = Math.max(base, 5);
 }
+
+// ============================================
+// DEDUCT LEVERAGE FOR MINISTRIES ALREADY HELD
+// ============================================
+
+var ministry_costs = {
+    labor: 5,
+    interior: 10,
+    justice: 10,
+    finance: 15,
+    economic: 15,
+    foreign: 15,
+    agriculture: 10,
+    transport: 8,
+    reichswehr: 20
+};
+
+for (var ministry in ministry_costs) {
+    var party_var = ministry + '_minister_party';
+    var holding_party = Q[party_var];
+    
+    if (holding_party && Q.shuffle_leverage[holding_party] !== undefined) {
+        Q.shuffle_leverage[holding_party] -= ministry_costs[ministry];
+    }
+}
+
+// Floor at 0 (can't go negative)
+for (var party in Q.shuffle_leverage) {
+    Q.shuffle_leverage[party] = Math.max(0, Q.shuffle_leverage[party]);
+}
+
+Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
 
 // Convert to display format
 Q.shuffle_leverage_display = "";
@@ -3042,8 +3068,6 @@ for (var party in Q.shuffle_leverage) {
     var rounded = Math.round(Q.shuffle_leverage[party] * 10) / 10;
     Q.shuffle_leverage_display += "- **" + party + "**: " + rounded + " leverage\n";
 }
-
-Q.shuffle_spd_variable = Q.shuffle_leverage.SPD
 !}
 
 **Updated Leverage:**
@@ -3677,23 +3701,25 @@ on-arrival: {!
         }
     }
 Q.cal = Q.coalition_demands.length
+
+if (Q.coalition_demands && Q.coalition_demands.length > 0) {
+    var output = "";
+    for (var i = 0; i < Q.coalition_demands.length; i++) {
+        var demand = Q.coalition_demands[i];
+        var ministry_name = demand.ministry.charAt(0).toUpperCase() + demand.ministry.slice(1);
+        
+        if (demand.reason === 'compensation') {
+            output += "- The **" + demand.party + "** has seized the **" + ministry_name + " Ministry** as compensation for their losses.\n\n";
+        } else {
+            output += "- The **" + demand.party + "** has opportunistically claimed the **" + ministry_name + " Ministry**.\n\n";
+        }
+    }
+}
 !}
 
 [? if shuffle_changes_made > 0 : We have reshuffled the cabinet. ?]
 [? if cal > 0 : **Coalition partners have responded:** ?]
-
-{!
-for (var i = 0; i < Q.coalition_demands.length; i++) {
-    var demand = Q.coalition_demands[i];
-    var ministry_name = demand.ministry.charAt(0).toUpperCase() + demand.ministry.slice(1);
-    
-    if (demand.reason === 'compensation') {
-        document.write("- The **" + demand.party + "** has seized the **" + ministry_name + " Ministry** as compensation for their losses.\n\n");
-    } else {
-        document.write("- The **" + demand.party + "** has opportunistically claimed the **" + ministry_name + " Ministry**.\n\n");
-    }
-}
-!}
+[? if cal > 0: [+ output +] ?]
 
 [? if shuffle_changes_made = 0 : No changes were made to the cabinet. ?]
 
