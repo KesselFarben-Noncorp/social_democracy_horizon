@@ -3676,10 +3676,11 @@ on-arrival: {!
             else if (party === 'DNVP') Q[minister_var] = 'Schiele';
         }
     }
+Q.cal = Q.coalition_demands.length
 !}
 
 [? if shuffle_changes_made > 0 : We have reshuffled the cabinet. ?]
-[? if coalition_demands.length > 0 : **Coalition partners have responded:** ?]
+[? if cal > 0 : **Coalition partners have responded:** ?]
 
 {!
 for (var i = 0; i < Q.coalition_demands.length; i++) {
