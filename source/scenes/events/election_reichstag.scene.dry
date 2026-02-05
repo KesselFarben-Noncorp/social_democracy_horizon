@@ -3042,6 +3042,8 @@ for (var party in Q.shuffle_leverage) {
     var rounded = Math.round(Q.shuffle_leverage[party] * 10) / 10;
     Q.shuffle_leverage_display += "- **" + party + "**: " + rounded + " leverage\n";
 }
+
+Q.shuffle_spd_variable = Q.shuffle_leverage.SPD
 !}
 
 **Updated Leverage:**
@@ -3067,7 +3069,7 @@ We can now attempt to claim or drop ministries. Each change costs or returns lev
 [? if transport_minister_party = "SPD" : Transport (cost: 8) ?]
 [? if reichswehr_minister_party = "SPD" : Reichswehr (cost: 20) ?]
 
-**Available Leverage:** [+ shuffle_leverage.SPD +]
+**Available Leverage:** [+ shuffle_spd_variable +]
 
 - @claim_labor: Claim Labor Ministry (cost: 5)
 - @claim_interior: Claim Interior Ministry (cost: 10)
