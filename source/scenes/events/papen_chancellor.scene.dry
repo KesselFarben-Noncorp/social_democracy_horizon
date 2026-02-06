@@ -1,6 +1,6 @@
 title: Chancellor [+ chancellor +] replaced by Franz von Papen
 subtitle: President Hindenburg dismisses the government.
-view-if: president == "Hindenburg" and (hindenburg_relation < 60 or hindenburg_patience < 20) and spd_in_government == 0 and presidential_powers != 1 and not papen_cabinet and not papen_appointment_prevented and ((year == 1932 and month >= 5) or year >= 1933) and (camarilla_strength >= 60 or (camarilla_strength >= 45 and (unemployed >= 20 or nsdap_r >= 25 or coalition_dissent >= 2)))
+view-if: president == "Hindenburg" and (hindenburg_relation < 60 or hindenburg_patience < 20) and spd_in_government == 0 and presidential_powers != 1 and not papen_cabinet and not papen_appointment_prevented and papen_influence > 20 and ((year == 1932 and month >= 5) or year >= 1933) and (camarilla_strength >= 60 or (camarilla_strength >= 45 and (unemployed >= 20 or nsdap_r >= 25 or coalition_dissent >= 2)))
 on-arrival: {!
     Q.old_chancellor = Q.chancellor;
     Q.spd_toleration = 0;
@@ -30,15 +30,6 @@ on-arrival: {!
     
     // Emergency powers used
     Q.emergency_rule = 1;
-    
-    // Call new elections
-    Q.next_election_time = Q.time + 3;
-    Q.next_election_month = Q.month + 3;
-    Q.next_election_year = Q.year;
-    if (Q.next_election_month > 12) {
-        Q.next_election_month -= 12;
-        Q.next_election_year += 1;
-    }
     
     // Clear government coalition
     Q.in_grand_coalition = 0;
@@ -89,10 +80,46 @@ on-arrival: {!
     
     // Rivalry between Papen and Schleicher begins
     Q.schleicher_papen_rivalry = 30;
+
+    // Calculate actual votes based on party strength
+    Q.papen_votes_against = Q.spd_r + Q.kpd_r + Q.z_r + Q.bvp_r + Q.ddp_r;
+    Q.papen_votes_for = Q.dnvp_r;
+    
+    // NSDAP position depends on negotiations
+    if (Q.nsdap_relation >= 50 or Q.camarilla_goal_install_hitler > 30) {
+        Q.papen_votes_for += Q.nsdap_r;
+        Q.nsdap_supported_papen = 1;
+    } else {
+        Q.papen_votes_against += Q.nsdap_r;
+        Q.nsdap_supported_papen = 0;
+    }
+    
+    // DVP might support if right-leaning
+    if (Q.dvp_relation <= 40 and Q.dvp_right_shift >= 1) {
+        Q.papen_votes_for += Q.dvp_r;
+    } else {
+        Q.papen_votes_against += Q.dvp_r;
+    }
+    
+    // Check if Papen actually loses the vote
+    Q.papen_lost_confidence_vote = (Q.papen_votes_against > Q.papen_votes_for);
+    
+    // If Papen has majority support, no need to dissolve
+    Q.papen_dissolves_reichstag = Q.papen_lost_confidence_vote;
+
+    if (Q.papen_votes_against > Q.papen_votes_for) {
+    // Call new elections
+        Q.next_election_time = Q.time + 3;
+        Q.next_election_month = Q.month + 3;
+        Q.next_election_year = Q.year;
+        if (Q.next_election_month > 12) {
+            Q.next_election_month -= 12;
+            Q.next_election_year += 1;
+        }
+    }
 !}
 new-page: true
 tags: event
-max-visits: 1
 face-image: img/portraits/PapenFranz.jpg
 
 = The Papen Coup
