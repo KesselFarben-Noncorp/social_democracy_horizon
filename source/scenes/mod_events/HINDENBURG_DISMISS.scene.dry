@@ -1,0 +1,75 @@
+title: Presidential Intervention
+subtitle: Hindenburg acts
+tags: event
+view-if: president == "Hindenburg" and presidential_powers != 1 and hindenburg_patience < 0 and not hindenburg_dismissed_government_this_turn
+on-arrival: {!
+    Q.hindenburg_dismissed_government_this_turn = 1;
+    Q.hindenburg_government_dismissals += 1;
+    Q.hindenburg_interventions += 1;
+    Q.hindenburg_crisis_threshold += 15;
+    Q.camarilla_strength += 5;
+    
+    // Reset government
+    Q.spd_in_government = 0;
+    Q.z_in_government = 0;
+    Q.bvp_in_government = 0;
+    Q.ddp_in_government = 0;
+    Q.dvp_in_government = 0;
+    Q.dnvp_in_government = 0;
+    Q.kpd_in_government = 0;
+    Q.wp_in_government = 0;
+    Q.cnbl_in_government = 0;
+    
+    Q.in_grand_coalition = 0;
+    Q.in_weimar_coalition = 0;
+    Q.in_popular_front = 0;
+    Q.in_left_front = 0;
+    Q.in_right_coalition = 0;
+    
+    // President will appoint new chancellor
+    Q.chancellor = "";
+    Q.chancellor_party = "";
+    
+    // Hindenburg's patience is exhausted
+    Q.hindenburg_trust_reichstag -= 10;
+    Q.pro_republic -= 2;
+    Q.hindenburg_patience = 10;
+    Q.hindenburg_dismissed_government_this_turn = 0;
+    
+    // Record which government was dismissed
+    if (Q.spd_in_government) {
+        Q.spd_government_dismissed = 1;
+        Q.no_confidence_against_spd = 1;
+    }
+!}
+call: set_next_election_time
+
+= Presidential Dismissal
+
+**[+ month_name +] [+ year +]**
+
+President Hindenburg has had enough.
+
+[? if spd_in_government : In a terse statement, the President has dismissed the Social Democratic-led government. "The Reich government no longer enjoys my confidence," the announcement reads. ?]
+
+[? if not spd_in_government and in_grand_coalition : The President has dismissed the Grand Coalition government, citing its "inability to govern effectively in this time of crisis." ?]
+
+[? if not spd_in_government and not in_grand_coalition : The President has dismissed the current government. His statement speaks of "parliamentary chaos" and "the need for strong leadership." ?]
+
+[? if hindenburg_senility >= 50 : Observers note that the President appeared confused during the announcement, mixing up the names of current ministers with officials from decades past. ?]
+
+[? if camarilla_strength >= 70 : State Secretary Meißner read the dismissal decree. It is clear the camarilla has orchestrated this. ?]
+
+**The camarilla celebrates.** Schleicher, Meißner, and Oskar von Hindenburg confer in the Presidential Palace, already discussing candidates for a new "Presidential Cabinet."
+
+[? if hindenburg_government_dismissals == 1 : This is the first time Hindenburg has dismissed a government outright. A dangerous precedent. ?]
+
+[? if hindenburg_government_dismissals >= 2 : This is the [+ hindenburg_government_dismissals +]nd time Hindenburg has dismissed a government. Parliamentary democracy is dying. ?]
+
+[? if hindenburg_government_dismissals >= 3 : This is now routine. Hindenburg dismisses governments at will. The Reichstag is irrelevant. ?]
+
+**Hindenburg's faith in parliamentary democracy:** [+ hindenburg_trust_reichstag +]/100
+
+A new government will be appointed soon.
+
+- @root: Continue...
