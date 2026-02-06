@@ -37,10 +37,10 @@ Juchacz's strategies for organizing women are aimed at working-class housewives,
 @solidarity_network
 title: Solidarity Network
 subtitle: We will make the welfare self sustaining and beneficial.
-choose-if: advisor_action_timer == 0 and workers_aid >= 3
-unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if workers_aid < 3 : Need established Workers' Welfare (3+ aid levels). ?]
+choose-if: advisor_action_timer == 0 and workers_aid >= 5
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if workers_aid < 5 : Need established Workers' Welfare (5+ aid levels). ?]
 on-arrival: {!
-    Q.advisor_action_timer = 6;
+    Q.advisor_action_timer = 6 + workers_aid;
     Q.solidarity_network_active = 1;
     
     // One-time resource gain
@@ -52,4 +52,4 @@ on-arrival: {!
 !}
 
 Juchacz transforms Workers' Welfare into a mutual aid network. By transitioning from charity to self-sustenance through member contributions and cooperatives, we ensure the party's resources go further.
-Effect: Gain [+ workers_aid +] resources and a permanent increase to dues income.
+Effect: Gain [+ workers_aid +] resources and a permanent increase to dues income in fundraising.
