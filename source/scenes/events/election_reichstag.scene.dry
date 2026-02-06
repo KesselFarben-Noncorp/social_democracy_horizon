@@ -1461,6 +1461,9 @@ on-arrival: {!
 // COALITION SUCCESSFULLY FORMED
 // ============================================
 
+If (Q.president === "Hindenburg") Q.hindenburg_patience = 40;
+
+
 var coalition = Q.chosen_coalition.parties;
 Q.government_parties = coalition;
 Q.coalition_votes = Q.chosen_coalition.votes;
@@ -2963,13 +2966,20 @@ on-arrival: {!
 
 **Coalition Dissent:** [+ coalition_dissent +]
 
-[? if coalition_dissent >= 3 : The coalition is showing signs of strain. ?]
+[? if coalition_dissent >= 1 : The coalition is showing signs of strain. ?]
 
-[? if coalition_dissent >= 5 : The coalition is in serious trouble. A vote of no confidence may be imminent. ?]
+[? if coalition_dissent >= 2 : The coalition is in serious trouble. A vote of no confidence may be imminent. ?]
 
 [? if kpd_in_government : **KPD Coalition Dissent:** [+ kpd_coalition_dissent +] ?]
 
-[? if kpd_coalition_dissent >= 5 : The KPD is threatening to withdraw from the coalition. ?]
+[? if kpd_coalition_dissent >= 2 : The KPD is threatening to withdraw from the coalition. ?]
+
+
+
+
+
+
+
 
 
 
