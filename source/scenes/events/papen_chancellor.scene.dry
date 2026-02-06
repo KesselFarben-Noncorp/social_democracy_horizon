@@ -86,7 +86,7 @@ on-arrival: {!
     Q.papen_votes_for = Q.dnvp_r;
     
     // NSDAP position depends on negotiations
-    if (Q.nsdap_relation >= 50 or Q.camarilla_goal_install_hitler > 30) {
+    if (Q.nsdap_relation >= 50 || Q.camarilla_goal_install_hitler > 30) {
         Q.papen_votes_for += Q.nsdap_r;
         Q.nsdap_supported_papen = 1;
     } else {
@@ -95,7 +95,7 @@ on-arrival: {!
     }
     
     // DVP might support if right-leaning
-    if (Q.dvp_relation <= 40 and Q.dvp_right_shift >= 1) {
+    if (Q.dvp_relation <= 40 && Q.dvp_right_shift >= 1) {
         Q.papen_votes_for += Q.dvp_r;
     } else {
         Q.papen_votes_against += Q.dvp_r;
@@ -107,7 +107,7 @@ on-arrival: {!
     // If Papen has majority support, no need to dissolve
     Q.papen_dissolves_reichstag = Q.papen_lost_confidence_vote;
 
-    if (Q.papen_votes_against > Q.papen_votes_for) {
+    if (Q.papen_votes_against >= Q.papen_votes_for) {
     // Call new elections
         Q.next_election_time = Q.time + 3;
         Q.next_election_month = Q.month + 3;
