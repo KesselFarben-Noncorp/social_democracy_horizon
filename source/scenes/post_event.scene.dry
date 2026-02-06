@@ -1041,9 +1041,6 @@ if (Q.month_actions >= 1) {
     Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/50, 0.5), 1.5), 0.15);
     Q.street_pressure_factor = Q.random_factor(Math.min(Math.max((Q.sa_strength * Q.sa_militancy + Q.rfb_strength * Q.rfb_militancy + Q.sh_strength * Q.sh_militancy) / 3000,  0.7 ), 1.8 ), 0.25);
 
-    Q.nat_dom = Math.min(Math.max(Q.nationalism/(Q.socialism+1), 0.5), 1.5);
-    Q.soc_dom = Math.min(Math.max(Q.socialism/(Q.nationalism+1), 0.5), 1.5);
-
         // Paramilitary influence (randomized)
         // SA is banned if NSDAP is banned
     Q.sa_influence  = Q.nsdap_banned ? 0 : Q.random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
@@ -1315,7 +1312,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 1.10) * (Q.unrest_factor * 3.20) * Q.nat_dom * Q.street_pressure_factor, 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.55) + (Q.unrest_factor * 3.65) + Q.street_pressure_factor, 0.3);
                     break;
                 case 'csvd':
                     if (Q.csvd_flee === 1) {
@@ -1409,14 +1406,12 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'kpd':
-                    Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism/Q.nationalism);
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.soc_adj * Q.street_pressure_factor, 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.street_pressure_factor, 0.25);
                     break;
                 case 'sapd':
                     if (Q.sapd_formed === 1) {
-                        Q.soc_adj = Q.soc_dom * Math.min(1, Q.socialism / Q.nationalism);
                         Q.ideology_factor = Q.random_factor(
-                            Q.socialism_factor * Q.unrest_factor * 0.45 * Q.soc_adj,
+                            Q.socialism_factor * Q.unrest_factor * 0.45,
                             0.25
                         );
                     }
