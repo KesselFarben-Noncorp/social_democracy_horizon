@@ -1,7 +1,7 @@
 title: Economic Minister's Response to Crisis
 subtitle: [+ economic_minister_party +] proposes policy changes
 new-page: true
-view-if: unemployed >= 10 and economic_minister_party != "SPD" and party_economic_response_timer = 0 and sandbox = 1
+view-if: (unemployed >= 9 or inflation <= -6 or economic_growth <= -5) and economic_minister_party != "SPD" and party_economic_response_timer = 0 and sandbox = 1
 on-arrival: party_economic_response_timer = 6; month_actions += 1
 tags: event
 
@@ -26,12 +26,59 @@ Economic Minister [? if economic_minister : [+ economic_minister +] ?] of the [+
 [? if economic_minister_party = "CNBL" : The CNBL proposes agricultural support. ?]
 [? if economic_minister_party = "DNVP" : The DNVP proposes conservative fiscal policies. ?]
 [? if economic_minister_party = "NSDAP" : The NSDAP proposes nationalist economic programs. ?]
+[? if economic_minister_party = "I" : [+ economic_minister +] proposes technocratic policy. ?]
+
 
 - @review_proposal: Review the proposal
 - @easy_discard
 
 @review_proposal
-go-to: kpd_proposal if economic_minister_party = "KPD"; sapd_proposal if economic_minister_party = "SAPD"; srpd_proposal if economic_minister_party = "SRPD"; ddp_proposal if economic_minister_party = "DDP" or economic_minister_party = "DStP"; z_proposal if economic_minister_party = "Z"; dvp_proposal if economic_minister_party = "DVP"; bvp_proposal if economic_minister_party = "BVP"; wp_proposal if economic_minister_party = "WP"; cnbl_proposal if economic_minister_party = "CNBL"; dnvp_proposal if economic_minister_party = "DNVP"; nsdap_proposal if economic_minister_party = "NSDAP"
+go-to: kpd_proposal if economic_minister_party = "KPD"; sapd_proposal if economic_minister_party = "SAPD"; srpd_proposal if economic_minister_party = "SRPD"; ddp_proposal if economic_minister_party = "DDP" or economic_minister_party = "DStP"; z_proposal if economic_minister_party = "Z"; dvp_proposal if economic_minister_party = "DVP"; bvp_proposal if economic_minister_party = "BVP"; wp_proposal if economic_minister_party = "WP"; cnbl_proposal if economic_minister_party = "CNBL"; dnvp_proposal if economic_minister_party = "DNVP"; nsdap_proposal if economic_minister_party = "NSDAP"; independent_proposal if economic_minister_party = "I";
+
+# ========================================
+# INDEPENDENT - CIVIL SERVICE TECHNOCRAT
+# ========================================
+
+@independent_proposal
+
+**Independent Economic Minister's Program:**
+
+Economic Minister [+ economic_minister +], an independent technocrat, proposes a cautious, evidence-based approach to the crisis.
+
+**Fiscal & Financial Proposals:**
+1. **Gradual fiscal adjustment** - Avoid shock austerity or reckless spending
+2. **Credit market stabilization** - Prevent banking panics through liquidity support
+3. **Automatic stabilizers** - Let unemployment insurance cushion the downturn
+4. **Structural reforms** - Address inefficiencies without ideological bias
+5. **International cooperation** - Negotiate debt relief and trade agreements
+
+**Technocratic Assessment:**
+The minister's analysis prioritizes macroeconomic stability and avoiding extreme measures. The proposal aims for a sustainable recovery path that doesn't provoke political backlash from either capital or labor. However, the cautious approach may be too slow to address urgent suffering.
+
+**Effects:**
+- Minimal deficit (budget -0.5 to -1)
+- Neutral inflation (-0.5 to +0.5)
+- Slow employment recovery (-1.5 to -2 unemployment)
+- Market stability preserved
+- No major structural change
+
+- @accept_independent: Accept the technocratic program
+- @independent_fiscal: Accept with expanded fiscal component
+- @reject_proposal: Reject and propose alternatives
+
+@accept_independent
+on-arrival: budget -= 0.8; inflation += 0.2; unemployed -= 1.7; fiscal_stance += 0.2; fiscal_demand += 0.3; credit_conditions -= 0.1; stabilizer_boost += 0.8; unemployment_stabilizer += 0.5; banking_stress -= 0.4; capital_pressure -= 0.3; supply_impulse += 0.3; investment_chill -= 0.15; workers_spd -= 1; unemployed_spd -= 1; new_middle_spd += 1; pro_republic -= 2
+
+We implement the independent minister's technocratic program. The cautious, evidence-based approach stabilizes financial markets and prevents banking crises, but workers and the unemployed feel the response is inadequate to their suffering. The lack of bold action disappoints those demanding urgent relief.
+
+- @root
+
+@independent_fiscal
+on-arrival: budget -= 1.5; unemployed -= 2.5; fiscal_stance += 0.4; fiscal_demand += 0.5; credit_conditions += 0.1; stabilizer_boost += 0.6; unemployment_stabilizer += 0.4; banking_stress -= 0.3; workers_spd += 0; new_middle_spd += 1; coalition_dissent += 0.5
+
+We accept the technocratic framework but expand the fiscal component: more generous automatic stabilizers and increased public works spending within prudent limits. A compromise between caution and action.
+
+- @root
 
 # ========================================
 # KPD - COMMUNIST
