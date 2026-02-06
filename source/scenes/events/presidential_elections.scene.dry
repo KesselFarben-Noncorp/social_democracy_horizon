@@ -997,7 +997,6 @@ on-arrival: {!
     // ========================================
     // HINDENBURG (INDEPENDENT) - 1932 only
     // ========================================
-    Q.hindenburg_running = 0;
     if (Q.hindenburg_dead === 0 && Q.year >= 1932) {
     Q.hindenburg_running = 1;
     Q.hindenburg_candidate = "Hindenburg";
@@ -1985,40 +1984,47 @@ go-to: election_end if has_majority; r2_start if not has_majority
 @r2_start
 on-arrival: {!
     // === ROUND 2 CONSOLIDATION ===
-    
+
     var finalists = [Q.round1_winner, Q.round1_runner_up];
-    
+
     // Ideological blocks for consolidation logic
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
-    var center = ["Adenauer", "Kaas", "Brüning", "Bruning", "Hindenburg"];
-    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2", "Hindenburg"];
+    var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
+    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
-    
+
+    // Only add Hindenburg to blocks if he's alive
+    if (!Q.hindenburg_dead) {
+        center_left.push("Hindenburg");
+        center.push("Hindenburg");
+        center_right.push("Hindenburg");
+    }
+
     function isInBlock(candidate, block) {
         return block.indexOf(candidate) !== -1;
     }
-    
+
     function getIdeologicalDistance(candidate1, candidate2) {
         var blocks = [far_left, left, cultural, center_left, center, center_right, far_right];
         var pos1 = -1, pos2 = -1;
-        
+    
         for (var i = 0; i < blocks.length; i++) {
             if (isInBlock(candidate1, blocks[i])) pos1 = i;
             if (isInBlock(candidate2, blocks[i])) pos2 = i;
         }
-        
+    
         return Math.abs(pos1 - pos2);
     }
-    
+
     // === FAR-RIGHT CONSOLIDATION ===
     // NSDAP and DNVP always consolidate in round 2
     if (Q.nsdap_candidate !== Q.dnvp_candidate) {
         var nsdap_in_runoff = finalists.indexOf(Q.nsdap_candidate) !== -1;
         var dnvp_in_runoff = finalists.indexOf(Q.dnvp_candidate) !== -1;
-        
+    
         if (nsdap_in_runoff && !dnvp_in_runoff) {
             Q.dnvp_candidate = Q.nsdap_candidate;
             Q.other_candidate = Q.nsdap_candidate;
@@ -2028,7 +2034,7 @@ on-arrival: {!
             // Both eliminated, support whoever is closest ideologically
             var nsdap_votes = Q[Q.nsdap_candidate + '_votes'] || 0;
             var dnvp_votes = Q[Q.dnvp_candidate + '_votes'] || 0;
-            
+        
             if (nsdap_votes > dnvp_votes) {
                 // NSDAP had more votes, they choose
                 if (isInBlock(finalists[0], far_right) || isInBlock(finalists[0], center_right)) {
@@ -2054,30 +2060,30 @@ on-arrival: {!
             }
         }
     }
-    
+
     // === OTHER PARTIES CONSOLIDATE ===
-    
+
     // Function to pick closest finalist
     function pickClosestFinalist(current_candidate, party_ideology_priority) {
         if (finalists.indexOf(current_candidate) !== -1) {
             return current_candidate; // Already in runoff
         }
-        
+    
         // Pick based on ideological priority
         for (var i = 0; i < party_ideology_priority.length; i++) {
             var preferred_block = party_ideology_priority[i];
-            
+        
             for (var j = 0; j < finalists.length; j++) {
                 if (isInBlock(finalists[j], preferred_block)) {
                     return finalists[j];
                 }
             }
         }
-        
+    
         // Fallback: pick closest by distance
         var dist0 = getIdeologicalDistance(current_candidate, finalists[0]);
         var dist1 = getIdeologicalDistance(current_candidate, finalists[1]);
-        
+    
         return dist0 <= dist1 ? finalists[0] : finalists[1];
     }
     
@@ -2089,26 +2095,25 @@ on-arrival: {!
         // Moderate Z
         Q.z_candidate = pickClosestFinalist(Q.z_candidate, [center, center_left, left, center_right]);
     }
-    
+
     // === BVP ===
     Q.bvp_candidate = pickClosestFinalist(Q.bvp_candidate, [center_right, center, far_right, center_left]);
-    
+
     // === DVP ===
     Q.dvp_candidate = pickClosestFinalist(Q.dvp_candidate, [center_left, center, center_right, left]);
-    
+
     // === DDP ===
     Q.ddp_candidate = pickClosestFinalist(Q.ddp_candidate, [center_left, center, left, cultural]);
-    
+
     // === KPD ===
     Q.kpd_candidate = pickClosestFinalist(Q.kpd_candidate, [far_left, left, cultural]);
-    
-    // === SAPD ===
+
+// === SAPD ===
     if (Q.sapd_formed) {
         Q.sapd_candidate = pickClosestFinalist(Q.sapd_candidate, [left, far_left, cultural, center_left]);
     }
 
-    // SRPD
-
+    // === SRPD ===
     if (Q.srpd_formed) {
         Q.srpd_candidate = pickClosestFinalist(Q.srpd_candidate, [center_left, center, center_right, left, far_left]);
     }
@@ -2125,11 +2130,12 @@ on-arrival: {!
 
     // === CSVD ===
     if (Q.csvd_candidate) {
-        Q.csvd_candidate = pickClosestFinalist(Q.cnbl_candidate, [center_right, center, center_left, cultural, left]);
+        Q.csvd_candidate = pickClosestFinalist(Q.csvd_candidate, [center_right, center, center_left, cultural, left]);
     }
-    
+
     // === OTHER ===
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
+
 !}
 
 **Second Round Runoff**
@@ -2253,6 +2259,9 @@ on-arrival: {!
         } else {
             candidate_votes[supported_candidate] = party_votes;
         }
+        
+        // Store individual party vote for display
+        Q[party + '_r2_votes'] = party_votes;
     }
     
     // Apply bonuses
@@ -2277,6 +2286,11 @@ on-arrival: {!
     
     Q.winner_votes = Math.round(1000 * Q.winner_votes / total_votes) / 10;
     Q.winner_votes_disp = Q.winner_votes.toFixed(1);
+    
+    // Store runner-up info
+    Q.runnerup = Q.round1_winner === Q.winner ? Q.round1_runner_up : Q.round1_winner;
+    Q.runnerup_votes = Math.round(1000 * candidate_votes[Q.runnerup] / total_votes) / 10;
+    Q.runnerup_votes_disp = Q.runnerup_votes.toFixed(1)
     
     var candidate_descs = {
     Hindenburg: "Paul von Hindenburg (I)",
@@ -2341,6 +2355,21 @@ go-to: election_end
 **Final Results:**
 
 [+ winner_desc +] has won the presidency with [+ winner_votes_disp +]% of the vote!
+
+**Party Breakdown (Second Round):**
+- SPD: [+ spd_r2_votes +]% → [+ spd_candidate +]
+- Z: [+ z_r2_votes +]% → [+ z_candidate +]
+- KPD: [+ kpd_r2_votes +]% → [+ kpd_candidate +]
+- NSDAP: [+ nsdap_r2_votes +]% → [+ nsdap_candidate +]
+- DNVP: [+ dnvp_r2_votes +]% → [+ dnvp_candidate +]
+- DVP: [+ dvp_r2_votes +]% → [+ dvp_candidate +]
+- [+ ddp_name +]: [+ ddp_r2_votes +]% → [+ ddp_candidate +]
+[? if sapd_formed : - SAPD: [+ sapd_r2_votes +]% → [+ sapd_candidate +] ?]
+[? if srpd_formed : - SRPD: [+ srpd_r2_votes +]% → [+ srpd_candidate +] ?]
+[? if bvp_r2_votes > 0 : - BVP: [+ bvp_r2_votes +]% → [+ bvp_candidate +] ?]
+[? if wp_r2_votes > 0 : - WP: [+ wp_r2_votes +]% → [+ wp_candidate +] ?]
+[? if cnbl_r2_votes > 0 : - CNBL: [+ cnbl_r2_votes +]% → [+ cnbl_candidate +] ?]
+[? if csvd_r2_votes > 0 : - CSVD: [+ csvd_r2_votes +]% → [+ csvd_candidate +] ?]
 
 @election_end
 on-departure: {!
