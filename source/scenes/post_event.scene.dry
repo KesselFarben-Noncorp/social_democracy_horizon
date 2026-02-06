@@ -617,24 +617,26 @@ if (Q.month_actions >= 1) {
     // === WEAKER EMERGENCY STABILIZERS (Only prevent total collapse) ===
 
     // FIXED: Much weaker automatic stabilization - only prevents impossible extremes
-    if (Q.inflation <= -10 && Q.inflation_expectations > Q.inflation + 2) {
+    if (Q.inflation <= -9 && Q.inflation_expectations > Q.inflation + 2) {
         // Only trigger at EXTREME deflation (-10% or worse)
         Q.emergency_reflation = 0.2 * (Q.inflation_expectations - Q.inflation); // Reduced from 0.5
         Q.dInflation += Q.emergency_reflation;
         Q.demand_impulse += 0.1; // Reduced from 0.3
+        Q.price_pressure += 0.3;
+        Q.fiscal_stance += -0.1;
     }
 
     // Growth floor - only at depression levels
-    if (Q.economic_growth < -10) {
+    if (Q.economic_growth < -9) {
         Q.stabilizer_boost = (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.06; // Reduced from 0.12
         Q.dGrowth += Q.stabilizer_boost;
+        Q.demand_impulse += 0.2;
     }
 
     // Unemployment ceiling - only at catastrophic levels
-    if (Q.unemployed > 35) { // Raised from 25
+    if (Q.unemployed > 25) {
         Q.unemployment_stabilizer = -(Q.unemployed - 35) * 0.08; // Reduced from 0.15
         Q.dUnemployment += Q.unemployment_stabilizer;
-    }
 
     // === APPLY CHANGES ===
 
@@ -656,7 +658,7 @@ if (Q.month_actions >= 1) {
     if (!Q.math_broken) {
         // NORMAL: Economic values constrained
         Q.inflation = Math.max(-12, Math.min(99, Q.inflation));
-        Q.unemployed = Math.max(0, Math.min(45, Q.unemployed));
+        Q.unemployed = Math.max(0, Math.min(65, Q.unemployed));
         Q.economic_growth = Math.max(-15, Math.min(20, Q.economic_growth));
         Q.inflation_expectations = Math.max(-8, Math.min(99, Q.inflation_expectations));
         Q.budget = Math.max(-50, Math.min(50, Q.budget));
