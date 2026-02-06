@@ -279,7 +279,7 @@ on-arrival: {!
     "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
     "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
     "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
-    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2"
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg"
 ];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
@@ -993,6 +993,56 @@ on-arrival: {!
     } else {
         Q.other_candidate = "Gessler";
     }
+
+    // ========================================
+    // HINDENBURG (INDEPENDENT) - 1932 only
+    // ========================================
+    Q.hindenburg_running = 0;
+    if (Q.hindenburg_dead === 0 && Q.year >= 1932) {
+    Q.hindenburg_running = 1;
+    Q.hindenburg_candidate = "Hindenburg";
+    
+    // Most parties support Hindenburg automatically
+    // Only extremes (KPD, NSDAP if strong) and far-left SPD refuse
+    
+    // Z, BVP - automatic support
+    if (Q.z_party_leader !== "Joos" || Q.z_relation < 35) {
+        Q.z_candidate = "Hindenburg";
+        Q.z_default_candidate = "Hindenburg";
+    }
+    Q.bvp_candidate = "Hindenburg";
+    Q.bvp_default_candidate = "Hindenburg";
+    
+    // DVP, DDP - automatic support
+    Q.dvp_candidate = "Hindenburg";
+    Q.dvp_default_candidate = "Hindenburg";
+    Q.ddp_candidate = "Hindenburg";
+    Q.ddp_default_candidate = "Hindenburg";
+    
+    // DNVP - support unless line 3 (Hugenberg)
+    if (Q.dnvp_line !== 3) {
+        Q.dnvp_candidate = "Hindenburg";
+    }
+    
+    // WP, CNBL, CSVD - automatic support
+    if (Q.wp_r && Q.wp_r > 2) {
+        Q.wp_candidate = "Hindenburg";
+        Q.wp_default_candidate = "Hindenburg";
+    }
+    if (Q.cnbl_r && Q.cnbl_r > 1.5) {
+        Q.cnbl_candidate = "Hindenburg";
+        Q.cnbl_default_candidate = "Hindenburg";
+    }
+    if (Q.csvd_flee === 1) {
+        Q.csvd_candidate = "Hindenburg";
+        Q.csvd_default_candidate = "Hindenburg";
+    }
+    
+    // SRPD - likely support
+    if (Q.srpd_formed && Q.reformist_strength >= 30) {
+        Q.srpd_candidate = "Hindenburg";
+    }
+}
 !}
 
 The parties are preparing their candidates:
@@ -1038,6 +1088,7 @@ Who should represent the SPD in this election?
 - @adenauer_r1: Support the Center Party's candidate. ([+ z_default_candidate +])
 - @gessler_r1: Support an independent liberal candidate - Gessler.
 - @stresemann_r1: Support Gustav Stresemann (if alive and DVP amenable).
+- @hindenburg_r1
 - @westarp_r1: Support Kuno von Westarp (if DNVP line 1 - moderate).
 - @schaffer_r1: Support Franz Schäffer (BVP).
 - @drewitz_r1: Support Max Drewitz (WP - Economic Party).
@@ -1052,6 +1103,16 @@ Who should represent the SPD in this election?
 - @juchacz_r1: Nominate Marie Juchacz.
 - @cultural_figure: Nominate a nonpartisan cultural figure.
 - @abstain_r1: Don't field a candidate, see who emerges.
+
+@hindenburg_r1
+title: Support Paul von Hindenburg - the field marshal as unity candidate
+view-if: hindenburg_running = 1
+choose-if: reformist_strength >= left_strength or neorevisionist_strength >= 30
+unavailable-subtitle: [? if reformist_strength < left_strength and neorevisionist_strength < 30 : The left wing blocks this. ?]
+on-arrival: spd_candidate = "Hindenburg"; is_unity_candidate = 1; left_dissent += 8; labor_dissent += 5; dnvp_relation += 5; z_relation += 8; dvp_relation += 8; ddp_relation += 8;
+go-to: finalize_candidates
+
+We will support Field Marshal von Hindenburg, who has broad support across democratic parties.
 
 @drewitz_r1
 subtitle: Support the middle-class economic candidate - unusual coalition.
@@ -1172,6 +1233,7 @@ The field is now clear. Who should we support?
 - @support_cnbl_late: Support [+ cnbl_candidate +] (if CNBL running)
 - @support_dnvp_late: Support [+ dnvp_candidate +] (if moderate DNVP)
 - @support_kpd_late: Support [+ kpd_candidate +] (if left-wing)
+- @hindenburg_r1
 - @own_candidate_late: Run our own candidate after all
 
 @support_wp_late
@@ -1679,6 +1741,7 @@ on-arrival: {!
     // === CALCULATE ROUND 1 RESULTS ===
     
     var candidate_descs = {
+    Hindenburg: "Paul von Hindenburg (I)",
     Hitler: "Adolf Hitler (NSDAP)",
     Göring: "Hermann Göring (NSDAP)",
     Goring: "Hermann Göring (NSDAP)",
@@ -1816,6 +1879,8 @@ go-to: election_end if has_majority; r2_start if not has_majority
 
 **First Round Results:**
 
+[? if hindenburg_running: Hindenburg - [+ Hindenburg_votes_disp +]% ?]
+
 [? if Hitler_running : Hitler - [+ Hitler_votes_disp +]% ?]
 
 [? if Goring_running : Göring - [+ Goring_votes_disp +]% ?]
@@ -1878,8 +1943,8 @@ on-arrival: {!
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
-    var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
-    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2"];
+    var center = ["Adenauer", "Kaas", "Brüning", "Bruning", "Hindenburg"];
+    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2", "Hindenburg"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
     
@@ -2165,6 +2230,7 @@ on-arrival: {!
     Q.winner_votes_disp = Q.winner_votes.toFixed(1);
     
     var candidate_descs = {
+    Hindenburg: "Paul von Hindenburg (I)",
     Hitler: "Adolf Hitler (NSDAP)",
     Göring: "Hermann Göring (NSDAP)",
     Goring: "Hermann Göring (NSDAP)",
@@ -2237,9 +2303,20 @@ Q.next_presidential_election_year = Q.year + 7;
 Q.next_presidential_election_month = 3; // Always March
 !}
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
-go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
+go-to: hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"; hindenburg_victory if winner = "Hindenburg";
 
 [+ winner_desc +] is now President of Germany.
+
+@hindenburg_victory
+on-arrival: chancellor_party = "DNVP"; nationalism += 10; dnvp_relation += 5
+
+Paul von Hindenburg, the aging field marshal, becomes President of Germany. The old military hero represents traditional conservative values.
+
+[? if presidential_powers >= 1 : However, constitutional reforms limit his ability to rule by decree... ?]
+
+[? if presidential_powers = 0 : With full presidential powers, Hindenburg rules as a conservative figurehead, heavily influenced by his DNVP backers. ?]
+
+- @game_over
 
 @cnbl_victory
 
