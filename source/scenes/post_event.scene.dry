@@ -1610,7 +1610,7 @@ if (Q.month_actions >= 1) {
         }
     
         // === BASE CAMARILLA GROWTH ===
-        Q.camarilla_strength = (Q.camarilla_strength || 0) + 0.2;
+        Q.camarilla_strength = (Q.camarilla_strength || 0) + 0.1;
     
         // === CONDITIONAL BOOSTS ===
     
@@ -1622,8 +1622,8 @@ if (Q.month_actions >= 1) {
     
         // 2. Government instability
         if (!Q.in_grand_coalition && !Q.in_weimar_coalition) Q.camarilla_strength += 0.3;
-        if (Q.coalition_dissent >= 2) Q.camarilla_strength += 0.5;
-        if (Q.grand_coalition_failed) Q.camarilla_strength += 0.7;
+        if (Q.coalition_dissent >= 1) Q.camarilla_strength += 0.5;
+        if (Q.hindenburg_patience <= 0) Q.camarilla_strength += 0.7;
         if (Q.presidential_cabinet) Q.camarilla_strength += 0.4;
         if (Q.minority_government) Q.camarilla_strength += 0.3;
         if (Q.no_majority_elections >= 2) Q.camarilla_strength += 0.4;
