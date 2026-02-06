@@ -758,15 +758,16 @@ if (Q.month_actions >= 1) {
     }
 
     // --- UNEMPLOYMENT PRESSURE ---
-    var unemp_stress   = scale(Q.unemployed, 10, 50); // 0 at 10%, 1 at 50%
+    var unemp_stress   = scale(Q.unemployed, 8, 25); // 0 at 10%, 1 at 50%
     var unemp_relief   = 1 - scale(Q.unemployed, 3, 10); // 1 at 3%, 0 at 10%
 
     // --- INFLATION PRESSURE ---
     var inflation_stress  = scale(Q.inflation, 5, 15);
     var inflation_stable  = 1 - scale(Math.abs(Q.inflation), 3, 8);
 
-    // --- GROWTH BOOST ---
-    var growth_boost = scale(Q.economic_growth, 2, 8);
+    // GROWTH (ADD PENALTY FOR NEGATIVE GROWTH)
+    var growth_boost = scale(Q.economic_growth, 1, 6);
+    var growth_penalty = scale(-Q.economic_growth, 1, 10); // NEW
 
     // ============================================
     // DETERMINE WHO GETS CREDIT/BLAME
@@ -819,7 +820,7 @@ if (Q.month_actions >= 1) {
 
     // Bad economy hurts republic ONLY if government is failing
     if (economy_bad) {
-        pr_pull += (unemp_stress * 2.5) + (inflation_stress * 1.5);
+        pr_pull += (unemp_stress * 3.5) + (inflation_stress * 1.5) + (growth_penalty * 3.0);
     
         // Extra damage if crisis + weak government
         if (!Q.spd_in_government && !Q.in_grand_coalition) {
@@ -828,7 +829,7 @@ if (Q.month_actions >= 1) {
     }
 
     var pr_delta = pr_push - pr_pull;
-    pr_delta *= 0.4;
+    pr_delta *= 0.65;
 
     if (pr_delta > 0 && Q.pro_republic > 70) pr_delta *= (1 - scale(Q.pro_republic, 70, 90));
     if (pr_delta < 0 && Q.pro_republic < 25) pr_delta *= (1 - scale(25 - Q.pro_republic, 0, 15));
@@ -844,7 +845,7 @@ if (Q.month_actions >= 1) {
 
     if (economy_bad) {
         // Bad economy creates nationalist pressure
-        nat_push += (unemp_stress * 3.0) + (inflation_stress * 1.5);
+        nat_push += (unemp_stress * 4.0) + (inflation_stress * 1.5) + (growth_penalty * 3.0);
     
         // BUT: if nationalists are in power, they GET BLAMED
         if (nationalist_in_power) {
@@ -874,7 +875,7 @@ if (Q.month_actions >= 1) {
     }
 
     var nat_delta = nat_push - nat_pull;
-    nat_delta *= 0.4;
+    nat_delta *= 0.65;
 
     if (nat_delta > 0 && Q.nationalism > 70) nat_delta *= (1 - scale(Q.nationalism, 70, 90));
     if (nat_delta < 0 && Q.nationalism < 20) nat_delta *= (1 - scale(20 - Q.nationalism, 0, 15));
@@ -890,7 +891,7 @@ if (Q.month_actions >= 1) {
 
     if (economy_bad) {
         // Bad economy creates socialist pressure
-        soc_push += (unemp_stress * 3.0) + (inflation_stress * 1.2);
+        soc_push += (unemp_stress * 4.0) + (inflation_stress * 1.2) + (growth_penalty * 2.5);
     
         // BUT: if socialists are in power, they GET BLAMED
         if (socialist_in_power) {
@@ -920,7 +921,7 @@ if (Q.month_actions >= 1) {
     }
 
     var soc_delta = soc_push - soc_pull;
-    soc_delta *= 0.4;
+    soc_delta *= 0.65;
 
     if (soc_delta > 0 && Q.socialism > 70) soc_delta *= (1 - scale(Q.socialism, 70, 90));
     if (soc_delta < 0 && Q.socialism < 20) soc_delta *= (1 - scale(20 - Q.socialism, 0, 15));
