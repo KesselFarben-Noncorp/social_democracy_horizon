@@ -1,7 +1,7 @@
 title: Schacht's Resignation
 subtitle: The Reichsbank President Departs
 new-page: true
-view-if: year = 1930 and month = 3 and schacht_resigned = 0 and (schacht_exposed = 1 or (unemployed >= 12 or inflation <= -3) or schacht_relation <= 30)
+view-if: year = 1930 and month = 3 and schacht_resigned = 0 and (schacht_exposed = 1 or (unemployed >= 19 or inflation <= -6) or schacht_relation <= 40)
 tags: event, economics
 max-visits: 1
 on-arrival: schacht_resigned = 1
@@ -63,7 +63,7 @@ But we've also entrenched conservative monetary orthodoxy. Luther will resist an
 [? if unemployed >= 15 : In a crisis requiring bold action, we've appointed a man committed to caution. ?]
 
 @support_blessing
-choose-if: (wtb_adopted = 1 or lautenbach_supported = 1 or economic_democracy >= 2) and (spd_in_government = 1 or (spd_toleration = 1 and z_relation >= 45))
+choose-if: (wtb_adopted = 1 or lautenbach_supported = 1 or economic_democracy >= 3) and (spd_in_government = 1 or (spd_toleration = 1 and z_relation >= 45))
 unavailable-subtitle: [? if wtb_adopted != 1 and lautenbach_supported != 1 and economic_democracy < 2 : We haven't built the case for monetary flexibility. Need WTB plan, Lautenbach support, or economic democracy reforms. ?] [? if spd_in_government != 1 and spd_toleration != 1 : We lack influence to push this candidate. ?] [? if spd_toleration = 1 and z_relation < 45 : Center Party doesn't trust us enough to accept this candidate. ?]
 on-arrival: reichsbank_president = "Blessing"; schacht_relation -= 3; z_relation += 2 if z_relation >= 45; z_relation -= 3 if z_relation < 45; dvp_relation -= 2; ddp_relation += 2; left_strength += 3; reformist_strength += 5; neorevisionist_strength += 4; financial_crisis_progress -= 2 if financial_crisis_progress > 0; reichsbank_independent = 0; credit_expansion_possible = 1;
 
