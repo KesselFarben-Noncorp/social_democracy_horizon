@@ -2,37 +2,44 @@ title: The Lambach Article – *“Monarchismus”*
 tags: event
 view-if: (year >= 1928 and month >= 7 and dnvp_votes < 14 and lambach_seen = 0) or (year >= 1929 and lambach_seen = 0 and (dnvp_win = 2 or dnvp_win = 0))
 priority: 1
-on-arrival: lambach_seen = 1; dnvp_win = 2; dnvp_win = 1 if (pro_republic > 48 and spd_in_government = 0) or (pro_republic > 53 and spd_in_government = 1); dnvp_win = 3 if (pro_republic < 48 and spd_in_government = 0) or (pro_republic < 43 and spd_in_government = 1) or (nationalism > 27 and spd_in_government = 1)
+on-arrival: lambach_seen = 1; 
 
 = Lambach Article - "Monarchy"
 
-Following catastrophic polls DNVP of dropping from 20% down to [+ dnvp_r +]%, Westarp has resigned from his position and currently acts as current leader until the replacement, being succeeded by none. Shortly after, Walther Lambach publishes the article about "Monarchy" about the futility of all-or-nothing and authoritarian conservative - monarchist nostalgia policy, seeking to cooperate with republican parties in order to counteract SPD and KPD. Causing heavy inflammation within the party, Hugenberg led his aristocrats, officers and radicals against the Lambach and to remove him from the party, while civilians, non Hugenbergite royalists (officers , aristocrats, Junker, military, landowners) and party members stand against Hugenberg in back of either of Westarp/Hergt or Hartwig/Lambach/Treviranus.
+Following catastrophic polling results—which saw the DNVP plummet from 20% to [+ dnvp_r +]%—Kuno von Westarp has resigned. While he remains the acting leader until a successor is chosen, his departure has left a significant power vacuum.
+​The internal crisis intensified following Walther Lambach’s publication of "Monarchy." In the article, Lambach argues that authoritarian nostalgia and "all-or-nothing" monarchist policies are futile. Instead, he advocates for a pragmatic shift: cooperating with republican parties to build a united front against the SPD and KPD.
 
-Supporting Hartwig, Lambach or Treviranus may not necessarily gain us ally as DNVP is inherently very aggressive against the SPD and our social reforms, however we may align them with republican system.
+​This has ignited a civil war within the party:
+​The Hugenberg Fraction: Alfred Hugenberg is leading a coalition of radicals, officers, and aristocrats to purge Lambach from the party and maintain a hardline anti-republican stance.
+​The Moderate/Reformed Opposition: A diverse group of civilians, non-Hugenbergite royalists, and landowners are rallying behind either the traditional leadership of Westarp or the reformist vision of Hartwig, Lambach and Treviranus.
+​
+​We face a pivotal choice in how to handle the DNVP’s fragmentation:
 
-On other hand, we may support Hugenbergites to distance them even further from Republican system in order for bourgeoisie to cooperate with us be they want or not.
+​The Reformist Path (Hartwig/Lambach/Treviranus): Supporting this wing is unlikely to win us a direct ally—the DNVP remains ideologically hostile to our social reforms and the SPD. However, it could successfully integrate them into the republican framework, stabilizing the state.
+​The Accelerationist Path (Hugenberg): Conversely, we could covertly support the Hugenbergites. This would further alienate the DNVP from the republican system, potentially radicalizing them to the point where the broader bourgeoisie feels forced to cooperate with us out of necessity.
 
-[? if year >= 1929: Eventually, cheating DNVP was caught up trying to break my code, so here they are. ?]
+- @result: The result of the newly declared congress is ...
+
+@result
+go-to: hartwig if (pro_republic / 3) > nationalism; hugenberg if (pro_republic / 3) < nationalism; westarp if ((pro_republic + nationalism) / 2) > 75
 
 - @hartwig: Hartwig sweeps away the victory!
 - @westarp: Westarp and Hergt barely scraped the stalemate for their benefit!
 - @hugenberg: Hugenberg's radicals take over the party!
 
 @hartwig
-choose-if: dnvp_win = 1
 subtitle: Emil Hartwig gains the new ground!
 on-arrival: dnvp_line = 1; dnvp_party_leader = "Emil Hartwig"; old_middle_dnvp -= 5; rural_dnvp -= 2; catholics_dnvp -= 1; new_middle_dnvp -= 2
 
 = Emil Hartwig has secured the win in DNVP Congress of 1928!
 
-Barely managing to secure the victory for the Christian - Socialist / Young Conservative / Green Front/Landbund , Hartwig reorientates the party towards cooperation with Z, DVP, BVP and DDP to pressure them away from SPD, seeking to isolate SPD.
+Barely managing to secure the victory for the Christian - Socials / Young Conservatives / Green Front/ Landbund , Hartwig reorientates the party towards cooperation with Z, DVP, BVP and DDP to pressure them away from SPD, seeking to isolate SPD.
 
 Enraged by the defeat, Hugenberg pulls out the media funding for the party and threatens to split away the party!
 
 On the other ring, Lambach, Treviranus, Quaatz and Schiele are talking about how exactly should "constitutionalist - republican" DNVP look. Either case, it doesn't look like any development is beneficial for us.
 
 @westarp
-choose-if: dnvp_win = 2
 subtitle: Westarp regains the ground!
 on-arrival: dnvp_line = 2; dnvp_party_leader = "Kuno von Westarp";
 
@@ -40,10 +47,9 @@ on-arrival: dnvp_line = 2; dnvp_party_leader = "Kuno von Westarp";
 
 Following the stagnation of the Congress votings, Westarp has stepped into it to secure former position once more, installing himself in the power! 
 
-Chrisrian Socials, Reich Landsbund (Rural League of the State) and Nationalists all have calmed down despite the blame shifting on Kuno Graf von Westarp on failures to unite the party under one wing.
+Christian Socials, Reich Landsbund (Rural League of the State) and Nationalists all have calmed down despite the blame shifting on Kuno Graf von Westarp on failures to unite the party under one wing.
 
 @hugenberg
-choose-if: dnvp_win = 3
 subtitle: Hugenberg carves up the old ways!
 on-arrival: dnvp_line = 3; dnvp_party_leader = "Alfred Hugenberg"; new_middle_dnvp -= 5; old_middle_dnvp += 2; rural_dnvp -= 3; workers_dnvp -= 5
 
