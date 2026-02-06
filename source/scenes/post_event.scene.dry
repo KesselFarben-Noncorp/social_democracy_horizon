@@ -1103,7 +1103,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 1.05) * (Q.unrest_factor * 2.8) * Q.nat_dom * Q.street_pressure_factor, 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 1.25) * (Q.unrest_factor * 3.2) * Q.nat_dom * Q.street_pressure_factor, 0.3);
                     break;
                 case 'csvd':
                     if (Q.csvd_flee === 1) {
@@ -1285,8 +1285,8 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'z':
-                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholics/100), 0.15);
-                    
+                    Q.catholic_bonus = Math.min(0.5, Q.catholics/100); // Cap at +50%
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholic_bonus), 0.15);
                     if (Q.z_party_leader === "Kaas") {
                         Q.ideology_factor *= 0.95;
                     } else if (Q.z_party_leader === "Joos") {
