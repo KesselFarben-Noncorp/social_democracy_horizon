@@ -784,7 +784,7 @@ if (Q.month_actions >= 1) {
     var centrist_in_power = (
         Q.z_in_government || 
         Q.ddp_in_government || 
-        (Q.dvp_in_government && (Q.dvp_right_shift || 0) < 2) || 
+        (Q.dvp_in_government && (Q.dvp_right_shift || 0) < 1) || 
         Q.srpd_in_government || 
         Q.wp_in_government || 
         Q.bvp_in_government
@@ -795,7 +795,7 @@ if (Q.month_actions >= 1) {
         Q.dnvp_in_government || 
         Q.cnbl_in_government || 
         Q.nsdap_in_government || 
-        (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 2)
+        (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1)
     );
 
     // Economic performance assessment
@@ -828,7 +828,7 @@ if (Q.month_actions >= 1) {
     }
 
     var pr_delta = pr_push - pr_pull;
-    pr_delta *= 1.2;
+    pr_delta *= 0.4;
 
     if (pr_delta > 0 && Q.pro_republic > 70) pr_delta *= (1 - scale(Q.pro_republic, 70, 90));
     if (pr_delta < 0 && Q.pro_republic < 25) pr_delta *= (1 - scale(25 - Q.pro_republic, 0, 15));
@@ -874,7 +874,7 @@ if (Q.month_actions >= 1) {
     }
 
     var nat_delta = nat_push - nat_pull;
-    nat_delta *= 1.2;
+    nat_delta *= 0.4;
 
     if (nat_delta > 0 && Q.nationalism > 70) nat_delta *= (1 - scale(Q.nationalism, 70, 90));
     if (nat_delta < 0 && Q.nationalism < 20) nat_delta *= (1 - scale(20 - Q.nationalism, 0, 15));
@@ -920,7 +920,7 @@ if (Q.month_actions >= 1) {
     }
 
     var soc_delta = soc_push - soc_pull;
-    soc_delta *= 1.2;
+    soc_delta *= 0.4;
 
     if (soc_delta > 0 && Q.socialism > 70) soc_delta *= (1 - scale(Q.socialism, 70, 90));
     if (soc_delta < 0 && Q.socialism < 20) soc_delta *= (1 - scale(20 - Q.socialism, 0, 15));
@@ -941,8 +941,8 @@ if (Q.month_actions >= 1) {
     
         // After sustained success, socialism becomes normalized
         if (Q.socialist_govt_success_counter > 4) {
-            Q.socialism += 0.5; // Baseline legitimacy boost
-            soc_pull *= 0.8; // Resistance to decline
+            Q.socialism += 0.15; // Baseline legitimacy boost
+            soc_pull *= 0.9; // Resistance to decline
         }
     } else if (economy_bad && socialist_in_power) {
         Q.socialist_govt_success_counter = Math.max(0, Q.socialist_govt_success_counter - 1);
@@ -952,8 +952,8 @@ if (Q.month_actions >= 1) {
         Q.nationalist_govt_success_counter++;
     
         if (Q.nationalist_govt_success_counter > 4) {
-            Q.nationalism += 0.5;
-            nat_pull *= 0.8;
+            Q.nationalism += 0.15;
+            nat_pull *= 0.9;
         }
     } else if (economy_bad && nationalist_in_power) {
         Q.nationalist_govt_success_counter = Math.max(0, Q.nationalist_govt_success_counter - 1);
@@ -964,12 +964,12 @@ if (Q.month_actions >= 1) {
     // ============================================
 
     // If both socialism and nationalism are high, they compete
-    if (Q.socialism > 50 && Q.nationalism > 50) {
+    if (Q.socialism > 40 && Q.nationalism > 40) {
         // Whichever has momentum wins
         if (soc_delta > nat_delta) {
-            Q.nationalism -= 0.5; // Socialism crowds out nationalism
+            Q.nationalism -= 0.15; // Socialism crowds out nationalism
         } else if (nat_delta > soc_delta) {
-            Q.socialism -= 0.5; // Nationalism crowds out socialism
+            Q.socialism -= 0.15; // Nationalism crowds out socialism
         }
     }
 
@@ -980,21 +980,21 @@ if (Q.month_actions >= 1) {
     if (economy_bad) {
         // Failed socialist government hurts socialism more
         if (socialist_in_power && Q.unemployed > 20) {
-            Q.socialism -= 1.5; // "They promised full employment!"
-            Q.pro_republic -= 0.5; // Disillusionment
+            Q.socialism -= 0.5; // "They promised full employment!"
+            Q.pro_republic -= 0.15; // Disillusionment
         }
     
         // Failed nationalist government hurts nationalism more
         if (nationalist_in_power && (Q.inflation > 15 || Q.economic_growth < -5)) {
-            Q.nationalism -= 1.5; // "They promised strength!"
-            Q.pro_republic -= 0.5;
+            Q.nationalism -= 0.5; // "They promised strength!"
+            Q.pro_republic -= 0.15;
         }
     
         // But: if NEITHER ideology is in power during crisis
         if (!socialist_in_power && !nationalist_in_power && centrist_in_power) {
-            Q.socialism += 1.0; // "We need change!"
-            Q.nationalism += 1.0;
-            Q.pro_republic -= 1.0; // "Center has failed!"
+            Q.socialism += 0.3; // "We need change!"
+            Q.nationalism += 0.3;
+            Q.pro_republic -= 0.3; // "Center has failed!"
         }
     }
 
@@ -1008,12 +1008,12 @@ if (Q.month_actions >= 1) {
 
     // If socialists successfully managed a crisis before, they get more credit
         if (Q.spd_crisis_victories && Q.spd_crisis_victories > 0 && economy_good && socialist_in_power) {
-            Q.socialism += 0.3 * Q.spd_crisis_victories; // Track record matters
+            Q.socialism += 0.1 * Q.spd_crisis_victories; // Track record matters
         }
 
         // If nationalists caused a crisis before, they get less credit
         if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0 && nationalist_in_power) {
-            Q.nationalism -= 0.2 * Q.nationalist_crisis_failures; // Bad reputation
+            Q.nationalism -= 0.07 * Q.nationalist_crisis_failures; // Bad reputation
         }
     
     // --- Begin Reworked Randomized Monthly Party Drift ---
