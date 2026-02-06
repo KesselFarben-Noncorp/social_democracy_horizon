@@ -1182,7 +1182,7 @@ if (Q.month_actions >= 1) {
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
-        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 1.10) + (Q.unrest_factor * 3.2),
+        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 1.10) + (Q.unrest_factor * 1.2),
         dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8) : Q.nationalism * 1.45),
         dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
         wp:    Q.wp_banned   ? 0 : (Q.pro_republic * 1.10) + (Q.inflation * 0.14),
@@ -1312,7 +1312,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.55) + (Q.unrest_factor * 0.65) + (Q.street_pressure_factor * 0.7), 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.25) + (Q.unrest_factor * 1.65) + (Q.street_pressure_factor * 0.7), 0.3);
                     break;
                 case 'csvd':
                     if (Q.csvd_flee === 1) {
