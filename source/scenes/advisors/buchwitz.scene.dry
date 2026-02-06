@@ -17,14 +17,14 @@ A Great War veteran and a Reichsbanner leader, Otto Buchwitz argues for the dire
 @rb_attack
 title: Paramilitary Confrontation
 subtitle: Buchwitz orders Reichsbanner units to engage hostile paramilitaries directly, risking moderate backlash while weakening right-wing forces.
-choose-if: advisor_action_timer <= 0 and rb_strength >= 1000 and rb_militancy > 0.25
-on-arrival: advisor_action_timer = 4; sh_strength -= sh_strength * 0.15; ss_strength -= ss_strength * 0.15; rb_strength -= rb_strength * 0.20; nationalism -= nationalism * 0.03; dnvp_relation -= 5; nsdap_relation -= 10; left_dissent += 2; pro_republic += 1; reichsbanner_timer -= 5;
+choose-if: advisor_action_timer <= 0 and rb_strength >= 1000 and rb_militancy > 0.25 and strife >= 5
+on-arrival: advisor_action_timer = 4; sh_strength -= sh_strength * 0.15; ss_strength -= ss_strength * 0.15; rb_strength -= rb_strength * 0.20; nationalism -= nationalism * 0.03; dnvp_relation -= 5; nsdap_relation -= 10; left_dissent += 2; pro_republic += 1; reichsbanner_timer -= 5; strife += 2; workers_spd *= 0.99; new_middle_spd *= 0.97
 
 @iron_front_mobilization
 title: Iron Front Mobilization
 subtitle: Activate the Iron Front as a visible anti-fascist counterweight, strengthening worker militias and reducing right-wing influence.
 choose-if: iron_front_formed = 1 and advisor_action_timer <= 0
-on-arrival: advisor_action_timer = 5; rb_strength += rb_strength * 0.05; rb_militancy += 0.06; workers_nsdap -= 2; workers_dnvp -= 1; sh_militancy += 0.02; ss_militancy += 0.02; nationalism -= nationalism * 0.02; z_relation -= 2; dvp_relation -= 2; reichsbanner_timer -= 3;
+on-arrival: advisor_action_timer = 5; rb_strength += rb_strength * 0.05; rb_militancy += 0.06; workers_nsdap -= 2; workers_dnvp -= 1; sh_militancy += 0.02; ss_militancy += 0.02; nationalism -= nationalism * 0.02; z_relation -= 2; dvp_relation -= 2; reichsbanner_timer -= 3; strife += 1
 
 @rb_expansion
 title: Reichsbanner Expansion Drive
