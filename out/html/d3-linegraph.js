@@ -53,7 +53,7 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       if (noTicks) {
         xaxis = d3.axisBottom()
         .tickFormat(d3.timeFormat('%b %Y'))
-        .ticks(10)
+        .ticks(d3.timeYear.every(1))
         .scale(xScale);
       }
 
