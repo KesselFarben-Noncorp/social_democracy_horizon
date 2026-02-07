@@ -16,70 +16,71 @@ card-image: img/Reichsbank.jpg
 - @easy_discard
 - @cancel_advisor_action
 
+
 @orthodox_tightening
 title: Orthodox Monetary Tightening
 subtitle: Raise discount rates and restrict credit to combat inflation
-on-arrival: price_pressure -= 2; capital_pressure += 1; credit_conditions -= 2; investment_chill += 1; fiscal_stance -= 0.5; demand_impulse -= 1; inflation_expectations -= 1; inflation_momentum -= 0.8; wage_pressure -= 0.5; consumption_multiplier -= 0.15; investment_effect -= 0.3; total_demand -= 1.2; banking_stress += 0.3; dInflation -= 1.5; dGrowth -= 0.8; dUnemployment += 0.4
+on-arrival: price_pressure -= 0.8; capital_pressure += 0.3; investment_chill += 0.4; demand_impulse -= 0.4; inflation_expectations -= 0.3; dInflation -= 0.5; dGrowth -= 0.3; dUnemployment += 0.2
 
 The Reichsbank raises the discount rate by 150 basis points and implements stricter lending standards. This orthodox approach prioritizes currency stability and investor confidence over short-term growth considerations.
 
-**Economic Effects:** Higher borrowing costs immediately dampen investment activity and reduce consumer credit availability. Price pressures ease as demand contracts, but unemployment rises modestly as businesses postpone expansion plans. The tighter monetary stance strengthens the Reichsmark and may attract foreign capital, though at the cost of domestic economic activity.
+**Economic Effects:** Higher borrowing costs dampen investment activity and reduce consumer credit availability. Price pressures ease as demand contracts, but unemployment rises modestly as businesses postpone expansion plans.
 
-**Political Consequences:** Industrialists complain about credit constraints hampering production. The SPD criticizes the policy as favoring creditors over workers. However, middle-class savers and foreign investors view the move favorably, seeing it as responsible stewardship that protects the currency's purchasing power.
+**Political Consequences:** Industrialists complain about credit constraints. The SPD criticizes the policy as favoring creditors over workers. However, middle-class savers and foreign investors view the move favorably.
 
 @moderate_stabilization
 title: Moderate Stabilization Policy
 subtitle: Balance growth and stability through gradual monetary adjustment
-on-arrival: price_pressure -= 0.8; demand_impulse -= 0.3; credit_conditions -= 0.5; inflation_expectations -= 0.4; stabilizer_boost += 1; unemployment_stabilizer += 0.5; consumption_multiplier -= 0.05; investment_effect -= 0.1; fiscal_demand += 0.2; cycle_amplitude -= 0.3; inflation_momentum -= 0.3; dInflation -= 0.6; dGrowth -= 0.2; dUnemployment += 0.1
+on-arrival: price_pressure -= 0.3; demand_impulse -= 0.15; inflation_expectations -= 0.15; dInflation -= 0.2; dGrowth -= 0.1; dUnemployment += 0.05
 
-The Reichsbank pursues a middle course, adjusting interest rates modestly while maintaining credit availability for productive enterprises. This approach aims to prevent both runaway inflation and severe contraction.
+The Reichsbank pursues a middle course, adjusting interest rates modestly while maintaining credit availability for productive enterprises.
 
-**Economic Effects:** The measured tightening provides enough restraint to stabilize inflation expectations without triggering a sharp downturn. Credit remains available for solid businesses, though speculative lending is curtailed. The economy continues growing, albeit at a slower pace, while price increases moderate gradually.
+**Economic Effects:** The measured tightening provides enough restraint to stabilize inflation expectations without triggering a sharp downturn. Credit remains available for solid businesses.
 
-**Political Consequences:** This pragmatic stance draws less criticism than extreme measures. Business leaders appreciate the continued access to credit, while fiscal conservatives note the progress on inflation. The policy's gradualism prevents dramatic shocks but requires patience—critics on both left and right argue for more decisive action in their preferred direction.
+**Political Consequences:** This pragmatic stance draws less criticism than extreme measures. Business leaders appreciate continued credit access, while fiscal conservatives note progress on inflation.
 
 @expansionary_credit
 title: Expansionary Credit Policy
 subtitle: Lower rates and expand lending to combat unemployment and deflation
 view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding"
-on-arrival: credit_conditions += 2; demand_impulse += 1.5; investment_effect += 0.4; consumption_multiplier += 0.2; fiscal_demand += 0.5; total_demand += 1.5; investment_chill -= 1; price_pressure += 1; inflation_expectations += 0.6; emergency_reflation += 1; deflation_severity -= 1.5; deflation_drag -= 1; banking_stress -= 0.4; capital_pressure -= 0.8; cycle_growth_effect += 0.3; productivity_growth += 0.2; dInflation += 0.8; dGrowth += 1.2; dUnemployment -= 0.6
+on-arrival: demand_impulse += 0.5; investment_chill -= 0.3; price_pressure += 0.3; inflation_expectations += 0.2; capital_pressure -= 0.3; dInflation += 0.3; dGrowth += 0.4; dUnemployment -= 0.25
 
-The Reichsbank slashes the discount rate and instructs banks to expand lending, particularly for productive investment and employment-creating projects. This aggressive monetary stimulus aims to revive economic activity.
+The Reichsbank slashes the discount rate and instructs banks to expand lending, particularly for productive investment and employment-creating projects.
 
-**Economic Effects:** Cheaper credit stimulates business investment and consumer spending. Unemployment falls as firms expand hiring and production. Construction and manufacturing sectors respond particularly strongly. However, the stimulus risks rekindling inflation if the economy approaches full capacity, and may put downward pressure on the Reichsmark's exchange rate.
+**Economic Effects:** Cheaper credit stimulates business investment and consumer spending. Unemployment falls as firms expand hiring. However, the stimulus risks rekindling inflation if the economy approaches full capacity.
 
-**Political Consequences:** The SPD and trade unions enthusiastically support the policy, celebrating job creation and rising wages. Export-oriented industries benefit from the weaker currency. However, orthodox economists warn of inflation risks, and foreign creditors express concern about monetary discipline. The policy's success depends heavily on whether stimulus translates into genuine productive capacity or merely fuels price increases.
+**Political Consequences:** The SPD and trade unions enthusiastically support the policy. Export-oriented industries benefit from the weaker currency. Orthodox economists warn of inflation risks.
 
 @emergency_reflation
 title: Emergency Reflation Measures
 subtitle: Deploy extraordinary monetary expansion to combat severe deflation
-view-if: (deflation_severity > 2 or severe_deflation = 1)
-on-arrival: emergency_reflation += 3; stabilizer_boost += 2; credit_conditions += 3; demand_impulse += 2.5; deflation_severity -= 3; deflation_debt_effect -= 2; deflation_drag -= 2.5; consumption_defer -= 1.5; banking_stress -= 1.5; investment_collapse -= 2; depression_effect -= 1.5; deflation_unemployment -= 1; price_pressure += 2; inflation_expectations += 1.5; capital_pressure -= 1.5; fiscal_demand += 1; investment_effect += 0.8; total_demand += 2.5; cycle_growth_effect += 0.5; dInflation += 2; dGrowth += 1.8; dUnemployment -= 1.2
+view-if: inflation < -5
+on-arrival: demand_impulse += 1.0; price_pressure += 0.8; inflation_expectations += 0.6; capital_pressure -= 0.6; investment_chill -= 0.8; dInflation += 0.8; dGrowth += 0.7; dUnemployment -= 0.5
 
-Facing catastrophic deflation, the Reichsbank abandons orthodoxy and implements emergency measures: near-zero interest rates, direct lending to critical industries, and massive expansion of the monetary base. This is economic warfare against the deflationary spiral.
+Facing catastrophic deflation, the Reichsbank abandons orthodoxy: near-zero interest rates, direct lending to critical industries, and massive monetary base expansion.
 
-**Economic Effects:** The monetary shock breaks deflation expectations and stabilizes the price level. Banks receive liquidity support, preventing systemic collapse. Businesses stop hoarding cash as real interest rates fall. The debt burden stabilizes as nominal values stop falling. Investment revives as entrepreneurs regain confidence that future revenues won't be worth less than current costs.
+**Economic Effects:** The monetary shock breaks deflation expectations and stabilizes prices. Banks receive liquidity support, preventing systemic collapse. Investment revives as entrepreneurs regain confidence.
 
-**Political Consequences:** This dramatic intervention sparks fierce debate. The left celebrates the bold action to save jobs and prevent economic catastrophe. Orthodox economists and gold-standard advocates denounce it as currency debasement and fear hyperinflation. Foreign creditors are alarmed, but domestic political pressure for action overwhelms external concerns. Success depends on whether the economy responds before inflation expectations destabilize—the Reichsbank walks a knife's edge between depression and currency crisis.
+**Political Consequences:** This dramatic intervention sparks fierce debate. The left celebrates bold action to save jobs. Orthodox economists denounce it as currency debasement. Success depends on whether the economy responds before inflation expectations destabilize.
 
 @fiscal_monetary_coordination
 title: Fiscal-Monetary Coordination
 subtitle: Align Reichsbank policy with government fiscal strategy
-on-arrival: fiscal_stance += 0.8; fiscal_demand += 1; credit_conditions += 0.5; demand_impulse += 0.8; stabilizer_boost += 1.5; unemployment_stabilizer += 1; investment_effect += 0.3; consumption_multiplier += 0.1; total_demand += 1; cycle_amplitude -= 0.4; price_pressure += 0.6; inflation_expectations += 0.3; budget -= 0.2; tax_drag -= 0.3; productivity_trend += 0.2; dInflation += 0.4; dGrowth += 0.7; dUnemployment -= 0.4
+on-arrival: fiscal_stance += 0.3; demand_impulse += 0.3; price_pressure += 0.2; inflation_expectations += 0.1; dInflation += 0.15; dGrowth += 0.25; dUnemployment -= 0.15
 
-The Reichsbank coordinates its monetary policy with the government's fiscal program, ensuring that credit conditions support public spending initiatives. The central bank provides favorable financing for government bonds and maintains accommodative rates.
+The Reichsbank coordinates its monetary policy with the government's fiscal program, ensuring credit conditions support public spending initiatives.
 
-**Economic Effects:** The synchronized policy mix maximizes economic impact. Government spending finds willing lenders, infrastructure projects proceed smoothly, and private investment complements public initiatives. The economy benefits from consistent policy signals, though critics worry about fiscal dominance of monetary policy and potential inflation if coordination becomes too loose.
+**Economic Effects:** The synchronized policy mix maximizes economic impact. Government spending finds willing lenders, infrastructure projects proceed smoothly, and private investment complements public initiatives.
 
-**Political Consequences:** This approach strengthens the coalition between fiscal and monetary authorities. The SPD views it as pragmatic cooperation for the public good, while the government appreciates central bank support. However, purists on the right denounce the erosion of Reichsbank independence, warning that political pressure on monetary policy threatens currency stability. The policy's legitimacy rests on whether coordination serves genuine stabilization or becomes a tool for financing unsustainable spending.
+**Political Consequences:** The SPD views it as pragmatic cooperation. However, purists denounce erosion of Reichsbank independence, warning that political pressure threatens currency stability.
 
 @gold_standard_defense
 title: Gold Standard Defense
 subtitle: Maintain currency parity through strict monetary discipline
-on-arrival: capital_pressure -= 1.5; credit_conditions -= 1.5; price_pressure -= 1.5; inflation_expectations -= 1; trade_pressure -= 0.8; demand_impulse -= 1.2; fiscal_stance -= 1; investment_chill += 1.5; consumption_multiplier -= 0.2; investment_effect -= 0.4; total_demand -= 1.5; capital_drift += 0.5; trade_drift -= 0.3; deflation_severity += 0.8; banking_stress += 0.5; dInflation -= 1.2; dGrowth -= 1; dUnemployment += 0.6
+on-arrival: capital_pressure -= 0.4; price_pressure -= 0.5; inflation_expectations -= 0.3; demand_impulse -= 0.5; investment_chill += 0.5; trade_pressure -= 0.2; dInflation -= 0.4; dGrowth -= 0.4; dUnemployment += 0.3
 
-The Reichsbank prioritizes maintaining the gold parity above all else, raising rates as necessary to defend the currency and prevent capital flight. International credibility takes precedence over domestic concerns.
+The Reichsbank prioritizes maintaining gold parity above all else, raising rates as necessary to defend the currency and prevent capital flight.
 
-**Economic Effects:** The commitment to gold anchors inflation expectations and attracts foreign capital, strengthening Germany's international financial position. However, the tight monetary conditions strangle domestic credit and may deepen deflation if global conditions weaken. Exporters benefit from stable exchange rates, but import-competing industries and domestic-focused businesses suffer from restricted demand.
+**Economic Effects:** The commitment to gold anchors inflation expectations and attracts foreign capital. However, tight monetary conditions strangle domestic credit and may deepen deflation if global conditions weaken.
 
-**Political Consequences:** This policy divides opinion sharply along class and ideological lines. International financiers and orthodox economists praise the discipline, seeing it as essential for Germany's creditworthiness. Nationalist conservatives support maintaining the mark's prestige. However, workers and domestic industrialists bear the costs of high unemployment and restricted growth. The SPD attacks the policy as sacrificing German workers to foreign creditors. The strategy's sustainability depends on whether the domestic political system can tolerate the economic pain required for currency defense.
+**Political Consequences:** International financiers praise the discipline. However, workers and domestic industrialists bear the costs of high unemployment. The SPD attacks the policy as sacrificing German workers to foreign creditors.
