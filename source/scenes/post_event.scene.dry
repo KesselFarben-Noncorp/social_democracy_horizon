@@ -1756,7 +1756,7 @@ if (Q.month_actions >= 1) {
     
         // Stress from political crisis
         if (Q.coup_progress >= 5) health_decline_per_turn += 0.05;
-        if (Q.street_violence >= 6) health_decline_per_turn += 0.05;
+        if (Q.strife >= 6) health_decline_per_turn += 0.05;
     
         // Stress from using emergency powers
         if (Q.emergency_rule) health_decline_per_turn += 0.03;
@@ -1803,6 +1803,7 @@ if (Q.month_actions >= 1) {
     
         // SPD in government (he dislikes this)
         if (Q.spd_in_government) trust_reichstag_decline += 0.1;
+        if (economy_bad) hindenburg_patience -= 0.5;
     
         Q.hindenburg_trust_reichstag = Math.max(0, (Q.hindenburg_trust_reichstag || 50) - trust_reichstag_decline);
     
@@ -1810,18 +1811,26 @@ if (Q.month_actions >= 1) {
         if (Q.spd_in_government) {
             Q.hindenburg_trust_spd = Math.max(0, (Q.hindenburg_trust_spd || 30) - 0.05);
         }
+            
+        /// Economic situation affects this mfer
+        if (economy_bad) {
+        Q.hindenburg_patience -= 0.5;
+        trust_reichstag_decline -= 0.3
+        }
+
+
         // SPD counter-efforts can improve trust
         if (Q.hindenburg_relationship_efforts > 0) {
             Q.hindenburg_trust_spd = Math.min(100, (Q.hindenburg_trust_spd || 30) + 0.1);
         }
     
         // Trust in DNVP depends on their moderation
-        if (Q.dnvp_leader === "Hugenberg" || Q.dnvp_leader === "Hugenberg") {
+        if (Q.dnvp_party_leader === "Hugenberg" || Q.dnvp_leader === "Hugenberg") {
             Q.hindenburg_trust_dnvp = Math.max(50, (Q.hindenburg_trust_dnvp || 70) - 0.1);
         }
     
         // === BASE CAMARILLA GROWTH ===
-        Q.camarilla_strength = (Q.camarilla_strength || 0) + 0.1;
+        Q.camarilla_strength = (Q.camarilla_strength || 0) + 0.02;
     
         // === CONDITIONAL BOOSTS ===
     
