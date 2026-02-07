@@ -2,7 +2,7 @@ title: Monetary Policy
 new-page: true
 is-card: true
 tags: govt_affairs, cabinet
-view-if: spd_in_government = 1 and finance_minister_party == "SPD" and monetary_policy_timer <= 0
+view-if: spd_in_government = 1 and finance_minister_party == "SPD" and monetary_policy_timer <= 0 and ((reichsbank_president = "Blessing" or reichsbank_president = "Hilferding") or sandbox = 1))
 on-arrival: monetary_policy_timer += 24
 card-image: img/Reichsbank.jpg
 
@@ -19,7 +19,6 @@ card-image: img/Reichsbank.jpg
 @orthodox_tightening
 title: Orthodox Monetary Tightening
 subtitle: Raise discount rates and restrict credit to combat inflation
-view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding"
 on-arrival: price_pressure -= 2; capital_pressure += 1; credit_conditions -= 2; investment_chill += 1; fiscal_stance -= 0.5; demand_impulse -= 1; inflation_expectations -= 1; inflation_momentum -= 0.8; wage_pressure -= 0.5; consumption_multiplier -= 0.15; investment_effect -= 0.3; total_demand -= 1.2; banking_stress += 0.3; dInflation -= 1.5; dGrowth -= 0.8; dUnemployment += 0.4
 
 The Reichsbank raises the discount rate by 150 basis points and implements stricter lending standards. This orthodox approach prioritizes currency stability and investor confidence over short-term growth considerations.
@@ -31,7 +30,6 @@ The Reichsbank raises the discount rate by 150 basis points and implements stric
 @moderate_stabilization
 title: Moderate Stabilization Policy
 subtitle: Balance growth and stability through gradual monetary adjustment
-view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding"
 on-arrival: price_pressure -= 0.8; demand_impulse -= 0.3; credit_conditions -= 0.5; inflation_expectations -= 0.4; stabilizer_boost += 1; unemployment_stabilizer += 0.5; consumption_multiplier -= 0.05; investment_effect -= 0.1; fiscal_demand += 0.2; cycle_amplitude -= 0.3; inflation_momentum -= 0.3; dInflation -= 0.6; dGrowth -= 0.2; dUnemployment += 0.1
 
 The Reichsbank pursues a middle course, adjusting interest rates modestly while maintaining credit availability for productive enterprises. This approach aims to prevent both runaway inflation and severe contraction.
@@ -55,7 +53,7 @@ The Reichsbank slashes the discount rate and instructs banks to expand lending, 
 @emergency_reflation
 title: Emergency Reflation Measures
 subtitle: Deploy extraordinary monetary expansion to combat severe deflation
-view-if: (reichsbank_president = "Blessing" or reichsbank_president = "Hilferding") and (deflation_severity > 2 or severe_deflation = 1)
+view-if: (deflation_severity > 2 or severe_deflation = 1)
 on-arrival: emergency_reflation += 3; stabilizer_boost += 2; credit_conditions += 3; demand_impulse += 2.5; deflation_severity -= 3; deflation_debt_effect -= 2; deflation_drag -= 2.5; consumption_defer -= 1.5; banking_stress -= 1.5; investment_collapse -= 2; depression_effect -= 1.5; deflation_unemployment -= 1; price_pressure += 2; inflation_expectations += 1.5; capital_pressure -= 1.5; fiscal_demand += 1; investment_effect += 0.8; total_demand += 2.5; cycle_growth_effect += 0.5; dInflation += 2; dGrowth += 1.8; dUnemployment -= 1.2
 
 Facing catastrophic deflation, the Reichsbank abandons orthodoxy and implements emergency measures: near-zero interest rates, direct lending to critical industries, and massive expansion of the monetary base. This is economic warfare against the deflationary spiral.
@@ -67,7 +65,6 @@ Facing catastrophic deflation, the Reichsbank abandons orthodoxy and implements 
 @fiscal_monetary_coordination
 title: Fiscal-Monetary Coordination
 subtitle: Align Reichsbank policy with government fiscal strategy
-view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding"
 on-arrival: fiscal_stance += 0.8; fiscal_demand += 1; credit_conditions += 0.5; demand_impulse += 0.8; stabilizer_boost += 1.5; unemployment_stabilizer += 1; investment_effect += 0.3; consumption_multiplier += 0.1; total_demand += 1; cycle_amplitude -= 0.4; price_pressure += 0.6; inflation_expectations += 0.3; budget -= 0.2; tax_drag -= 0.3; productivity_trend += 0.2; dInflation += 0.4; dGrowth += 0.7; dUnemployment -= 0.4
 
 The Reichsbank coordinates its monetary policy with the government's fiscal program, ensuring that credit conditions support public spending initiatives. The central bank provides favorable financing for government bonds and maintains accommodative rates.
@@ -79,7 +76,6 @@ The Reichsbank coordinates its monetary policy with the government's fiscal prog
 @gold_standard_defense
 title: Gold Standard Defense
 subtitle: Maintain currency parity through strict monetary discipline
-view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding"
 on-arrival: capital_pressure -= 1.5; credit_conditions -= 1.5; price_pressure -= 1.5; inflation_expectations -= 1; trade_pressure -= 0.8; demand_impulse -= 1.2; fiscal_stance -= 1; investment_chill += 1.5; consumption_multiplier -= 0.2; investment_effect -= 0.4; total_demand -= 1.5; capital_drift += 0.5; trade_drift -= 0.3; deflation_severity += 0.8; banking_stress += 0.5; dInflation -= 1.2; dGrowth -= 1; dUnemployment += 0.6
 
 The Reichsbank prioritizes maintaining the gold parity above all else, raising rates as necessary to defend the currency and prevent capital flight. International credibility takes precedence over domestic concerns.
