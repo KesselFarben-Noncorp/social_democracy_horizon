@@ -774,32 +774,49 @@ if (Q.month_actions >= 1) {
     var growth_boost = scale(Q.economic_growth, 1, 6);
     var growth_penalty = scale(-Q.economic_growth, 1, 10);
 
+
     // ============================================
-    // DETERMINE WHO GETS CREDIT/BLAME
+        // DETERMINE WHO GETS CREDIT/BLAME (WITH GRADUAL INFLUENCE)
     // ============================================
 
-    var socialist_in_power = (
-        Q.spd_in_government || 
-        Q.kpd_in_government || 
-        Q.sapd_in_government
-    );
+    // Count parties in government per bloc
+    var socialist_party_count = 0;
+    var centrist_party_count = 0;
+    var nationalist_party_count = 0;
 
-    var centrist_in_power = (
-        Q.z_in_government || 
-        Q.ddp_in_government || 
-        (Q.dvp_in_government && (Q.dvp_right_shift || 0) < 1) || 
-        Q.srpd_in_government || 
-        Q.wp_in_government || 
-        Q.bvp_in_government
-    );
+    // Socialist bloc
+    if (Q.ideology === "left" && Q.spd_in_government) socialist_party_count++;
+    if (Q.kpd_in_government) socialist_party_count++;
+    if (Q.sapd_in_government) socialist_party_count++;
 
-    var nationalist_in_power = (
-        Q.dnvp_in_government || 
-        Q.cnbl_in_government || 
-        Q.nsdap_in_government || 
-        (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1)
-    );
+    // Centrist bloc
+    if (Q.spd_in_government && Q.ideology !== "left") centrist_party_count++;
+    if (Q.z_in_government) centrist_party_count++;
+    if (Q.ddp_in_government) centrist_party_count++;
+    if (Q.dvp_in_government && (Q.dvp_right_shift || 0) < 1) centrist_party_count++;
+    if (Q.srpd_in_government) centrist_party_count++;
+    if (Q.wp_in_government) centrist_party_count++;
+    if (Q.bvp_in_government) centrist_party_count++;
+    if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
 
+    // Nationalist bloc
+    if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
+    if (Q.cnbl_in_government) nationalist_party_count++;
+    if (Q.nsdap_in_government) nationalist_party_count++;
+    if (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1) nationalist_party_count++;
+
+    // Calculate influence (0.0 to 1.0 scale)
+    // 1 party = 0.3 influence, 2 parties = 0.6, 3+ parties = 1.0
+    var socialist_influence = Math.min(socialist_party_count * 0.35, 1.0);
+    var centrist_influence = Math.min(centrist_party_count * 0.25, 1.0);
+    var nationalist_influence = Math.min(nationalist_party_count * 0.35, 1.0);
+
+    // Binary flags for simpler checks
+    var socialist_in_power = (socialist_party_count > 0);
+    var centrist_in_power = (centrist_party_count > 0);
+    var nationalist_in_power = (nationalist_party_count > 0);
+
+    // Economic performance assessment
     var economy_good = (Q.unemployed < 8 && Q.inflation > -2 && Q.inflation < 6 && Q.economic_growth > 1);
     var economy_bad = (Q.unemployed > 15 || Math.abs(Q.inflation) > 8 || Q.economic_growth < -2);
     var economy_mixed = !economy_good && !economy_bad;
@@ -811,13 +828,16 @@ if (Q.month_actions >= 1) {
     var pr_push = 0;
     var pr_pull = 0;
 
+    // Good economy helps republic REGARDLESS of who's in charge
     if (economy_good) {
         pr_push += (unemp_relief * 2.0) + (inflation_stable * 1.0) + (growth_boost * 1.5);
     }
 
+    // Bad economy hurts republic
     if (economy_bad) {
         pr_pull += (unemp_stress * 3.5) + (inflation_stress * 1.5) + (growth_penalty * 3.0);
     
+        // Extra damage if crisis + weak government
         if (!Q.spd_in_government && !Q.in_grand_coalition) {
             pr_pull += 1.0;
         }
@@ -839,27 +859,33 @@ if (Q.month_actions >= 1) {
     var nat_pull = 0;
 
     if (economy_bad) {
+        // Bad economy creates nationalist pressure
         nat_push += (unemp_stress * 4.0) + (inflation_stress * 1.5) + (growth_penalty * 3.0);
     
+        // GRADUATED: Nationalists get blamed proportionally to their influence
         if (nationalist_in_power) {
-            nat_pull += 2.0;
+            nat_pull += 2.0 * nationalist_influence; // 1 party = 0.7 blame, 3 parties = 2.0 blame
         }
     
+        // GRADUATED: Other blocs in power boost nationalism proportionally
         if (socialist_in_power || centrist_in_power) {
-            nat_push += 1.5;
+            var other_influence = Math.max(socialist_influence, centrist_influence);
+            nat_push += 1.5 * other_influence; // 1 party = 0.5 boost, 3 parties = 1.5 boost
         }
     }
 
     if (economy_good) {
         nat_pull += (unemp_relief * 1.5) + (inflation_stable * 1.0);
-    
+        
+        // GRADUATED: Nationalists get credit proportionally
         if (nationalist_in_power) {
-            nat_push += 1.5;
-            nat_pull *= 0.5;
+            nat_push += 1.5 * nationalist_influence; // 1 party = 0.5 credit, 3 parties = 1.5 credit
+            nat_pull *= (1 - 0.5 * nationalist_influence); // More parties = more resistance to decline
         }
     
+        // GRADUATED: Left in power hurts nationalism proportionally
         if (socialist_in_power) {
-            nat_pull += 1.0;
+            nat_pull += 1.0 * socialist_influence;
         }
     }
 
@@ -872,72 +898,78 @@ if (Q.month_actions >= 1) {
     Q.nationalism += nat_delta;
 
     // ============================================
-    // SOCIALISM
+        // SOCIALISM
     // ============================================
-
+    
     var soc_push = 0;
     var soc_pull = 0;
 
     if (economy_bad) {
+        // Bad economy creates socialist pressure
         soc_push += (unemp_stress * 4.0) + (inflation_stress * 1.2) + (growth_penalty * 2.5);
     
+        // GRADUATED: Socialists get blamed proportionally
         if (socialist_in_power) {
-            soc_pull += 2.0;
+            soc_pull += 2.0 * socialist_influence; // 1 party = 0.7 blame, 3 parties = 2.0 blame
         }
-    
+        
+        // GRADUATED: Right-wing in power boosts socialism proportionally
         if (nationalist_in_power && !Q.in_grand_coalition) {
-            soc_push += 1.5;
+            soc_push += 1.5 * nationalist_influence;
         }
     }
 
     if (economy_good) {
         soc_pull += (unemp_relief * 1.5) + (inflation_stable * 1.0);
     
+        // GRADUATED: Socialists get credit proportionally
         if (socialist_in_power) {
-            soc_push += 1.5;
-            soc_pull *= 0.5;
+            soc_push += 1.5 * socialist_influence; // 1 party = 0.5 credit, 3 parties = 1.5 credit
+            soc_pull *= (1 - 0.5 * socialist_influence);
         }
     
+        // GRADUATED: Right in power hurts socialism proportionally
         if (nationalist_in_power && !socialist_in_power) {
-            soc_pull += 1.0;
+            soc_pull += 1.0 * nationalist_influence;
         }
     }
 
     var soc_delta = soc_push - soc_pull;
     soc_delta *= 0.65;
-
+    
     if (soc_delta > 0 && Q.socialism > 70) soc_delta *= (1 - scale(Q.socialism, 70, 90));
     if (soc_delta < 0 && Q.socialism < 20) soc_delta *= (1 - scale(20 - Q.socialism, 0, 15));
 
     Q.socialism += soc_delta;
 
-    // ============================================
-    // COMPETENCE VS IDEOLOGY
-    // ============================================
+// ============================================
+// ADDITIONAL DYNAMICS: COMPETENCE VS IDEOLOGY
+// ============================================
 
     if (Q.socialist_govt_success_counter === undefined) Q.socialist_govt_success_counter = 0;
     if (Q.nationalist_govt_success_counter === undefined) Q.nationalist_govt_success_counter = 0;
 
+    // GRADUATED: Success counters scale with influence
     if (economy_good && socialist_in_power) {
-        Q.socialist_govt_success_counter++;
+        Q.socialist_govt_success_counter += socialist_influence; // More parties = faster counter growth
     
         if (Q.socialist_govt_success_counter > 4) {
-            Q.socialism += 0.15;
-            soc_pull *= 0.9;
+            Q.socialism += 0.15 * socialist_influence; // Legitimacy boost scales with influence
+            soc_pull *= (1 - 0.1 * socialist_influence);
         }
     } else if (economy_bad && socialist_in_power) {
-        Q.socialist_govt_success_counter = Math.max(0, Q.socialist_govt_success_counter - 1);
+        Q.socialist_govt_success_counter = Math.max(0, Q.socialist_govt_success_counter - socialist_influence);
     }
 
     if (economy_good && nationalist_in_power) {
-        Q.nationalist_govt_success_counter++;
+        Q.nationalist_govt_success_counter += nationalist_influence;
     
         if (Q.nationalist_govt_success_counter > 4) {
-            Q.nationalism += 0.15;
-            nat_pull *= 0.9;
+            Q.nationalism += 0.15 * nationalist_influence;
+            nat_pull *= (1 - 0.1 * nationalist_influence);
         }
     } else if (economy_bad && nationalist_in_power) {
-        Q.nationalist_govt_success_counter = Math.max(0, Q.nationalist_govt_success_counter - 1);
+       Q.nationalist_govt_success_counter = Math.max(0, Q.nationalist_govt_success_counter - nationalist_influence);
     }
 
     // ============================================
@@ -953,25 +985,39 @@ if (Q.month_actions >= 1) {
     }
 
     // ============================================
-    // BROKEN PROMISES
+    // BROKEN PROMISES (GRADUATED)
     // ============================================
 
     if (economy_bad) {
+        // GRADUATED: Bigger coalitions = bigger disappointment
         if (socialist_in_power && Q.unemployed > 20) {
-            Q.socialism -= 0.5;
-            Q.pro_republic -= 0.15;
+            Q.socialism -= 0.5 * socialist_influence;
+            Q.pro_republic -= 0.15 * socialist_influence;
         }
     
         if (nationalist_in_power && (Q.inflation > 15 || Q.economic_growth < -5)) {
-            Q.nationalism -= 0.5;
-            Q.pro_republic -= 0.15;
+            Q.nationalism -= 0.5 * nationalist_influence;
+            Q.pro_republic -= 0.15 * nationalist_influence;
         }
     
+        // GRADUATED: Weak centrist governments hurt more when they're bigger
         if (!socialist_in_power && !nationalist_in_power && centrist_in_power) {
-            Q.socialism += 0.3;
-            Q.nationalism += 0.3;
-            Q.pro_republic -= 0.3;
+            Q.socialism += 0.3 * centrist_influence;
+            Q.nationalism += 0.3 * centrist_influence;
+            Q.pro_republic -= 0.3 * centrist_influence;
         }
+    }
+
+    // ============================================
+    // HISTORICAL PRECEDENT (GRADUATED)
+    // ============================================
+
+    if (Q.spd_crisis_victories && Q.spd_crisis_victories > 0 && economy_good && socialist_in_power) {
+        Q.socialism += 0.1 * Q.spd_crisis_victories * socialist_influence;
+    }
+
+    if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0 && nationalist_in_power) {
+        Q.nationalism -= 0.07 * Q.nationalist_crisis_failures * nationalist_influence;
     }
 
     Q.pro_republic = Math.round(Q.pro_republic * 10) / 10;
@@ -1420,7 +1466,7 @@ if (Q.month_actions >= 1) {
                 case 'sapd':
                     if (Q.sapd_formed === 1) {
                         Q.ideology_factor = Q.random_factor(
-                            Q.socialism_factor * Q.unrest_factor * 0.45,
+                            (Q.socialism_factor * 0.25) * Q.unrest_factor * 0.45,
                             0.25
                         );
                     }
@@ -1434,7 +1480,7 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'spd':
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90), 0.2);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90) * 1.03, 0.2);
                     
                     if (Q.ideology === 'left') {
                         if (Q.c === 'workers' || Q.c === 'unemployed') {
@@ -1474,8 +1520,8 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'wp':
                     // BUFFED: Changed to multiplicative, increased coefficients
-                    Q.middle_class_base = (Q.old_middle + Q.new_middle) / 120; // Normalize to 0-1
-                    Q.crisis_modifier = 1 + (Q.inflation * 0.10) - (Q.unemployed * 0.10); // Increased sensitivity
+                    Q.middle_class_base = (Q.old_middle + Q.new_middle) / 102; // Normalize to 0-1
+                    Q.crisis_modifier = 1 + (Q.inflation * 0.15) - (Q.unemployed * 0.10); // Increased sensitivity
                     Q.ideology_factor = Q.random_factor(
                         Q.pro_republic_factor * 0.35 * Q.middle_class_base * Q.crisis_modifier, // Multiplicative!
                         0.15
@@ -1502,7 +1548,7 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'z':
                     Q.catholic_bonus = Math.min(0.5, Q.catholics/100); // Cap at +50%
-                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * (1 + Q.catholic_bonus), 0.15);
+                    Q.ideology_factor = Q.pro_republic_factor  * (1 + Q.catholic_bonus), 0.15);
                     if (Q.z_party_leader === "Kaas") {
                         Q.ideology_factor *= 0.95;
                     } else if (Q.z_party_leader === "Joos") {
@@ -1510,7 +1556,7 @@ if (Q.month_actions >= 1) {
                     }
                     
                     if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 1.15;
+                        Q.ideology_factor *= 1.35;
                     } else if (Q.c === 'workers' && Q.z_party_leader !== "Kaas") {
                         Q.ideology_factor *= 1.01;
                     } else if (Q.c === 'old_middle') {
@@ -1526,7 +1572,7 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'bvp':
                     Q.ideology_factor = Q.random_factor(
-                        Q.pro_republic_factor * 0.50 * (1 + Q.catholics/155 + Q.rural/85), 
+                        Q.pro_republic_factor * 0.60 * (1 + Q.catholics/155 + Q.rural/85), 
                         0.15
                     );
                     
