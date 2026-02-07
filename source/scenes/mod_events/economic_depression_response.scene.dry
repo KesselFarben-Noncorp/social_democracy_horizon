@@ -29,7 +29,6 @@ Economic Minister [? if economic_minister : [+ economic_minister +] ?] of the [+
 [? if economic_minister_party = "I": [+ economic_minister +] proposes technocratic policy. ?]
 
 - @review_proposal: Review the proposal
-- @easy_discard
 
 @review_proposal
 go-to: independent_proposal if economic_minister_party = "I"; kpd_proposal if economic_minister_party = "KPD"; sapd_proposal if economic_minister_party = "SAPD"; srpd_proposal if economic_minister_party = "SRPD"; ddp_proposal if economic_minister_party = "DDP" or economic_minister_party = "DStP"; z_proposal if economic_minister_party = "Z"; dvp_proposal if economic_minister_party = "DVP"; bvp_proposal if economic_minister_party = "BVP"; wp_proposal if economic_minister_party = "WP"; cnbl_proposal if economic_minister_party = "CNBL"; dnvp_proposal if economic_minister_party = "DNVP"; nsdap_proposal if economic_minister_party = "NSDAP"
@@ -70,14 +69,10 @@ on-arrival: budget -= 0.8; inflation += 0.2; unemployed -= 1.7; fiscal_stance +=
 
 We implement the independent minister's technocratic program. The cautious, evidence-based approach stabilizes financial markets and prevents banking crises, but workers and the unemployed feel the response is inadequate to their suffering. The lack of bold action disappoints those demanding urgent relief.
 
-- @root
-
 @independent_fiscal
 on-arrival: budget -= 1.5; unemployed -= 2.5; fiscal_stance += 0.4; fiscal_demand += 0.5; credit_conditions += 0.1; stabilizer_boost += 0.6; unemployment_stabilizer += 0.4; banking_stress -= 0.3; workers_spd += 0; new_middle_spd += 1; coalition_dissent += 0.5
 
 We accept the technocratic framework but expand the fiscal component: more generous automatic stabilizers and increased public works spending within prudent limits. A compromise between caution and action.
-
-- @root
 
 # ========================================
 # KPD - COMMUNIST
@@ -114,14 +109,10 @@ achievement: rote_wirtschaft if nationalization_progress >= 5
 
 We have accepted the KPD's radical program. The economy is being fundamentally restructured along socialist lines. State-directed credit flows to worker cooperatives while private banks are seized. Business owners are in panic.
 
-- @root
-
 @kpd_fiscal
 on-arrival: budget -= 2.5; inflation += 1.8; unemployed -= 3.5; demand_impulse += 1.8; fiscal_stance += 0.8; fiscal_demand += 1; workers_kpd += 2; workers_spd += 1; capital_pressure += 1.5; credit_conditions += 0.6; distribution_shift += 0.8; investment_effect -= 0.2
 
 We implement the KPD's fiscal program without full nationalization: massive public works and wealth taxes fund job creation, while state banks provide favorable credit to workers' enterprises.
-
-- @root
 
 @compromise_kpd
 on-arrival: budget -= 2; unemployed -= 3; demand_impulse += 1.5; fiscal_demand += 0.6; workers_kpd += 1; kpd_relation += 5; left_strength += 3; credit_conditions += 0.4; distribution_shift += 0.5
@@ -162,14 +153,10 @@ on-arrival: budget -= 2.5; inflation += 1.5; unemployed -= 3.5; demand_impulse +
 
 We implement the SAPD's democratic socialist program. Worker councils gain real economic power, public banks redirect credit toward social housing and cooperatives, while progressive taxation funds expanded welfare.
 
-- @root
-
 @sapd_fiscal
 on-arrival: budget -= 1.8; unemployed -= 2.5; fiscal_stance += 0.5; fiscal_demand += 0.6; credit_conditions += 0.5; workers_spd += 1; economic_democracy += 1; distribution_shift += 0.6; consumption_multiplier += 0.08
 
 We implement SAPD's fiscal measures: public banking channels credit to productive sectors, progressive taxation funds infrastructure, though without full economic democracy.
-
-- @root
 
 @compromise_sapd
 on-arrival: budget -= 1.5; unemployed -= 2; economic_democracy += 1; workers_spd += 1; fiscal_demand += 0.4; credit_conditions += 0.3; distribution_shift += 0.4
@@ -209,14 +196,10 @@ on-arrival: budget -= 1.5; inflation += 0.5; unemployed -= 2.5; demand_impulse +
 
 We implement the SRPD's balanced social-liberal program. A state development bank provides counter-cyclical credit while social insurance automatically stabilizes demand. A pragmatic middle path.
 
-- @root
-
 @srpd_fiscal
 on-arrival: budget -= 1.2; unemployed -= 2; fiscal_stance += 0.3; fiscal_demand += 0.4; credit_conditions += 0.2; workers_spd += 1; stabilizer_boost += 0.4
 
 The SRPD's fiscal measures proceed: targeted counter-cyclical spending and a modest development bank, without full insurance expansion.
-
-- @root
 
 # ========================================
 # DDP/DStP - LIBERAL
@@ -252,14 +235,10 @@ on-arrival: budget -= 0.5; inflation -= 0.5; unemployed -= 1.5; supply_impulse +
 
 We implement the [+ economic_minister_party +]'s liberal program. Banking regulations prevent speculation while fiscal discipline restores confidence. Workers are disappointed by the limited response.
 
-- @root
-
 @ddp_fiscal
 on-arrival: budget -= 0.8; unemployed -= 1.8; fiscal_stance += 0.1; fiscal_demand += 0.3; credit_conditions -= 0.15; new_middle_spd += 1
 
 Liberal fiscal restraint with minimal targeted relief and banking reform to prevent future crises.
-
-- @root
 
 @compromise_ddp
 on-arrival: budget -= 1.2; unemployed -= 2; demand_impulse += 0.5; ddp_relation += 4; fiscal_demand += 0.4; credit_conditions += 0.1
@@ -300,14 +279,10 @@ on-arrival: budget -= 1.8; inflation += 0.3; unemployed -= 2.3; rural_spd += 1; 
 
 We implement the Center Party's Christian-social program. Regional development banks provide credit to rural areas and small businesses, while church-state partnerships deliver relief efficiently. A balanced, coalition-friendly approach.
 
-- @root
-
 @z_fiscal
 on-arrival: budget -= 1.4; unemployed -= 1.8; fiscal_demand += 0.4; credit_conditions += 0.2; rural_spd += 1; unemployment_stabilizer += 0.2
 
 Center fiscal policy: moderate public works, regional credit institutions, and agricultural support.
-
-- @root
 
 # ========================================
 # DVP - PEOPLE'S PARTY
@@ -343,14 +318,10 @@ on-arrival: budget += 0.5; inflation -= 1; unemployed -= 1; supply_impulse += 0.
 
 We implement the DVP's business-friendly program. Tax cuts for enterprises and banking sector stabilization restore investor confidence, but fiscal consolidation provides no relief for workers. Workers feel abandoned as unemployment persists.
 
-- @root
-
 @dvp_fiscal
 on-arrival: budget += 0.2; unemployed -= 1.2; fiscal_stance -= 0.2; credit_conditions -= 0.3; old_middle_spd += 1; banking_stress -= 0.3
 
 DVP fiscal measures: budget consolidation, business tax relief, and bank stabilization prioritize creditor confidence.
-
-- @root
 
 @compromise_dvp
 on-arrival: budget -= 0.5; unemployed -= 1.8; dvp_relation += 5; labor_dissent += 3; fiscal_demand += 0.3; credit_conditions -= 0.15
@@ -391,14 +362,10 @@ on-arrival: budget -= 1.7; unemployed -= 2; rural_spd += 2; catholics_spd += 2; 
 
 We implement the BVP's Bavaria-focused program. State credit unions provide financing for traditional industries and rural enterprises while regional infrastructure projects employ local workers. Other regions feel neglected.
 
-- @root
-
 @bvp_fiscal
 on-arrival: budget -= 1.3; unemployed -= 1.6; fiscal_demand += 0.3; rural_spd += 1; credit_conditions += 0.15
 
 BVP fiscal program: regional infrastructure spending and agricultural support, focused on Bavaria.
-
-- @root
 
 # ========================================
 # WP - ECONOMIC PARTY
@@ -433,14 +400,10 @@ on-arrival: budget -= 1.2; unemployed -= 1.3; old_middle_spd += 2; new_middle_sp
 
 We implement the WP's middle-class protection program. Specialized craft banks extend favorable credit to artisans and small merchants, while tax relief eases their burden. Workers see little benefit from policies favoring small proprietors.
 
-- @root
-
 @wp_fiscal
 on-arrival: budget -= 0.9; unemployed -= 1.1; fiscal_demand += 0.2; credit_conditions += 0.2; old_middle_spd += 1
 
 WP fiscal measures: state credit programs for small business and middle-class tax relief.
-
-- @root
 
 # ========================================
 # CNBL - AGRARIAN PARTY
@@ -475,14 +438,10 @@ on-arrival: budget -= 2.2; inflation += 1.5; unemployed -= 1.5; rural_spd += 3; 
 
 We implement the CNBL's agricultural program. Agricultural credit banks provide emergency loans to prevent farm foreclosures while price supports and tariffs protect rural incomes. Rural areas stabilize but urban workers pay more for food.
 
-- @root
-
 @cnbl_fiscal
 on-arrival: budget -= 1.7; inflation += 1; unemployed -= 1.2; fiscal_demand += 0.3; credit_conditions += 0.25; rural_spd += 2; price_pressure += 0.4
 
 CNBL fiscal program: agricultural credit, debt relief, and rural infrastructure investment.
-
-- @root
 
 # ========================================
 # DNVP - NATIONALISTS
@@ -519,14 +478,10 @@ on-arrival: budget += 1.5; inflation -= 2; unemployed += 1.5; old_middle_spd += 
 
 We implement the DNVP's harsh austerity. Welfare cuts and tight credit restrictions balance the budget while deepening deflation. Conservative banks restrict lending to estates and traditional industries. The working class suffers terribly.
 
-- @root
-
 @dnvp_fiscal
 on-arrival: budget += 0.8; inflation -= 1; unemployed += 0.8; fiscal_stance -= 0.3; fiscal_demand -= 0.4; workers_spd -= 2; deflation_severity += 0.5
 
 DNVP fiscal discipline: spending cuts and conservative credit policy to restore "sound money."
-
-- @root
 
 # ========================================
 # NSDAP - NAZIS
@@ -563,15 +518,12 @@ achievement: fascist_economics
 
 We have accepted the Nazi economic program. Shadow financing through MEFO bills hides the true deficit while massive work creation programs employ millions in rearmament preparation. Germany embarks on a dark path of autarky, militarization, and persecution.
 
-- @root
-
 @nsdap_fiscal
 unavailable-subtitle: One cannot separate the fiscal from the ideological in Nazi economics - it's all part of the same system.
 on-arrival: budget -= 3; unemployed -= 4; fiscal_stance += 0.8; fiscal_demand += 1.2; workers_nsdap += 1; nationalism += 5
 
 If we somehow implemented only work creation without the persecution, we'd still be enabling their broader agenda.
 
-- @root
 
 # ========================================
 # REJECTION AND ALTERNATIVES
