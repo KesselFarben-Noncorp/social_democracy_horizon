@@ -1841,9 +1841,9 @@ if (Q.month_actions >= 1) {
         if (Q.hindenburg_senility >= 60) Q.camarilla_strength += 0.8;
     
         // 2. Government instability
-        if (!Q.in_grand_coalition && !Q.in_weimar_coalition) Q.camarilla_strength += 0.3;
+        if (!Q.z_in_government && !Q.dnvp_in_government && !Q.dvp_in_government) Q.camarilla_strength += 0.3;
         if (Q.coalition_dissent >= 1) Q.camarilla_strength += 0.5;
-        if (Q.hindenburg_patience <= 0) Q.camarilla_strength += 0.7;
+        if (Q.hindenburg_patience <= 30) Q.camarilla_strength += 0.7;
         if (Q.presidential_cabinet) Q.camarilla_strength += 0.4;
         if (Q.minority_government) Q.camarilla_strength += 0.3;
         if (Q.no_majority_elections >= 2) Q.camarilla_strength += 0.4;
@@ -1875,10 +1875,10 @@ if (Q.month_actions >= 1) {
     
         // 6. SPD in government (camarilla opposes)
         if (Q.spd_in_government) {
-            Q.camarilla_strength += 0.4;
+            Q.camarilla_strength += 0.2;
             Q.camarilla_goal_crush_left += 0.3;
         }
-        if (Q.spd_prussia) Q.camarilla_strength += 0.2;
+        if (Q.spd_prussia) Q.camarilla_strength += 0.1;
     
         // 7. Article 48 / emergency rule
         if (Q.emergency_rule) Q.camarilla_strength += 0.5;
@@ -1888,7 +1888,7 @@ if (Q.month_actions >= 1) {
     
         // 8. Military influence
         if (Q.reichswehr_minister === "Groener" || Q.reichswehr_minister === "Schleicher") {
-            Q.camarilla_strength += 0.3;
+            Q.camarilla_strength += 0.1;
             Q.schleicher_influence += 0.4;
         }
         if (Q.reichswehr_loyalty <= 0.3) Q.camarilla_strength += 0.4;
@@ -2041,7 +2041,7 @@ if (Q.month_actions >= 1) {
         if (Q.year >= 1933 && Q.nsdap_r >= 33) Q.camarilla_goal_install_hitler += 1.0;
     
         // Cap all values
-        Q.camarilla_strength = Math.min(100, Math.max(0, Q.camarilla_strength));
+        Q.camarilla_strength = Math.min(120, Math.max(0, Q.camarilla_strength));
         Q.meissner_influence = Math.min(100, Math.max(0, Q.meissner_influence));
         Q.schleicher_influence = Math.min(100, Math.max(0, Q.schleicher_influence));
         Q.oskar_influence = Math.min(100, Math.max(0, Q.oskar_influence));
@@ -2076,11 +2076,11 @@ if (Q.month_actions >= 1) {
         Q.camarilla_unified = Math.min(100, Q.camarilla_unified);
     
         // === TRIGGER EVENTS AT THRESHOLDS ===
-        if (Q.camarilla_strength >= 60 && !Q.camarilla_fully_formed) {
+        if (Q.camarilla_strength >= 80 && !Q.camarilla_fully_formed) {
             Q.camarilla_fully_formed = 1;
         }
     
-        if (Q.camarilla_strength >= 80 && !Q.camarilla_dominant) {
+        if (Q.camarilla_strength >= 100 && !Q.camarilla_dominant) {
             Q.camarilla_dominant = 1;
             Q.hindenburg_puppet = 1;
         }
