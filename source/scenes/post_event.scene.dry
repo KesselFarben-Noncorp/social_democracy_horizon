@@ -1650,26 +1650,33 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'other':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/5.4 + (1 + Q.unrest_factor*0.1), 0.2);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/5.4 + (1 - Q.unrest_factor), 0.2);
                     break;
                 default:
                     Q.ideology_factor = Q.random_factor(1, 0.1);
             }
 
-            Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
+            
+
+            // === DISTANCE-BASED MOMENTUM ===
+            Q.current = Q.base;
+            Q.cap = Q.ideology_caps[Q.party] || 20;
+            Q.distance = Q.cap - Q.current;
+
+            // Smooth momentum function
+            Q.momentum = Math.tanh(Q.distance / 5);
+
+            Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] * Q.momentum / 6;
             Q.delta *= (0.7 + Math.random()*0.6);
 
-            // CRITICAL: If party is banned, prevent ALL positive drift
+            // CRITICAL: Banned party prevention
             const party_banned = Q.party + '_banned';
             if (Q[party_banned]) {
-                Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
+                Q.delta = Math.min(Q.delta, 0);
             }
 
-            // Apply delta with caps and floor
-            Q[Q.c+'_'+Q.party] = Math.min(
-                Math.max(Q.base + Q.delta, 0.5),  // Floor at 0.5%
-                Q.ideology_caps[Q.party] || Infinity  // Cap at ideology ceiling
-            );
+            // Apply delta with floor only
+            Q[Q.c+'_'+Q.party] = Math.max(Q.base + Q.delta, 0.5);
 
             Q.class_total += Q[Q.c+'_'+Q.party];
         }
