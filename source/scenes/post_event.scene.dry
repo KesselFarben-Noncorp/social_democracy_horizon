@@ -21,6 +21,27 @@ if (!Q.math_broken) {
     Q.socialism    = Q.impossible_subtract(Q.socialism, 0);
 }
 
+// === IDEOLOGICAL NORMALIZATION (SKIP IN CHAOS MODE) ===
+let ideologies = ['pro_republic', 'socialism', 'nationalism'];
+
+if (!Q.math_broken) {
+    // NORMAL: Ideologies sum to 200
+    let total = 0;
+    for (let ideology of ideologies) {
+        total += Q[ideology];
+    }
+    let factor = 200 / total;
+    for (let ideology of ideologies) {
+        Q[ideology] = Math.round(Q[ideology] * factor * 10) / 10;
+    }
+} else {
+    // MATH BROKEN: Ideologies don't normalize
+    for (let ideology of ideologies) {
+        Q[ideology] = Q.impossible_percentage(Q[ideology]);
+    }
+    console.log("IDEOLOGY CHAOS: Total = " + (Q.pro_republic + Q.socialism + Q.nationalism));
+}
+
 // === FACTION BOUNDS (SKIP IN CHAOS MODE) ===
 if (!Q.math_broken) {
     for (var c of Q.factions) {
@@ -1040,9 +1061,20 @@ if (Q.month_actions >= 1) {
       0.4
     );
 
-    Q.pro_republic_factor = Q.random_factor(Math.min(Math.max(Q.pro_republic/60, 0.5), 1.5), 0.15);
-    Q.nationalism_factor  = Q.random_factor(Math.min(Math.max(Q.nationalism/60, 0.5), 1.5), 0.15);
-    Q.socialism_factor    = Q.random_factor(Math.min(Math.max(Q.socialism/60, 0.5), 1.5), 0.15);
+
+    // FACTORS
+    Q.pro_republic_factor = Q.random_factor(
+        Math.min(Math.max(Q.pro_republic / 66.67, 0.5), 1.5), 
+        0.15
+    );
+    Q.nationalism_factor = Q.random_factor(
+        Math.min(Math.max(Q.nationalism / 66.67, 0.5), 1.5), 
+        0.15
+    );
+    Q.socialism_factor = Q.random_factor(
+        Math.min(Math.max(Q.socialism / 66.67, 0.5), 1.5), 
+        0.15
+    );
     Q.street_pressure_factor = Q.random_factor(Math.min(Math.max((Q.sa_strength * Q.sa_militancy + Q.rfb_strength * Q.rfb_militancy + Q.sh_strength * Q.sh_militancy) / 3500,  0.7 ), 1.8 ), 0.25);
 
         // Paramilitary influence (randomized)
@@ -1199,7 +1231,7 @@ if (Q.month_actions >= 1) {
         ddp:   Q.ddp_banned  ? 0 : Q.pro_republic * 1.4,
         z:     Q.z_banned    ? 0 : Q.pro_republic * 1.35,
         bvp:   Q.bvp_banned  ? 0 : Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05),
-        other: Q.other_banned ? 0 : ((Q.nationalism + Q.pro_republic) / 8) * 1.3
+        other: Q.other_banned ? 0 : ((Q.nationalism + Q.pro_republic) / 8)
 };
 
     // Reworked drift per class
