@@ -1218,20 +1218,20 @@ if (Q.month_actions >= 1) {
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
-        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism * 0.55) + (Q.unrest_factor * 1.6),
-        dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism * 1.1 + Q.pro_republic * 0.8) : Q.nationalism * 1.45),
-        dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism : Q.pro_republic) * 1.5,
-        wp:    Q.wp_banned   ? 0 : (Q.pro_republic * 1.10) + (Q.inflation * 0.14),
-        cnbl:  Q.cnbl_banned ? 0 : (Q.pro_republic * 0.92 + Q.nationalism) + (Q.rural * 0.85),
-        kpd:   Q.kpd_banned  ? 0 : Q.socialism * 1.35,
-        sapd:  Q.sapd_banned ? 0 : Q.socialism * 1.10,
-        csvd:  Q.csvd_banned ? 0 : Q.nationalism * 1.02,
-        srpd:  Q.srpd_banned ? 0 : (Q.socialism * 1.01) + (Q.rb_strength * 0.0008) + (Q.pro_republic * 1.50),
-        spd:   Q.spd_banned  ? 0 : (Q.pro_republic * 1.80) + (Q.socialism * 1.15),
-        ddp:   Q.ddp_banned  ? 0 : Q.pro_republic * 1.4,
-        z:     Q.z_banned    ? 0 : Q.pro_republic * 1.35,
-        bvp:   Q.bvp_banned  ? 0 : Math.min(4.5, Q.pro_republic * 0.8 + Q.catholics * 0.05),
-        other: Q.other_banned ? 0 : ((Q.nationalism + Q.pro_republic) / 8)
+        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 18) + (Q.unrest_factor * 1.6),
+        dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism_factor * 45 + Q.pro_republic_factor * 32) : Q.nationalism_factor * 58),
+        dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 60,
+        wp:    Q.wp_banned   ? 0 : (Q.pro_republic_factor * 44) + (Q.inflation * 0.14),
+        cnbl:  Q.cnbl_banned ? 0 : (Q.pro_republic_factor * 37 + Q.nationalism_factor * 40) + (Q.rural * 0.85),
+        kpd:   Q.kpd_banned  ? 0 : Q.socialism_factor * 54,
+        sapd:  Q.sapd_banned ? 0 : Q.socialism_factor * 44,
+        csvd:  Q.csvd_banned ? 0 : Q.nationalism_factor * 41,
+        srpd:  Q.srpd_banned ? 0 : (Q.socialism_factor * 40) + (Q.rb_strength * 0.0008) + (Q.pro_republic_factor * 60),
+        spd:   Q.spd_banned  ? 0 : (Q.pro_republic_factor * 72) + (Q.socialism_factor * 46),
+        ddp:   Q.ddp_banned  ? 0 : Q.pro_republic_factor * 56,
+        z:     Q.z_banned    ? 0 : Q.pro_republic_factor * 54,
+        bvp:   Q.bvp_banned  ? 0 : Math.min(4.5, Q.pro_republic_factor * 32 + Q.catholics * 0.05),
+        other: Q.other_banned ? 0 : ((Q.nationalism_factor + Q.pro_republic_factor) * 10)
 };
 
     // Reworked drift per class
@@ -1348,7 +1348,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.15) + (Q.unrest_factor * 1.79) + (Q.street_pressure_factor * 0.65), 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.18) + (Q.unrest_factor * 1.75) + (Q.street_pressure_factor * 0.65), 0.3);
 
                     if (Q.c === 'workers') {
                         Q.ideology_factor *= 0.90;
