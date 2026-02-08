@@ -1050,7 +1050,7 @@ if (Q.month_actions >= 1) {
     
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
-    Q.drift_base = 1.18;
+    Q.drift_base = 1.15;
 
     Q.random_factor = function(f, variance = 0.65) {
         return f * (1 - variance/2 + Math.random()*variance);
@@ -1227,16 +1227,16 @@ if (Q.month_actions >= 1) {
     Q.ideology_caps = {
         nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 5) + (Q.unrest_factor * 5.0),
         dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism_factor * 28 + Q.pro_republic_factor * 20) : Q.nationalism_factor * 36),
-        dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 38,
+        dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 32,
         wp:    Q.wp_banned   ? 0 : (Q.pro_republic_factor * 28) + (Q.inflation * 0.14),
         cnbl:  Q.cnbl_banned ? 0 : (Q.pro_republic_factor * 23 + Q.nationalism_factor * 25) + (Q.rural * 0.85),
-        kpd:   Q.kpd_banned  ? 0 : Q.socialism_factor * 34,
-        sapd:  Q.sapd_banned ? 0 : Q.socialism_factor * 28,
+        kpd:   Q.kpd_banned  ? 0 : Q.socialism_factor * 28,
+        sapd:  Q.sapd_banned ? 0 : Q.socialism_factor * 24,
         csvd:  Q.csvd_banned ? 0 : Q.nationalism_factor * 26,
         srpd:  Q.srpd_banned ? 0 : (Q.socialism_factor * 25) + (Q.rb_strength * 0.0008) + (Q.pro_republic_factor * 38),
         spd:   Q.spd_banned  ? 0 : (Q.pro_republic_factor * 45) + (Q.socialism_factor * 29),
         ddp:   Q.ddp_banned  ? 0 : Q.pro_republic_factor * 35,
-        z:     Q.z_banned    ? 0 : Q.pro_republic_factor * 34,
+        z:     Q.z_banned    ? 0 : Q.pro_republic_factor * 34 + (Q.catholics / 10),
         bvp:   Q.bvp_banned  ? 0 : Math.min(4.5, Q.pro_republic_factor * 20 + Q.catholics * 0.05),
         other: Q.other_banned ? 0 : ((Q.nationalism_factor + Q.pro_republic_factor) * 6)
     };
@@ -1420,7 +1420,7 @@ if (Q.month_actions >= 1) {
                             protestant_base + 
                             anti_nazi_appeal + 
                             coalition_stability,
-                            0.25
+                            0.15
                         ) * crisis_factor;
                     }
                 break;
@@ -1438,7 +1438,7 @@ if (Q.month_actions >= 1) {
                     } else {
                         Q.ideology_factor = Q.random_factor(
                             Q.nationalism_factor * 1.0 * (1 + Q.unrest_factor * 0.15),
-                            0.15
+                            0.20
                         );
                     }
                     
@@ -1457,7 +1457,7 @@ if (Q.month_actions >= 1) {
                     }
                     break;
                 case 'kpd':
-                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.street_pressure_factor, 0.25);
+                    Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.unrest_factor * Q.street_pressure_factor, 0.30);
 
                     if (Q.c === 'unemployed') {
                         Q.ideology_factor *= 1.20;
@@ -1481,7 +1481,10 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'spd':
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90) * 1.03, 0.2);
-                    
+                    // BASE preference.
+                    if (Q.c === 'workers') {
+                            Q.ideology_factor *= 1.05;
+                    }
                     if (Q.ideology === 'left') {
                         if (Q.c === 'workers' || Q.c === 'unemployed') {
                             Q.ideology_factor *= 1.15;
@@ -1548,26 +1551,26 @@ if (Q.month_actions >= 1) {
                     break;
                 case 'z':
                     Q.catholic_bonus = Math.min(0.5, Q.catholics/100); // Cap at +50%
-                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor  * (1 + Q.catholic_bonus), 0.15);
+                    Q.ideology_factor = Q.random_factor((Q.pro_republic_factor * 1.03) * (1 + Q.catholic_bonus), 0.15);
                     if (Q.z_party_leader === "Kaas") {
-                        Q.ideology_factor *= 0.95;
+                        Q.ideology_factor *= 0.96;
                     } else if (Q.z_party_leader === "Joos") {
-                        Q.ideology_factor *= 1.05;
+                        Q.ideology_factor *= 1.06;
                     }
                     
                     if (Q.c === 'catholics') {
                         Q.ideology_factor *= 1.35;
                     } else if (Q.c === 'workers' && Q.z_party_leader !== "Kaas") {
-                        Q.ideology_factor *= 1.01;
+                        Q.ideology_factor *= 1.03;
                     } else if (Q.c === 'old_middle') {
-                        Q.ideology_factor *= 1.02;
+                        Q.ideology_factor *= 1.03;
                     }
                     
                     if (Q.z_in_government) {
-                        Q.ideology_factor *= 1.08;
+                        Q.ideology_factor *= 1.12;
                     }
                     else {
-                        Q.ideology_factor *= 0.90;
+                        Q.ideology_factor *= 0.93;
                     }
                     break;
                 case 'bvp':
@@ -1641,8 +1644,8 @@ if (Q.month_actions >= 1) {
                      break;
                 case 'dvp':
                     Q.base_factor = Q.dvp_right_shift ? 
-                      Q.nationalism_factor * 0.85 : 
-                      Q.pro_republic_factor * 0.70;
+                      Q.nationalism_factor * 0.87 : 
+                      Q.pro_republic_factor * 0.65;
     
                   // Add business/economic factor
                     Q.economic_stability = (100 - Q.inflation - Q.unemployed) / 100;
