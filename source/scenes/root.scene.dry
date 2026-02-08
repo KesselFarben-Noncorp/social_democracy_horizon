@@ -963,12 +963,35 @@ This is a game of alternate history. As Horizon modification author, I care abou
 Choose your challenges!
 
 - @spartacus: Spartacist Victory!
-- @kapp_challenge: The Kapp Regime
+- @inverted: Invert relationships!
 - @gang: All of the gang is here! 
 - @democracy: Democracy simulator, extremists are banned.
 - @new: SPD is newly formed party.
 - @bauern: Agrarian Revolution
 - @start_2: Back
+
+@inverted
+= Inverted World
+
+The political compass has been flipped! The SPD's traditional allies are now hostile, and former enemies are potential partners.
+
+- @inverted_2: True
+- @inverted_3: False
+- @challenge: Back.
+
+@inverted_2
+view-if: inverted_challenge = 0
+on-arrival: inverted_challenge = 1
+go-to: inverted
+
+Turned on!
+
+@inverted_3
+view-if: inverted_challenge = 1
+on-arrival: inverted_challenge = 0
+go-to: inverted
+
+Turned off!
 
 @bauern
 
@@ -1180,6 +1203,21 @@ if (Q.peasant_revolution === 1) {
     // SPD weak in cities too
     Q.workers_spd = 15;
 }
+
+if (Q.inverted_challenge === 1) {
+    // Flip all relations
+    Q.kpd_relation = 70;
+    Q.z_relation = 15;
+    Q.dnvp_relation = 70;
+    Q.nsdap_relation = 60;
+    Q.dvp_relation = 30;
+    Q.ddp_relation = 15;
+    Q.cnbl_relation = 70;
+    Q.wp_relation = 65;
+    Q.csvd_relation = 50;
+    Q.sapd_relation = 25;
+    Q.srpd_relation = 15;
+    }
 
 !}
 
