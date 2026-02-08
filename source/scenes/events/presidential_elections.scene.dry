@@ -2,7 +2,7 @@ title: Presidential Election
 subtitle: The presidential term has ended
 new-page: true
 view-if: (year = next_presidential_election_year and month >= next_presidential_election_month) or (year > next_presidential_election_year)
-on-arrival: presidential_election_active = 1; round = 0; last_presidential_election = year;
+on-arrival: presidential_election_active = 1; round = 0; last_presidential_election = year; hindenburg_running = 1 if not hindenburg_dead
 max-visits: 999
 tags: event
 face-image: img/reichstag_2.jpg
@@ -993,55 +993,6 @@ on-arrival: {!
     } else {
         Q.other_candidate = "Gessler";
     }
-
-    // ========================================
-    // HINDENBURG (INDEPENDENT) - 1932 only
-    // ========================================
-    if (Q.hindenburg_dead === 0 && Q.year >= 1932) {
-    Q.hindenburg_running = 1;
-    Q.hindenburg_candidate = "Hindenburg";
-    
-    // Most parties support Hindenburg automatically
-    // Only extremes (KPD, NSDAP if strong) and far-left SPD refuse
-    
-    // Z, BVP - automatic support
-    if (Q.z_party_leader !== "Joos" || Q.z_relation < 35) {
-        Q.z_candidate = "Hindenburg";
-        Q.z_default_candidate = "Hindenburg";
-    }
-    Q.bvp_candidate = "Hindenburg";
-    Q.bvp_default_candidate = "Hindenburg";
-    
-    // DVP, DDP - automatic support
-    Q.dvp_candidate = "Hindenburg";
-    Q.dvp_default_candidate = "Hindenburg";
-    Q.ddp_candidate = "Hindenburg";
-    Q.ddp_default_candidate = "Hindenburg";
-    
-    // DNVP - support unless line 3 (Hugenberg)
-    if (Q.dnvp_line !== 3) {
-        Q.dnvp_candidate = "Hindenburg";
-    }
-    
-    // WP, CNBL, CSVD - automatic support
-    if (Q.wp_r && Q.wp_r > 2) {
-        Q.wp_candidate = "Hindenburg";
-        Q.wp_default_candidate = "Hindenburg";
-    }
-    if (Q.cnbl_r && Q.cnbl_r > 1.5) {
-        Q.cnbl_candidate = "Hindenburg";
-        Q.cnbl_default_candidate = "Hindenburg";
-    }
-    if (Q.csvd_flee === 1) {
-        Q.csvd_candidate = "Hindenburg";
-        Q.csvd_default_candidate = "Hindenburg";
-    }
-    
-    // SRPD - likely support
-    if (Q.srpd_formed && Q.reformist_strength >= 30) {
-        Q.srpd_candidate = "Hindenburg";
-    }
-}
 !}
 
 The parties are preparing their candidates:
@@ -1612,7 +1563,7 @@ on-arrival: {!
     // ========================================
     // HINDENBURG (INDEPENDENT) - 1932 only
     // ========================================
-    if (Q.hindenburg_dead === 0 && Q.year >= 1932) {
+    if (!Q.hindenburg_dead && Q.year >= 1932) {
     Q.hindenburg_running = 1;
     Q.hindenburg_candidate = "Hindenburg";
     
@@ -1656,7 +1607,7 @@ on-arrival: {!
     if (Q.srpd_formed && Q.reformist_strength >= 30) {
         Q.srpd_candidate = "Hindenburg";
     }
-}
+    }
 !}
 go-to: r1_finalized
 
