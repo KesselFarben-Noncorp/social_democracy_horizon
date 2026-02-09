@@ -82,8 +82,8 @@ on-arrival: {!
     Q.schleicher_papen_rivalry = 30;
 
     // Calculate actual votes based on party strength
-    Q.papen_votes_against = Q.spd_r + Q.kpd_r + Q.z_r + Q.bvp_r + Q.ddp_r;
-    Q.papen_votes_for = Q.dnvp_r;
+    Q.papen_votes_against = Q.spd_r + Q.kpd_r + Q.z_r;
+    Q.papen_votes_for = Q.dnvp_r + Q.wp_r + Q.cnbl_r + Q.bvp_r;
     
     // NSDAP position depends on negotiations
     if (Q.nsdap_relation >= 50 || Q.camarilla_goal_install_hitler > 30) {
@@ -92,6 +92,13 @@ on-arrival: {!
     } else {
         Q.papen_votes_against += Q.nsdap_r;
         Q.nsdap_supported_papen = 0;
+    }
+
+    // DDP might support if right-leaning
+    if (Q.ddp_relation <= 50 && Q.ddp_dstp_seen >= 1 || Q.ddp_relation <= 40 && Q.ddp_dstp_seen <= 0) {
+        Q.papen_votes_for += Q.ddp_r;
+    } else {
+        Q.papen_votes_against += Q.ddp_r;
     }
     
     // DVP might support if right-leaning
