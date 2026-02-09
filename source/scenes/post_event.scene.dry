@@ -1947,6 +1947,8 @@ if (Q.month_actions >= 1) {
             Q.papen_influence = (Q.papen_influence || 0) + 0.5;
             if (Q.papen_cabinet) Q.papen_influence += 0.8;
             if (Q.chancellor === "Papen") Q.papen_influence += 1.0;
+            if (Q.spd_in_government === 1 || Q.chancellor_party === "SPD") Q.papen_influence += 1.0;
+            if (Q.spd_prussia === 0) Q.papen_influence += 1.0
         }
     
         // Hugenberg (grows with Nazi rise and DNVP radicalization)
@@ -1960,7 +1962,7 @@ if (Q.month_actions >= 1) {
         // Destroy parliament
         if (Q.hindenburg_trust_reichstag < 40) Q.camarilla_goal_destroy_parliament += 0.3;
         if (Q.presidential_cabinet) Q.camarilla_goal_destroy_parliament += 0.4;
-        if (Q.hindenburg_interventions >= 5) Q.camarilla_goal_destroy_parliament += 0.5;
+        if (Q.hindenburg_interventions >= 3) Q.camarilla_goal_destroy_parliament += 0.5;
         if (Q.emergency_rule) Q.camarilla_goal_destroy_parliament += 0.4;
         if (Q.no_majority_elections >= 3) Q.camarilla_goal_destroy_parliament += 0.3;
     
@@ -1987,6 +1989,7 @@ if (Q.month_actions >= 1) {
         // Install Papen (if he's in camarilla)
         if (Q.papen_in_camarilla && Q.chancellor !== "Papen") {
             Q.camarilla_goal_install_papen += 0.4;
+            Q.papen_influence += 0.2;
         }
     
         // Install Hitler
