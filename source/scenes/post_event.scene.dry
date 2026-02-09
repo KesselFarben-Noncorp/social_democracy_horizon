@@ -1970,6 +1970,17 @@ if (Q.month_actions >= 1) {
         else if (Q.year >= 1932) Q.camarilla_strength += 0.5;
         else if (Q.year >= 1931) Q.camarilla_strength += 0.4;
         else if (Q.year >= 1930) Q.camarilla_strength += 0.3;
+
+        /// HINDENBURG PATIENCE DECAY on ...
+
+        if (Q.hindenburg_puppet && Q.spd_in_government) {
+        Q.hindenburg_patience -= 0.5;
+        Q.camarilla_strength += 0.2;
+        }
+
+        if (Q.hindenburg_puppet && Q.trust_reichstag_decline < 20) {
+        Q.hindenburg_patience -= 0.3;
+        }
     
         // === NEGATIVE CONDITIONS (SPD countering) ===
     
@@ -2167,11 +2178,11 @@ if (Q.month_actions >= 1) {
     
         // Death check
         if (Q.year >= 1934 && Q.month >= 8) {
-            Q.hindenburg_historical_death = 1;
+            Q.hindenburg_dead = 1;
         }
         if (Q.hindenburg_health <= 0) {
             Q.hindenburg_death_year = Q.year;
-            Q.hindenburg_historical_death = 1;
+            Q.hindenburg_dead = 1;
         }
     }
 
