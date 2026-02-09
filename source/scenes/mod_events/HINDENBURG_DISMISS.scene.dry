@@ -41,8 +41,15 @@ on-arrival: {!
         Q.spd_government_dismissed = 1;
         Q.no_confidence_against_spd = 1;
     }
+    Q.next_election_month = Q.month + 3;
+    Q.next_election_time = Q.time + 3;
+    if (Q.next_election_month > 12) {
+        Q.next_election_month -= 12;
+        Q.next_election_year = Q.year + 1;
+    } else {
+        Q.next_election_year = Q.year;
+    }
 !}
-call: set_next_election_time
 
 = Presidential Dismissal
 
@@ -71,5 +78,3 @@ President Hindenburg has had enough.
 **Hindenburg's faith in parliamentary democracy:** [+ hindenburg_trust_reichstag +]/100
 
 A new government will be appointed soon.
-
-- @root: Continue...
