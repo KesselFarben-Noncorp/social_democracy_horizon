@@ -1065,11 +1065,23 @@ if (Q.month_actions >= 1) {
         Q.inflation_component = Math.abs(Q.inflation) / 3; // deflation is worse
     };
 
+    // === EXPONENTIAL UNREST FACTOR ===
+    Q.unemployment_threshold = 8.0;  // "Natural rate" - normal for Weimar
+    Q.inflation_threshold = 5.0;     // Moderate inflation is tolerable
+
+    Q.unemployment_excess = Math.max(0, Q.unemployed - Q.unemployment_threshold);
+    Q.inflation_excess = Math.max(0, Math.abs(Q.inflation) - Q.inflation_threshold);
+
+    // Exponential crisis scaling
     Q.unrest_factor = Q.random_factor(
-        Math.pow(Math.max(Q.unemployed / 10.5, 1), 1.4) * 
-        (1 + Math.max(Q.inflation_component, 0)),
-        0.4
+        0.4 + // Base societal tension
+        Math.pow(Q.unemployment_excess / 10, 2.0) + // Square law for unemployment
+        Math.pow(Q.inflation_excess / 8, 1.7),      // Slightly less for inflation
+        0.35 // Less randomness - crises are predictable
     );
+
+    // Cap at reasonable maximum
+    Q.unrest_factor = Math.min(Q.unrest_factor, 10.0);
 
 
     // FACTORS
@@ -1109,12 +1121,12 @@ if (Q.month_actions >= 1) {
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
-        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 12) + (Q.unrest_factor * 20.0) + (Q.street_pressure_factor * 5),
+        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 12) + (Q.unrest_factor * 10.0) + (Q.street_pressure_factor * 5),
         dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism_factor * 28 + Q.pro_republic_factor * 30) : Q.nationalism_factor * 56),
         dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 62,
         wp:    Q.wp_banned   ? 0 : (Q.pro_republic_factor * 37) + (Q.inflation * 0.18),
         cnbl:  Q.cnbl_banned ? 0 : (Q.pro_republic_factor * 23 + Q.nationalism_factor * 25) + (Q.rural * 0.85),
-        kpd:   Q.kpd_banned  ? 0 : Q.socialism_factor * 45,
+        kpd:   Q.kpd_banned  ? 0 : Q.socialism_factor * 45 + (Q.unrest_factor * 7.52) + (Q.street_pressure_factor * 1.5),
         sapd:  Q.sapd_banned ? 0 : Q.socialism_factor * 10,
         csvd:  Q.csvd_banned ? 0 : Q.nationalism_factor * 26,
         srpd:  Q.srpd_banned ? 0 : (Q.socialism_factor * 25) + (Q.rb_strength * 0.0008) + (Q.pro_republic_factor * 38),
@@ -1239,8 +1251,7 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.crisis_bonus = Q.unemployed >= 12 ? Math.pow((Q.unemployed - 11) / 15, 1.2) : 0;
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.1) + (Q.unrest_factor * 0.75) + (Q.street_pressure_factor * 0.55) + Q.crisis_bonus, 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.1) + (Q.unrest_factor * 1.8) + (Q.street_pressure_factor * 0.55), 0.3);
 
                     if (Q.c === 'workers') {
                         Q.ideology_factor *= 0.90;
