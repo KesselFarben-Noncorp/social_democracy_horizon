@@ -1674,8 +1674,6 @@ if (Q.month_actions >= 1) {
         Q.hindenburg_president = 1;
         Q.camarilla_exists = 1;
         }
-    
-        // Set initial values based on current year
 
     // === MAIN HINDENBURG/CAMARILLA UPDATE ===
     if (Q.hindenburg_president || Q.president === "Hindenburg") {
@@ -1684,73 +1682,73 @@ if (Q.month_actions >= 1) {
         Q.hindenburg_age = 78 + (Q.year - 1925) + (Q.month / 12);
     
         // Health decline per turn (base)
-        var health_decline_per_turn = 0.05;
+        Q.health_decline_per_turn = 0.05;
     
-        if (Q.year >= 1933) health_decline_per_turn = 0.3;
-        else if (Q.year >= 1931) health_decline_per_turn = 0.15;
-        else if (Q.year >= 1929) health_decline_per_turn = 0.1;
+        if (Q.year >= 1933) Q.health_decline_per_turn = 0.3;
+        else if (Q.year >= 1931) Q.health_decline_per_turn = 0.15;
+        else if (Q.year >= 1929) Q.health_decline_per_turn = 0.1;
     
         // Stress from economic crisis
-        if (Q.unemployed >= 20) health_decline_per_turn += 0.1;
-        else if (Q.unemployed >= 15) health_decline_per_turn += 0.05;
-        else if (Q.unemployed >= 10) health_decline_per_turn += 0.03;
+        if (Q.unemployed >= 20) Q.health_decline_per_turn += 0.1;
+        else if (Q.unemployed >= 15) Q.health_decline_per_turn += 0.05;
+        else if (Q.unemployed >= 10) Q.health_decline_per_turn += 0.03;
     
         // Stress from inflation
-        if (Q.inflation >= 10) health_decline_per_turn += 0.08;
-        else if (Q.inflation >= 5) health_decline_per_turn += 0.04;
+        if (Q.inflation >= 10) Q.health_decline_per_turn += 0.08;
+        else if (Q.inflation >= 5) Q.health_decline_per_turn += 0.04;
     
         // Stress from political crisis
-        if (Q.coup_progress >= 5) health_decline_per_turn += 0.05;
-        if (Q.strife >= 6) health_decline_per_turn += 0.05;
+        if (Q.coup_progress >= 5) Q.health_decline_per_turn += 0.05;
+        if (Q.strife >= 6) Q.health_decline_per_turn += 0.05;
     
         // Stress from using emergency powers
-        if (Q.emergency_rule) health_decline_per_turn += 0.03;
-        if (Q.hindenburg_interventions >= 3) health_decline_per_turn += 0.03;
+        if (Q.emergency_rule) Q.health_decline_per_turn += 0.03;
+        if (Q.hindenburg_interventions >= 3) Q.health_decline_per_turn += 0.03;
     
-        Q.hindenburg_health = Math.max(0, (Q.hindenburg_health || 100) - health_decline_per_turn);
+        Q.hindenburg_health = Math.max(0, (Q.hindenburg_health || 100) - Q.health_decline_per_turn);
     
         // Senility increase
-        var senility_increase_per_turn = 0.08;
+        Q.senility_increase_per_turn = 0.08;
     
-        if (Q.year >= 1933) senility_increase_per_turn = 0.4;
-        else if (Q.year >= 1931) senility_increase_per_turn = 0.2;
-        else if (Q.year >= 1929) senility_increase_per_turn = 0.12;
+        if (Q.year >= 1933) Q.senility_increase_per_turn = 0.4;
+        else if (Q.year >= 1931) Q.senility_increase_per_turn = 0.2;
+        else if (Q.year >= 1929) Q.senility_increase_per_turn = 0.12;
     
-        if (Q.hindenburg_health < 40) senility_increase_per_turn += 0.15;
-        else if (Q.hindenburg_health < 60) senility_increase_per_turn += 0.08;
+        if (Q.hindenburg_health < 40) Q.senility_increase_per_turn += 0.15;
+        else if (Q.hindenburg_health < 60) Q.senility_increase_per_turn += 0.08;
     
-        Q.hindenburg_senility = Math.min(100, (Q.hindenburg_senility || 0) + senility_increase_per_turn);
+        Q.hindenburg_senility = Math.min(100, (Q.hindenburg_senility || 0) + Q.senility_increase_per_turn);
     
         // === TRUST IN POLITICAL INSTITUTIONS ===
-        var trust_reichstag_decline = 0.05;
+        Q.trust_reichstag_decline = 0.05;
     
         // Coalition instability
-        if (Q.coalition_dissent >= 3) trust_reichstag_decline += 0.3;
-        else if (Q.coalition_dissent >= 1) trust_reichstag_decline += 0.15;
+        if (Q.coalition_dissent >= 3) Q.trust_reichstag_decline += 0.3;
+        else if (Q.coalition_dissent >= 1) Q.trust_reichstag_decline += 0.15;
     
-        if (Q.grand_coalition_failed) trust_reichstag_decline += 0.5;
-        if (Q.no_majority_elections >= 2) trust_reichstag_decline += 0.2;
+        if (Q.grand_coalition_failed) Q.trust_reichstag_decline += 0.5;
+        if (Q.no_majority_elections >= 2) Q.trust_reichstag_decline += 0.2;
     
         // Political extremism
-        if (Q.nsdap_r >= 30) trust_reichstag_decline += 0.3;
-        else if (Q.nsdap_r >= 20) trust_reichstag_decline += 0.2;
-        else if (Q.nsdap_r >= 15) trust_reichstag_decline += 0.1;
+        if (Q.nsdap_r >= 30) Q.trust_reichstag_decline += 0.3;
+        else if (Q.nsdap_r >= 20) Q.trust_reichstag_decline += 0.2;
+        else if (Q.nsdap_r >= 15) Q.trust_reichstag_decline += 0.1;
     
-        if (Q.kpd_r >= 18) trust_reichstag_decline += 0.2;
-        else if (Q.kpd_r >= 15) trust_reichstag_decline += 0.15;
-        else if (Q.kpd_r >= 12) trust_reichstag_decline += 0.1;
+        if (Q.kpd_r >= 18) Q.trust_reichstag_decline += 0.2;
+        else if (Q.kpd_r >= 15) Q.trust_reichstag_decline += 0.15;
+        else if (Q.kpd_r >= 12) Q.trust_reichstag_decline += 0.1;
     
         // Street violence
-        if (Q.sa_strength >= 500) trust_reichstag_decline += 0.2;
-        else if (Q.sa_strength >= 300) trust_reichstag_decline += 0.1;
+        if (Q.sa_strength >= 500) Q.trust_reichstag_decline += 0.2;
+        else if (Q.sa_strength >= 300) Q.trust_reichstag_decline += 0.1;
     
-        if (Q.blutmai) trust_reichstag_decline += 0.3; // Blutmai event
+        if (Q.blutmai) Q.trust_reichstag_decline += 0.3; // Blutmai event
     
         // SPD in government (he dislikes this)
-        if (Q.spd_in_government) trust_reichstag_decline += 0.1;
-        if (economy_bad) hindenburg_patience -= 0.5;
+        if (Q.spd_in_government) Q.trust_reichstag_decline += 0.1;
+        if (Q.economy_bad) Q.hindenburg_patience -= 0.5;
     
-        Q.hindenburg_trust_reichstag = Math.max(0, (Q.hindenburg_trust_reichstag || 50) - trust_reichstag_decline);
+        Q.hindenburg_trust_reichstag = Math.max(0, (Q.hindenburg_trust_reichstag || 50) - Q.trust_reichstag_decline);
     
         // Trust in specific parties
         if (Q.spd_in_government) {
@@ -1758,9 +1756,9 @@ if (Q.month_actions >= 1) {
         }
             
         /// Economic situation affects this mfer
-        if (economy_bad) {
-        Q.hindenburg_patience -= 0.5;
-        trust_reichstag_decline -= 0.3
+        if (Q.economy_bad) {
+            Q.hindenburg_patience -= 0.5;
+            Q.trust_reichstag_decline -= 0.3;
         }
 
 
@@ -1859,12 +1857,12 @@ if (Q.month_actions >= 1) {
         /// HINDENBURG PATIENCE DECAY on ...
 
         if (Q.hindenburg_puppet && Q.spd_in_government) {
-        Q.hindenburg_patience -= 0.5;
-        Q.camarilla_strength += 0.2;
+            Q.hindenburg_patience -= 0.5;
+            Q.camarilla_strength += 0.2;
         }
 
         if (Q.hindenburg_puppet && Q.trust_reichstag_decline < 20) {
-        Q.hindenburg_patience -= 0.3;
+            Q.hindenburg_patience -= 0.3;
         }
     
         // === NEGATIVE CONDITIONS (SPD countering) ===
@@ -1950,7 +1948,7 @@ if (Q.month_actions >= 1) {
             if (Q.papen_cabinet) Q.papen_influence += 0.8;
             if (Q.chancellor === "Papen") Q.papen_influence += 1.0;
             if (Q.spd_in_government === 1 || Q.chancellor_party === "SPD") Q.papen_influence += 1.0;
-            if (Q.spd_prussia === 0) Q.papen_influence += 1.0
+            if (Q.spd_prussia === 0) Q.papen_influence += 1.0;
         }
     
         // Hugenberg (grows with Nazi rise and DNVP radicalization)
@@ -2017,17 +2015,17 @@ if (Q.month_actions >= 1) {
         Q.camarilla_goal_install_hitler = Math.min(100, Math.max(0, Q.camarilla_goal_install_hitler));
     
         // === CALCULATE UNITY ===
-        var member_influences = [
+        Q.member_influences = [
             Q.meissner_influence || 0,
             Q.schleicher_influence || 0,
             Q.oskar_influence || 0,
             Q.oldenburg_influence || 0
         ];
-        if (Q.papen_in_camarilla) member_influences.push(Q.papen_influence || 0);
+        if (Q.papen_in_camarilla) Q.member_influences.push(Q.papen_influence || 0);
     
-        var mean_influence = member_influences.reduce((a, b) => a + b, 0) / member_influences.length;
-        var variance = member_influences.reduce((sum, val) => sum + Math.pow(val - mean_influence, 2), 0) / member_influences.length;
-        Q.camarilla_unified = Math.max(30, 100 - variance);
+        Q.mean_influence = Q.member_influences.reduce((a, b) => a + b, 0) / Q.member_influences.length;
+        Q.variance = Q.member_influences.reduce((sum, val) => sum + Math.pow(val - Q.mean_influence, 2), 0) / Q.member_influences.length;
+        Q.camarilla_unified = Math.max(30, 100 - Q.variance);
         
         if (Q.camarilla_goal_destroy_parliament >= 60 && Q.camarilla_goal_crush_left >= 60) {
             Q.camarilla_unified += 10;
@@ -2073,7 +2071,6 @@ if (Q.month_actions >= 1) {
             Q.hindenburg_dead = 1;
         }
     }
-
 }
 
 Q.has_event = 0;
@@ -2083,7 +2080,7 @@ var choices = this._compileChoices(scene);
 if (choices && choices[0].title != "Continue...") {
     Q.has_event = 1;
 } else {
-    has_event = 0;
+    Q.has_event = 0;
 }
 // pre-load all of the event images
 if (this.ui && this.ui.show_portraits) {
