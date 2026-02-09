@@ -1,67 +1,103 @@
 title: Vote of No Confidence
 subtitle: The coalition is fracturing...
 new-page: true
-view-if: spd_in_government = 1 and coalition_dissent >= 3 and spd_r < 50 and not constructive_vonc
+view-if: srpd_in_government = 1 and coalition_dissent >= dissent_threshold and srpd_r < 50 and not constructive_vonc
 tags: event
 on-arrival: {!
-// Determine who is calling the vote and why
-Q.vonc_caller = "";
-Q.vonc_reason = "";
-Q.vonc_severity = 0;
+// Calculate dissent threshold based on coalition partners' relations
+Q.dissent_threshold = 3; // Base threshold
 
-// Calculate severity based on dissent level
-Q.vonc_severity = Q.coalition_dissent;
+// Lower threshold (easier to trigger VONC) if relations are very bad
+let coalition_partners = [];
+if (Q.cnbl_in_government) coalition_partners.push(Q.cnbl_relation);
+if (Q.z_in_government) coalition_partners.push(Q.z_relation);
+if (Q.dvp_in_government) coalition_partners.push(Q.dvp_relation);
+if (Q.ddp_in_government) coalition_partners.push(Q.ddp_relation);
+if (Q.bvp_in_government) coalition_partners.push(Q.bvp_relation);
+if (Q.wp_in_government) coalition_partners.push(Q.wp_relation);
+if (Q.sapd_in_government) coalition_partners.push(Q.sapd_relation);
 
-// Determine primary antagonist in coalition
-if (Q.in_grand_coalition && Q.dvp_relation < 45) {
-    Q.vonc_caller = "DVP";
-    if (Q.welfare > 0) Q.vonc_reason = "welfare_spending";
-    else if (Q.economic_minister_party === "SPD") Q.vonc_reason = "economic_policy";
-    else Q.vonc_reason = "general_policy";
-} else if (Q.in_grand_coalition && Q.z_relation < 45) {
-    Q.vonc_caller = "Z";
-    if (Q.judicial_reform > 0) Q.vonc_reason = "judicial_reform";
-    else if (Q.secularization > 0) Q.vonc_reason = "church_policy";
-    else Q.vonc_reason = "general_policy";
-} else if (Q.in_weimar_coalition && Q.z_relation < 45) {
-    Q.vonc_caller = "Z";
-    if (Q.secularization > 0) Q.vonc_reason = "church_policy";
-    else if (Q.foreign_policy_seen && Q.foreign_minister_party === "SPD") Q.vonc_reason = "foreign_policy";
-    else Q.vonc_reason = "general_policy";
-} else if (Q.in_weimar_coalition && Q.ddp_relation < 45) {
-    Q.vonc_caller = Q.ddp_name;
-    Q.vonc_reason = "general_policy";
-} else if (Q.in_popular_front && Q.z_relation < 40) {
-    Q.vonc_caller = "Z";
-    Q.vonc_reason = "kpd_cooperation";
-} else if (Q.in_popular_front && Q.kpd_relation < 40) {
-    Q.vonc_caller = "KPD";
-    Q.vonc_reason = "insufficient_socialism";
-} else if (Q.in_left_front && Q.kpd_coalition_dissent >= 4) {
-    Q.vonc_caller = "KPD";
-    Q.vonc_reason = "reformist_betrayal";
+// Find worst relation
+let worst_relation = Math.min(...coalition_partners);
+
+if (worst_relation < 30) {
+    Q.dissent_threshold = 2; // Very bad relations = triggers earlier
+} else if (worst_relation < 40) {
+    Q.dissent_threshold = 3; // Bad relations = normal trigger
+} else if (worst_relation < 50) {
+    Q.dissent_threshold = 4; // Mediocre relations = triggers later
 } else {
-    // Default to largest non-SPD party
-    if (Q.in_grand_coalition) Q.vonc_caller = "DVP";
-    else if (Q.in_weimar_coalition) Q.vonc_caller = "Z";
-    else Q.coalition_dissent = 2;
+    Q.dissent_threshold = 5; // Good relations = rarely triggers
 }
 
-// Calculate votes needed and available
+// Additional adjustments based on coalition type
+let partner_count = coalition_partners.length;
+if (partner_count >= 4) {
+    Q.dissent_threshold -= 1; // Large coalitions are more fragile
+}
+
+// Ideologically diverse coalitions are more fragile
+let has_left = Q.sapd_in_government;
+let has_right = Q.dvp_in_government || Q.cnbl_in_government;
+if (has_left && has_right) {
+    Q.dissent_threshold -= 1; // Left-right coalitions more unstable
+}
+
+Q.dissent_threshold = Math.max(2, Math.min(5, Q.dissent_threshold)); // Clamp between 2-5
+
+Q.vonc_caller = "";
+Q.vonc_reason = "";
+Q.vonc_severity = Q.coalition_dissent;
+
+// Determine caller based on who's in government and their relations
+if (Q.cnbl_in_government && Q.cnbl_relation < 45) {
+    Q.vonc_caller = "CNBL";
+    Q.vonc_reason = "economic_policy";
+} else if (Q.z_in_government && Q.z_relation < 45) {
+    Q.vonc_caller = "Z";
+    Q.vonc_reason = "church_policy";
+} else if (Q.dvp_in_government && Q.dvp_relation < 45) {
+    Q.vonc_caller = "DVP";
+    Q.vonc_reason = "welfare_spending";
+} else if (Q.ddp_in_government && Q.ddp_relation < 45) {
+    Q.vonc_caller = "DDP";
+    Q.vonc_reason = "general_policy";
+} else if (Q.bvp_in_government && Q.bvp_relation < 45) {
+    Q.vonc_caller = "BVP";
+    Q.vonc_reason = "general_policy";
+} else if (Q.wp_in_government && Q.wp_relation < 45) {
+    Q.vonc_caller = "WP";
+    Q.vonc_reason = "general_policy";
+} else if (Q.sapd_in_government && Q.sapd_relation < 40) {
+    Q.vonc_caller = "SAPD";
+    Q.vonc_reason = "insufficient_socialism";
+} else {
+    // Default to largest coalition party by seat share with worst relations
+    let parties = [];
+    if (Q.cnbl_in_government) parties.push({name: "CNBL", seats: Q.cnbl_r, relation: Q.cnbl_relation});
+    if (Q.z_in_government) parties.push({name: "Z", seats: Q.z_r, relation: Q.z_relation});
+    if (Q.dvp_in_government) parties.push({name: "DVP", seats: Q.dvp_r, relation: Q.dvp_relation});
+    if (Q.ddp_in_government) parties.push({name: "DDP", seats: Q.ddp_r, relation: Q.ddp_relation});
+    if (Q.bvp_in_government) parties.push({name: "BVP", seats: Q.bvp_r, relation: Q.bvp_relation});
+    if (Q.wp_in_government) parties.push({name: "WP", seats: Q.wp_r, relation: Q.wp_relation});
+    if (Q.sapd_in_government) parties.push({name: "SAPD", seats: Q.sapd_r, relation: Q.sapd_relation});
+    if (Q.srpd_in_government) parties.push({name: "SRPD", seats: Q.srpd_r, relation: Q.srpd_relation});
+    if (Q.csvd_in_government) parties.push({name: "CSVD", seats: Q.csvd_r, relation: Q.csvd_relation});
+    
+    // Sort by worst relations first, then by seats
+    parties.sort((a, b) => {
+        if (a.relation !== b.relation) return a.relation - b.relation;
+        return b.seats - a.seats;
+    });
+    
+    Q.vonc_caller = parties[0]?.name || "Coalition Partner";
+    Q.vonc_reason = "general_policy";
+}
+
 Q.government_votes = Q.coalition_votes;
 Q.opposition_votes = 100 - Q.coalition_votes;
-
-// Can KPD save us?
-Q.kpd_can_save = (Q.kpd_r >= 10 && Q.kpd_relation >= 50 && Q.communist_coalition >= 3 && !Q.in_popular_front && !Q.in_left_front);
-Q.kpd_needed_to_survive = (Q.government_votes + Q.kpd_r >= 50);
-
-// Can DNVP save us (if moderate)?
-Q.dnvp_can_save = (Q.dnvp_line !== 3 && Q.dnvp_relation >= 55 && Q.dnvp_r >= 8);
-
-// Calculate concession costs
-Q.prussia_concession_available = Q.spd_prussia === 1;
+Q.prussia_concession_available = Q.srpd_prussia === 1;
 Q.welfare_concession_available = Q.welfare >= 0;
-Q.policy_concession_available = Q.vonc_reason !== "general_policy";
 !}
 go-to: vonc_intro
 
@@ -69,125 +105,74 @@ go-to: vonc_intro
 
 = Vote of No Confidence - [+ coalition_name +]
 
-**Crisis in the coalition!**
+**The [+ vonc_caller +] has called for a vote of no confidence against the [+ chancellor +] government.**
 
-The [+ vonc_caller +] has called for a vote of no confidence against the [+ chancellor +] government.
-
-**Their grievance:** [? if vonc_reason = "welfare_spending" : Our welfare spending is bankrupting the state and destroying business confidence. ?][? if vonc_reason = "economic_policy" : Our socialist economic policies are driving away investment and prolonging the depression. ?][? if vonc_reason = "judicial_reform" : Our attacks on the judiciary undermine the rule of law. ?][? if vonc_reason = "church_policy" : Our secularization policies attack the foundations of Christian society. ?][? if vonc_reason = "foreign_policy" : Our foreign policy is too conciliatory toward our former enemies. ?][? if vonc_reason = "kpd_cooperation" : Governing with communists legitimizes revolutionary extremism. ?][? if vonc_reason = "insufficient_socialism" : The SPD has betrayed the working class with half-measures and compromise. ?][? if vonc_reason = "reformist_betrayal" : The SPD's reformism blocks genuine revolutionary change. ?][? if vonc_reason = "general_policy" : The accumulated grievances against this government have become intolerable. ?]
+**Their grievance:** [? if vonc_reason = "welfare_spending" : Our welfare spending is bankrupting the state. ?][? if vonc_reason = "economic_policy" : Our socialist economic policies are driving away investment. ?][? if vonc_reason = "church_policy" : Our secularization policies attack Christian society. ?][? if vonc_reason = "insufficient_socialism" : The SRPD has betrayed the working class with half-measures. ?][? if vonc_reason = "general_policy" : The accumulated grievances have become intolerable. ?]
 
 **Current situation:**
 - Coalition support: [+ government_votes +]%
 - Opposition: [+ opposition_votes +]%
-- Coalition dissent level: [+ coalition_dissent +]
+- Dissent level: [+ coalition_dissent +]/[+ dissent_threshold +]
 
-[? if vonc_severity >= 5 : The vote is almost certain to succeed unless we make major concessions. ?]
-[? if vonc_severity = 4 : The vote will likely succeed unless we can reduce tensions. ?]
-[? if vonc_severity = 3 : The vote could go either way. ?]
+[? if coalition_dissent >= 5 : The vote is almost certain to succeed. ?]
+[? if coalition_dissent = 4 : The vote will likely succeed unless we make concessions. ?]
+[? if coalition_dissent = 3 : The vote could go either way. ?]
+[? if coalition_dissent = 2 : We have a chance to survive this. ?]
 
-**What should we do?**
-
-- @vonc_assess_options: Assess our options carefully
-- @vonc_let_it_happen: Accept the vote and prepare for new elections
+- @vonc_assess_options: Assess our options
+- @vonc_let_it_happen: Accept the vote and prepare for elections
 
 @vonc_assess_options
 
 = Strategic Options
 
-We have several potential paths to survive this crisis:
-
-**1. CONCESSIONS TO COALITION PARTNERS**
+**CONCESSIONS:**
 [? if prussia_concession_available : - Cede control of Prussia (guarantees survival) ?]
-[? if welfare_concession_available : - Major austerity program (likely to work) ?]
-[? if policy_concession_available : - Reverse the specific policy they oppose (might work) ?]
-- Spend resources on coalition management (uncertain)
+[? if welfare_concession_available : - Emergency austerity (likely to work) ?]
+- Use party resources (uncertain)
 
-**2. SEEK EXTERNAL SUPPORT**
-[? if kpd_can_save and kpd_needed_to_survive : - KPD abstention/support (would require bringing them into government) ?]
-[? if kpd_can_save and not kpd_needed_to_survive : - KPD abstention (not enough votes to save us) ?]
-[? if dnvp_can_save : - DNVP abstention (would require major rightward shift) ?]
+**ACCEPT DEFEAT:**
+- Resign and call elections
 
-**3. PARLIAMENTARY MANEUVERS**
-[? if reformist_strength >= 60 : - Purge left-wing of party to reassure partners (risky) ?]
-[? if resources >= 5 : - Buy time with emergency resources (temporary) ?]
-
-**4. ACCEPT DEFEAT**
-- Resign and call new elections
-- Try to form a minority government
-
-**What approach should we take?**
-
-- @vonc_concessions_menu: Make concessions to coalition partners
-- @vonc_external_support: Seek external support
-- @vonc_maneuvers: Try parliamentary maneuvers
+- @vonc_concessions: Make concessions
 - @vonc_let_it_happen: Accept defeat
 
-# ============================================
-# CONCESSIONS TO COALITION PARTNERS
-# ============================================
-
-@vonc_concessions_menu
+@vonc_concessions
 
 = Concessions
 
-What are we willing to give up to save the government?
+What are we willing to give up?
 
 - @vonc_prussia: Cede control of Prussia
 - @vonc_austerity: Enact emergency austerity
-- @vonc_reverse_policy: Reverse the specific policy causing crisis
-- @vonc_ministry_reshuffle: Offer ministry reshuffling
-- @vonc_resources: Use party resources for coalition management
-- @vonc_assess_options: Back to main options
+- @vonc_resources: Use party resources
+- @vonc_assess_options: Back to options
 
 @vonc_prussia
 view-if: prussia_concession_available
 on-arrival: {!
-Q.spd_prussia = 0;
+Q.srpd_prussia = 0;
 Q.prussian_government = "Coalition";
 Q.coalition_dissent = 0;
 Q.vonc_resolved = 1;
-
-// Political costs
 Q.reformist_dissent += 15;
-Q.centrist_dissent += 12;
-Q.labor_dissent += 15;
 Q.left_dissent += 8;
-Q.workers_spd -= 8;
-Q.new_middle_spd -= 5;
-Q.old_middle_spd -= 6;
-Q.unemployed_spd -= 5;
+Q.workers_srpd -= 8;
 
-// Benefits to partners
-if (Q.in_grand_coalition) {
-    Q.dvp_relation += 10;
-    Q.z_relation += 8;
-}
-if (Q.in_weimar_coalition) {
-    Q.z_relation += 10;
-    Q.ddp_relation += 5;
-}
+if (Q.cnbl_in_government) Q.cnbl_relation += 10;
+if (Q.z_in_government) Q.z_relation += 10;
+if (Q.dvp_in_government) Q.dvp_relation += 8;
+if (Q.ddp_in_government) Q.ddp_relation += 6;
+if (Q.bvp_in_government) Q.bvp_relation += 8;
 !}
 
 = Prussia Concession
 
-**We have ceded control of the Prussian government.**
+**We have ceded control of Prussia.**
 
-The [+ vonc_caller +] has agreed to withdraw the vote of no confidence. Prussia will now be governed by a coalition led by the Center Party.
+The [+ vonc_caller +] has withdrawn the vote. Prussia will now be governed by our coalition partners.
 
-**Consequences:**
-- We no longer control Germany's largest state
-- Our organizational base is severely weakened
-- The party is outraged at this capitulation
-- Coalition partners are satisfied for now
-
-**Internal party reaction:**
-
-*"This is a betrayal of everything we've built in Prussia!"* - Reformist wing
-
-*"We've surrendered our strongest defensive position."* - Centrist faction
-
-*"Typical social democratic cowardice!"* - Left wing
-
-The government survives, but at enormous cost.
+The party is outraged at this surrender of our strongest base.
 
 - @vonc_aftermath: Continue
 
@@ -198,1290 +183,101 @@ Q.coalition_dissent = Math.max(0, Q.coalition_dissent - 2);
 Q.welfare -= 2;
 Q.budget += 1;
 Q.unemployed += 4;
-
-// Political costs
-Q.workers_spd -= 12;
-Q.unemployed_spd -= 15;
-Q.workers_kpd += 8;
-Q.workers_nsdap += 4;
-Q.unemployed_kpd += 7;
-Q.unemployed_nsdap += 6;
+Q.workers_srpd -= 12;
+Q.unemployed_srpd -= 15;
 Q.left_dissent += 18;
-Q.centrist_dissent += 12;
 Q.labor_dissent += 20;
 
-// Coalition benefits
-if (Q.in_grand_coalition) {
-    Q.dvp_relation += 8;
-    Q.z_relation += 3;
-}
-if (Q.in_weimar_coalition) {
-    Q.z_relation += 5;
-    Q.ddp_relation += 6;
-}
-
-// KPD reaction if in popular front
-if (Q.in_popular_front) {
-    Q.kpd_coalition_dissent += 2;
-    Q.kpd_relation -= 12;
-}
-if (Q.in_left_front) {
-    Q.kpd_coalition_dissent += 3;
-    Q.kpd_relation -= 15;
-}
+if (Q.cnbl_in_government) Q.cnbl_relation += 8;
+if (Q.z_in_government) Q.z_relation += 5;
+if (Q.dvp_in_government) Q.dvp_relation += 8;
+if (Q.ddp_in_government) Q.ddp_relation += 4;
+if (Q.bvp_in_government) Q.bvp_relation += 5;
 
 Q.vonc_resolved = Q.coalition_dissent < 2;
 !}
 
 = Emergency Austerity
 
-**We have enacted a drastic austerity program.**
+**Drastic austerity enacted.** Welfare slashed, unemployment benefits cut.
 
-Welfare benefits are slashed. Unemployment insurance is cut. Public works programs are cancelled.
+[? if vonc_resolved : The [+ vonc_caller +] has withdrawn the vote. ?]
+[? if not vonc_resolved : The [+ vonc_caller +] wants more concessions. ?]
 
-[? if vonc_resolved : The [+ vonc_caller +] has withdrawn the vote of no confidence. ?]
-[? if not vonc_resolved : The [+ vonc_caller +] is somewhat mollified, but still may proceed with the vote. ?]
-
-**Consequences:**
-- Unemployment will rise significantly
-- Workers and unemployed are abandoning us
-- The KPD and NSDAP gain support
-- Our left wing is in open revolt
-[? if in_popular_front or in_left_front : - The KPD questions our socialist credentials ?]
-
-*"You've betrayed the working class to save your coalition!"* - Left SPD
-
-*"This is exactly what Brüning would do!"* - Trade unions
-
-[? if vonc_resolved : The government survives, but our base is shattered. ?]
-[? if not vonc_resolved : We may need additional measures to survive. ?]
-
-- @vonc_aftermath: Continue
-
-@vonc_reverse_policy
-view-if: policy_concession_available
-on-arrival: {!
-Q.coalition_dissent = Math.max(0, Q.coalition_dissent - 2);
-
-if (Q.vonc_reason === "welfare_spending") {
-    Q.welfare -= 1;
-    Q.workers_spd -= 6;
-    Q.unemployed_spd -= 8;
-    Q.left_dissent += 10;
-    Q.labor_dissent += 12;
-    Q.dvp_relation += 6;
-}
-else if (Q.vonc_reason === "church_policy") {
-    Q.secularization -= 1;
-    Q.z_relation += 8;
-    Q.catholics_spd -= 5;
-    Q.left_dissent += 8;
-    Q.pro_republic -= 2;
-}
-else if (Q.vonc_reason === "judicial_reform") {
-    Q.judicial_reform -= 1;
-    Q.z_relation += 6;
-    Q.dvp_relation += 5;
-    Q.pro_republic -= 3;
-    Q.reformist_dissent += 8;
-}
-else if (Q.vonc_reason === "economic_policy") {
-    Q.nationalization -= 1;
-    Q.workers_spd -= 8;
-    Q.left_dissent += 12;
-    Q.labor_dissent += 10;
-    Q.dvp_relation += 8;
-}
-else if (Q.vonc_reason === "foreign_policy") {
-    Q.reparations_negotiation = 0;
-    Q.z_relation += 5;
-    Q.dvp_relation += 5;
-    Q.reformist_dissent += 5;
-}
-
-Q.vonc_resolved = Q.coalition_dissent < 2;
-!}
-
-= Policy Reversal
-
-**We have reversed the policy that caused this crisis.**
-
-[? if vonc_reason = "welfare_spending" : Welfare spending has been reduced. ?]
-[? if vonc_reason = "church_policy" : Our secularization measures have been scaled back. ?]
-[? if vonc_reason = "judicial_reform" : Judicial reforms have been suspended. ?]
-[? if vonc_reason = "economic_policy" : Socialist economic policies have been moderated. ?]
-[? if vonc_reason = "foreign_policy" : We've adopted a harder line in foreign policy. ?]
-
-[? if vonc_resolved : The [+ vonc_caller +] has withdrawn the vote of no confidence. ?]
-[? if not vonc_resolved : The [+ vonc_caller +] appreciates this gesture but may still proceed. ?]
-
-The party's left wing is furious at this capitulation to bourgeois pressure.
-
-[? if vonc_resolved : The government survives at the cost of our principles. ?]
-[? if not vonc_resolved : We may need additional measures. ?]
-
-- @vonc_aftermath: Continue
-
-@vonc_ministry_reshuffle
-choose-if: resources >= 2
-unavailable-subtitle: We don't have enough resources (need 2)
-on-arrival: {!
-Q.resources -= 2;
-Q.coalition_dissent = Math.max(0, Q.coalition_dissent - 1);
-
-// Offer ministry to dissenting partner
-if (Q.vonc_caller === "DVP") {
-    if (Q.economic_minister_party === "SPD") {
-        Q.economic_minister_party = "DVP";
-        Q.economic_minister = "Curtius";
-        Q.dvp_relation += 8;
-    } else if (Q.finance_minister_party === "SPD") {
-        Q.finance_minister_party = "DVP";
-        Q.finance_minister = "Moldenhauer";
-        Q.dvp_relation += 8;
-    }
-    Q.reformist_dissent += 8;
-} else if (Q.vonc_caller === "Z") {
-    if (Q.interior_minister_party === "SPD") {
-        Q.interior_minister_party = "Z";
-        Q.interior_minister = "Wirth";
-        Q.z_relation += 8;
-    } else if (Q.labor_minister_party === "SPD") {
-        Q.labor_minister_party = "Z";
-        Q.labor_minister = "Stegerwald";
-        Q.z_relation += 8;
-    }
-    Q.labor_dissent += 10;
-    Q.left_dissent += 8;
-}
-
-Q.vonc_resolved = Q.coalition_dissent < 2;
-!}
-
-= Ministry Reshuffle
-
-**We have offered key ministries to our coalition partners.**
-
-[? if vonc_caller = "DVP" : The DVP now controls [? if economic_minister_party = "DVP" : Economic Affairs ?][? if finance_minister_party = "DVP" : Finance ?]. ?]
-[? if vonc_caller = "Z" : The Center Party now controls [? if interior_minister_party = "Z" : Interior ?][? if labor_minister_party = "Z" : Labor ?]. ?]
-
-[? if vonc_resolved : The [+ vonc_caller +] has withdrawn the vote of no confidence. ?]
-[? if not vonc_resolved : The [+ vonc_caller +] appreciates this but may still proceed. ?]
-
-Our party is unhappy about surrendering influence in government.
+Workers are abandoning us. The left wing is in revolt.
 
 - @vonc_aftermath: Continue
 
 @vonc_resources
 choose-if: resources >= 3
-unavailable-subtitle: We don't have enough resources (need 3)
+unavailable-subtitle: Need 3 resources
 on-arrival: {!
 Q.resources -= 3;
 Q.coalition_dissent = Math.max(0, Q.coalition_dissent - 1);
 Q.vonc_resolved = Q.coalition_dissent < 2;
 
-if (Q.vonc_caller === "DVP") Q.dvp_relation += 3;
+if (Q.vonc_caller === "CNBL") Q.cnbl_relation += 3;
 if (Q.vonc_caller === "Z") Q.z_relation += 3;
-if (Q.vonc_caller === Q.ddp_name) Q.ddp_relation += 3;
+if (Q.vonc_caller === "DVP") Q.dvp_relation += 3;
+if (Q.vonc_caller === "DDP") Q.ddp_relation += 3;
+if (Q.vonc_caller === "BVP") Q.bvp_relation += 3;
+if (Q.vonp_caller === "WP") Q.wp_relation += 3;
+if (Q.vonc_caller === "SAPD") Q.sapd_relation += 3;
 !}
 
 = Coalition Management
 
-**We've used party resources to smooth over tensions.**
+**Party resources spent on backroom deals.**
 
-Backroom deals, patronage, and careful negotiation have reduced immediate tensions.
-
-[? if vonc_resolved : The [+ vonc_caller +] has withdrawn the vote of no confidence. ?]
-[? if not vonc_resolved : This buys us some time, but fundamental issues remain. ?]
-
-This is only a temporary solution - the underlying conflicts persist.
+[? if vonc_resolved : The vote is withdrawn. ?]
+[? if not vonc_resolved : This buys time, but issues remain. ?]
 
 - @vonc_aftermath: Continue
-
-# ============================================
-# EXTERNAL SUPPORT OPTIONS
-# ============================================
-
-@vonc_external_support
-
-= External Support
-
-We can try to survive the vote by seeking support from parties outside our coalition.
-
-**Options:**
-
-[? if kpd_can_save : - **KPD Abstention/Support**: The Communists could save us, but would demand entrance to government ?]
-
-[? if dnvp_can_save : - **DNVP Abstention**: The moderate nationalists might abstain, but would demand major concessions ?]
-
-[? if not kpd_can_save and not dnvp_can_save : No external parties are both willing and able to help us. ?]
-
-- @vonc_kpd_support: Approach the KPD
-- @vonc_dnvp_support: Approach the DNVP
-- @vonc_assess_options: Back to main options
-
-@vonc_kpd_support
-view-if: kpd_can_save
-on-arrival: {!
-Q.kpd_demands_seen = 1;
-!}
-
-= KPD Support
-
-We've approached the KPD leadership about saving the government.
-
-[? if kpd_party_leader = "Conciliators" : The Conciliator leadership is open to discussion. ?]
-[? if kpd_party_leader != "Conciliators" : Even the hardline KPD leadership sees an opportunity here. ?]
-
-**KPD Position:**
-
-"We won't simply abstain to save a bourgeois coalition. If you want our votes, we enter the government as full partners with real power over policy."
-
-**Their demands:**
-- Entry into the coalition with significant ministries
-- Immediate pro-worker legislation
-- Crackdown on fascist organizations
-- Progressive taxation of capital
-
-[? if in_grand_coalition : This would transform the Grand Coalition into a Popular Front. The DVP would certainly leave. ?]
-[? if in_weimar_coalition : This would create a Left Coalition. The Center Party might leave. ?]
-
-**What should we do?**
-
-- @vonc_kpd_accept: Accept KPD entry into government
-- @vonc_kpd_reject: Reject their terms
-- @vonc_assess_options: Consider other options
-
-@vonc_kpd_accept
-on-arrival: {!
-Q.communist_coalition += 1;
-Q.workers_kpd += 3;
-Q.kpd_relation += 10;
-Q.coalition_dissent = 0;
-Q.vonc_resolved = 1;
-
-// Transform coalition
-if (Q.in_grand_coalition) {
-    Q.in_grand_coalition = 0;
-    Q.in_popular_front = 1;
-    Q.coalition_name = "Popular Front";
-    Q.dvp_in_government = 0;
-    Q.kpd_in_government = 1;
-    
-    // Reassign DVP ministries
-    if (Q.economic_minister_party === "DVP") {
-        Q.economic_minister_party = "KPD";
-        Q.economic_minister = "Remmele";
-    }
-    if (Q.finance_minister_party === "DVP") {
-        Q.finance_minister_party = "SPD";
-        Q.finance_minister = "Hilferding";
-    }
-    
-    Q.coup_progress += 3;
-    Q.capital_strike_progress += 2;
-}
-else if (Q.in_weimar_coalition) {
-    Q.in_weimar_coalition = 0;
-    Q.coalition_name = "Left Coalition";
-    Q.kpd_in_government = 1;
-    
-    if (Q.interior_minister_party === "Z") {
-        Q.interior_minister_party = "KPD";
-        Q.interior_minister = "Ulbricht";
-    }
-    
-    Q.coup_progress += 2;
-}
-
-Q.left_dissent -= 10;
-Q.labor_dissent -= 8;
-Q.reformist_dissent += 15;
-Q.centrist_dissent += 12;
-!}
-
-= KPD Enters Government
-
-**Historic breakthrough! The KPD has entered the government!**
-
-[? if in_popular_front : The Grand Coalition has been transformed into a Popular Front. The DVP has left in protest. ?]
-[? if coalition_name = "Left Coalition" : A Left Coalition now governs Germany. ?]
-
-**New Coalition Composition:**
-- SPD
-- KPD
-[? if in_popular_front : - Center Party ?]
-[? if in_popular_front : - [+ ddp_name +] ?]
-[? if z_in_government and not in_popular_front : - Center Party ?]
-
-**Reactions:**
-
-*"The Bolsheviks are in power! Germany faces revolution!"* - Right-wing press
-
-*"Finally, workers' unity has been achieved!"* - KPD
-
-*"This is a dangerous gamble."* - Reformist SPD
-
-*"At last, real socialist policies!"* - Left SPD
-
-[? if in_popular_front : The Center Party's progressive wing barely convinced the party to stay in government. ?]
-
-The vote of no confidence has been withdrawn. The right-wing is preparing for confrontation.
-
-- @vonc_aftermath: Continue
-
-@vonc_kpd_reject
-on-arrival: kpd_relation -= 5
-
-We've decided not to bring the KPD into government at this time.
-
-- @vonc_external_support: Consider other options
-
-@vonc_dnvp_support
-view-if: dnvp_can_save
-on-arrival: {!
-Q.dnvp_demands_seen = 1;
-!}
-
-= DNVP Support
-
-We've approached the moderate wing of the DNVP about abstaining on the vote.
-
-**DNVP Position:**
-
-"We could abstain, but we need to see a fundamental shift in your policies. No more socialism, no more weakness on national questions."
-
-**Their demands:**
-- End welfare expansion
-- Stronger national defense
-- Opposition to Young Plan
-- Cabinet reshuffle to exclude left-wingers
-
-This would essentially end social democratic governance in favor of a conservative coalition with SPD participation.
-
-**What should we do?**
-
-- @vonc_dnvp_accept: Accept their terms
-- @vonc_dnvp_reject: Reject this betrayal
-- @vonc_assess_options: Consider other options
-
-@vonc_dnvp_accept
-on-arrival: {!
-Q.welfare -= 1;
-Q.dnvp_relation += 10;
-Q.coalition_dissent = 0;
-Q.vonc_resolved = 1;
-
-Q.workers_spd -= 10;
-Q.left_dissent += 20;
-Q.labor_dissent += 18;
-Q.centrist_dissent += 10;
-Q.reformist_dissent += 8;
-
-Q.workers_kpd += 8;
-Q.workers_nsdap += 3;
-
-if (Q.labor_minister_party === "SPD") {
-    Q.labor_minister_party = "Z";
-    Q.labor_minister = "Stegerwald";
-}
-!}
-
-= DNVP Deal
-
-**We've struck a deal with the DNVP.**
-
-The vote of no confidence has been withdrawn, but at enormous cost to our principles.
-
-**Consequences:**
-- Welfare cuts enacted
-- Pro-worker policies abandoned
-- Conservative influence increased
-- Party left wing in revolt
-
-*"This is the final proof that social democracy serves capitalism!"* - KPD
-
-*"You've sold out the workers for power!"* - Left SPD
-
-*"Sometimes survival requires compromise."* - Reformist leadership
-
-The government survives, but our socialist credibility is shattered.
-
-- @vonc_aftermath: Continue
-
-@vonc_dnvp_reject
-on-arrival: dnvp_relation -= 3
-
-We will not betray our principles for DNVP support.
-
-- @vonc_external_support: Consider other options
-
-# ============================================
-# PARLIAMENTARY MANEUVERS
-# ============================================
-
-@vonc_maneuvers
-
-= Parliamentary Maneuvers
-
-What political tactics should we employ?
-
-- @vonc_purge_left: Purge the left wing to reassure partners
-- @vonc_emergency_resources: Emergency resource mobilization
-- @vonc_assess_options: Back to main options
-
-@vonc_purge_left
-view-if: reformist_strength >= 60
-choose-if: left_strength >= 20
-unavailable-subtitle: [? if left_strength < 20 : The left wing isn't strong enough to purge. ?]
-on-arrival: {!
-Q.left_strength -= 15;
-Q.reformist_strength += 5;
-Q.left_dissent += 25;
-Q.labor_dissent += 15;
-Q.workers_spd -= 8;
-
-if (Q.in_grand_coalition) {
-    Q.dvp_relation += 8;
-    Q.z_relation += 5;
-}
-if (Q.in_weimar_coalition) {
-    Q.z_relation += 6;
-}
-
-Q.coalition_dissent = Math.max(0, Q.coalition_dissent - 2);
-Q.vonc_resolved = Q.coalition_dissent < 2;
-!}
-
-= Left Wing Purged
-
-**The party leadership has expelled prominent left-wingers.**
-
-Several left-wing Reichstag deputies have been removed from the parliamentary faction. Others have been demoted or marginalized.
-
-[? if vonc_resolved : Coalition partners are satisfied. The vote has been withdrawn. ?]
-[? if not vonc_resolved : Coalition partners appreciate this but want more. ?]
-
-**Consequences:**
-- Left wing decimated
-- Party discipline improved
-- Worker support declining
-- Bourgeois partners reassured
-
-*"The reformists have shown their true colors!"* - Left SPD
-
-*"Necessary to maintain coalition viability."* - Party leadership
-
-[? if vonc_resolved : The government survives, but the party is fractured. ?]
-
-- @vonc_aftermath: Continue
-
-@vonc_emergency_resources
-choose-if: resources >= 5
-unavailable-subtitle: We need 5 resources for this
-on-arrival: {!
-Q.resources -= 5;
-Q.coalition_dissent = Math.max(0, Q.coalition_dissent - 2);
-Q.vonc_resolved = Q.coalition_dissent < 2;
-
-if (Q.vonc_caller === "DVP") Q.dvp_relation += 5;
-if (Q.vonc_caller === "Z") Q.z_relation += 5;
-!}
-
-= Emergency Measures
-
-**We've mobilized all available party resources.**
-
-Through intense lobbying, patronage, and political dealmaking, we've temporarily stabilized the coalition.
-
-[? if vonc_resolved : The vote has been withdrawn. ?]
-[? if not vonc_resolved : We've bought time, but fundamental problems remain. ?]
-
-This is extremely expensive and only delays the inevitable unless we address root causes.
-
-- @vonc_aftermath: Continue
-
-# ============================================
-# LET IT HAPPEN - GOVERNMENT FALLS
-# ============================================
 
 @vonc_let_it_happen
 on-arrival: {!
-Q.spd_in_government = 0;
-Q.in_grand_coalition = 0;
-Q.in_weimar_coalition = 0;
-Q.in_popular_front = 0;
-Q.in_left_front = 0;
-Q.spd_toleration = 0;
+Q.srpd_in_government = 0;
 Q.coalition_dissent = 0;
 Q.time_to_election = 3;
 Q.pro_republic -= 5;
+Q.workers_srpd -= 3;
 
-Q.old_middle_spd -= 3;
-Q.new_middle_spd -= 2;
-Q.workers_spd -= 3;
-
-if (Q.pro_republic < 50) {
-    Q.workers_spd -= 4;
-    Q.old_middle_nsdap += 4;
-    Q.new_middle_nsdap += 3;
-}
-
-// Set up new government
-if (Q.president === "Hindenburg") {
-    Q.chancellor = "Brüning";
-    Q.chancellor_party = "Z";
-    Q.welfare -= 2;
-    Q.presidential_government = 1;
-} else {
-    Q.spd_caretaker = 1;
-}
-
-// Reset ministries to bourgeois coalition
-Q.foreign_minister_party = "DVP";
-Q.interior_minister_party = "Z";
-Q.justice_minister_party = "I";
-Q.labor_minister_party = "Z";
-Q.reichswehr_minister_party = "I";
-Q.economic_minister_party = Q.ddp_name;
-Q.finance_minister_party = "DVP";
-Q.agriculture_minister_party = "Z";
-
-Q.labor_minister = "Stegerwald";
-Q.interior_minister = "Wirth";
-Q.finance_minister = "Moldenhauer";
-Q.economic_minister = "Curtius";
-Q.justice_minister = "Koch-Weser";
-Q.foreign_minister = "Stresemann";
-Q.agriculture_minister = "Dietrich";
-Q.reichswehr_minister = "Groener";
+// Reset to caretaker
+Q.chancellor = "Caretaker";
+Q.presidential_government = 1;
 !}
 call: set_next_election_time
-go-to: vonc_fall_hindenburg if president = "Hindenburg"; vonc_fall_braun if president = "Braun"
 
-@vonc_fall_hindenburg
-on-arrival: {!
-// Hindenburg appoints bourgeois government
-Q.government_type = "presidential";
-Q.minority_government = 1;
+= Government Falls
 
-// Calculate new government composition
-var bourgeois_total = Q.z_r + Q.dvp_r + Q.ddp_r + Q.bvp_r;
-Q.minority_government_support = bourgeois_total;
+**The vote has succeeded. The government has resigned.**
 
-// Check if SPD will tolerate
-Q.toleration_offered = (Q.pro_republic >= 40 && Q.nazi_urgency >= 5 && Q.dnvp_line === 3);
-!}
+New elections scheduled for [+ next_election_month : month +] [+ next_election_year +].
 
-= Government Falls - Presidential Appointment
-
-**The vote of no confidence has succeeded.**
-
-The [+ chancellor +] government has resigned. President Hindenburg has appointed **Heinrich Brüning** (Center Party) as Chancellor of a minority bourgeois government.
-
-**New Government Composition:**
-- Center Party (Z)
-- German People's Party (DVP)
-- [+ ddp_name +]
-- Bavarian People's Party (BVP)
-
-**Combined Support:** [+ minority_government_support +]%
-
-Brüning immediately announces emergency austerity measures using Article 48 presidential decree powers, bypassing the Reichstag.
-
-**His first acts:**
-- Welfare spending slashed
-- Unemployment benefits cut
-- Public sector wages reduced
-- Emergency taxes on workers
-
-[? if toleration_offered : **A difficult choice approaches:** Should the SPD tolerate this government to prevent something worse, or oppose it and force new elections? ?]
-
-[? if not toleration_offered : New elections have been scheduled for [+ next_election_month : month +] [+ next_election_year +]. ?]
-
-- @vonc_toleration_decision: Continue
-
-@vonc_toleration_decision
-view-if: toleration_offered
-
-= The Toleration Question
-
-**Brüning's government lacks a Reichstag majority.**
-
-As the largest party, we can bring down this government at any time with a vote of no confidence. However, new elections might benefit the extremists.
-
-**Arguments for Toleration:**
-
-*"The Nazis and Communists would gain in new elections. We must be the responsible party and prevent chaos."* - Otto Wels
-
-*"Brüning's austerity is harmful, but a Nazi-DNVP government would be catastrophic."* - Reformist wing
-
-*"Sometimes we must tolerate lesser evils to prevent greater ones."* - Rudolf Hilferding
-
-**Arguments Against:**
-
-*"Tolerating these attacks on workers makes us complicit! We're betraying our base!"* - Left wing
-
-*"Brüning's policies will only create more unemployment and radicalization."* - Trade unions
-
-*"We become the fig leaf for bourgeois dictatorship!"* - Left SPD deputies
-
-**What should we do?**
-
-- @vonc_accept_toleration: Tolerate the Brüning government
-- @vonc_reject_toleration: Oppose and force new elections
-- @vonc_conditional_toleration: Tolerate with conditions
-
-@vonc_accept_toleration
-on-arrival: {!
-Q.spd_toleration = 1;
-Q.in_minority_government = 0;
-Q.time_to_election = 0; // Cancel immediate elections
-
-// Political consequences
-Q.workers_spd -= 8;
-Q.unemployed_spd -= 10;
-Q.workers_kpd += 6;
-Q.unemployed_kpd += 7;
-Q.workers_nsdap += 2;
-Q.unemployed_nsdap += 3;
-
-Q.left_dissent += 15;
-Q.labor_dissent += 18;
-Q.centrist_dissent += 8;
-Q.reformist_dissent += 5;
-
-// Relationship effects
-Q.z_relation += 5;
-Q.kpd_relation -= 10;
-Q.dnvp_relation += 3;
-
-// Next election in 2 years instead
-Q.next_election_year = Q.year + 2;
-Q.next_election_month = Q.month;
-Q.next_election_time = Q.time + 24;
-
-Q.toleration_policy_points = 0; // Track concessions we extract
-!}
-
-= Toleration Policy Adopted
-
-**The SPD will tolerate the Brüning government.**
-
-We will not vote no confidence, allowing Brüning to govern via presidential decree. However, we reserve the right to oppose specific policies and demand concessions.
-
-**Immediate Reactions:**
-
-*"The SPD has betrayed the working class!"* - KPD
-
-*"Responsible statesmanship in difficult times."* - Center Party
-
-*"Social Democrats prop up capitalist dictatorship!"* - Communist press
-
-*"Cowardly surrender!"* - Left wing SPD
-
-**Within the party:**
-- Left wing threatens split
-- Trade unions are furious
-- Reformists defend the decision
-- Workers are abandoning us for KPD
-
-**The situation:**
-- No immediate elections
-- We can influence policy from opposition
-- Brüning's austerity will continue
-- The party is deeply divided
-
-This "toleration" arrangement is unprecedented and unstable. How long can we maintain it?
+A caretaker administration will govern until then.
 
 - @vonc_aftermath: Continue
-
-@vonc_reject_toleration
-on-arrival: {!
-Q.spd_toleration = 0;
-Q.time_to_election = 3;
-
-// Set elections
-Q.next_election_year = Q.year;
-Q.next_election_month = Q.month + 3;
-if (Q.next_election_month > 12) {
-    Q.next_election_month -= 12;
-    Q.next_election_year += 1;
-}
-Q.next_election_time = Q.time + 3;
-
-// Party unity benefits
-Q.left_dissent -= 5;
-Q.labor_dissent -= 5;
-Q.workers_spd += 2;
-
-// But instability costs
-Q.pro_republic -= 3;
-Q.coup_progress += 1;
-
-Q.z_relation -= 5;
-Q.kpd_relation += 3;
-!}
-
-= New Elections Called
-
-**We refuse to tolerate this bourgeois government!**
-
-The SPD will vote no confidence. New elections have been scheduled for [+ next_election_month : month +] [+ next_election_year +].
-
-**Party Reaction:**
-
-*"Finally, we stand with the workers!"* - Left wing
-
-*"This is the principled position."* - Trade unions
-
-*"We risk empowering the extremists."* - Reformist wing
-
-**Political Situation:**
-- Campaign begins immediately
-- Brüning remains as caretaker
-- Economic crisis deepens
-- Extremists mobilizing
-
-The election will be a referendum on democracy itself.
-
-- @vonc_aftermath: Continue
-
-@vonc_conditional_toleration
-on-arrival: {!
-Q.spd_toleration = 1;
-Q.conditional_toleration = 1;
-Q.time_to_election = 0;
-
-// Slightly better than unconditional
-Q.workers_spd -= 6;
-Q.unemployed_spd -= 8;
-Q.workers_kpd += 5;
-Q.unemployed_kpd += 6;
-
-Q.left_dissent += 12;
-Q.labor_dissent += 15;
-Q.centrist_dissent += 5;
-
-Q.z_relation += 3;
-Q.kpd_relation -= 8;
-
-// Next election delayed
-Q.next_election_year = Q.year + 2;
-Q.next_election_month = Q.month;
-Q.next_election_time = Q.time + 24;
-
-Q.toleration_demands_made = 1;
-!}
-
-= Conditional Toleration
-
-**We will tolerate Brüning, but with demands.**
-
-We've extracted the following concessions:
-
-**Brüning's Commitments:**
-- Limit welfare cuts to essential minimums
-- Maintain core unemployment insurance
-- Consult SPD on major policy changes
-- No attacks on trade union rights
-- Protection of republican constitution
-
-[? if prussian_government = "I" : - SPD retains control of Prussia ?]
-
-**Party Reaction:**
-
-*"Better than nothing, but still collaboration."* - Left wing
-
-*"We've salvaged something from disaster."* - Reformist wing
-
-*"The SPD negotiates its own irrelevance."* - KPD
-
-This arrangement is fragile. Brüning may break his promises, and our base is still angry.
-
-- @vonc_aftermath: Continue
-
-@vonc_fall_braun
-
-= Government Falls - Caretaker Administration
-
-**The vote of no confidence has succeeded.**
-
-However, President Braun has asked Chancellor [+ chancellor +] to remain as head of a caretaker government until new elections can be held.
-
-**Caretaker Status:**
-- No new policies can be enacted
-- Government maintains basic functions
-- Emergency powers only
-- Elections in 3 months
-
-New elections have been scheduled for [+ next_election_month : month +] [+ next_election_year +].
-
-**Party Reaction:**
-
-*"We should have made more concessions."* - Reformist wing
-
-*"Good riddance to that failed coalition."* - Left wing
-
-*"Now we can campaign on our real principles."* - Centrist faction
-
-The campaign begins immediately.
-
-- @vonc_aftermath: Continue
-
-# ============================================
-# AFTERMATH AND CONSEQUENCES
-# ============================================
 
 @vonc_aftermath
 on-arrival: {!
-// Track that we've been through a VONC
 Q.vonc_survived = Q.vonc_resolved ? 1 : 0;
 Q.vonc_failed = Q.vonc_resolved ? 0 : 1;
 
-// Long-term consequences based on how we handled it
 if (Q.vonc_survived) {
     Q.coalition_stability = "fragile";
-    if (Q.spd_prussia === 0) {
-        Q.organizational_strength -= 2;
-    }
 } else {
     Q.coalition_stability = "collapsed";
 }
-
-// Track specific outcomes for future events
-if (Q.in_popular_front && Q.kpd_in_government) {
-    Q.popular_front_formed_crisis = 1;
-}
-
-if (Q.spd_toleration && !Q.spd_in_government) {
-    Q.toleration_start_time = Q.time;
-    Q.toleration_duration = 0;
-}
-
-// Reset VONC flags for next potential crisis
-Q.tried_supporting_kpd = 0;
-Q.kpd_demands_seen = 0;
-Q.dnvp_demands_seen = 0;
-Q.vonc_delayed = 0;
 !}
 
 = Crisis Resolution
 
-[? if vonc_survived : **The government has survived the crisis.** ?]
+[? if vonc_survived : **The government survives.** ?]
 [? if vonc_failed : **The government has fallen.** ?]
-
-**What we learned:**
-
-[? if spd_prussia = 0 and vonc_survived : We sacrificed Prussia to maintain national power. This will have lasting consequences for our organizational strength. ?]
-
-[? if welfare < 0 and vonc_survived : We enacted austerity to save the coalition. Workers are abandoning us for more radical alternatives. ?]
-
-[? if in_popular_front and kpd_in_government : We've made history by bringing the KPD into government. This is either our salvation or our doom. ?]
-
-[? if spd_toleration = 1 : We've entered the unprecedented position of "tolerating" a bourgeois government. How long can this last? ?]
-
-[? if vonc_failed and time_to_election > 0 : We face new elections in a few months. The campaign will be brutal. ?]
 
 **Internal State:**
 - Left dissent: [+ left_dissent +]
 - Labor dissent: [+ labor_dissent +]
 - Reformist dissent: [+ reformist_dissent +]
-[? if coalition_dissent > 0 : - Coalition dissent: [+ coalition_dissent +] ?]
 
-[? if vonc_survived and coalition_dissent >= 2 : The coalition remains unstable. Another crisis could come at any time. ?]
-
-[? if in_popular_front : The Popular Front faces opposition from both the far-right and conservative establishment. ?]
-
-[? if spd_toleration = 1 : Every month we tolerate Brüning's austerity, we lose more workers to the KPD and NSDAP. ?]
-
-- @root: Continue
-
-# ============================================
-# SPECIAL TOLERATION EVENTS (if toleration active)
-# ============================================
-
-@toleration_crisis_1
-title: Brüning Breaks His Promise
-subtitle: The Chancellor enacts harsh measures despite our agreement
-new-page: true
-view-if: spd_toleration = 1 and conditional_toleration = 1 and time >= toleration_start_time + 3
-max-visits: 1
-tags: event
-on-arrival: {!
-Q.bruening_betrayal = 1;
-Q.workers_spd -= 5;
-Q.unemployed_spd -= 6;
-Q.left_dissent += 10;
-Q.labor_dissent += 12;
-!}
-
-= Brüning's Betrayal
-
-**Chancellor Brüning has broken his commitments to us.**
-
-Despite our conditional toleration agreement, Brüning has enacted:
-- Massive unemployment benefit cuts
-- Public sector wage reductions
-- Tax increases on workers
-- Attacks on union collective bargaining
-
-He used Article 48 presidential decrees to bypass the Reichstag entirely.
-
-**Our Options:**
-
-- @toleration_end: End toleration and force new elections
-- @toleration_protest: Protest loudly but continue toleration
-- @toleration_renegotiate: Demand new negotiations
-
-@toleration_end
-on-arrival: spd_toleration = 0; time_to_election = 3; left_dissent -= 5; labor_dissent -= 8; workers_spd += 3
-call: set_next_election_time
-
-**We've ended our toleration!**
-
-A vote of no confidence will be called. New elections in [+ next_election_month : month +] [+ next_election_year +].
-
-*"Finally! We should never have tolerated him in the first place!"* - Left wing
-
-@toleration_protest
-on-arrival: left_dissent += 5; labor_dissent += 8; workers_spd -= 3; workers_kpd += 3
-
-We protest Brüning's actions but continue toleration.
-
-*"Empty words! You're still propping him up!"* - KPD
-
-@toleration_renegotiate
-choose-if: resources >= 2
-unavailable-subtitle: Need 2 resources
-on-arrival: resources -= 2; z_relation += 3; coalition_dissent = 0
-
-We've extracted minor new concessions through intense negotiation.
-
-@toleration_crisis_2
-title: The Cost of Toleration
-subtitle: Our base is hemorrhaging to the extremists
-new-page: true
-view-if: spd_toleration = 1 and time >= toleration_start_time + 6
-max-visits: 1
-tags: event
-on-arrival: {!
-Q.toleration_duration = Q.time - Q.toleration_start_time;
-Q.workers_spd -= 8;
-Q.unemployed_spd -= 10;
-Q.workers_kpd += 6;
-Q.workers_nsdap += 2;
-Q.unemployed_kpd += 8;
-Q.unemployed_nsdap += 2;
-!}
-
-= The Toleration Trap
-
-**Our toleration policy is destroying us.**
-
-After [+ toleration_duration +] months of tolerating Brüning's austerity government:
-
-**The Numbers:**
-- Workers fleeing to KPD
-- Unemployed abandoning us en masse
-- Trade union membership declining
-- Left wing in open revolt
-- Reformists demoralized
-
-**What people are saying:**
-
-*"The SPD tolerates our starvation!"* - Unemployed worker
-
-*"Social fascism! The SPD enables capitalist dictatorship!"* - KPD
-
-*"Where is the party that once fought for us?"* - Trade unionist
-
-*"This is political suicide."* - Left SPD deputy
-
-**Can we continue this policy?**
-
-- @end_toleration_now: End toleration immediately
-- @toleration_continue_despair: Continue despite the costs
-- @toleration_extract_concessions: Demand major concessions to continue
-
-@end_toleration_now
-on-arrival: spd_toleration = 0; time_to_election = 3; left_dissent -= 10; labor_dissent -= 12; workers_spd += 5; reformist_dissent += 8
-call: set_next_election_time
-
-**Toleration policy ended!**
-
-We will vote no confidence. Elections called for [+ next_election_month : month +] [+ next_election_year +].
-
-*"Finally, we return to our principles!"* - Left wing
-
-@toleration_continue_despair
-on-arrival: left_dissent += 15; labor_dissent += 15; left_strength -= 5
-
-We continue tolerating Brüning despite everything.
-
-The party is in crisis. How much longer can this go on?
-
-@toleration_extract_concessions
-choose-if: resources >= 3 and z_relation >= 45
-unavailable-subtitle: [? if resources < 3 : Need 3 resources. ?] [? if z_relation < 45 : Center Party not cooperative enough. ?]
-on-arrival: resources -= 3; welfare += 1; workers_spd += 2; left_dissent -= 5
-
-We've forced Brüning to restore some welfare spending.
-
-A minor victory, but is it enough?
-
-# ============================================
-# VONC IN LEFT FRONT / POPULAR FRONT
-# ============================================
-
-@left_front_vonc
-title: KPD Threatens to Leave Coalition
-subtitle: The Communists are unhappy with our reformist policies
-new-page: true
-view-if: (in_left_front or in_popular_front) and kpd_coalition_dissent >= 4 and kpd_in_government
-max-visits: 1
-tags: event
-on-arrival: {!
-Q.kpd_crisis = 1;
-!}
-
-= Communist Crisis
-
-**The KPD is threatening to leave the coalition!**
-
-[? if kpd_party_leader = "Conciliators" : Even the Conciliator leadership is under pressure from the party base. ?]
-[? if kpd_party_leader != "Conciliators" : The hardline KPD leadership demands immediate revolutionary action. ?]
-
-**Their Grievances:**
-
-[? if welfare < 1 : "You've cut welfare instead of expropriating the capitalists!" ?]
-[? if nationalization < 2 : "Where is the socialization of industry we were promised?" ?]
-[? if reichswehr_minister_party != "KPD" : "The military remains in reactionary hands!" ?]
-[? if kpd_coalition_dissent >= 5 : "The SPD has betrayed the working class once again!" ?]
-
-**KPD Demands:**
-- Immediate nationalization of key industries
-- Worker control in factories
-- Disarm right-wing paramilitary groups
-- Purge reactionaries from civil service
-- Aggressive anti-fascist policies
-
-**What should we do?**
-
-- @left_front_accommodate: Accommodate KPD demands
-- @left_front_negotiate: Negotiate a compromise
-- @left_front_refuse: Refuse their ultimatum
-- @left_front_let_them_go: Let the KPD leave
-
-@left_front_accommodate
-on-arrival: {!
-Q.kpd_coalition_dissent = 0;
-Q.kpd_relation += 10;
-Q.nationalization += 1;
-Q.workers_spd += 5;
-Q.workers_kpd -= 3;
-Q.left_dissent -= 10;
-Q.reformist_dissent += 20;
-Q.coup_progress += 2;
-Q.capital_strike_progress += 3;
-!}
-
-= Radical Turn
-
-**We've accepted the KPD's demands.**
-
-Major nationalization begins. Worker councils gain power. Anti-fascist crackdowns intensify.
-
-**Consequences:**
-- KPD satisfied for now
-- Left wing energized
-- Reformists horrified
-- Coup risk increased dramatically
-- Capital flight accelerating
-
-*"Finally, real socialism!"* - Left SPD
-
-*"This is madness! We're provoking civil war!"* - Reformists
-
-The right-wing is mobilizing for confrontation.
-
-@left_front_negotiate
-choose-if: resources >= 3
-unavailable-subtitle: Need 3 resources
-on-arrival: resources -= 3; kpd_coalition_dissent -= 2; kpd_relation += 3; reformist_dissent += 8
-
-We've negotiated a middle path with partial concessions.
-
-The crisis is defused, but tensions remain.
-
-@left_front_refuse
-on-arrival: kpd_coalition_dissent += 2; kpd_relation -= 10; left_dissent += 10
-
-We've refused the KPD's ultimatum.
-
-They may leave the coalition soon.
-
-@left_front_let_them_go
-on-arrival: {!
-Q.kpd_in_government = 0;
-Q.in_left_front = 0;
-Q.in_popular_front = 0;
-Q.kpd_relation -= 15;
-Q.workers_kpd += 8;
-Q.workers_spd -= 6;
-Q.coalition_votes = Q.coalition_votes - Q.kpd_r;
-
-// Check if government still viable
-Q.coalition_viable = Q.coalition_votes >= 50;
-
-if (!Q.coalition_viable) {
-    Q.time_to_election = 3;
-}
-!}
-go-to: left_front_collapse_viable if coalition_viable; left_front_collapse_new_elections if not coalition_viable
-
-@left_front_collapse_viable
-
-The KPD has left the coalition.
-
-[? if in_popular_front : The Popular Front has collapsed. ?]
-[? if in_left_front : The Left Front has collapsed. ?]
-
-However, our remaining coalition partners still command a Reichstag majority.
-
-We must find new partners or govern as a weakened coalition.
-
-@left_front_collapse_new_elections
-call: set_next_election_time
-
-The KPD has left the coalition, and we no longer have a Reichstag majority.
-
-New elections have been called for [+ next_election_month : month +] [+ next_election_year +].
-
-*"The united front was a disaster!"* - Reformists
-
-*"The KPD betrayed workers' unity!"* - Left SPD
-
----
-
-# ============================================
-# CONSTRUCTIVE VOTE OF NO CONFIDENCE (if reformed)
-# ============================================
-
-@constructive_vonc_attempt
-title: Opposition Attempts Constructive Vote
-subtitle: They're trying to replace us with a new government
-new-page: true
-view-if: constructive_vonc = 1 and spd_in_government = 1 and coalition_dissent >= 3
-max-visits: 1
-tags: event
-on-arrival: {!
-// Determine who is trying to form alternative government
-if (Q.nsdap_r + Q.dnvp_r + Q.dvp_r >= 50) {
-    Q.alternative_coalition = "right-wing";
-    Q.alternative_chancellor = "Hitler";
-} else if (Q.z_r + Q.dvp_r + Q.ddp_r >= 50) {
-    Q.alternative_coalition = "bourgeois";
-    Q.alternative_chancellor = "Brüning";
-} else {
-    Q.alternative_coalition = "none";
-}
-!}
-go-to: constructive_vonc_right if alternative_coalition = "right-wing"; constructive_vonc_bourgeois if alternative_coalition = "bourgeois"; constructive_vonc_fails if alternative_coalition = "none"
-
-@constructive_vonc_right
-
-= Right-Wing Power Grab
-
-**The NSDAP, DNVP, and DVP have united to replace our government!**
-
-They've proposed Hitler as Chancellor with a right-wing coalition majority.
-
-Under constructive vote of no confidence rules, they can only replace us if they have an alternative majority.
-
-**Proposed Government:**
-- NSDAP
-- DNVP  
-- DVP
-- Total: ~[+ nsdap_r + dnvp_r + dvp_r +]%
-
-This would mean Nazi power.
-
-**Can we stop this?**
-
-- @constructive_vonc_fight: Fight this with everything we have
-- @constructive_vonc_accept_right: Accept democratic defeat
-
-@constructive_vonc_bourgeois
-
-= Bourgeois Coalition Alternative
-
-**The Center Party and DVP propose replacing us with a bourgeois coalition.**
-
-Brüning would become Chancellor of a government excluding the SPD.
-
-**Proposed Government:**
-- Center Party
-- DVP
-- [+ ddp_name +]
-
-**What should we do?**
-
-- @constructive_vonc_fight: Fight to maintain our government
-- @constructive_vonc_accept_bourgeois: Step aside
-
-@constructive_vonc_fails
-
-= Constructive Vote Fails
-
-The opposition has called a constructive vote of no confidence, but they cannot agree on an alternative government.
-
-Our government survives by default!
-
-The constitutional reform requiring a constructive vote has saved us.
-
-@constructive_vonc_fight
-choose-if: resources >= 4
-unavailable-subtitle: Need 4 resources to mount effective resistance
-on-arrival: resources -= 4; coalition_dissent -= 1
-go-to: constructive_vonc_barely_survives if coalition_dissent < 3; constructive_vonc_fight_fails if coalition_dissent >= 3
-
-@constructive_vonc_barely_survives
-
-Through intense lobbying and political maneuvering, we've prevented the alternative coalition from forming!
-
-Our government survives, but barely.
-
-@constructive_vonc_fight_fails
-on-arrival: spd_in_government = 0
-go-to: constructive_vonc_right_succeeds if alternative_coalition = "right-wing"; constructive_vonc_bourgeois_succeeds if alternative_coalition = "bourgeois"
-
-@constructive_vonc_right_succeeds
-on-arrival: chancellor = "Hitler"; chancellor_party = "NSDAP"; pro_republic -= 20; coup_progress += 5
-
-**The Nazi coalition has taken power.**
-
-Adolf Hitler is now Chancellor. Democracy in Germany may be at an end.
-
-@constructive_vonc_bourgeois_succeeds
-on-arrival: chancellor = "Brüning"; chancellor_party = "Z"; welfare -= 1
-call: set_next_election_time
-
-**Brüning's bourgeois coalition has taken power.**
-
-We're in opposition. Elections in 2 years.
-
-@constructive_vonc_accept_right
-on-arrival: spd_in_government = 0; chancellor = "Hitler"; chancellor_party = "NSDAP"; pro_republic -= 20
-achievement: constitutional_suicide
-
-We've accepted democratic defeat.
-
-Hitler is Chancellor. God help us all.
-
-@constructive_vonc_accept_bourgeois
-on-arrival: spd_in_government = 0; chancellor = "Brüning"; chancellor_party = "Z"
-
-We've stepped aside for the bourgeois coalition.
-
-At least democracy survives.
+[? if vonc_survived and coalition_dissent >= 2 : Another crisis could come at any time. ?]
