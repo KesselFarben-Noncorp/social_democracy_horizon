@@ -1,7 +1,7 @@
 title: Presidential Intervention
 subtitle: Hindenburg acts
 tags: event
-view-if: president == "Hindenburg" and presidential_powers != 1 and hindenburg_patience < 0 and not hindenburg_dismissed_government_this_turn
+view-if: president == "Hindenburg" and presidential_powers != 1 and (hindenburg_patience < 0 or hindenburg_puppet) and not hindenburg_dismissed_government_this_turn
 on-arrival: {!
     Q.hindenburg_dismissed_government_this_turn = 1;
     Q.hindenburg_government_dismissals += 1;
@@ -78,3 +78,9 @@ President Hindenburg has had enough.
 **Hindenburg's faith in parliamentary democracy:** [+ hindenburg_trust_reichstag +]/100
 
 A new government will be appointed soon.
+
+- @okay: Continue...
+
+@okay
+subtitle: What is he doing?
+go-to: election_reichstag.presidential_crisis if hindenburg_puppet = 1
