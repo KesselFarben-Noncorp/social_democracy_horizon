@@ -1064,8 +1064,9 @@ if (Q.month_actions >= 1) {
     };
 
     Q.unrest_factor = Q.random_factor(
-      Math.max(Q.unemployed / 10.5, 1) * (1 + Math.max(Q.inflation_component, 0)),
-      0.4
+        Math.pow(Math.max(Q.unemployed / 10.5, 1), 1.4) * 
+        (1 + Math.max(Q.inflation_component, 0)),
+        0.4
     );
 
 
@@ -1106,7 +1107,7 @@ if (Q.month_actions >= 1) {
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
-        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 5) + (Q.unrest_factor * 8.0),
+        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 12) + (Q.unrest_factor * 20.0) + (Q.street_pressure_factor * 5),
         dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism_factor * 28 + Q.pro_republic_factor * 30) : Q.nationalism_factor * 56),
         dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 62,
         wp:    Q.wp_banned   ? 0 : (Q.pro_republic_factor * 37) + (Q.inflation * 0.18),
@@ -1236,7 +1237,8 @@ if (Q.month_actions >= 1) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.1) + (Q.unrest_factor * 0.75) + (Q.street_pressure_factor * 0.55), 0.3);
+                    Q.crisis_bonus = Q.unemployed >= 12 ? Math.pow((Q.unemployed - 11) / 15, 1.2) : 0;
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.1) + (Q.unrest_factor * 0.75) + (Q.street_pressure_factor * 0.55) + Q.crisis_bonus, 0.3);
 
                     if (Q.c === 'workers') {
                         Q.ideology_factor *= 0.90;
