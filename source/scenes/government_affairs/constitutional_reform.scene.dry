@@ -28,7 +28,6 @@ A constitutional reform requires either a two-thirds supermajority in the Reichs
 - @presidential_powers: Reduce presidential powers.
 - @party_bans: Allow banning of anti-constitutional parties.
 - @ban_party_menu: Initiate ban on anti-constititional parties.
-- @federalism_reform: Reform federalism and state powers.
 - @basic_rights: Strengthen constitutional protection of basic rights.
 - @as_is: Do not pursue constitutional reform.
 - @easy_discard
@@ -174,54 +173,7 @@ achievement: verfassungsreform
 
 We have established a Constitutional Court with the power to ban anti-constitutional parties! This is a powerful tool for defending democracy, though it must be used carefully.
 
-@federalism_reform
-subtitle: Reduce the power of individual states, strengthen the national government.
-on-arrival: {!
-Q.reform_support = Q.spd_normalized * 0.8; // Some federalist SPD members oppose
-if (Q.ddp_relation >= 40) {
-    Q.reform_support += Q.ddp_normalized * 0.7; // DDP has federalist wing
-}
-if (Q.z_relation >= 50 && Q.z_party_leader != "Kaas") {
-    Q.reform_support += Q.z_normalized * 0.6; // Z protective of Catholic states
-}
-if (Q.kpd_relation >= 50) {
-    Q.reform_support += Q.kpd_normalized; // KPD supports centralization
-}
-// BVP strongly opposes
-if (Q.bvp_normalized >= 0.03) {
-    Q.reform_support -= 0.08;
-}
-!}
-view-if: federalism_reform = 0
 
-Many believe that the federal structure of Germany, with powerful state governments, creates inefficiency and allows anti-republican forces to entrench themselves in individual states. This reform would:
-- Reduce the autonomy of state governments
-- Transfer more powers to the national level
-- Make it harder for extremists to build regional power bases
-- Streamline administration
-
-**Support:**
-- The KPD supports this, viewing federalism as reactionary.
-- Many in the SPD support this for administrative efficiency.
-[? if ddp_relation >= 40 : - The [+ ddp_name +] has mixed feelings but can be convinced. ?]
-[? if z_relation >= 50 and z_party_leader != "Kaas" : - The Center Party is cautiously supportive. ?]
-
-**Opposition:**
-- The BVP vehemently opposes this as an attack on Bavarian autonomy.
-[? if z_party_leader == "Kaas" : - The conservative wing of the Center worries about protecting Catholic regional interests. ?]
-- State governments across Germany resist losing power.
-- Some federalists in our own party oppose this.
-
-- @federalism_reform_2: Call a constitutional referendum to pass the reform!
-- @reforms_menu: See other reform options.
-
-@federalism_reform_2
-choose-if: reform_support >= pass_threshold
-unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We need a larger margin for the referendum. ?]
-on-arrival: constitutional_reform += 1; federalism_reform = 1; bvp_relation -= 20; z_relation -= 8; center_dissent += 8; centralization_progress += 1; prussian_police_strength -= 0.15; spd_prussia = 0
-achievement: verfassungsreform
-
-We have passed a constitutional reform reducing state autonomy! The federal government now has greater power to ensure uniform democratic standards across Germany. Bavaria is furious.
 
 @basic_rights
 subtitle: Strengthen constitutional guarantees of civil liberties and social rights.
@@ -279,7 +231,7 @@ go-to: root
 title: Party Banning Powers
 subtitle: Use the Constitutional Court to ban anti-democratic parties
 new-page: true
-view-if: constitutional_court = 1 and spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer <= 0
+view-if: constitutional_court = 1
 on-arrival: constitutional_reform_timer = 12
 
 = Party Banning
