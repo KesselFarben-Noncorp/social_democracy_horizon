@@ -775,6 +775,40 @@ Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r;
 
 
 
+// === PARTY RELATION GRAVITY ===
+// Pulls extreme values back toward centre, stronger the further they are
+
+Q.relation_gravity = function(value) {
+    var abs = Math.abs(value);
+    
+    // Only activates beyond 80, scales up to 100
+    if (abs <= 80) return value;
+    
+    // How far past 80 are we? (0 to 20)
+    var excess = abs - 80;
+    
+    // Pull strength scales with excess: gentle at 81, strong at 100
+    var pull = excess * 0.04; // At 100: pulls by 0.8/turn. At 90: pulls by 0.4/turn
+    
+    // Pull toward centre (opposite sign of value)
+    if (value > 0) {
+        return value - pull;
+    } else {
+        return value + pull;
+    }
+};
+
+var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'ddp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
+for (var rel of relations) {
+    Q[rel + '_relation'] = Q.relation_gravity(Q[rel + '_relation']);
+    // Hard cap just in case
+    Q[rel + '_relation'] = Math.max(-100, Math.min(100, Q[rel + '_relation']));
+}
+
+
+
+
+
 
 
 
