@@ -21,7 +21,7 @@ title: Rally for democracy
 subtitle: Rally our party and the German people to defend democracy and freedom.
 choose-if: advisor_action_timer == 0 
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
-on-arrival: advisor_action_timer = 6; pro_republic += 5; democratization += 1; neorevisionist_strength += 5; reformist_strength += 3; workers_spd += 4*(1-dissent) if democratization >= 4; new_middle_spd += 3*(1-dissent) if democratization >= 4
+on-arrival: advisor_action_timer = 5; pro_republic += 5; democratization += 1; neorevisionist_strength += 5; reformist_strength += 3; workers_spd += 4*(1-dissent) if democratization >= 4; new_middle_spd += 3*(1-dissent) if democratization >= 4
 
 Leber helps us to rally the people in defense of democracy.
 
@@ -37,9 +37,9 @@ go-to: military_policy
 title: Build support for a People's Party
 subtitle: Can we expand our party beyond the industrial working class?
 view-if: peoples_party = 0
-choose-if: peoples_party_support <= 4 and advisor_action_timer = 0 and peoples_party == 0
+choose-if: peoples_party_support <= 6 and advisor_action_timer = 0 and peoples_party == 0
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if peoples_party_support > 4: There is already substantial support for a People's Party. ?]
-on-arrival: advisor_action_timer = 6; peoples_party_support += 1
+on-arrival: advisor_action_timer = 8; peoples_party_support += 1; peoples_party_support += 2 if neorevisionist_strength + reformist_strength > left_strength + center_strength
 
 We are building up support for the idea of a People's Party.
 
@@ -47,9 +47,9 @@ We are building up support for the idea of a People's Party.
 title: Building a People's Party
 subtitle: Can we expand our party beyond the industrial working class?
 view-if: peoples_party == 0
-choose-if: peoples_party_support >= 3 and advisor_action_timer = 0
+choose-if: peoples_party_support >= 6 and advisor_action_timer = 0
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if peoples_party_support < 3: There is not enough support for this policy within the party. ?]
-on-arrival: advisor_action_timer = 6; last_advisor_action = 1
+on-arrival: advisor_action_timer = 8; last_advisor_action = 1
 go-to: peoples_party
 
 @campaigning_peoples_party
@@ -59,4 +59,4 @@ view-if: peoples_party = 1
 choose-if: advisor_action_timer = 0
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 on-arrival: advisor_action_timer = 6;
-go-to: peoples_party_campaigning
+go-to: peoples_party.campaign_pps
