@@ -11,7 +11,6 @@ Wels is the long-time chairman of the SPD. He is a gifted organizer and a member
 
 - @clear_agenda
 - @party_discipline
-- @republican_synthesis
 - @snap_election
 - @root: Return to main
 
@@ -21,7 +20,7 @@ subtitle: Removes all cards from the hand.
 choose-if: advisor_action_timer = 0
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 on-arrival: {!
-Q.advisor_action_timer = 6;
+Q.advisor_action_timer = 10;
 if (Q.difficulty >= 0) {
     window.dendryUI.dendryEngine.state.currentHands['main'] = [];
 } else {
@@ -36,25 +35,16 @@ title: Party Discipline
 subtitle: Reduce dissent across the party.
 choose-if: advisor_action_timer = 0
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
-on-arrival: advisor_action_timer = 6; left_dissent -= 5; labor_dissent -= 10; center_dissent -= 10; reformist_dissent -= 10; neorevisionist_dissent -= 5
+on-arrival: advisor_action_timer = 12; left_dissent *= 0.90; labor_dissent *= 0.85; center_dissent *= 0.80; reformist_dissent *= 0.90; neorevisionist_dissent *= 0.90
 
 We have enforced party discipline to reduce dissent across all factions.
-
-@republican_synthesis
-title: The Republican Synthesis
-subtitle: Form a binding pact between the SPD, Center, and DDP.
-unavailable-subtitle: [? if chancellor != "Wels": Wels is not the Chancellor! ?] [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
-choose-if: advisor_action_timer = 0 and (chancellor == "Wels") and (in_weimar_coalition = 1) and (nazi_urgency > 1 or crisis_urgency > 1) and democratization >= 1
-on-arrival: advisor_action_timer = 12; coalition_dissent -= 3; democratization += 1; democratization *= 1.5; nsdap_votes -= 3; kpd_votes -= 3; z_relation += 5; ddp_relation += 7; nationalism /= 5; socialism /= 10; pro_republic += 5; advisor_action_timer /= 2 if democratization >= advisor_action_timer
-
-Wels has leveraged his personal prestige and organizational leverage to bind the democratic parties together. We have formed a "United Front of Democracy." For now, the bickering has ceased, and the Republic stands united against the extremes.
 
 @snap_election
 title: Snap Election
 subtitle: Call a snap election.
-unavailable-subtitle: [? if chancellor != "Wels" : Wels must be Chancellor or President. ?][? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
+unavailable-subtitle: [? if chancellor != "Wels" : Wels must be Chancellor. ?][? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 choose-if: advisor_action_timer == 0 and (chancellor == "Wels")
-on-arrival: advisor_action_timer = 6; time_to_election = 3
+on-arrival: advisor_action_timer = 12; time_to_election = 3
 call: set_next_election_time
 
 We have called for new elections, set for [+ next_election_month : month +] [+ next_election_year +].
