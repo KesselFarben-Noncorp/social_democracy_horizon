@@ -1087,23 +1087,30 @@ Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r;
         Q.inflation_component = Math.abs(Q.inflation) / 3; // deflation is worse
     };
 
-    // === EXPONENTIAL UNREST FACTOR ===
-    Q.unemployment_threshold = 8.0;  // "Natural rate" - normal for Weimar
-    Q.inflation_threshold = 5.0;     // Moderate inflation is tolerable
+    // === EXPONENTIAL UNREST FACTOR (FIXED) ===
+    Q.unemployment_threshold = 7.0;  // Lower threshold (7% is "full employment" for Weimar)
+    Q.inflation_threshold = 3.0;     // Lower threshold (3% is normal)
 
     Q.unemployment_excess = Math.max(0, Q.unemployed - Q.unemployment_threshold);
-    Q.inflation_excess = Math.max(0, Math.abs(Q.inflation) - Q.inflation_threshold);
 
-    // Exponential crisis scaling
+    // Deflation handling
+    if (Q.inflation >= 0) {
+        Q.inflation_excess = Math.max(0, Q.inflation - Q.inflation_threshold);
+    } else {
+        // Deflation is WORSE - counts 1.5x
+        Q.inflation_excess = Math.abs(Q.inflation) * 1.5;
+    }
+
+    // STEEPER exponential curve
     Q.unrest_factor = Q.random_factor(
-        0.4 + // Base societal tension
-        Math.pow(Q.unemployment_excess / 10, 2.0) + // Square law for unemployment
-        Math.pow(Q.inflation_excess / 8, 1.7),      // Slightly less for inflation
-        0.35 // Less randomness - crises are predictable
+        0.3 + // Lower baseline
+        Math.pow(Q.unemployment_excess / 8, 2.2) + // Steeper exponent (was 2.0)
+        Math.pow(Q.inflation_excess / 6, 1.8),     // Steeper inflation penalty
+        0.35
     );
 
     // Cap at reasonable maximum
-    Q.unrest_factor = Math.min(Q.unrest_factor, 10.0);
+    Q.unrest_factor = Math.min(Q.unrest_factor, 12.0);
 
 
     // FACTORS
@@ -1144,7 +1151,7 @@ Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r;
 
     Q.ideology_caps = {
         nsdap: {
-            base: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 8) + (Q.unrest_factor * 12),
+            base: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 10) + (Q.unrest_factor * 15),
             workers: 0.75,      // Labor movement resistance
             old_middle: 1.35,   // Petty bourgeoisie - prime target
             new_middle: 1.20,   // White collar - susceptible
@@ -1408,7 +1415,7 @@ Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r;
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.1) + (Q.unrest_factor * 1.8) + (Q.street_pressure_factor * 0.55), 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.4) + (Q.unrest_factor * 2.2) + (Q.street_pressure_factor * 0.70), 0.3);
 
                     if (Q.c === 'workers') {
                         Q.ideology_factor *= 0.90;
