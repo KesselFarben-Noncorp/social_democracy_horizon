@@ -146,6 +146,39 @@ for (var party of Q.parties) {
     }
 }
 
+// === SEAT CALCULATIONS ===
+// Reichstag had 577 base seats (we use *6 multiplier from display, so 600 total)
+Q.total_seats = 600;
+
+for (var party of Q.parties) {
+    if (!Q.math_broken) {
+        Q[party + '_seats'] = Math.round(Q[party + '_r'] * 6);
+    } else {
+        Q[party + '_seats'] = Math.round(Q.impossible_multiply(Q[party + '_r'], 6));
+    }
+}
+
+// Seat-based vote share (may differ slightly from _r due to rounding)
+Q.total_seats_filled = 0;
+for (var party of Q.parties) {
+    Q.total_seats_filled += Q[party + '_seats'];
+}
+
+for (var party of Q.parties) {
+    if (!Q.math_broken) {
+        Q[party + '_seat_pct'] = Q.total_seats_filled > 0 
+            ? Math.round((Q[party + '_seats'] / Q.total_seats_filled) * 1000) / 10 
+            : 0;
+        // Display string
+        Q[party + '_seats_disp'] = Q[party + '_seats'].toString();
+        Q[party + '_seat_pct_disp'] = Q[party + '_seat_pct'].toFixed(1);
+    } else {
+        Q[party + '_seat_pct'] = Q.impossible_percentage(Q[party + '_seats'] / Q.total_seats_filled * 100);
+        Q[party + '_seats_disp'] = Q.impossible_add(Q[party + '_seats'], 0).toString();
+        Q[party + '_seat_pct_disp'] = Q.impossible_percentage(Q[party + '_seat_pct']).toFixed(1);
+    }
+}
+
 // Reset government flags
 Q.coalition_dissent = 0;
 Q.kpd_coalition_dissent = 0;
@@ -602,57 +635,67 @@ go-to: coalition_formation_start
 {!<table style="width:100%; border-collapse: collapse;">!}
 <tr style="border-bottom: 2px solid #333;">
     <td style="padding: 8px; font-weight: bold;">Party</td>
-    <td style="padding: 8px; font-weight: bold; text-align: right;">Vote Share</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Votes</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Seats</td>
     <td style="padding: 8px; font-weight: bold; text-align: right;">Change</td>
 </tr>
 <tr style="background-color: #ffebee;">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B0000; display:inline-block; margin-right:8px;'> </div>KPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ kpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kpd_r > 0 : color: green; ?][? if change_kpd_r < 0 : color: red; ?]">[+ str_change_kpd +]</td>
 </tr>
 [? if sapd_formed = 1 : 
 <tr style="background-color: #ffe8e8;">
     <td style="padding: 8px;"><div class="box" style='background-color:#C40000; display:inline-block; margin-right:8px;'> </div>SAPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sapd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ sapd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_sapd_r > 0 : color: green; ?][? if change_sapd_r < 0 : color: red; ?]">[+ str_change_sapd +]</td>
 </tr>
 ?]
 <tr style="background-color: #ffe0e0; border: 2px solid #E3000F;">
     <td style="padding: 8px;"><div class="box" style='background-color:#E3000F; display:inline-block; margin-right:8px;'> </div><strong>SPD</strong></td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ spd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ spd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_spd_r > 0 : color: green; ?][? if change_spd_r < 0 : color: red; ?]"><strong>[+ str_change_spd +]</strong></td>
 </tr>
 [? if srpd_formed = 1 :
 <tr style="background-color: #fff0f0;">
     <td style="padding: 8px;"><div class="box" style='background-color:#FF6B6B; display:inline-block; margin-right:8px;'> </div>SRPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ srpd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ srpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_srpd_r > 0 : color: green; ?][? if change_srpd_r < 0 : color: red; ?]">[+ str_change_srpd +]</td>
 </tr>
 ?]
 <tr style="background-color: #fffacd;">
     <td style="padding: 8px;"><div class="box" style='background-color:#DCCA4A; display:inline-block; margin-right:8px;'> </div>[+ ddp_name +]</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ ddp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ ddp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_ddp_r > 0 : color: green; ?][? if change_ddp_r < 0 : color: red; ?]">[+ str_change_ddp +]</td>
 </tr>
 <tr style="background-color: #f0f0f0;">
     <td style="padding: 8px;"><div class="box" style='background-color:#000; display:inline-block; margin-right:8px;'> </div>Z (Center)</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ z_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ z_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_z_r > 0 : color: green; ?][? if change_z_r < 0 : color: red; ?]">[+ str_change_z +]</td>
 </tr>
 <tr style="background-color: #e6f2f8;">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bvp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ bvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bvp_r > 0 : color: green; ?][? if change_bvp_r < 0 : color: red; ?]">[+ str_change_bvp +]</td>
 </tr>
 <tr style="background-color: #fef9e6;">
     <td style="padding: 8px;"><div class="box" style='background-color:#D5AC27; display:inline-block; margin-right:8px;'> </div>DVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ dvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dvp_r > 0 : color: green; ?][? if change_dvp_r < 0 : color: red; ?]">[+ str_change_dvp +]</td>
 </tr>
 [? if wp_r > 0 :
 <tr style="background-color: #e8e8e8;">
     <td style="padding: 8px;"><div class="box" style='background-color:#424242; display:inline-block; margin-right:8px;'> </div>WP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ wp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ wp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_wp_r > 0 : color: green; ?][? if change_wp_r < 0 : color: red; ?]">[+ str_change_wp +]</td>
 </tr>
 ?]
@@ -660,29 +703,34 @@ go-to: coalition_formation_start
 <tr style="background-color: #e8e8e8;">
     <td style="padding: 8px;"><div class="box" style='background-color:#5D4E37; display:inline-block; margin-right:8px;'> </div>CNBL</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cnbl_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right; [? if change_cnbl_r > 0 : color: green; ?][? if change_cnbl_r < 0 : color: red; ?]">[+ str_change_cnbl +]</td>
+    <td style="padding: 8px; text-align: right;">[+ cnbl_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_cnbl_r > 0 : color: green; ?][? if>change_cnbl_r < 0 : color: red; ?]">[+ str_change_cnbl +]</td>
 </tr>
 ?]
 [? if csvd_flee:
 <tr style="background-color: #d4e3f0;">
     <td style="padding: 8px;"><div class="box" style='background-color:#3f7bc1; display:inline-block; margin-right:8px;'> </div>CSVD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ csvd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ csvd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_csvd_r > 0 : color: green; ?][? if change_csvd_r < 0 : color: red; ?]">[+ str_change_csvd +]</td>
 </tr>
 ?]
 <tr style="background-color: #d4e3f0;">
     <td style="padding: 8px;"><div class="box" style='background-color:#3f7bc1; display:inline-block; margin-right:8px;'> </div>DNVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dnvp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ dnvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dnvp_r > 0 : color: green; ?][? if change_dnvp_r < 0 : color: red; ?]">[+ str_change_dnvp +]</td>
 </tr>
 <tr style="background-color: #d4e3f0;">
     <td style="padding: 8px;"><div class="box" style='background-color:#:#a0a0a0; display:inline-block; margin-right:8px;'> </div>Others</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ other_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ other_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_other_r > 0 : color: green; ?][? if change_other_r < 0 : color: red; ?]">[+ str_change_other +]</td>
 </tr>
 <tr style="background-color: #ffe4cc;">
     <td style="padding: 8px;"><div class="box" style='background-color:#954B00; display:inline-block; margin-right:8px;'> </div>NSDAP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ nsdap_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ nsdap_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_nsdap_r > 0 : color: green; ?][? if change_nsdap_r < 0 : color: red; ?]">[+ str_change_nsdap +]</td>
 </tr>
 {!</table>!}
