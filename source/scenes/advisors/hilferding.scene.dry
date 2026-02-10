@@ -11,17 +11,27 @@ new-page: true
 Hilferding is an economist and a disciple of Karl Kautsky. Originating from Vienna, Austria, he trained as a medical doctor, but later became involved in Marxist economics as a discipline. He has been the lead ideologist of our party since the Heidelberg Program of 1925.
 
 - @against_right_and_left
+- @depression
 - @toleration
 - @finance_ministry_
 - @economic_democracy_
 - @root: Return to main
+
+@depression
+title: Adopt the centrist austerity program.
+subtitle: Formulate a plan to potentially use the crisis or save us.
+choose-if: advisor_action_timer <= 0
+view-if: economic_plan = 0 and black_thursday_seen
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if black_thursday_seen == 0 : We are not currently in an economic crisis. ?][? if economic_plan = 5: We have already adopted the Centrist Plan. ?]
+on-arrival: advisor_action_timer = 8; austerity_support += 2; center_dissent -= 10
+go-to: crisis_program.adopt_austerity
 
 @against_right_and_left
 title: Against Right and Left
 subtitle: As a Centrist, Hilferding seeks to steer a course between the party's factions.
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 choose-if: advisor_action_timer = 0
-on-arrival: advisor_action_timer = 5; advisor_action_time = time; center_strength += 10; left_strength -= 5; labor_strength -= 5; neorevisionist_strength -= 5; center_dissent -= 10
+on-arrival: advisor_action_timer = 2; advisor_action_time = time; center_strength += 15; left_strength -= 5; labor_strength -= 5; neorevisionist_strength -= 5; center_dissent *= 0.80
 
 We have reduced the strength of the dissident factions in the party.
 
@@ -30,7 +40,7 @@ title: Defending Toleration
 subtitle: Hilferding supports cooperation with the bourgeois parties.
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if not spd_toleration: The SPD is not in toleration. ?]
 choose-if: spd_in_government = 0 and spd_toleration = 1 and advisor_action_timer = 0
-on-arrival: advisor_action_timer = 6; left_dissent -= 10; neorevisionist_dissent -= 8; center_dissent -= 5
+on-arrival: advisor_action_timer = 4; left_dissent -= 10; neorevisionist_dissent -= 8; center_dissent -= 5; hindenburg_relation += 3; hindenburg_patience += 3
 
 We have reduced dissent among the anti-toleration factions.
 
