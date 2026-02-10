@@ -413,6 +413,22 @@ if (Q.month_actions >= 1) {
     Q.consumption_multiplier = 1 + (Q.distribution_shift || 0) * 0.15; // Reduced from 0.2
     Q.consumption_demand *= Q.consumption_multiplier;
 
+    // === TAX REVENUE CALCULATION (RECALIBRATED) ===
+
+    Q.upper_tax_base = (Q.old_middle + Q.new_middle) / 100;
+    Q.lower_tax_base = (Q.workers + Q.unemployed + Q.rural) / 100;
+
+    // Reduced coefficients for ~1.5/year target
+    Q.upper_tax_revenue = Q.upper_tax_rates * Q.upper_tax_base * 0.035; // ~0.09 at rate 5
+    Q.lower_tax_revenue = Q.lower_tax_rates * Q.lower_tax_base * 0.018; // ~0.13 at rate 5
+
+    Q.tax_efficiency = 1 + (Q.economic_growth / 100) - (Q.unemployed / 100);
+    Q.tax_efficiency = Math.max(0.5, Math.min(Q.tax_efficiency, 1.5));
+
+    Q.tax_revenue = (Q.upper_tax_revenue + Q.lower_tax_revenue) * Q.tax_efficiency;
+
+    Q.budget += Q.tax_revenue * Q.dt;
+
     // Tax drag
     if (Q.tax_drag && Math.abs(Q.tax_drag) > 0.01) {
         Q.consumption_demand -= Q.tax_drag * 0.2; // Reduced from 0.25
