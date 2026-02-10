@@ -1121,20 +1121,155 @@ if (Q.month_actions >= 1) {
     Q.ideology_elasticity = 1.7;
 
     Q.ideology_caps = {
-        nsdap: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 12) + (Q.unrest_factor * 10.0) + (Q.street_pressure_factor * 5),
-        dnvp:  Q.dnvp_banned ? 0 : (Q.dnvp_line === 1 ? (Q.nationalism_factor * 28 + Q.pro_republic_factor * 30) : Q.nationalism_factor * 56),
-        dvp:   Q.dvp_banned  ? 0 : (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 62,
-        wp:    Q.wp_banned   ? 0 : (Q.pro_republic_factor * 37) + (Q.inflation * 0.18),
-        cnbl:  Q.cnbl_banned ? 0 : (Q.pro_republic_factor * 23 + Q.nationalism_factor * 25) + (Q.rural * 0.85),
-        kpd:   Q.kpd_banned  ? 0 : Q.socialism_factor * 45 + (Q.unrest_factor * 7.52) + (Q.street_pressure_factor * 1.5),
-        sapd:  Q.sapd_banned ? 0 : Q.socialism_factor * 10,
-        csvd:  Q.csvd_banned ? 0 : Q.nationalism_factor * 26,
-        srpd:  Q.srpd_banned ? 0 : (Q.socialism_factor * 25) + (Q.rb_strength * 0.0008) + (Q.pro_republic_factor * 38),
-        spd:   Q.spd_banned  ? 0 : (Q.pro_republic_factor * 110) + (Q.socialism_factor * 49),
-        ddp:   Q.ddp_banned  ? 0 : Q.pro_republic_factor * 59,
-        z:     Q.z_banned    ? 0 : Q.pro_republic_factor * 85 + (Q.catholics / 12),
-        bvp:   Q.bvp_banned  ? 0 : Math.min(4.5, Q.pro_republic_factor * 30 + Q.catholics * 0.05),
-        other: Q.other_banned ? 0 : ((Q.nationalism_factor + Q.pro_republic_factor) * 6)
+        nsdap: {
+            base: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 8) + (Q.unrest_factor * 12),
+            workers: 0.75,      // Labor movement resistance
+            old_middle: 1.35,   // Petty bourgeoisie - prime target
+            new_middle: 1.20,   // White collar - susceptible
+            rural: 1.45,        // Farmers - very susceptible
+            unemployed: 1.60,   // Desperate - most susceptible
+            catholics: 0.35     // Religious/cultural resistance
+        },
+    
+        dnvp: {
+            base: Q.dnvp_banned ? 0 : (
+                Q.dnvp_line === 1 ? 
+                    (Q.nationalism_factor * 28 + Q.pro_republic_factor * 30) : 
+                    Q.nationalism_factor * 56
+            ),
+            workers: 0.30,      // Hostile to organized labor
+            old_middle: 1.40,   // Traditional conservatives
+            new_middle: 0.90,   // Modern professionals less interested
+            rural: 1.60,        // Junker/landed aristocracy base
+            unemployed: 0.50,   // Seen as elite party
+            catholics: 0.40     // Protestant party
+        },
+    
+        dvp: {
+            base: Q.dvp_banned ? 0 : (
+                (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 62
+            ),
+            workers: 0.40,      // Business party
+            old_middle: 1.30,   // Small business owners
+            new_middle: 1.40,   // Professionals, managers - core base
+            rural: 0.70,        // Limited rural appeal
+            unemployed: 0.35,   // Free market party
+            catholics: 0.75     // Moderate appeal
+        },
+    
+        wp: {
+            base: Q.wp_banned ? 0 : (Q.pro_republic_factor * 37) + (Q.inflation * 0.18),
+            workers: 0.50,      // Working class less interested
+            old_middle: 1.50,   // Rentiers, pensioners - core base
+            new_middle: 1.30,   // Salaried employees
+            rural: 0.60,        // Urban party
+            unemployed: 0.80,   // Some appeal to desperate
+            catholics: 0.70     // Secular-leaning
+        },
+    
+        cnbl: {
+            base: Q.cnbl_banned ? 0 : (
+                (Q.pro_republic_factor * 23 + Q.nationalism_factor * 25) + (Q.rural * 0.85)
+            ),
+            workers: 0.25,      // Agrarian party
+            old_middle: 0.60,   // Urban middle class not interested
+            new_middle: 0.40,   
+            rural: 1.80,        // Farmers - absolute core base
+            unemployed: 0.30,   
+            catholics: 0.50     // Regional/Protestant focus
+        },
+    
+        kpd: {
+            base: Q.kpd_banned ? 0 : Q.socialism_factor * 45,
+            workers: 1.50,      // Industrial proletariat - core base
+            old_middle: 0.20,   // Class enemy
+            new_middle: 0.35,   // Petit bourgeois - hostile
+            rural: 0.15,        // Peasants - very hostile
+            unemployed: 1.40,   // Lumpenproletariat - secondary base
+            catholics: 0.60     // Religious barrier
+        },
+    
+        sapd: {
+            base: Q.sapd_banned ? 0 : Q.socialism_factor * 10,
+            workers: 1.30,      // Left-wing workers
+            old_middle: 0.25,   
+            new_middle: 0.40,   // Some intellectual appeal
+            rural: 0.20,        
+            unemployed: 1.20,   
+            catholics: 0.55     
+        },
+    
+        srpd: {
+            base: Q.srpd_banned ? 0 : (
+                (Q.socialism_factor * 25) + (Q.rb_strength * 0.0008) + (Q.pro_republic_factor * 38)
+            ),
+            workers: 1.25,      // Social democratic workers
+            old_middle: 0.80,   
+            new_middle: 0.90,   
+            rural: 0.70,        
+            unemployed: 1.10,   
+            catholics: 1.00     // Less religious barrier than SPD
+        },
+    
+        spd: {
+            base: Q.spd_banned ? 0 : (Q.pro_republic_factor * 110) + (Q.socialism_factor * 49),
+            workers: 1.20,      // Organized labor - core base
+            old_middle: 0.70,   // Limited petty bourgeois appeal
+            new_middle: 0.85,   // White collar unions
+            rural: 0.80,        // Agricultural workers
+            unemployed: 1.10,   // Some appeal but KPD competes
+            catholics: 0.90     // Catholic workers exist but Z competes
+        },
+    
+        ddp: {
+            base: Q.ddp_banned ? 0 : Q.pro_republic_factor * 59,
+            workers: 0.60,      // Liberal intellectuals only
+            old_middle: 0.85,   
+            new_middle: 1.40,   // Educated professionals - core base
+            rural: 0.50,        // Urban liberal party
+            unemployed: 0.55,   
+            catholics: 0.70     // Secular liberal party
+        },
+    
+        z: {
+            base: Q.z_banned ? 0 : Q.pro_republic_factor * 85 + (Q.catholics / 12),
+            workers: 0.80,      // Catholic workers exist but SPD competes
+            old_middle: 1.10,   // Catholic middle class
+            new_middle: 0.90,   
+            rural: 1.05,        // Catholic peasants
+            unemployed: 0.70,   // Church charity helps but limited
+            catholics: 1.80     // Catholic confessional party - absolute dominance
+        },
+    
+        bvp: {
+            base: Q.bvp_banned ? 0 : Math.min(4.5, Q.pro_republic_factor * 30 + Q.catholics * 0.05),
+            workers: 0.80,      // Bavarian Catholic workers
+            old_middle: 1.10,   // Bavarian Catholic middle class
+            new_middle: 0.90,   
+            rural: 1.15,        // Bavarian Catholic peasants
+            unemployed: 0.70,   
+            catholics: 1.70     // Bavarian Catholic party - regional dominance
+        },
+    
+        csvd: {
+            base: Q.csvd_banned ? 0 : Q.nationalism_factor * 26,
+            workers: 0.50,      
+            old_middle: 1.20,   // Conservative Protestant middle class
+            new_middle: 1.10,   
+            rural: 1.30,        // Protestant rural areas
+            unemployed: 0.60,   
+            catholics: 0.25     // Protestant splinter party
+        },
+    
+        other: {
+            base: Q.other_banned ? 0 : ((Q.nationalism_factor + Q.pro_republic_factor) * 6),
+            workers: 1.00,      // Miscellaneous/regional parties
+            old_middle: 1.00,   
+            new_middle: 1.00,   
+            rural: 1.00,        
+            unemployed: 1.00,   
+            catholics: 1.00     
+        }
     };
 
     // Reworked drift per class
@@ -1568,23 +1703,31 @@ if (Q.month_actions >= 1) {
 
             
 
-            Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
-            Q.delta *= (0.7 + Math.random()*0.6);
+        Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
+        Q.delta *= (0.7 + Math.random()*0.6);
 
-            // CRITICAL: If party is banned, prevent ALL positive drift
-            const party_banned = Q.party + '_banned';
-            if (Q[party_banned]) {
-                Q.delta = Math.min(Q.delta, 0); // Only allow negative drift (decay)
-            }
-
-            // Apply delta with caps and floor
-            Q[Q.c+'_'+Q.party] = Math.min(
-                Math.max(Q.base + Q.delta, 0.5),  // Floor at 0.5%
-                Q.ideology_caps[Q.party] || Infinity  // Cap at ideology ceiling
-            );
-
-            Q.class_total += Q[Q.c+'_'+Q.party];
+        // CRITICAL: If party is banned, prevent ALL positive drift
+        const party_banned = Q.party + '_banned';
+        if (Q[party_banned]) {
+            Q.delta = Math.min(Q.delta, 0);
         }
+
+        // === APPLY CLASS-SPECIFIC CAP ===
+        const cap_data = Q.ideology_caps[Q.party];
+        let final_cap = Infinity;
+        
+        if (cap_data) {
+            const class_multiplier = cap_data[Q.c] || 1.0;
+            final_cap = cap_data.base * class_multiplier;
+        }
+        
+        // Apply delta with class-specific caps and floor
+        Q[Q.c+'_'+Q.party] = Math.min(
+            Math.max(Q.base + Q.delta, 0.5),  // Floor at 0.5%
+            final_cap
+        );
+
+        Q.class_total += Q[Q.c+'_'+Q.party];
     }
 
     // === CLASS VOTE RE-NORMALIZATION AFTER DRIFT (SKIP IN CHAOS MODE) ===
