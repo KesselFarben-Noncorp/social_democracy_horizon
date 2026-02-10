@@ -1,7 +1,7 @@
 title: The Economic Crisis
 new-page: true
 is-card: true
-view-if: crisis_urgency >= 1 and crisis_program_timer = 0 and economic_plan = 0 and black_thursday_seen == 1
+view-if: crisis_urgency >= 1 and crisis_program_timer = 0 and (economic_plan = 0 or austerity_adopted = 0) and black_thursday_seen == 1
 frequency: 200
 on-arrival: crisis_program_timer = 4
 card-image: img/bankrun.jpg
@@ -26,12 +26,24 @@ Meanwhile, moderates and reformists draw up proposals for a limited plan of job 
 - @defer: Defer making a decision until we have more information.
 
 @support_centrist
-subtitle: Let the depression play itself out.
-on-arrival: center_strength += 5; center_dissent -= 5; labor_dissent += 10; wtb_support -= 1; left_dissent += 10;
+subtitle: Let the depression play itself out through austerity.
+on-arrival: center_strength += 5; center_dissent -= 5; labor_dissent += 10; left_dissent += 10; austerity_support += 1;
+go-to: austerity_progress if austerity_support < 2; adopt_austerity if austerity_support >= 2
 
-Woytinsky and the trade unions vehemently criticize the centrists for their policy. The workers are starving; are we going to callously abandon them and side with bourgeois austerity? On the other hand, the centrists criticize Woytinsky for promising the workers false hope; their position is that nothing can be done to alleviate the depression. They also speak of the fear of another round of hyperinflation that may result from deficit spending.
+@austerity_progress
 
-Our policy course is currently that nothing can be done to alleviate the depression.
+Woytinsky and the trade unions vehemently criticize the centrists for their policy. The workers are starving; are we going to callously abandon them and side with bourgeois austerity? 
+
+The centrists argue that deficit spending risks hyperinflation, and that market forces must be allowed to correct themselves. They cite the lessons of 1923 and warn against fiscal irresponsibility.
+
+We have not yet formally adopted the austerity position. More work needs to be done.
+
+@adopt_austerity
+on-arrival: austerity_adopted = 1; center_strength += 10; center_dissent -= 15; labor_dissent += 20; left_dissent += 15; reformist_dissent += 8; economic_plan = 0; z_relation += 8; ddp_relation += 5; dvp_relation += 3; budget += 1; coalition_dissent -= 2
+
+The party has formally adopted the centrist position of fiscal restraint and austerity. We argue that sound money and balanced budgets are the only path forward, even if it means temporary suffering. Perhaps we could go round-way for the revolution?
+
+[? if spd_in_government == 1 : This position will make coalition-building easier with bourgeois parties, but may cost us working-class support. ?]
 
 @support_labor
 subtitle: Call for increased public works and fiscal stimulus.
@@ -57,14 +69,16 @@ We have adopted the WTB economical plan! Hopefully we can get to initiating it.
 subtitle: Call for mass nationalizations and the transformation of the economy.
 unavailable-subtitle: The Left faction is not strong enough.
 choose-if: historical_mode == 0 or (left_strength >= labor_strength and left_strength >= center_strength and left_strength >= reformist_strength)
-on-arrival: left_strength += 10; reformist_dissent += 5; labor_dissent += 5; nationalization_support += 2
-go-to: support_left_progress if nationalization_support < 3; adopt_left if nationalization_support >= 3
+on-arrival: left_strength += 10; reformist_dissent += 5; labor_dissent += 5; nationalization_support += 1; nationalization_support += 1 if aufhauser_advisor = 1
+go-to: support_left_progress if nationalization_support < 5; adopt_left if nationalization_support >= 5
 
 @support_left_progress
 
 We attempt to convince the party to support a program of mass nationalizations in response to the economic crisis. Leftists argue that this policy is in accordance with our long-standing socialist platform, while reformists and some trade unionists argue that the plan is unrealistic, and that we need to focus on more immediate improvements to workers' lives.
 
 We have not yet formally adopted the plan. More work needs to be done.
+
+[? if aufhauser_advisor = 1: Aufhauser's agitation for economical policy adoption helps us boost the progress! ?]
 
 @adopt_left
 on-arrival: left_strength += 15; left_dissent -= 10; reformist_dissent += 10; neorevisionist_dissent += 8; labor_dissent += 6; nationalization_adopted = 1; coup_progress += 1; economic_plan = 3; kpd_relation += 5*(1-dissent)
@@ -75,14 +89,16 @@ With our hard work, we have convinced the majority of the party to adopt the soc
 subtitle: Call for a limited program of job creation without deficit spending.
 unavailable-subtitle: The Reformist faction is not strong enough.
 choose-if: historical_mode == 0 or (reformist_strength >= left_strength and reformist_strength >= center_strength and reformist_strength >= labor_strength)
-on-arrival: moderate_plan_support += 1; reformist_strength += 8; reformist_dissent -= 5; left_dissent += 6; labor_dissent += 5
-go-to: adopt_moderate if moderate_plan_support >= 2; support_moderate_progress if moderate_plan_support < 2
+on-arrival: moderate_plan_support += 1; moderate_plan_support += 1 if aufhauser_advisor = 1; reformist_strength += 8; reformist_dissent -= 5; left_dissent += 6; labor_dissent += 5
+go-to: adopt_moderate if moderate_plan_support >= 4; support_moderate_progress if moderate_plan_support < 4
 
 @support_moderate_progress
 
 We attempt to convince the party to support a moderate program of job creation without deficit spending. Advocates of the moderate plan argue that this plan is most likely to receive support from the bourgeois parties, and most practical in the immediate term. Opponents in the left and labor factions criticize the plan for being inadequate in its ambition.
 
 We have not yet adopted the plan. More work needs to be done.
+
+[? if aufhauser_advisor = 1: Aufhauser's agitation for economical policy adoption helps us boost the progress! ?]
 
 @adopt_moderate
 on-arrival: reformist_strength += 10; reformist_dissent -= 10; left_dissent += 8; labor_dissent += 6; moderate_plan_adopted = 1; economic_plan = 2; coalition_dissent -= 1 if unemployed > 15; z_relation += 5;
