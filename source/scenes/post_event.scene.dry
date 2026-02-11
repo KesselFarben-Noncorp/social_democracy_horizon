@@ -1764,6 +1764,29 @@ for (var rel of relations) {
                     Q.ideology_factor = Q.random_factor(1, 0.1);
             }
 
+        function softCap(value, cap) {
+            if (cap === Infinity) return Math.max(value, 0.5);
+            if (cap <= 0) return 0.5; // add this line
+    
+            const ratio = value / cap;
+    
+            if (ratio <= 0.75) {
+                // Below 75% of cap - no resistance at all
+                return Math.max(value, 0.5);
+            } else if (ratio <= 1.0) {
+                // 75-100% of cap - increasing resistance
+                const resistance = Math.pow((ratio - 0.75) / 0.25, 2);
+                const compressed = cap * (0.75 + (ratio - 0.75) * (1 - resistance * 0.6));
+                return Math.max(compressed, 0.5);
+            } else {
+                // At ratio=1.0 boundary, resistance was 0.4, so overshoot continues that compression
+                const overshoot = (value - cap) * 0.40;
+                const max_overshoot = Q.unrest_factor > 8 ? 1.35 :
+                                      Q.unrest_factor > 5 ? 1.25 : 1.20;
+                const breakthrough_cap = cap * max_overshoot;
+                return Math.max(Math.min(cap + overshoot, breakthrough_cap), 0.5);
+            }
+        }
             
 
         Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
@@ -1784,11 +1807,8 @@ for (var rel of relations) {
             final_cap = cap_data.base * class_multiplier;
         }
         
-        // Apply delta with class-specific caps and floor
-        Q[Q.c+'_'+Q.party] = Math.min(
-            Math.max(Q.base + Q.delta, 0.5),  // Floor at 0.5%
-            final_cap
-        );
+        const proposed = Q.base + Q.delta;
+        Q[Q.c+'_'+Q.party] = softCap(proposed, final_cap);
 
         Q.class_total += Q[Q.c+'_'+Q.party];
     }
