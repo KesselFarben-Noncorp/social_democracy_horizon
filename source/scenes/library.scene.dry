@@ -18,7 +18,23 @@ Herein contains relevant information about the government and politics of the Ge
 - @paramilitaries: Paramilitary groups
 - @factions: Internal factions
 - @figures: Figures and charts
+- @presidents: History of Presidents
 - @backSpecialScene: Exit library.
+
+@presidents
+on-arrival: {! 
+Q.president_history_text = "";
+for (var i = 0; i < Q.president_history.length; i++) {
+    var p = Q.president_history[i];
+    Q.president_history_text += (i+1) + ". " + p.desc + 
+        " (" + p.year_start + ") — " + 
+        p.votes + "% vs " + p.runnerup + " " + 
+        p.runnerup_votes + "%\n";
+}
+!}
+go-to: menu
+
+[+ president_history_text +]
 
 @government
 go-to: menu
