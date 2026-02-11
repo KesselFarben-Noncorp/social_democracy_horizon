@@ -15,6 +15,7 @@ The SPD cannot govern alone yet. Lacking an electoral majority, we need support 
 - @liberals: Strengthen bonds with <span style="color:#66CCFF;"><b>German Democratic Party</b></span> and <span style="color:#FFCC66;"><b>German People's Party</b></span>.
 - @center: Strengthen bonds with <span style="color:#FF6699;"><b>Catholic Center Party</b></span>.
 - @kpd: Repair relationships with the <span style="color:#FF3333;"><b>Communist Party</b></span>.
+- @sapd: Restore relationships with our splinter SAPD party.
 - @dnvp: Reconciling with the <span style="color:#000000;"><b>DNVP</b></span> on some issues for republic stability.
 - @wp: Make amendments with Middle Class Party and Agrarian Party
 - @spd_alone: SPD can stand alone for now.
@@ -58,6 +59,30 @@ After a successful coalition, the <span style="color:#FF3333;"><b>KPD</b></span>
 on-arrival: kpd_relation += 3*(1 - dissent); reformist_dissent += 1
 
 Following <span style="color:#FF3333;"><b>Blütmai</b></span>, reconciliation is difficult, yet necessary.
+
+@sapd
+subtitle: -1 resources
+unavailable-subtitle: Not enough resources.
+view-if: sandbox = 1 and sapd_progress_union >= 1 and sapd_formed
+on-arrival: sapd_relation += 8; communist_coalition += 1 if kpd_relation >= 60; left_strength += 5; center_strength += 3; sapd_progress_union += 1
+go-to: sapd_recon if sapd_relation >= 85 and sapd_progress_union >= 5
+
+We have attempted to reconciliate with our splinter party - Socialist Worker's Party of Germany of the non stalinist left leaning views. 
+
+[? if sapd_progress_union > 1: There are some prospects for re-integrating the SAPD back into our structure! ?]
+
+@sapd_recon
+on-arrival: {!
+Q.parties = Q.parties.filter(p => p !== 'sapd');
+Q.sapd_formed = 0;
+Q.centrists_resign = 0;
+Q.center_dissent = 10;
+Q.left_split = 0;
+Q.left_dissent = 10;
+Q.sapd_progress_union = 0; 
+!}
+
+SAPD has merged into our party, restoring unity on the left side!
 
 @center
 subtitle: <span style="color:#FF6699;">-1 resources</span>
