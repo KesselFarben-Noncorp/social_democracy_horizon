@@ -1305,6 +1305,7 @@ We have convinced Otto Braun to run for president.
 
 @schmid_r1
 view-if: peoples_party >= 1 and ideology != "left"
+subtitle: -2 resources
 choose-if: resources >= 2
 unavailable-subtitle: [? if resources < 2 : Not enough resources. ?]
 on-arrival: spd_candidate = "Schmid"; resources -= 2; is_unity_candidate = 0; ideology = "reformist"; z_relation += 5; ddp_relation += 5; dvp_relation += 5; bvp_relation += 5
@@ -1870,6 +1871,32 @@ on-arrival: {!
     Q.winner_votes = Q.round1_winner_votes;
     Q.winner_votes_disp = Q.winner_votes.toFixed(1);
     Q.winner_desc = candidate_descs[Q.winner];
+
+// Record all candidates from round 1
+Q.round1_all_candidates = [];
+for (var i = 0; i < candidates_array.length; i++) {
+    Q.round1_all_candidates.push({
+        name: candidates_array[i].name,
+        desc: candidate_descs[candidates_array[i].name],
+        votes: candidates_array[i].pct.toFixed(1)
+    });
+}
+
+// If first round victory, record it immediately
+if (Q.has_majority) {
+    Q.president_history = Q.president_history || [];
+    Q.president_history.push({
+        name: Q.winner,
+        desc: Q.winner_desc,
+        year_start: Q.year,
+        votes: Q.winner_votes_disp,
+        runnerup: Q.round1_runner_up,
+        runnerup_votes: Q.round1_runner_up_votes.toFixed(1),
+        rounds: 1,
+        all_candidates: Q.round1_all_candidates  // full field
+    });
+    Q.president_history_count = Q.president_history.length;
+}
 !}
 go-to: r1_results
 
@@ -2331,16 +2358,20 @@ Q.president_term_ended = 0;
 Q.next_presidential_election_year = Q.year + 7;
 Q.next_presidential_election_month = 3; // Always March
 
-Q.president_history = Q.president_history || [];
-Q.president_history.push({
-    name: Q.winner,
-    desc: Q.winner_desc,
-    year_start: Q.year,
-    votes: Q.winner_votes_disp,
-    runnerup: Q.runnerup,
-    runnerup_votes: Q.runnerup_votes_disp
-});
-Q.president_history_count = Q.president_history.length;
+if (!Q.has_majority) {
+    Q.president_history = Q.president_history || [];
+    Q.president_history.push({
+        name: Q.winner,
+        desc: Q.winner_desc,
+        year_start: Q.year,
+        votes: Q.winner_votes_disp,
+        runnerup: Q.runnerup,
+        runnerup_votes: Q.runnerup_votes_disp,
+        rounds: 2,
+        round1_candidates: Q.round1_all_candidates  // preserve round 1 field
+    });
+    Q.president_history_count = Q.president_history.length;
+}
 !}
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
 go-to: hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
