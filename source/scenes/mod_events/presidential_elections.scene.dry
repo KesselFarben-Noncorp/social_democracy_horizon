@@ -2120,8 +2120,7 @@ on-arrival: {!
     }
 
     // CSRP
-        Q.csrp_candidate = pickClosestFinalist(Q.csrp_candidate, [center, center_left, left, center_right]);
-    }
+    Q.csrp_candidate = pickClosestFinalist(Q.csrp_candidate, [center, center_left, left, far_left, cultural, center_right]);
 
     // === BVP ===
     Q.bvp_candidate = pickClosestFinalist(Q.bvp_candidate, [center_right, center, far_right, center_left]);
@@ -2135,7 +2134,7 @@ on-arrival: {!
     // === KPD ===
     Q.kpd_candidate = pickClosestFinalist(Q.kpd_candidate, [far_left, left, cultural]);
 
-// === SAPD ===
+    // === SAPD ===
     if (Q.sapd_formed) {
         Q.sapd_candidate = pickClosestFinalist(Q.sapd_candidate, [left, far_left, cultural, center_left]);
     }
