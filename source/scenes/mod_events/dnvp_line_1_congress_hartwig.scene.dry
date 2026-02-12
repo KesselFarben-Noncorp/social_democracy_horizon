@@ -9,21 +9,9 @@ card-image: img/portraits/Hugenberg.jpg
 
 = The Soul of the Right - October 1929
 
-The DNVP is at a breaking point. Since the "catastrophic" electoral losses of 1928 and the rise of the industrial tycoon Alfred Hugenberg, the party has drifted away from the old aristocratic "gentleman’s politics" toward a populist, radical nationalism. Emil Hartwig’s resignation marks the final gasp of the old trade-union wing.
+The DNVP is facing the crisis of it's own uncertainity and collapse of unity that was kept through anti marxist tendency of 20s following Young Plan referendum and Freedom Act Petition. Following the victory of Emil Hartwig and decisive victory over the Hugenberg's giant empire, DNVP's identity will be decided this month. 
 
-The party remains the bastion of the **Stab-in-the-Back Myth** and the primary foe of the **Young Plan**. Whether led by a Junker or a businessman, the goal remains the same: the restoration of German greatness and the final defeat of Marxism.
-
-**The factions gather to decide who will lead the crusade:**
-
-**Ernst Oberfohren** (The Hardline Intellectual): A staunch nationalist who believes in "Legal Revolution." He wants to use the Reichstag to dismantle the Republic from within.
-
-**Reinhold Quaatz** (The Strategist): Hugenberg’s closest confidant. He views politics through the lens of power and "National Capitalism." He seeks a total break with the "System."
-
-**Martin Schiele** (The Junker): Represents the RLB (Reich Landbund). He is a man of the soil and the sword, demanding protection for East Prussian estates above all else.
-
-**Gottfried Treviranus** (The Tory Democrat): A "Young Conservative." He believes the party must be "modern"—not by becoming democratic, but by becoming a more efficient, disciplined anti-socialist machine.
-
-**Walther Lambach** (The Social Christian): Represents the nationalist employees. He is the most "moderate," yet even he views the Republic only as a temporary necessity to prevent a Bolshevik uprising.
+Whoever wins the brains and hearts of it's people is going to be the leading thought of it's party.
 
 - @dnvp_contest_evaluation: The ballots are cast...
 
@@ -129,7 +117,7 @@ var random = Math.random() * 20 - 10;
 oberfohren_strength += random / 3
 quaatz_strength += random / 2;
 schiele_strength += random / 1.5
-lambach_strength += random / 2.5
+lambach_strength += random / 0.9
 treviranus_strength += random / 1.5
 
 // Party factors
@@ -137,8 +125,8 @@ treviranus_strength += random / 1.5
 oberfohren_strength += Q.unemployed_dnvp / 2;
 quaatz_strength += Q.old_middle_dnvp / 2;
 schiele_strength += Q.rural_dnvp / 2;
-treviranus_strength += (Q.catholics_dnvp / 3) + (Q.new_middle_dnvp / 3);
-lambach_strength += Q.workers_dnvp / 1.5
+treviranus_strength += (Q.catholics_dnvp / 1.5) + (Q.new_middle_dnvp / 2);
+lambach_strength += Q.workers_dnvp / 0.5
 
 // ============================================
 // DETERMINE WINNER
@@ -188,182 +176,53 @@ go-to: dnvp_oberfohren if dnvp_leader = "Oberfohren";
        dnvp_lambach if dnvp_leader = "Lambach"
 
 @dnvp_oberfohren
-on-arrival: dnvp_relation += 5; z_relation -= 3; dvp_relation += 3; nationalism += 3
 
-= Ernst Oberfohren Elected DNVP Chairman
+​= Ernst Oberfohren Elected DNVP Chairman
+​
+Ernst Oberfohren, a staunch representative of the party’s traditionalist core, has been elected chairman.
+​
+While he lacks the fiery demagoguery of the radical right, Oberfohren is no friend to the Republic. He represents the "Steel Helmets" and the old Prussian bureaucracy—men who want a return to the authoritarian order of the Empire, albeit through legalistic means.
+​[? if spd_in_government : Oberfohren’s election signals a period of "National Opposition." He views the Social Democrats not as colleagues, but as the "November Criminals" who must be driven from office. ?]
+​[? if nsdap_r > 8 : The DNVP hopes Oberfohren’s stern, respectable nationalism can act as a dam against the vulgarity of the Hitler movement. ?]
 
-**Vote Distribution:**
-- Oberfohren: [+ oberfohren_vote +]%
-- Quaatz: [+ quaatz_vote +]%
-- Schiele: [+ schiele_vote +]%
-- Treviranus: [+ treviranus_vote +]%
-- Lambach: [+ lambach_vote +]%
+​@dnvp_quaatz
 
-Ernst Oberfohren, representing the traditional conservative wing, has been elected chairman of the DNVP.
+​= Reinhold Quaatz Elected DNVP Chairman
 
-**Oberfohren's Platform:**
-- Maintains traditional nationalist conservatism
-- Open to coalitions with bourgeois parties
-- Opposes cooperation with the SPD
-- Skeptical of Weimar democracy but not revolutionary
-- Represents continuity with Westarp's moderate line
+​Reinhold Quaatz, the shrewd strategist for heavy industry, has secured the leadership.
+​For Quaatz, the DNVP is a tool for the "White International" of capital. He cares little for the populist shouting matches of the street; his focus is on dismantling the welfare state, crushing the power of trade unions, and ensuring that the German economy serves the interests of the great industrialists.
+​[? if capital_strike_progress >= 3 : Quaatz’s victory is a clear signal from the boardrooms: big business is taking direct control of the conservative movement. ?]
+​[? if inflation < -2 : Amidst this economic ruin, Quaatz promises to defend the sanctity of private property against "Marxist experimentation" with ruthless efficiency. ?]
 
-The DNVP remains a conservative nationalist party, willing to work within the system while opposing the left.
+​@dnvp_schiele
 
-[? if spd_in_government : Oberfohren's election reflects the party's rejection of any government including Social Democrats. ?]
+​= Martin Schiele Elected DNVP Chairman
 
-[? if nsdap_r > 8 : The DNVP hopes Oberfohren can compete with the rising Nazi threat while maintaining respectability. ?]
+​Martin Schiele, the voice of the Reichslandbund, has been elected chairman.
+​This is a victory for the Junker estates east of the Elbe. Schiele’s DNVP will be a party of the soil, demanding high tariffs to protect aristocratic estates and subsidies for the struggling peasantry. To Schiele, the "asphalt culture" of Berlin is a cancer, and the rural heartland is the only true Germany.
+​[? if agriculture_minister_party = 'DNVP' : With Schiele at the helm, the Ministry of Agriculture will function as a direct fortress for the landed nobility. ?]
+​[? if rural_dnvp >= 35 : The agrarian base has successfully purged the urban intellectuals; the DNVP is now firmly a party of the countryside. ?]
 
-**Impact:**
-- DNVP slightly more willing to cooperate with bourgeois parties
-- No fundamental shift in party direction
-- Moderate nationalist line maintained
-
-@dnvp_quaatz
-on-arrival: dnvp_relation += 3; dvp_relation += 8; z_relation += 3; capital_strike_progress -= 1 if capital_strike_progress > 0
-
-= Reinhold Quaatz Elected DNVP Chairman
-
-**Vote Distribution:**
-- Quaatz: [+ quaatz_vote +]%
-- Oberfohren: [+ oberfohren_vote +]%
-- Schiele: [+ schiele_vote +]%
-- Treviranus: [+ treviranus_vote +]%
-- Lambach: [+ lambach_vote +]%
-
-Reinhold Quaatz, the business-oriented conservative, has been elected chairman of the DNVP.
-
-**Quaatz's Platform:**
-- Prioritizes economic interests and business cooperation
-- Strongly pro-business, anti-labor
-- Willing to work with DVP and economic liberals
-- Pragmatic on coalitions if they serve business interests
-- Less ideologically rigid than traditional nationalists
-
-The DNVP under Quaatz will be driven by economic conservatism rather than nationalist ideology.
-
-[? if capital_strike_progress >= 3 : Quaatz's election is a victory for business interests seeking political representation. ?]
-
-[? if inflation < -2 : In the current economic crisis, Quaatz promises to defend business and property interests aggressively. ?]
-
-**Impact:**
-- DNVP more willing to cooperate on economic policy
-- Stronger ties with DVP and business community
-- Less emphasis on nationalist ideology
-- More pragmatic coalition partner
-
-@dnvp_schiele
-on-arrival: dnvp_relation += 4; rural_dnvp += 3; z_relation += 3
-
-= Martin Schiele Elected DNVP Chairman
-
-**Vote Distribution:**
-- Schiele: [+ schiele_vote +]%
-- Oberfohren: [+ oberfohren_vote +]%
-- Quaatz: [+ quaatz_vote +]%
-- Treviranus: [+ treviranus_vote +]%
-- Lambach: [+ lambach_vote +]%
-
-Martin Schiele, representing the agrarian and aristocratic wing, has been elected chairman of the DNVP.
-
-**Schiele's Platform:**
-- Defends agricultural and landed interests
-- Represents the Junker aristocracy
-- Pragmatic on coalitions that benefit agriculture
-- Traditional conservative but not revolutionary
-- Strong on agricultural protectionism
-
-The DNVP under Schiele will prioritize agrarian interests and rural conservatism.
-
-[? if agriculture_minister_party = 'DNVP' : Schiele's election strengthens the DNVP's control over agricultural policy. ?]
-
-[? if rural_dnvp >= 35 : The rural base of the DNVP has asserted its dominance within the party. ?]
-
-**Impact:**
-- DNVP focused on agricultural policy
-- More willing to cooperate if agricultural interests protected
-- Strong support in rural areas
-- Traditional conservative line maintained
-
-@dnvp_treviranus
-on-arrival: dnvp_relation += 15; spd_relation += 8; z_relation += 10; dvp_relation += 8; pro_republic += 3; nationalism -= 5; dnvp_line = 0
-
+​@dnvp_treviranus
+​
 = Gottfried Treviranus Elected DNVP Chairman
 
-**Vote Distribution:**
-- Treviranus: [+ treviranus_vote +]%
-- Oberfohren: [+ oberfohren_vote +]%
-- Quaatz: [+ quaatz_vote +]%
-- Schiele: [+ schiele_vote +]%
-- Lambach: [+ lambach_vote +]%
+​In a stunning upset, the "Young Conservative" Gottfried Treviranus has seized the leadership.
+​Treviranus is a veteran of the Imperial Navy who realizes that the old monarchist nostalgia is a dead end. He doesn't necessarily love the Republic, but he believes the DNVP must become a "Tory" style party—capable of governing and modernizing the state to prevent a total collapse into Nazi or Communist radicalism.
+​[? if pro_republic >= 55 : Seeing the tide of history, Treviranus seeks to anchor the conservative movement within the new state before it is swept away. ?]
+​[? if nsdap_r > 10 : Treviranus views Hitler as a chaotic threat to order; he intends to offer a "civilized" alternative to the brownshirts. ?]
 
-Gottfried Treviranus, the young conservative reformer, has been elected chairman in a stunning upset!
+​@dnvp_lambach
 
-**Treviranus's Platform:**
-- Modernize conservatism for the democratic age
-- Open to cooperation with Center Party and even SPD on economic issues
-- Accepts Weimar Republic as legitimate
-- Rejects antisemitism and extremist nationalism
-- Seeks "conservative democracy" - social reform without socialism
+​= Walther Lambach Elected DNVP Chairman
 
-This is a revolutionary shift for the DNVP! Treviranus represents a complete break with nationalist reaction.
 
-[? if pro_republic >= 55 : The strength of republican sentiment has pushed even the DNVP toward democracy. ?]
+​In a historic upset, Walther Lambach has been elected chairman of the DNVP!
+​Lambach, a leader of the exclusionary DHV, wants to pull the rug out from under the SPD by co-opting the "social" question. He envisions a corporatist Germany—nationalist, anti-Semitic, and strictly hierarchical—but one that ensures "German labor" is protected from "international finance."
 
-[? if nsdap_r > 10 : Treviranus's victory suggests the DNVP is choosing respectability over competition with the Nazis. ?]
-
-[? if in_grand_coalition or in_weimar_coalition : The DNVP's participation in democratic governance has transformed the party from within. ?]
-
-**Impact:**
-- DNVP dramatically more willing to cooperate across party lines
-- Open to grand coalitions including SPD
-- Accepts democratic legitimacy
-- Major shift toward moderate conservatism
-- **This could enable new coalition possibilities**
-
-@dnvp_lambach
-on-arrival: dnvp_relation += 20; spd_relation += 12; z_relation += 12; dvp_relation += 10; ddp_relation += 10; pro_republic += 5; nationalism -= 8; workers_dnvp += 3; dnvp_line = 0
-achievement: dnvp_moderate
-
-= Walther Lambach Elected DNVP Chairman
-
-**Vote Distribution:**
-- Lambach: [+ lambach_vote +]%
-- Treviranus: [+ treviranus_vote +]%
-- Oberfohren: [+ oberfohren_vote +]%
-- Quaatz: [+ quaatz_vote +]%
-- Schiele: [+ schiele_vote +]%
-
-**In a historic upset, Walther Lambach has been elected chairman of the DNVP!**
-
-**Lambach's Platform:**
-- Represents the DHV (German National Union of Commercial Employees) - nationalist trade union
-- Explicitly rejects antisemitism and racial nationalism
-- Advocates "social conservatism" - conservative values with worker interests
-- Fully accepts Weimar Republic and democratic governance
-- Open to cooperation with all democratic parties including SPD
-- Seeks to build a "people's conservatism" bridging class divides
-
-This is the most dramatic transformation of the DNVP imaginable. Lambach represents a complete repudiation of the party's nationalist-reactionary heritage.
-
-[? if pro_republic >= 60 : The strength of democratic sentiment has fundamentally transformed German conservatism. ?]
-
-[? if spd_in_government and dnvp_relation >= 45 : Years of exposure to Social Democratic governance has moderated the DNVP dramatically. ?]
-
-[? if nsdap_r > 12 : Lambach's victory represents the DNVP choosing democratic respectability over nationalist radicalism, despite Nazi competition. ?]
-
-**This changes everything. The DNVP under Lambach could:**
-- Join grand coalitions with the SPD
-- Support progressive economic reforms
-- Defend democracy against extremism
-- Bridge the conservative-progressive divide
-
-**Impact:**
-- DNVP becomes a mainstream democratic conservative party
-- Open to all coalitions except with Nazis or Communists
-- Major boost to republican legitimacy
-- Conservative workers may shift from Nazis to DNVP
-- **Enables previously impossible coalition combinations**
+​[? if pro_republic >= 60 : Lambach acknowledges the Republic as a reality that can no longer be fought with slogans, but must be shaped by conservative hands. ?]
+​[? if spd_in_government and dnvp_relation >= 45 : Years of parliamentary maneuvering have convinced Lambach that the DNVP must learn to not bargain with the SPD to achieve even its most basic goals. ?]
+​[? if nsdap_r > 12 : Lambach’s victory is a desperate attempt to keep the Protestant middle class from defecting to the NSDAP by offering a social-national alternative. ?]
 
 # ============================================
 # CONSEQUENCES AND REACTIONS
