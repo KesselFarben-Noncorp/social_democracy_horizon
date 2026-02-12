@@ -682,6 +682,173 @@ on-arrival: {!
     Q.in_grand_coalition = Math.floor(Math.random() * 2);
     Q.in_popular_front = Math.floor(Math.random() * 2);
     Q.in_left_front = Math.floor(Math.random() * 2);
+
+// ===== HINDENBURG & CAMARILLA =====
+
+// President
+var presidents = ['Hindenburg', 'Braun', 'Thälmann', 'Eckener', 'Hitler'];
+Q.president = presidents[Math.floor(Math.random() * presidents.length)];
+
+// Only initialize Hindenburg variables if he's president
+if (Q.president === 'Hindenburg') {
+    Q.hindenburg_president = 1;
+    Q.camarilla_exists = 1;
+    
+    // Age (78-87, based on year 1925-1934)
+    Q.hindenburg_age = 78 + Math.random() * 9;
+    
+    // Health & Senility (correlated — low health = high senility likely)
+    Q.hindenburg_health = Math.random() * 100;
+    var health_factor = (100 - Q.hindenburg_health) / 100;
+    Q.hindenburg_senility = Math.random() * 80 * (0.5 + health_factor); // 0-80%, weighted by health
+    
+    // Stubbornness (mostly high)
+    Q.hindenburg_stubbornness = 60 + Math.random() * 40; // 60-100
+    
+    // Trust scores
+    Q.hindenburg_trust_reichstag = Math.random() * 100;
+    Q.hindenburg_trust_military = 70 + Math.random() * 30; // 70-100 (always high)
+    Q.hindenburg_trust_spd = Math.random() * 60; // 0-60 (max moderate)
+    Q.hindenburg_trust_z = 40 + Math.random() * 60; // 40-100 (generally positive)
+    Q.hindenburg_trust_dnvp = 50 + Math.random() * 50; // 50-100 (his people)
+    Q.hindenburg_monarchist_sentiment = 40 + Math.random() * 60; // 40-100
+    
+    // Patience (inverse of crisis)
+    Q.hindenburg_patience = Math.random() * 100;
+    
+    // Interventions count
+    Q.hindenburg_interventions = Math.floor(Math.random() * 15);
+    Q.hindenburg_reichstag_dissolutions = Math.floor(Math.random() * 8);
+    Q.hindenburg_government_dismissals = Math.floor(Math.random() * 10);
+    
+    // Cabinet types
+    Q.presidential_cabinet = Math.floor(Math.random() * 2);
+    Q.presidential_cabinet_count = Math.floor(Math.random() * 5);
+    Q.bruning_cabinet = Math.floor(Math.random() * 2);
+    Q.papen_cabinet = Math.floor(Math.random() * 2);
+    Q.schleicher_cabinet = Math.floor(Math.random() * 2);
+    
+    // === CAMARILLA ===
+    Q.camarilla_strength = Math.random() * 120; // 0-120
+    Q.camarilla_unified = 30 + Math.random() * 70; // 30-100
+    
+    // Member influence (some correlation with camarilla_strength)
+    var camarilla_factor = Q.camarilla_strength / 120;
+    Q.meissner_influence = (30 + Math.random() * 50) * (0.7 + camarilla_factor * 0.3);
+    Q.schleicher_influence = (20 + Math.random() * 60) * (0.7 + camarilla_factor * 0.3);
+    Q.oskar_influence = (40 + Math.random() * 50) * (0.7 + camarilla_factor * 0.3);
+    Q.oldenburg_influence = (30 + Math.random() * 50) * (0.7 + camarilla_factor * 0.3);
+    
+    // Papen (only if year >= 1932 or random chance)
+    if (Q.year >= 1932 || Math.random() < 0.3) {
+        Q.papen_in_camarilla = 1;
+        Q.papen_influence = (20 + Math.random() * 60) * (0.7 + camarilla_factor * 0.3);
+    } else {
+        Q.papen_in_camarilla = 0;
+        Q.papen_influence = 0;
+    }
+    
+    Q.hugenberg_influence = (10 + Math.random() * 60) * (0.7 + camarilla_factor * 0.3);
+    
+    // Exposure/scandals
+    Q.meissner_exposed = Math.floor(Math.random() * 2);
+    Q.schleicher_exposed = Math.floor(Math.random() * 2);
+    Q.oskar_convinced = Math.floor(Math.random() * 2);
+    Q.oskar_bribed = Math.floor(Math.random() * 2);
+    Q.oldenburg_scandal = Math.floor(Math.random() * 2);
+    Q.osthilfe_exposed = Math.floor(Math.random() * 2);
+    Q.osthilfe_scandal = Math.floor(Math.random() * 2);
+    Q.hindenburg_estate_neudeck = Math.floor(Math.random() * 2);
+    
+    // Camarilla goals
+    Q.camarilla_goal_destroy_parliament = Math.random() * 100;
+    Q.camarilla_goal_install_papen = Math.random() * 100;
+    Q.camarilla_goal_military_dictatorship = Math.random() * 100;
+    Q.camarilla_goal_restore_monarchy = Math.random() * 100;
+    Q.camarilla_goal_crush_left = Math.random() * 100;
+    Q.camarilla_goal_protect_junkers = 50 + Math.random() * 50; // 50-100 (always important)
+    Q.camarilla_goal_install_hitler = Math.random() * 100;
+    
+    // Plot status
+    Q.schleicher_bruning_plot = Math.floor(Math.random() * 2);
+    Q.schleicher_bruning_plotted = Math.floor(Math.random() * 2);
+    Q.camarilla_tired_of_bruning = Math.floor(Math.random() * 2);
+    Q.papen_appointment_plot = Math.floor(Math.random() * 2);
+    Q.papen_appointment_prevented = Math.floor(Math.random() * 2);
+    Q.schleicher_papen_rivalry = Math.random() * 100;
+    Q.camarilla_final_plot = Math.floor(Math.random() * 2);
+    Q.hitler_appointment_prevented = Math.floor(Math.random() * 2);
+    
+    // Alternative scenarios
+    Q.goerdeler_prominence = Math.floor(Math.random() * 11); // 0-10
+    Q.goerdeler_chancellor_possible = Math.floor(Math.random() * 2);
+    Q.hammerstein_coup_ready = Math.floor(Math.random() * 2);
+    Q.hammerstein_coup_attempted = Math.floor(Math.random() * 2);
+    Q.hammerstein_coup_success = Math.floor(Math.random() * 2);
+    
+    Q.schleicher_querfront_attempt = Math.floor(Math.random() * 2);
+    Q.schleicher_querfront_success = Math.floor(Math.random() * 2);
+    Q.strasser_splits_nsdap = Math.floor(Math.random() * 2);
+    
+    Q.papen_dictatorship_attempt = Math.floor(Math.random() * 2);
+    Q.cabinet_of_barons = Math.floor(Math.random() * 2);
+    
+    Q.military_emergency_government = Math.floor(Math.random() * 2);
+    Q.military_dictatorship = Math.floor(Math.random() * 2);
+    Q.article_48_permanent = Math.floor(Math.random() * 2);
+    
+    Q.nazi_takeover_begins = Math.floor(Math.random() * 2);
+    
+    // SPD counter-efforts
+    Q.hindenburg_relationship_efforts = Math.floor(Math.random() * 10);
+    Q.camarilla_counter_efforts = Math.floor(Math.random() * 10);
+    Q.bruning_saved_by_spd = Math.floor(Math.random() * 2);
+    
+    // State flags
+    Q.hindenburg_puppet = Q.camarilla_strength >= 90 ? 1 : Math.floor(Math.random() * 2);
+    Q.camarilla_fully_formed = Q.camarilla_strength >= 80 ? 1 : Math.floor(Math.random() * 2);
+    Q.camarilla_dominant = Q.camarilla_strength >= 100 ? 1 : Math.floor(Math.random() * 2);
+    
+    // Death
+    Q.hindenburg_dead = (Q.year >= 1934 && Q.month >= 8) ? 1 : Math.floor(Math.random() * 2);
+    if (Q.hindenburg_dead) {
+        Q.hindenburg_death_year = Q.year - Math.floor(Math.random() * 3); // died 0-3 years ago
+    }
+    
+} else {
+    // Not Hindenburg president
+    Q.hindenburg_president = 0;
+    Q.camarilla_exists = 0;
+    Q.camarilla_strength = 0;
+}
+
+// === EMERGENCY POWERS (can exist under any president) ===
+Q.emergency_rule = Math.floor(Math.random() * 2);
+Q.hindenburg_enabled = Math.floor(Math.random() * 2);
+
+// === PRESIDENTIAL ELECTIONS ===
+Q.hindenburg_1925_elected = Math.floor(Math.random() * 2);
+Q.hindenburg_1932_reelected = Math.floor(Math.random() * 2);
+Q.hindenburg_opposes_hitler_1932 = Math.floor(Math.random() * 2);
+
+Q.next_presidential_election_year = 1932 + Math.floor(Math.random() * 7); // 1932-1938
+Q.next_presidential_election_month = 1 + Math.floor(Math.random() * 12);
+
+// === VICE CHANCELLOR (if exists) ===
+var vice_chancellors = ['', 'Papen', 'Hugenberg', 'Göring', 'Severing'];
+Q.vice_chancellor = vice_chancellors[Math.floor(Math.random() * vice_chancellors.length)];
+if (Q.vice_chancellor) {
+    var vice_parties = ['I', 'DNVP', 'NSDAP', 'SPD', 'Z'];
+    Q.vice_chancellor_party = vice_parties[Math.floor(Math.random() * vice_parties.length)];
+}
+
+    console.log("Hindenburg & Camarilla randomized!");
+if (Q.president === "Hindenburg") {
+    console.log("Hindenburg age: " + Q.hindenburg_age.toFixed(1));
+    console.log("Health: " + Q.hindenburg_health.toFixed(0) + ", Senility: " + Q.hindenburg_senility.toFixed(0));
+    console.log("Camarilla strength: " + Q.camarilla_strength.toFixed(0));
+    console.log("Trust in Reichstag: " + Q.hindenburg_trust_reichstag.toFixed(0));
+    }
     
     console.log("=== CHAOS MODE ACTIVATED ===");
     console.log("All variables randomized. Reality is meaningless.");
