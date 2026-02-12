@@ -1248,19 +1248,19 @@ if (Q.possible_coalitions.length === 0) {
 } else {
     Q.coalition_options_display = "**Available Coalition Options:**\n\n";
     
-    for (var i = 0; i < Q.possible_coalitions.length && i < 6; i++) {
+    for (var i = 0; i < Q.possible_coalitions.length && i < 10; i++) {
         var coal = Q.possible_coalitions[i];
         var partners_text = coal.parties.join(', ');
         var type_text = coal.type.replace(/_/g, ' ');
         
-        Q.coalition_options_display += (i + 1) + ". **" + partners_text + "**\n";
-        Q.coalition_options_display += "\t- Type: " + type_text + "\n";
-        Q.coalition_options_display += "\t- Support: " + Math.round(coal.votes * 10) / 10 + "%\n";
-        Q.coalition_options_display += "\t- Compatibility: " + Math.round(coal.compatibility) + "/100\n\n";
+        Q.coalition_options_display += (i + 1) + ". **" + partners_text + "**<br>";
+        Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Type: " + type_text + "<br>";
+        Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Support: " + Math.round(coal.votes * 10) / 10 + "%<br>";
+        Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Compatibility: " + Math.round(coal.compatibility) + "/100<br><br>";
 
     }
     
-    if (Q.possible_coalitions.length > 6) {
+    if (Q.possible_coalitions.length > 10) {
         Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 6) + " more options available)*\n";
     }
 }
@@ -1282,7 +1282,12 @@ As the largest democratic party, the responsibility falls to us to build a stabl
 - @choose_coalition_4: Form coalition option #4
 - @choose_coalition_5: Form coalition option #5
 - @choose_coalition_6: Form coalition option #6
+- @choose_coalition_7: Form coalition option #7
+- @choose_coalition_8: Form coalition option #8
+- @choose_coalition_9: Form coalition option #9
+- @choose_coalition_10: Form coalition option #10
 - @spd_decline_formateur: Decline to form a government
+
 
 @choose_coalition_1
 view-if: num_coalitions >= 1
@@ -1328,6 +1333,38 @@ go-to: coalition_success
 view-if: num_coalitions >= 6
 on-arrival: {!
 Q.chosen_coalition = Q.possible_coalitions[5];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_7
+view-if: num_coalitions >= 7
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[6];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_8
+view-if: num_coalitions >= 8
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[7];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_9
+view-if: num_coalitions >= 9
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[8];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_10
+view-if: num_coalitions >= 10
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[9];
 Q.spd_accepted_coalition = 1;
 !}
 go-to: coalition_success
@@ -1690,7 +1727,7 @@ all_candidates.sort(function(a, b) { return b.score - a.score; });
 Q.chancellor_candidates = [];
 Q.chancellor_candidates_display = "";
 
-var num_candidates = Math.min(6, all_candidates.length);
+var num_candidates = Math.min(10, all_candidates.length);
 for (var i = 0; i < num_candidates; i++) {
     var candidate = all_candidates[i];
     
@@ -1817,6 +1854,11 @@ go-to: chancellor_negotiation_spd
 - @choose_chancellor_4: Support [+ candidate_3_name +] ([+ candidate_3_party +])
 - @choose_chancellor_5: Support [+ candidate_4_name +] ([+ candidate_4_party +])
 - @choose_chancellor_6: Support [+ candidate_5_name +] ([+ candidate_5_party +])
+- @choose_chancellor_7: Support [+ candidate_6_name +] ([+ candidate_6_party +])
+- @choose_chancellor_8: Support [+ candidate_7_name +] ([+ candidate_7_party +])
+- @choose_chancellor_9: Support [+ candidate_8_name +] ([+ candidate_8_party +])
+- @choose_chancellor_10: Support [+ candidate_9_name +] ([+ candidate_9_party +])
+
 
 @choose_chancellor_1
 view-if: num_candidates >= 1
@@ -1869,6 +1911,42 @@ on-arrival: {!
 Q.chosen_chancellor_index = 5;
 Q.chancellor_party = Q.chancellor_candidates[5].party;
 Q.chancellor = Q.chancellor_candidates[5].name;
+!}
+go-to: chancellor_hindenburg_check
+
+@choose_chancellor_7
+view-if: num_candidates >= 7
+on-arrival: {!
+Q.chosen_chancellor_index = 6;
+Q.chancellor_party = Q.chancellor_candidates[6].party;
+Q.chancellor = Q.chancellor_candidates[6].name;
+!}
+go-to: chancellor_hindenburg_check
+
+@choose_chancellor_8
+view-if: num_candidates >= 8
+on-arrival: {!
+Q.chosen_chancellor_index = 7;
+Q.chancellor_party = Q.chancellor_candidates[7].party;
+Q.chancellor = Q.chancellor_candidates[7].name;
+!}
+go-to: chancellor_hindenburg_check
+
+@choose_chancellor_9
+view-if: num_candidates >= 9
+on-arrival: {!
+Q.chosen_chancellor_index = 8;
+Q.chancellor_party = Q.chancellor_candidates[8].party;
+Q.chancellor = Q.chancellor_candidates[8].name;
+!}
+go-to: chancellor_hindenburg_check
+
+@choose_chancellor_10
+view-if: num_candidates >= 10
+on-arrival: {!
+Q.chosen_chancellor_index = 9;
+Q.chancellor_party = Q.chancellor_candidates[9].party;
+Q.chancellor = Q.chancellor_candidates[9].name;
 !}
 go-to: chancellor_hindenburg_check
 
