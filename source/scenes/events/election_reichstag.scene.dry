@@ -1589,6 +1589,8 @@ function get_chancellor_candidates_for_party(party) {
             candidates.push({name: "Braun", weight: 100});
         } else if (Q.spd_chancellor_preference === "hilferding" && Q.spd_toleration === 0) {
             candidates.push({name: "Hilferding", weight: 100});
+        } else if (Q.spd_chancellor_preference === "breitscheid" {
+            candidates.push({name: "Breitscheid", weight: 100});
         } else {
             // Default fallback
             if (!Q.muller_dead) {
@@ -1603,9 +1605,11 @@ function get_chancellor_candidates_for_party(party) {
     } 
     else if (party === 'DDP') {
         candidates.push({name: "Koch-Weser", weight: 100});
-        if (Q.ddp_decline < 50) { // If party not too weakened
+        if (Q.ddp_votes < 3) { // If party not too weakened
             candidates.push({name: "Dietrich", weight: 80});
         }
+        if (Q.ddp_name = "DStP") {
+            candidates.push({name: "Arthur Mahraun", weight: 99});
     } 
     else if (party === 'Z') {
         if (Q.z_party_leader === "Joos") {
@@ -1616,10 +1620,11 @@ function get_chancellor_candidates_for_party(party) {
             candidates.push({name: "Brüning", weight: 90});
         } else if (Q.z_party_leader === "Brüning") {
             candidates.push({name: "Brüning", weight: 100});
-            candidates.push({name: "Marx", weight: 70});
+            candidates.push({name: "Kaas", weight: 70});
         } else {
-            candidates.push({name: "Marx", weight: 100});
+            candidates.push({name: "Joos", weight: 100});
             candidates.push({name: "Wirth", weight: 85});
+            candidates.push({name: "Marx", weight: 40});
         }
     } 
     else if (party === 'BVP') {
@@ -1797,6 +1802,7 @@ go-to: chancellor_negotiation_spd
 [? if spd_chancellor_preference = "wels" : The SPD has put forward Otto Wels as their preferred candidate. ?]
 [? if spd_chancellor_preference = "braun" : The SPD has put forward Otto Braun as their preferred candidate. ?]
 [? if spd_chancellor_preference = "hilferding" : The SPD has put forward Rudolf Hilferding as their preferred candidate. ?]
+[? if spd_chancellor_preference = "breitscheid" : The SPD has put forward Rudolf Breitscheid as their preferred candidate. ?]
 
 [? if president = "Hindenburg" and year >= 1930 : **Note:** President Hindenburg has expressed strong preferences about who should lead the government. Choosing a Chancellor he opposes may create difficulties. ?]
 
