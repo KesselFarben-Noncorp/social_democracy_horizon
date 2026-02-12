@@ -221,6 +221,7 @@ Q.party_relations = {
         DDP: 15,
         Z: 10,
         BVP: 5,
+        CSRP: 14,
         DVP: 5,
         WP: 5,
         CNBL: 0,
@@ -237,6 +238,7 @@ Q.party_relations = {
         DDP: 35,
         Z: 30,
         BVP: 25,
+        CSRP: 20,
         DVP: 20,
         WP: 15,
         CNBL: 15,
@@ -254,6 +256,7 @@ Q.party_relations = {
         Z: Q.z_relation,
         BVP: Q.bvp_relation || 40,
         DVP: Q.dvp_relation,
+        CSRP: Q.csrp_relation,
         WP: Q.wp_relation || 30,
         CNBL: Q.cnbl_relation || 25,
         CSVD: Q.csvd_relation || 35,  // Added - could work with moderate conservatives
@@ -270,6 +273,7 @@ Q.party_relations = {
         Z: Q.z_relation + 5,
         BVP: (Q.bvp_relation || 40) + 5,
         DVP: Q.dvp_relation - 5,
+        CSRP: Q.csrp_relation + 5,
         WP: (Q.wp_relation || 30) - 5,
         CNBL: (Q.cnbl_relation || 25) + 5,
         CSVD: (Q.csvd_relation || 35) + 5,  // Added - both are moderate splinter parties
@@ -285,6 +289,7 @@ Q.party_relations = {
         SRPD: Q.ddp_relation + 10,
         Z: 70,
         BVP: 60,
+        CSRP: 75,
         DVP: 65 - (Q.dvp_right_shift || 0) * 8,
         WP: 55,
         CNBL: 45,
@@ -301,12 +306,30 @@ Q.party_relations = {
         SRPD: Q.z_relation + 5,
         DDP: 70,
         BVP: 80,
+        CSRP: 40,
         DVP: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         WP: 50,
-        CNBL: 30,
+        CNBL: 35,
         CSVD: 55,  // Added - both Christian parties, but confessional divide (Catholic vs Protestant)
         DNVP: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
         NSDAP: Math.max(5, 30 - Q.nazi_urgency * 4)
+    },
+
+    // === CSRP (Christian Social Reichs Party) ===
+    CSRP: {
+        KPD: 15,
+        SAPD: 40,
+        Z: 40
+        SPD: Q.csrp_relation,
+        SRPD: Q.csrp_relation + 5,
+        DDP: 70,
+        BVP: 80,
+        DVP: 30,
+        WP: 50,
+        CNBL: 25,
+        CSVD: 35,  
+        DNVP: 15,
+        NSDAP: 5
     },
     
     // === BVP (Bavarian People's Party) ===
@@ -317,6 +340,7 @@ Q.party_relations = {
         SRPD: (Q.bvp_relation || 40) + 5,
         DDP: 60,
         Z: 80,
+        CSRP: 35,
         DVP: 55,
         WP: 45,
         CNBL: 65,
@@ -334,6 +358,7 @@ Q.party_relations = {
         DDP: 65 - (Q.dvp_right_shift || 0) * 8,
         Z: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         BVP: 55,
+        CSRP: 30,
         WP: 70,
         CNBL: 30,
         CSVD: 55,  // Added - moderate bourgeois parties, potential coalition
@@ -349,6 +374,7 @@ Q.party_relations = {
         SRPD: (Q.wp_relation || 30) - 5,
         DDP: 55,
         Z: 50,
+        CSRP: 25,
         BVP: 45,
         DVP: 70,
         CNBL: 40,
@@ -365,6 +391,7 @@ Q.party_relations = {
         SRPD: (Q.cnbl_relation || 25) + 5,
         DDP: 35,
         Z: 40,
+        CSRP: 20,
         BVP: 55,
         DVP: 35,
         WP: 40,
@@ -382,6 +409,7 @@ Q.party_relations = {
         DDP: 60,  // Good - both moderate, pro-constitutional
         Z: 55,  // Decent - both Christian parties, but Protestant vs Catholic
         BVP: 50,  // Same confessional divide as Z
+        CSRP: 40,
         DVP: 55,  // Good - moderate bourgeois coalition potential
         WP: 50,  // Okay - both middle-class parties
         CNBL: 45,  // Some overlap in rural Protestant areas
@@ -398,6 +426,7 @@ Q.party_relations = {
         DDP: Q.dnvp_line === 3 ? 15 : 35,
         Z: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
         BVP: 50,
+        CSRP: 30,
         DVP: 50 + (Q.dvp_right_shift || 0) * 15,
         WP: 45,
         CNBL: 35,
@@ -412,6 +441,7 @@ Q.party_relations = {
         SPD: Q.nsdap_relation || 5,
         SRPD: 0,
         DDP: 10,
+        CSRP: 5,
         Z: Math.max(5, 30 - Q.nazi_urgency * 4),
         BVP: 25 - (Q.nazi_urgency * 2),
         DVP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10,
@@ -556,6 +586,12 @@ data = data.concat([
         "seats": Math.round(Q.bvp_r*6),
     },
     {
+        "id": "csrp",
+        "legend": "CSRP",
+        "name": "CSRP",
+        "seats": Math.round(Q.csrp_r*6),
+    },
+    {
         "id": "dvp",
         "legend": "DVP",
         "name": "DVP",
@@ -685,6 +721,12 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ bvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bvp_r > 0 : color: green; ?][? if change_bvp_r < 0 : color: red; ?]">[+ str_change_bvp +]</td>
 </tr>
+<tr style="background-color: #FF45F9;">
+    <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>CSRP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ csrp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ csrp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_csrp_r > 0 : color: green; ?][? if change_csrp_r < 0 : color: red; ?]">[+ str_change_csrp +]</td>
+</tr>
 <tr style="background-color: #fef9e6;">
     <td style="padding: 8px;"><div class="box" style='background-color:#D5AC27; display:inline-block; margin-right:8px;'> </div>DVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvp_r_disp +]%</td>
@@ -765,6 +807,9 @@ if (Q.wp_r && Q.wp_r > 0) {
 }
 if (Q.cnbl_r && Q.cnbl_r > 0) {
     Q.party_votes.push({party: 'CNBL', votes: Q.cnbl_r});
+}
+if (Q.csrp_r && Q.csrp_r > 0) {
+    Q.party_votes.push({party: 'CSRP', votes: Q.csrp_r});
 }
 if (Q.csvd_flee && Q.csvd_r && Q.csvd_r > 0) {
     Q.party_votes.push({party: 'CSVD', votes: Q.csvd_r});
@@ -1144,6 +1189,7 @@ function classify_coalition(parties) {
     var has_dnvp = parties.indexOf('DNVP') >= 0;
     var has_nsdap = parties.indexOf('NSDAP') >= 0;
     var has_csvd = parties.indexOf('CSVD') >= 0;
+    var has_csrp = parties.indexOf('CSRP') >= 0;
     
     // Left coalitions
     if (has_spd && has_kpd && !has_z) return 'left_front';
@@ -1665,6 +1711,9 @@ function get_chancellor_candidates_for_party(party) {
             candidates.push({name: "Marx", weight: 40});
         }
     } 
+    else if (party === 'CSRP') {
+        candidates.push({name: "Vitus Heller", weight: 50});
+    } 
     else if (party === 'BVP') {
         candidates.push({name: "Held", weight: 100});
         candidates.push({name: "Schäffer", weight: 80});
@@ -1781,6 +1830,7 @@ Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
 Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 Q.csvd_in_government = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
+Q.csrp_in_government = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
 
 !}
 go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
@@ -2305,7 +2355,8 @@ var priorities = {
     DVP: ['economic', 'finance', 'foreign', 'justice', 'interior', 'labor', 'agriculture', 'transport'],
     WP: ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor', 'transport'],
     CNBL: ['agriculture', 'finance', 'economical', 'justice', 'interior', 'foreign', 'labor', 'transport'],
-    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport']
+    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
+    CSRP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
 };
 
 // ============================================
