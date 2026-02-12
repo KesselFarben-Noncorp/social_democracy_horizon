@@ -325,7 +325,7 @@ if (Q.month_actions >= 1) {
 
     // 1. Business cycle (CALMED: reduced amplitude)
     Q.cycle_phase = Q.cycle_phase || 0;
-    Q.cycle_phase += 0.01 * Q.dt; // Reduced from 0.015
+    Q.cycle_phase += 0.018 * Q.dt; // Reduced from 0.015
     Q.cycle_amplitude = 0.8 * (1 + (Q.shock_residual || 0) * 0.3); // Reduced from 1.5
     Q.business_cycle = Q.cycle_amplitude * Math.sin(Q.cycle_phase);
 
@@ -459,7 +459,7 @@ if (Q.month_actions >= 1) {
     Q.dInflation = 0;
 
     // Phillips curve (MASSIVELY REDUCED)
-    Q.dInflation += 0.012 * (Q.NAIRU - Q.unemployed); // Reduced from 0.020 * ... * 2.0
+    Q.dInflation += 0.016 * (Q.NAIRU - Q.unemployed); // Reduced from 0.020 * ... * 2.0
 
     // Output gap (MASSIVELY REDUCED)
     Q.dInflation += 0.010 * Q.output_gap; // Reduced from 0.015 * ... * 2.5
@@ -513,9 +513,9 @@ if (Q.month_actions >= 1) {
     // Okun's law (REDUCED COEFFICIENTS)
     Q.growth_gap = Q.economic_growth - Q.POTENTIAL_GROWTH;
     if (Q.growth_gap < 0) {
-        Q.dUnemployment -= 0.025 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.15); // Reduced from 0.035 * ... * 1.5
+        Q.dUnemployment -= 0.032 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.12); // Reduced from 0.035 * ... * 1.5
     } else {
-        Q.dUnemployment -= 0.015 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.15); // Reduced from 0.020 * ... * 1.5
+        Q.dUnemployment -= 0.020 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.12); // Reduced from 0.020 * ... * 1.5
     }
 
     // High inflation unemployment effect (REDUCED)
@@ -656,9 +656,9 @@ if (Q.month_actions >= 1) {
 
     // === APPLY CHANGES (MORE DAMPENING) ===
 
-    Q.inflation += Q.dInflation * Q.dt * 0.7; // Reduced from 0.9
-    Q.unemployed += Q.dUnemployment * Q.dt * 0.7; // Reduced from 0.9
-    Q.economic_growth += Q.dGrowth * Q.dt * 0.7; // Reduced from 0.9
+    Q.inflation += Q.dInflation * Q.dt * 0.86; // Reduced from 0.9
+    Q.unemployed += Q.dUnemployment * Q.dt * 0.86; // Reduced from 0.9
+    Q.economic_growth += Q.dGrowth * Q.dt * 0.86; // Reduced from 0.9
 
     // === DECAY IMPULSES (FASTER) ===
     Q.demand_impulse = (Q.demand_impulse || 0) * Math.exp(-0.35 * Q.dt); // Faster (was -0.3)
