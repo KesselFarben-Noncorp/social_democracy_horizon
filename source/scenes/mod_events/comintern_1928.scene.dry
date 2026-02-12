@@ -165,7 +165,6 @@ The German working class faces rising Nazi terror while the two workers' parties
 [? if nazi_urgency >= 5 : As brownshirts rampage through the streets, communists and social democrats fight each other instead of the common enemy. History will judge this moment harshly. ?]
 
 - @accept_doctrine: We cannot change Moscow's decision
-- @protest_doctrine: Publicly protest the Comintern line
 
 @accept_doctrine
 on-arrival: left_dissent += 5; reformist_dissent += 3;
@@ -173,17 +172,6 @@ on-arrival: left_dissent += 5; reformist_dissent += 3;
 We acknowledge the Comintern's decision while maintaining our own course. "The KPD has chosen their path. We choose ours: defending democracy against fascism, with or without communist support."
 
 Our left wing is bitter: "We reached out, and Moscow slapped our hand away."
-
-@protest_doctrine
-choose-if: left_strength >= 40 or communist_coalition >= 7
-unavailable-subtitle: [? if left_strength < 40 and communist_coalition < 7 : The party lacks the conviction or track record to challenge Moscow. ?]
-on-arrival: kpd_relation -= 5; left_dissent -= 5; pro_republic += 2; workers_spd += 2;
-
-"The Comintern's 'social fascism' doctrine is a catastrophic error that will enable Nazi victory!" we declare publicly. "We call on German communists to ignore Moscow and unite against the real fascists!"
-
-It's a bold denunciation of Soviet authority. The KPD denounces us even more viciously, but some communist workers privately agree. Our own base appreciates the clarity: we're not social fascists, we're anti-fascists.
-
-[? if kpd_relation >= 50 : A few KPD dissidents quietly maintain contact, defying party discipline. ?]
 
 @modified_hardline
 on-arrival: kpd_relation -= 8; workers_kpd += 2; workers_spd -= 1; unemployed_kpd += 2;
