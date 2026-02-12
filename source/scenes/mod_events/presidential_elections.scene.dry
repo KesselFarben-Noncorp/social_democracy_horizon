@@ -47,6 +47,7 @@ on-arrival: {!
         DDP: 15,
         Z: 10,
         BVP: 5,
+        CSRP: 14,
         DVP: 5,
         WP: 5,
         CNBL: 0,
@@ -63,6 +64,7 @@ on-arrival: {!
         DDP: 35,
         Z: 30,
         BVP: 25,
+        CSRP: 20,
         DVP: 20,
         WP: 15,
         CNBL: 15,
@@ -80,6 +82,7 @@ on-arrival: {!
         Z: Q.z_relation,
         BVP: Q.bvp_relation || 40,
         DVP: Q.dvp_relation,
+        CSRP: Q.csrp_relation,
         WP: Q.wp_relation || 30,
         CNBL: Q.cnbl_relation || 25,
         CSVD: Q.csvd_relation || 35,  // Added - could work with moderate conservatives
@@ -96,6 +99,7 @@ on-arrival: {!
         Z: Q.z_relation + 5,
         BVP: (Q.bvp_relation || 40) + 5,
         DVP: Q.dvp_relation - 5,
+        CSRP: Q.csrp_relation + 5,
         WP: (Q.wp_relation || 30) - 5,
         CNBL: (Q.cnbl_relation || 25) + 5,
         CSVD: (Q.csvd_relation || 35) + 5,  // Added - both are moderate splinter parties
@@ -111,6 +115,7 @@ on-arrival: {!
         SRPD: Q.ddp_relation + 10,
         Z: 70,
         BVP: 60,
+        CSRP: 75,
         DVP: 65 - (Q.dvp_right_shift || 0) * 8,
         WP: 55,
         CNBL: 45,
@@ -127,12 +132,30 @@ on-arrival: {!
         SRPD: Q.z_relation + 5,
         DDP: 70,
         BVP: 80,
+        CSRP: 40,
         DVP: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         WP: 50,
-        CNBL: 30,
+        CNBL: 35,
         CSVD: 55,  // Added - both Christian parties, but confessional divide (Catholic vs Protestant)
         DNVP: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
         NSDAP: Math.max(5, 30 - Q.nazi_urgency * 4)
+    },
+
+    // === CSRP (Christian Social Reichs Party) ===
+    CSRP: {
+        KPD: 15,
+        SAPD: 40,
+        Z: 40
+        SPD: Q.csrp_relation,
+        SRPD: Q.csrp_relation + 5,
+        DDP: 70,
+        BVP: 80,
+        DVP: 30,
+        WP: 50,
+        CNBL: 25,
+        CSVD: 35,  
+        DNVP: 15,
+        NSDAP: 5
     },
     
     // === BVP (Bavarian People's Party) ===
@@ -143,6 +166,7 @@ on-arrival: {!
         SRPD: (Q.bvp_relation || 40) + 5,
         DDP: 60,
         Z: 80,
+        CSRP: 35,
         DVP: 55,
         WP: 45,
         CNBL: 65,
@@ -160,6 +184,7 @@ on-arrival: {!
         DDP: 65 - (Q.dvp_right_shift || 0) * 8,
         Z: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
         BVP: 55,
+        CSRP: 30,
         WP: 70,
         CNBL: 30,
         CSVD: 55,  // Added - moderate bourgeois parties, potential coalition
@@ -175,6 +200,7 @@ on-arrival: {!
         SRPD: (Q.wp_relation || 30) - 5,
         DDP: 55,
         Z: 50,
+        CSRP: 25,
         BVP: 45,
         DVP: 70,
         CNBL: 40,
@@ -191,6 +217,7 @@ on-arrival: {!
         SRPD: (Q.cnbl_relation || 25) + 5,
         DDP: 35,
         Z: 40,
+        CSRP: 20,
         BVP: 55,
         DVP: 35,
         WP: 40,
@@ -208,6 +235,7 @@ on-arrival: {!
         DDP: 60,  // Good - both moderate, pro-constitutional
         Z: 55,  // Decent - both Christian parties, but Protestant vs Catholic
         BVP: 50,  // Same confessional divide as Z
+        CSRP: 40,
         DVP: 55,  // Good - moderate bourgeois coalition potential
         WP: 50,  // Okay - both middle-class parties
         CNBL: 45,  // Some overlap in rural Protestant areas
@@ -224,6 +252,7 @@ on-arrival: {!
         DDP: Q.dnvp_line === 3 ? 15 : 35,
         Z: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
         BVP: 50,
+        CSRP: 30,
         DVP: 50 + (Q.dvp_right_shift || 0) * 15,
         WP: 45,
         CNBL: 35,
@@ -238,6 +267,7 @@ on-arrival: {!
         SPD: Q.nsdap_relation || 5,
         SRPD: 0,
         DDP: 10,
+        CSRP: 5,
         Z: Math.max(5, 30 - Q.nazi_urgency * 4),
         BVP: 25 - (Q.nazi_urgency * 2),
         DVP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10,
@@ -247,6 +277,7 @@ on-arrival: {!
         DNVP: Q.dnvp_line === 3 ? 60 : 35
     }
 };
+
 
     // ========================================
     // HELPER FUNCTION: Get relation between two parties
@@ -377,6 +408,12 @@ on-arrival: {!
         Q.bvp_default_candidate = "Schäffer";
         Q.bvp_candidate = null;
     }
+
+    // ========================================
+    // CSRP (CHRISTIAN SOCIAL REICH PARTY)
+    // ========================================
+    Q.csrp_default_candidate = Q.z_default_candidate;
+    Q.csrp_candidate = null;
 
 
 
@@ -1425,6 +1462,11 @@ on-arrival: {!
         // Default - run own
         Q.z_candidate = Q.z_default_candidate;
     }
+
+    // ========================================
+    // CSRP (CHRISTIAN SOCIAL REICH PARTY)
+    // ========================================
+    Q.csrp_candidate = Q.z_candidate;
     
     // ========================================
     // BVP (BAVARIAN PEOPLE'S PARTY)
@@ -1608,6 +1650,8 @@ on-arrival: {!
     if (Q.srpd_formed && Q.reformist_strength >= 30) {
         Q.srpd_candidate = "Hindenburg";
     }
+    // CSRP sure.
+    Q.csrp_candidate = "Hindenburg";
     }
 !}
 go-to: r1_finalized
@@ -1630,6 +1674,7 @@ The candidates have been finalized:
 - SPD: [+ spd_candidate +]
 
 [? if srpd_formed == 1 and srpd_candidate : - SRPD: [+ srpd_candidate +] ?]
+[? if csrp_votes > 1: CSRP: [+ csrp_candidate +] ?)
 
 [? if z_candidate and z_candidate != spd_candidate and not z_dnvp_joint_possible : - Center (Z): [+ z_candidate +] ?]
 [? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
@@ -1802,7 +1847,7 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'csvd', 'srpd', 'wp', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2074,6 +2119,10 @@ on-arrival: {!
         Q.z_candidate = pickClosestFinalist(Q.z_candidate, [center, center_left, left, center_right]);
     }
 
+    // CSRP
+        Q.csrp_candidate = pickClosestFinalist(Q.csrp_candidate, [center, center_left, left, center_right]);
+    }
+
     // === BVP ===
     Q.bvp_candidate = pickClosestFinalist(Q.bvp_candidate, [center_right, center, far_right, center_left]);
 
@@ -2220,7 +2269,7 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'wp' , 'csvd', 'srpd', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'wp' , 'csrp', 'csvd', 'srpd', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2348,6 +2397,7 @@ go-to: election_end
 [? if wp_r2_votes > 0 : - WP: [+ wp_r2_votes +]% → [+ wp_candidate +] ?]
 [? if cnbl_r2_votes > 0 : - CNBL: [+ cnbl_r2_votes +]% → [+ cnbl_candidate +] ?]
 [? if csvd_r2_votes > 0 : - CSVD: [+ csvd_r2_votes +]% → [+ csvd_candidate +] ?]
+[? if csrp_r2_votes > 0: CSRP: [+ vsrp_r2_votes +]% -> [+ csrp_candidate +] ?]
 
 @election_end
 on-departure: {!
