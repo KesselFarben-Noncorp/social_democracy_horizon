@@ -798,7 +798,7 @@ Q.relation_gravity = function(value) {
     }
 };
 
-var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'ddp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
+var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'ddp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
 for (var rel of relations) {
     Q[rel + '_relation'] = Q.relation_gravity(Q[rel + '_relation']);
     // Hard cap just in case
@@ -1260,6 +1260,16 @@ for (var rel of relations) {
             rural: 0.20,        
             unemployed: 1.20,   
             catholics: 0.55     
+        },
+
+        csrp: {
+            base: Q.sapd_banned ? 0 : Q.pro_republic_factor * 16,
+            workers: 0.20,      // Left-wing workers
+            old_middle: 0.05,   
+            new_middle: 0.15,   // Some intellectual appeal
+            rural: 0.10,        
+            unemployed: 0.30,   
+            catholics: 0.65     
         },
     
         srpd: {
@@ -1756,6 +1766,9 @@ for (var rel of relations) {
                     if (Q.c === 'old_middle' || Q.c === 'new_middle') {
                             Q.ideology_factor *= 1.20;
                     }
+                    break;
+                case 'csrp':
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 1.1, 0.2);
                     break;
                 case 'other':
                     Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/5.4 + (1 - Q.unrest_factor), 0.2);
