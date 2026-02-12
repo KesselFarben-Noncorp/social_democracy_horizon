@@ -2679,192 +2679,408 @@ Q.reichswehr_minister = 'Groener';
 
 if (Q.president === "Hindenburg") {
     // ========================================
-    // DYNAMIC CHANCELLOR SELECTION
-    // Based on actual political conditions, not historical script
+    // DYNAMIC CHANCELLOR SELECTION v2
+    // Integrated with standardized Hindenburg metrics
     // ========================================
     
-    var hindenburg_choice_influenced_by_camarilla = Q.camarilla_strength >= 60;
-    var hindenburg_senile = Q.hindenburg_senility >= 50;
-    var severe_crisis = Q.unemployed >= 20 || Q.inflation >= 8 || Q.street_violence >= 7;
-    var democratic_collapse = Q.hindenburg_trust_reichstag < 30 || Q.pro_republic < 35;
+    // === CORE STATE ASSESSMENT ===
+    var camarilla_dominant = Q.camarilla_strength >= 70;
+    var camarilla_influential = Q.camarilla_strength >= 50;
+    var hindenburg_weak = Q.hindenburg_health < 60 || Q.hindenburg_senility >= 40;
+    var hindenburg_puppet = Q.hindenburg_senility >= 60 || Q.camarilla_strength >= 90;
     
-    // Calculate political pressure from different factions
-    var left_pressure = Q.spd_r + Q.kpd_r; // Left bloc size
-    var nazi_pressure = Q.nsdap_r;
-    var conservative_pressure = Q.dnvp_r + Q.dvp_r;
-    var center_pressure = Q.z_r + Q.bvp_r;
+    var severe_crisis = Q.unemployed >= 18 || Math.abs(Q.inflation) >= 8 || Q.economic_growth < -5;
+    var catastrophic_crisis = Q.unemployed >= 25 || Math.abs(Q.inflation) >= 12 || Q.economic_growth < -8;
+    var democratic_collapse = Q.hindenburg_trust_reichstag < 35 || Q.pro_republic < 35;
+    
+    // === FACTION STRENGTH (NORMALIZED) ===
+    var total_reichstag = 100;
+    var left_bloc = (Q.spd_r || 0) + (Q.kpd_r || 0) + (Q.sapd_r || 0);
+    var bourgeois_center = (Q.z_r || 0) + (Q.bvp_r || 0) + (Q.ddp_r || 0);
+    var bourgeois_right = (Q.dvp_r || 0) + (Q.wp_r || 0);
+    var nationalist_bloc = (Q.dnvp_r || 0) + (Q.nsdap_r || 0);
+    
+    // === CHANCELLOR CANDIDATE POOL ===
+    var candidates = [];
     
     // ========================================
-    // DECISION FRAMEWORK: Who does Hindenburg trust?
+    // CATEGORY 1: PARLIAMENTARY CENTRISTS
+    // Only viable if Hindenburg still respects Reichstag
     // ========================================
-    
-    var chancellor_options = [];
-    
-    // === PARLIAMENTARY OPTIONS (if Hindenburg still respects parliament) ===
-    if (Q.hindenburg_trust_reichstag >= 40 && !severe_crisis && Q.camarilla_strength < 60) {
+    if (Q.hindenburg_trust_reichstag >= 35 && !catastrophic_crisis && !camarilla_dominant) {
         
-        // Center Party option
-        if (Q.z_r >= 12) {
-            chancellor_options.push({
-                name: Q.z_party_leader === "Brüning" ? "Brüning" : "Marx",
-                party: "Z",
-                score: Q.z_r + Q.hindenburg_trust_z / 5,
-                type: "parliamentary"
-            });
+        // === CENTER PARTY (Z) ===
+        if (Q.z_r >= 10) {
+            // Historical leaders
+            if (Q.z_party_leader === "Brüning" || Q.z_leader === "Brüning") {
+                candidates.push({
+                    name: "Brüning",
+                    party: "Z",
+                    base_score: Q.z_r * 1.5 + Q.hindenburg_trust_z * 0.4,
+                    type: "parliamentary",
+                    bonus: Q.meissner_influence * 0.15, // Meißner likes technocrats
+                    crisis_tolerance: 0.8 // handles crisis well
+                });
+            }
+            
+            if (Q.z_party_leader === "Marx" || Q.z_leader === "Marx") {
+                candidates.push({
+                    name: "Marx",
+                    party: "Z",
+                    base_score: Q.z_r * 1.3 + Q.hindenburg_trust_z * 0.3,
+                    type: "parliamentary",
+                    bonus: Q.year <= 1928 ? 15 : -5, // loses relevance
+                    crisis_tolerance: 0.5
+                });
+            }
+            
+            // Deep bench options (RNG-gated)
+            if (Math.random() < 0.3) {
+                candidates.push({
+                    name: "Wirth", // Joseph Wirth - left-leaning centrist
+                    party: "Z",
+                    base_score: Q.z_r * 1.2 + Q.hindenburg_trust_z * 0.2,
+                    type: "parliamentary",
+                    bonus: Q.spd_in_government ? 10 : -10, // SPD-friendly
+                    crisis_tolerance: 0.6
+                });
+            }
+            
+            if (Math.random() < 0.2 && Q.year >= 1930) {
+                candidates.push({
+                    name: "Stegerwald", // Adam Stegerwald - labor wing
+                    party: "Z",
+                    base_score: Q.z_r * 1.1 + Q.hindenburg_trust_z * 0.25,
+                    type: "parliamentary",
+                    bonus: Q.labor_strength > 40 ? 12 : 0,
+                    crisis_tolerance: 0.7
+                });
+            }
         }
         
-        // DVP option
-        if (Q.dvp_r >= 8) {
-            chancellor_options.push({
-                name: Q.stresemann_dead ? "Curtius" : "Stresemann",
-                party: "DVP",
-                score: Q.dvp_r + 10, // Hindenburg likes DVP
-                type: "parliamentary"
-            });
+        // === DVP (Liberal Right) ===
+        if (Q.dvp_r >= 6) {
+            if (!Q.stresemann_dead && Q.year <= 1929) {
+                candidates.push({
+                    name: "Stresemann",
+                    party: "DVP",
+                    base_score: Q.dvp_r * 1.4 + Q.west_relation * 0.3,
+                    type: "parliamentary",
+                    bonus: 20, // Hindenburg respects him
+                    crisis_tolerance: 0.6
+                });
+            }
+            
+            if (Q.year >= 1929) {
+                candidates.push({
+                    name: "Curtius",
+                    party: "DVP",
+                    base_score: Q.dvp_r * 1.2 + 5,
+                    type: "parliamentary",
+                    bonus: Q.economic_minister === "Curtius" ? 8 : 0,
+                    crisis_tolerance: 0.5
+                });
+            }
+            
+            if (Math.random() < 0.25) {
+                candidates.push({
+                    name: "Dingeldey",
+                    party: "DVP",
+                    base_score: Q.dvp_r * 1.1,
+                    type: "parliamentary",
+                    bonus: Q.dvp_right_shift ? 10 : -5,
+                    crisis_tolerance: 0.4
+                });
+            }
         }
         
-        // DNVP option (if moderate)
-        if (Q.dnvp_r >= 10 && Q.dnvp_leader !== "Hugenberg") {
-            chancellor_options.push({
+        // === DNVP (if moderate) ===
+        if (Q.dnvp_r >= 8 && Q.dnvp_leader !== "Hugenberg" && Q.dnvp_party_leader !== "Hugenberg") {
+            candidates.push({
                 name: "Westarp",
                 party: "DNVP",
-                score: Q.dnvp_r + Q.hindenburg_trust_dnvp / 5,
-                type: "parliamentary"
+                base_score: Q.dnvp_r * 1.3 + Q.hindenburg_trust_dnvp * 0.4,
+                type: "parliamentary",
+                bonus: Q.camarilla_goal_protect_junkers * 0.2,
+                crisis_tolerance: 0.5
             });
+            
+            if (Math.random() < 0.3) {
+                candidates.push({
+                    name: "Treviranus", // left DNVP
+                    party: "DNVP",
+                    base_score: Q.dnvp_r * 1.1,
+                    type: "parliamentary",
+                    bonus: Q.constitutional_reform >= 1 ? 10 : -5,
+                    crisis_tolerance: 0.6
+                });
+            }
+        }
+        
+        // === GRAND COALITION COMPROMISE ===
+        if (Q.in_grand_coalition || (Q.spd_r + Q.z_r >= 35 && Q.hindenburg_trust_spd >= 40)) {
+            if (Math.random() < 0.4) {
+                candidates.push({
+                    name: "Müller", // Hermann Müller (SPD but centrist)
+                    party: "SPD",
+                    base_score: bourgeois_center * 0.8 + Q.hindenburg_trust_spd * 0.3,
+                    type: "parliamentary",
+                    bonus: Q.in_grand_coalition ? 15 : -10,
+                    crisis_tolerance: 0.5
+                });
+            }
         }
     }
     
-    // === PRESIDENTIAL CABINET OPTIONS (camarilla influence) ===
-    if (Q.camarilla_strength >= 40 || democratic_collapse || severe_crisis) {
+    // ========================================
+    // CATEGORY 2: PRESIDENTIAL TECHNOCRATS
+    // Camarilla-influenced, but not overtly authoritarian
+    // ========================================
+    if (camarilla_influential || severe_crisis || Q.hindenburg_trust_reichstag < 45) {
         
-        // Military option (Schleicher OR Hammerstein OR Groener)
-        var military_chancellor = null;
-        var military_score = 0;
-        
-        if (Q.schleicher_influence >= 70 && Q.reichswehr_minister === "Schleicher") {
-            military_chancellor = "Schleicher";
-            military_score = Q.schleicher_influence;
-        } else if (Q.reichswehr_minister === "Groener" && Q.year <= 1932) {
-            military_chancellor = "Groener";
-            military_score = 60;
-        } else if (Q.reichswehr_loyalty >= 0.5) {
-            military_chancellor = "Hammerstein";
-            military_score = Q.reichswehr_loyalty * 80;
-        }
-        
-        if (military_chancellor) {
-            chancellor_options.push({
-                name: military_chancellor,
-                party: "I",
-                score: military_score + (severe_crisis ? 20 : 0),
-                type: "military"
-            });
-        }
-        
-        // Aristocratic option (Papen OR similar)
-        if (Q.papen_in_camarilla && Q.papen_influence >= 50) {
-            chancellor_options.push({
-                name: "Papen",
-                party: "I",
-                score: Q.papen_influence + Q.oskar_influence / 2,
-                type: "aristocrat"
-            });
-        } else if (Q.camarilla_strength >= 70) {
-            // Generic aristocrat if Papen not available
-            chancellor_options.push({
-                name: "von Gayl", // Interior Minister from Cabinet of Barons
-                party: "I",
-                score: Q.camarilla_strength * 0.6,
-                type: "aristocrat"
-            });
-        }
-        
-        // Technocratic option (Goerdeler OR Luther OR similar)
-        var technocrat_score = 0;
-        var technocrat_name = null;
-        
-        if (Q.goerdeler_prominence >= 3) {
-            technocrat_name = "Goerdeler";
-            technocrat_score = Q.goerdeler_prominence * 10 + 30;
-        } else if (Q.year <= 1930) {
-            technocrat_name = "Luther";
-            technocrat_score = 40;
-        } else {
-            technocrat_name = "Dietrich"; // Finance expert
-            technocrat_score = 35;
-        }
-        
-        chancellor_options.push({
-            name: technocrat_name,
-            party: "I",
-            score: technocrat_score + (Q.meissner_influence / 3),
-            type: "technocrat"
-        });
-        
-        // Center Party presidential option (if Z still strong)
-        if (Q.z_r >= 15 && Q.camarilla_strength < 80) {
-            chancellor_options.push({
+        // Brüning as presidential chancellor (different from parliamentary)
+        if (Q.z_r >= 12 && !hindenburg_puppet) {
+            candidates.push({
                 name: "Brüning",
                 party: "Z",
-                score: Q.z_r * 2 + Q.meissner_influence / 2,
-                type: "presidential_center"
+                base_score: Q.meissner_influence * 0.6 + Q.z_r * 0.8,
+                type: "presidential_technocrat",
+                bonus: severe_crisis ? 20 : 0,
+                crisis_tolerance: 1.0 // austerity specialist
+            });
+        }
+        
+        // Carl Goerdeler (technocrat, anti-Nazi conservative)
+        if (Q.goerdeler_prominence >= 2) {
+            candidates.push({
+                name: "Goerdeler",
+                party: "I",
+                base_score: Q.goerdeler_prominence * 8 + Q.meissner_influence * 0.4,
+                type: "presidential_technocrat",
+                bonus: Q.camarilla_strength < 60 ? 15 : -10, // hates extremism
+                crisis_tolerance: 0.8
+            });
+        }
+        
+        // Hans Luther (banker, former chancellor)
+        if (Q.year <= 1931 && Math.random() < 0.35) {
+            candidates.push({
+                name: "Luther",
+                party: "I",
+                base_score: 35 + Q.meissner_influence * 0.3,
+                type: "presidential_technocrat",
+                bonus: Q.inflation < 0 ? 10 : 0, // deflation expert
+                crisis_tolerance: 0.6
+            });
+        }
+        
+        // Hermann Dietrich (finance expert)
+        if (Q.year >= 1930 && Math.random() < 0.3) {
+            candidates.push({
+                name: "Dietrich",
+                party: "I",
+                base_score: 30 + Q.meissner_influence * 0.25,
+                type: "presidential_technocrat",
+                bonus: Q.finance_minister === "Dietrich" ? 12 : 0,
+                crisis_tolerance: 0.7
             });
         }
     }
     
-    // === NAZI OPTION (desperation or camarilla plot) ===
-    if (Q.nsdap_r >= 30 && Q.year >= 1932) {
-        var nazi_appointment_score = 0;
+    // ========================================
+    // CATEGORY 3: ARISTOCRATIC CAMARILLA
+    // Papen and similar reactionaries
+    // ========================================
+    if (camarilla_dominant || (camarilla_influential && hindenburg_weak)) {
         
-        // Camarilla wants Hitler?
+        // Franz von Papen (the historical choice)
+        if (Q.papen_in_camarilla && Q.papen_influence >= 40) {
+            candidates.push({
+                name: "Papen",
+                party: "I",
+                base_score: Q.papen_influence * 0.8 + Q.oskar_influence * 0.4,
+                type: "aristocrat",
+                bonus: Q.camarilla_goal_destroy_parliament * 0.3,
+                crisis_tolerance: 0.3 // incompetent
+            });
+        }
+        
+        // Baron von Gayl (Interior Minister type)
+        if (Q.camarilla_strength >= 65 && Math.random() < 0.25) {
+            candidates.push({
+                name: "von Gayl",
+                party: "I",
+                base_score: Q.camarilla_strength * 0.5,
+                type: "aristocrat",
+                bonus: Q.oldenburg_influence * 0.3,
+                crisis_tolerance: 0.2
+            });
+        }
+        
+        // Constantin von Neurath (diplomat, conservative)
+        if (Q.year >= 1932 && Math.random() < 0.2) {
+            candidates.push({
+                name: "von Neurath",
+                party: "I",
+                base_score: Q.camarilla_strength * 0.4 + 20,
+                type: "aristocrat",
+                bonus: Q.foreign_minister === "von Neurath" ? 10 : 0,
+                crisis_tolerance: 0.4
+            });
+        }
+    }
+    
+    // ========================================
+    // CATEGORY 4: MILITARY OPTIONS
+    // Reichswehr generals as emergency chancellors
+    // ========================================
+    if (camarilla_influential || catastrophic_crisis || Q.hindenburg_trust_military >= 75) {
+        
+        // Kurt von Schleicher (schemer, historical)
+        if (Q.schleicher_influence >= 60) {
+            candidates.push({
+                name: "Schleicher",
+                party: "I",
+                base_score: Q.schleicher_influence * 0.9 + Q.hindenburg_trust_military * 0.3,
+                type: "military",
+                bonus: Q.reichswehr_minister === "Schleicher" ? 15 : 0,
+                crisis_tolerance: 0.7
+            });
+        }
+        
+        // Wilhelm Groener (moderate general)
+        if (Q.reichswehr_minister === "Groener" && Q.year <= 1932) {
+            candidates.push({
+                name: "Groener",
+                party: "I",
+                base_score: 50 + Q.hindenburg_trust_military * 0.4,
+                type: "military",
+                bonus: Q.reichswehr_loyalty >= 0.6 ? 10 : -10,
+                crisis_tolerance: 0.6
+            });
+        }
+        
+        // Kurt von Hammerstein (anti-Nazi general)
+        if (Q.reichswehr_loyalty >= 0.5 && Q.nsdap_r >= 25) {
+            candidates.push({
+                name: "Hammerstein",
+                party: "I",
+                base_score: Q.reichswehr_loyalty * 60 + 20,
+                type: "military",
+                bonus: Q.camarilla_goal_install_hitler >= 50 ? -20 : 15, // opposes Nazis
+                crisis_tolerance: 0.8
+            });
+        }
+        
+        // Werner von Blomberg (pro-Nazi general, post-1932)
+        if (Q.year >= 1933 && Q.nsdap_r >= 30 && Math.random() < 0.15) {
+            candidates.push({
+                name: "von Blomberg",
+                party: "I",
+                base_score: Q.camarilla_goal_install_hitler * 0.4 + 25,
+                type: "military",
+                bonus: Q.reichswehr_loyalty <= 0.4 ? 10 : 0, // opportunist
+                crisis_tolerance: 0.5
+            });
+        }
+    }
+    
+    // ========================================
+    // CATEGORY 5: NAZI APPOINTMENT
+    // Desperation, camarilla plot, or overwhelming mandate
+    // ========================================
+    if (Q.nsdap_r >= 25 && Q.year >= 1932 && !Q.hitler_appointment_prevented) {
+        var nazi_score = 0;
+        
+        // Base: Nazi electoral strength
+        nazi_score += Math.pow(Q.nsdap_r / 40, 1.5) * 30;
+        
+        // Camarilla wants it
         if (Q.camarilla_goal_install_hitler >= 60) {
-            nazi_appointment_score += Q.camarilla_goal_install_hitler;
+            nazi_score += Q.camarilla_goal_install_hitler * 0.6;
         }
         
-        // Hindenburg desperate?
-        if (Q.hindenburg_senility >= 50) {
-            nazi_appointment_score += 30;
+        // Hindenburg senile/puppet
+        if (hindenburg_puppet) {
+            nazi_score += 35;
+        } else if (Q.hindenburg_senility >= 40) {
+            nazi_score += 20;
         }
         
-        // Crisis forces his hand?
-        if (Q.nsdap_r >= 37 && severe_crisis) {
-            nazi_appointment_score += 40;
+        // Crisis legitimizes extremism
+        if (catastrophic_crisis) {
+            nazi_score += 30;
+        } else if (severe_crisis) {
+            nazi_score += 15;
         }
         
-        // DNVP-Nazi pact?
-        if (Q.dnvp_leader === "Hugenberg" && Q.nsdap_r + Q.dnvp_r >= 45) {
-            nazi_appointment_score += 25;
+        // DNVP-NSDAP pact (Hugenberg-Hitler alliance)
+        if (Q.dnvp_leader === "Hugenberg" && Q.nsdap_r + Q.dnvp_r >= 40) {
+            nazi_score += 25;
         }
         
-        if (nazi_appointment_score > 0 && !Q.hitler_appointment_prevented) {
-            chancellor_options.push({
+        // Papen convinces Hindenburg (historical scenario)
+        if (Q.papen_influence >= 70 && Q.oskar_influence >= 70) {
+            nazi_score += 20;
+        }
+        
+        // Conservative panic over left
+        if (left_bloc >= 40) {
+            nazi_score += 15;
+        }
+        
+        if (nazi_score > 0) {
+            candidates.push({
                 name: "Hitler",
                 party: "NSDAP",
-                score: nazi_appointment_score,
-                type: "nazi"
+                base_score: nazi_score,
+                type: "nazi",
+                bonus: 0,
+                crisis_tolerance: 0.0 // destroys democracy
             });
         }
     }
     
     // ========================================
-    // SELECT CHANCELLOR BASED ON HIGHEST SCORE
+    // SCORING & SELECTION
     // ========================================
     
-    if (chancellor_options.length > 0) {
-        // Sort by score (highest first)
-        chancellor_options.sort((a, b) => b.score - a.score);
+    // Apply crisis penalties to candidates with low tolerance
+    for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
         
-        var selected = chancellor_options[0];
+        // Final score calculation
+        c.final_score = c.base_score + c.bonus;
+        
+        // Crisis penalty (if candidate can't handle it)
+        if (severe_crisis) {
+            var crisis_penalty = (1.0 - c.crisis_tolerance) * 20;
+            c.final_score -= crisis_penalty;
+        }
+        
+        // Camarilla veto power
+        if (camarilla_dominant && c.type === "parliamentary") {
+            c.final_score *= 0.5; // camarilla blocks parliamentary options
+        }
+        
+        // Random variance (±15%)
+        c.final_score *= (0.85 + Math.random() * 0.3);
+    }
+    
+    // Sort by final score
+    candidates.sort((a, b) => b.final_score - a.final_score);
+    
+    // ========================================
+    // APPOINTMENT
+    // ========================================
+    if (candidates.length > 0) {
+        var selected = candidates[0];
         Q.chancellor = selected.name;
         Q.chancellor_party = selected.party;
         
-        // Set flags based on chancellor type
-        if (selected.type === "military" || selected.type === "aristocrat" || selected.type === "technocrat") {
-            Q.presidential_cabinet = 1;
-            Q.presidential_cabinet_count = (Q.presidential_cabinet_count || 0) + 1;
-        }
-        
-        if (selected.type === "presidential_center") {
+        // Set cabinet type flags
+        if (selected.type === "presidential_technocrat" || selected.type === "aristocrat" || 
+            selected.type === "military") {
             Q.presidential_cabinet = 1;
             Q.presidential_cabinet_count = (Q.presidential_cabinet_count || 0) + 1;
         }
@@ -2888,26 +3104,24 @@ if (Q.president === "Hindenburg") {
         
         if (selected.type === "nazi") {
             Q.nazi_takeover_begins = 1;
-            Q.cabinet_of_barons = 1; // Initially constrained
             Q.vice_chancellor = "Papen";
             Q.vice_chancellor_party = "I";
+            Q.cabinet_of_barons = 1;
         }
         
     } else {
-        // Fallback: Hindenburg picks a safe centrist
+        // Absolute fallback (should never happen)
         Q.chancellor = "Brüning";
         Q.chancellor_party = "Z";
         Q.presidential_cabinet = 1;
     }
     
     // ========================================
-    // SPECIAL CASE: EMERGENCY OVERRIDE
+    // EMERGENCY OVERRIDE
+    // Total state collapse = military dictatorship
     // ========================================
-    // If total chaos, Hindenburg imposes military rule regardless
-    if ((Q.unemployed >= 30 || Q.strife >= 8 || Q.sa_strength >= 600) && 
-        Q.hindenburg_trust_military >= 70) {
-        
-        Q.chancellor = Q.reichswehr_loyalty <= 0.5 ? "Hammerstein" : "Schleicher";
+    if (catastrophic_crisis && Q.hindenburg_trust_military >= 70 && Q.hindenburg_trust_reichstag < 25) {
+        Q.chancellor = Q.reichswehr_loyalty >= 0.5 ? "Hammerstein" : "Schleicher";
         Q.chancellor_party = "I";
         Q.military_emergency_government = 1;
         Q.article_48_permanent = 1;
