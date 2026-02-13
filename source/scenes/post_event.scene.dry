@@ -1768,7 +1768,7 @@ for (var rel of relations) {
                     }
                     break;
                 case 'csrp':
-                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.12, 0.2);
+                    Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.06, 0.2);
                     break;
                 case 'other':
                     Q.ideology_factor = Q.random_factor((Q.nationalism_factor + Q.pro_republic_factor)/5.4 + (1 - Q.unrest_factor), 0.2);
@@ -1858,21 +1858,21 @@ for (var rel of relations) {
         Q.sa_strength *= 0.70; // Rapid decay when banned
         Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.5);
     } else {
-        Q.sa_strength  += Q.random_factor(Q.unrest_factor/12, 0.3);
+        Q.sa_strength  += Q.random_factor(Q.unrest_factor/5, 0.3);
     }
     
     if (Q.dnvp_banned || Q.sh_banned) {
         Q.sh_strength *= 0.75; // Moderate decay when banned
         Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
     } else {
-        Q.sh_strength  += Q.random_factor(Q.unrest_factor/18, 0.3);
+        Q.sh_strength  += Q.random_factor(Q.unrest_factor/10, 0.3);
     }
     
     if (Q.kpd_banned) {
         Q.rfb_strength *= 0.65; // Fastest decay (underground)
         Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
     } else {
-        Q.rfb_strength += Q.random_factor(Q.unrest_factor/18, 0.3);
+        Q.rfb_strength += Q.random_factor(Q.unrest_factor/5, 0.3);
     }
     
     Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
@@ -1915,7 +1915,7 @@ for (var rel of relations) {
     // --- End Reworked Randomized Monthly Party Drift ---
 
 
-    // ========================================
+// ========================================
 // HINDENBURG & CAMARILLA SYSTEM
 // ========================================
 
