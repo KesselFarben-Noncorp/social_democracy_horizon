@@ -310,7 +310,7 @@ on-arrival: {!
     "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
     "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
     "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
-    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg"
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg", "Ollenhauer"
 ];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
@@ -1060,6 +1060,8 @@ The parties are preparing their candidates:
 
  CNBL: [+ cnbl_candidate +] 
 
+[? if csrp_votes > 1: CSRP: [+ csrp_candidate +] ?]
+
 [? if srpd_formed = 1: SRPD: To be determined ?]
 
 **SPD:**
@@ -1087,6 +1089,7 @@ Who should represent the SPD in this election?
 - @braun_r1: Nominate Otto Braun.
 - @schumacher_r1: Nominate Kurt Schumacher.
 - @schmid_r1: Nominate Carlo Schmid.
+- @ollenhauer_r1: Nominate Erich Ollenhauer.
 - @juchacz_r1: Nominate Marie Juchacz.
 - @cultural_figure: Nominate a nonpartisan cultural figure.
 - @abstain_r1: Don't field a candidate, see who emerges.
@@ -1339,6 +1342,16 @@ on-arrival: spd_candidate = "Braun"; resources -= 2; is_unity_candidate = 0;
 go-to: finalize_candidates
 
 We have convinced Otto Braun to run for president.
+
+@ollenhauer_r1
+subtitle: -2 resources
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?]
+view-if: ideology = "left"
+choose-if: ideology = "left" and resources >= 2
+on-arrival: spd_candidate = "Ollenhauer"; resources -= 2; is_unity_candidate = 0;
+go-to: finalize_candidates
+
+We will run the candidate from left of our party - Erich Ollenhauer.
 
 @schmid_r1
 view-if: peoples_party >= 1 and ideology != "left"
@@ -1806,7 +1819,8 @@ on-arrival: {!
     Munzenberg: "Willi Münzenberg (KPD)",
     Braun: "Otto Braun (SPD)",
     Schumacher: "Kurt Schumacher (SPD)",
-    Schmid: "Carlo Schmid (SPD)",
+    Schmid: "Carlo Schmid (SPD - R)",
+    Ollenhauer: "Erich Ollenhauer (SPD - L)",
     Juchacz: "Marie Juchacz (SPD)",
     Einstein: "Albert Einstein (Independent)",
     Mann: "Heinrich Mann (Independent)",
@@ -1982,6 +1996,8 @@ go-to: election_end if has_majority; r2_start if not has_majority
 
 [? if Schmid_running: Schmid - [+ Schmid_votes_disp +]% ?]
 
+[? if Ollenhauer_running: Ollenhauer - [+ Ollenhauer_votes_disp +]% ?]
+
 [? if Schumacher_running : Schumacher - [+ Schumacher_votes_disp +]% ?]
 
 [? if Juchacz_running : Juchacz - [+ Juchacz_votes_disp +]% ?]
@@ -2012,7 +2028,7 @@ on-arrival: {!
 
     // Ideological blocks for consolidation logic
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
-    var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld"];
+    var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
     var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
     var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2"];
@@ -2339,7 +2355,8 @@ on-arrival: {!
     Munzenberg: "Willi Münzenberg (KPD)",
     Braun: "Otto Braun (SPD)",
     Schumacher: "Kurt Schumacher (SPD)",
-    Schmid: "Carlo Schmid (SPD)",
+    Schmid: "Carlo Schmid (SPD - R)",
+    Ollenhauer: "Erich Ollenhauer (SPD - L)",
     Juchacz: "Marie Juchacz (SPD)",
     Einstein: "Albert Einstein (Independent)",
     Mann: "Heinrich Mann (Independent)",
@@ -2423,9 +2440,14 @@ if (!Q.has_majority) {
 }
 !}
 on-arrival: president = winner; president = "Thälmann" if president == "Thalmann"; president = "Münzenberg" if president == "Munzenberg"; president = "Göring" if president == "Goring"; president = "Brüning" if president == "Bruning"; president = "Schäffer" if president == "Schaffer"; president = "Drewitz" if president == "Drewitz";  president = "Otto Horsing" if president == "Horsing"; president_term_start = year; presidential_election_active = 0; president_term_ended = 0;
-go-to: hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"
+go-to: hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"; ollenhauer_victory if winner = "Ollenhauer";             
 
 [+ winner_desc +] is now President of Germany.
+
+@ollenhauer_victory
+on-arrival: president_party = "SPD"; socialism += 5; kpd_relation *= 1.25; sapd_relation *= 1.50; workers_spd += 5
+
+Erich Ollenhauer, supporter of the leftist - marxist orientation of our party, currently head of Saxony has won the election. 
 
 @hindenburg_victory
 on-arrival: president_party = "I"; nationalism += 10; dnvp_relation += 5
