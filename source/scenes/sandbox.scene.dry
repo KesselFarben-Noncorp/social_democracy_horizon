@@ -1129,7 +1129,28 @@ Inflation penalty: [+ inflation_penalty +]
 - @governmentvar: Government variables
 - @hindenburg: Camarilla and Hindenburg himself.
 - @governance: Government
+- @relations
 - @sandbox_menu: Back
+
+@relations:
+on-arrival: {!
+
+var output = "";
+var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'DVP', 'WP', 'CNBL', 'DNVP', 'NSDAP', 'VRP', 'CSVD', 'CSRP', 'BVP'];
+
+for (var p1 in Q.party_relations) {
+    for (var p2 in Q.party_relations[p1]) {
+        output += p1 + " → " + p2 + ": " + Q.party_relations[p1][p2] + "\n";
+    }
+}
+
+Q.relations_debug_string = output;
+
+!}
+
+[+ relations_debug_string +]
+
+- @all-variables: Back.
 
 @governance
 
