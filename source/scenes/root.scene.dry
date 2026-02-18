@@ -987,7 +987,7 @@ This is a game of alternate history. As Horizon modification author, I care abou
 Choose your challenges!
 
 - @spartacus: Spartacist Victory!
-- @inverted: Invert relationships!
+- @inverted: Randomize relationships!
 - @gang: All of the gang is here! 
 - @democracy: Democracy simulator, extremists are banned.
 - @new: SPD is newly formed party.
@@ -998,7 +998,7 @@ Choose your challenges!
 
 = Inverted World
 
-The political compass has been flipped! The SPD's traditional allies are now hostile, and former enemies are potential partners.
+The political compass has been flipped! Prepare for the doomsday politics!
 
 - @inverted_2: True
 - @inverted_3: False
@@ -1230,18 +1230,49 @@ if (Q.peasant_revolution === 1) {
 }
 
 if (Q.inverted_challenge === 1) {
-    // Flip all relations
-    Q.kpd_relation = 70;
-    Q.z_relation = 15;
-    Q.dnvp_relation = 70;
-    Q.nsdap_relation = 60;
-    Q.dvp_relation = 30;
-    Q.ddp_relation = 15;
-    Q.cnbl_relation = 70;
-    Q.wp_relation = 65;
-    Q.csvd_relation = 50;
-    Q.sapd_relation = 25;
-    Q.srpd_relation = 15;
+    // ===== PARTY RELATIONS =====
+    Q.z_relation = Math.random() * 100;
+    Q.kpd_relation = Math.random() * 100;
+    Q.sapd_relation = Math.random() * 100;
+    Q.srpd_relation = Math.random() * 100;
+    Q.ddp_relation = Math.random() * 100;
+    Q.bvp_relation = Math.random() * 100;
+    Q.dvp_relation = Math.random() * 100;
+    Q.wp_relation = Math.random() * 100;
+    Q.dnvp_relation = Math.random() * 100;
+    Q.nsdap_relation = Math.random() * 100;
+
+    // ===== PARTY RELATIONS MATRIX =====
+    Q.party_relations = {
+        KPD: {},
+        SAPD: {},
+        SPD: {},
+        SRPD: {},
+        DDP: {},
+        Z: {},
+        CSRP: {},
+        VRP: {},
+        CSVD: {},
+        BVP: {},
+        DVP: {},
+        WP: {},
+        CNBL: {},
+        DNVP: {},
+        NSDAP: {}
+    };
+
+    var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'CSRP', 'VRP', 'CSVD', 'DVP', 'WP', 'CNBL', 'DNVP', 'NSDAP'];
+
+    // Randomize all party-to-party relations
+    for (var party1 of all_parties) {
+        for (var party2 of all_parties) {
+            if (party1 !== party2) {
+                // Random value between 0-100
+                Q.party_relations[party1][party2] = Math.floor(Math.random() * 101);
+            }
+        }
+    }
+
     }
 
 !}
