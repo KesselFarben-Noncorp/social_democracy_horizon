@@ -705,6 +705,14 @@ data = data.concat([
         "seats": Math.round(Q.other_r*6),
     },
 ]);
+if (Q.vrp_r && Q.vrp_r > 0) {
+    data.push({
+        "id": "vrp",
+        "legend": "vrp",
+        "name": "VRP",
+        "seats": Math.round(Q.vrp_r*6),
+    });
+}
 if (Q.wp_r && Q.wp_r > 0) {
     data.push({
         "id": "wp",
@@ -834,6 +842,14 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ dvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dvp_r > 0 : color: green; ?][? if change_dvp_r < 0 : color: red; ?]">[+ str_change_dvp +]</td>
 </tr>
+[? if vrp_r > 0: 
+<tr style="background-color: #D2C4B7;">
+    <td style="padding: 8px;"><div class="box" style='background-color:#8B7355; display:inline-block; margin-right:8px;'> </div>DVP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ dvp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dvp_r > 0 : color: green; ?][? if change_dvp_r < 0 : color: red; ?]">[+ str_change_dvp +]</td>
+</tr>
+?]
 [? if wp_r > 0 :
 <tr style="background-color: #e8e8e8;">
     <td style="padding: 8px;"><div class="box" style='background-color:#424242; display:inline-block; margin-right:8px;'> </div>WP</td>
@@ -901,6 +917,10 @@ if (Q.sapd_formed && Q.sapd_r > 0) {
 
 if (Q.srpd_formed && Q.srpd_r > 0) {
     Q.party_votes.push({party: 'SRPD', votes: Q.srpd_r});
+}
+
+if (Q.vrp_r && Q.vrp_r > 0) {
+    Q.party_votes.push({party: 'VRP', votes: Q.vrp_r});
 }
 
 if (Q.wp_r && Q.wp_r > 0) {
