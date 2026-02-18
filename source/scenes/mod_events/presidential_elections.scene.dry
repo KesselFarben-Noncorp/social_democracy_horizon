@@ -37,247 +37,6 @@ on-arrival: {!
         Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
     }
 
-    Q.party_relations = {
-    
-    // === KPD (Communists) ===
-    KPD: {
-        SAPD: 40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
-        SPD: Q.kpd_relation,
-        SRPD: Q.kpd_relation - 10,
-        DDP: 15,
-        Z: 10,
-        BVP: 5,
-        CSRP: 14,
-        DVP: 5,
-        WP: 5,
-        CNBL: 0,
-        CSVD: 0,  // Added
-        DNVP: 0,
-        NSDAP: 0
-    },
-    
-    // === SAPD (Left Socialists) ===
-    SAPD: {
-        KPD: 40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
-        SPD: 50 + (Q.left_strength >= 50 ? 15 : 0),
-        SRPD: 55,
-        DDP: 35,
-        Z: 30,
-        BVP: 25,
-        CSRP: 20,
-        DVP: 20,
-        WP: 15,
-        CNBL: 15,
-        CSVD: 20,  // Added - some respect for Christian social values
-        DNVP: 10,
-        NSDAP: 0
-    },
-    
-    // === SPD (Social Democrats) ===
-    SPD: {
-        KPD: Q.kpd_relation,
-        SAPD: 50 + (Q.left_strength >= 50 ? 15 : 0),
-        SRPD: 65,
-        DDP: Q.ddp_relation,
-        Z: Q.z_relation,
-        BVP: Q.bvp_relation || 40,
-        DVP: Q.dvp_relation,
-        CSRP: Q.csrp_relation,
-        WP: Q.wp_relation || 30,
-        CNBL: Q.cnbl_relation || 25,
-        CSVD: Q.csvd_relation || 35,  // Added - could work with moderate conservatives
-        DNVP: Q.dnvp_relation,
-        NSDAP: Q.nsdap_relation || 5
-    },
-    
-    // === SRPD (Reformist Socialists - if formed) ===
-    SRPD: {
-        KPD: Q.kpd_relation - 10,
-        SAPD: 55,
-        SPD: 65,
-        DDP: Q.ddp_relation + 10,
-        Z: Q.z_relation + 5,
-        BVP: (Q.bvp_relation || 40) + 5,
-        DVP: Q.dvp_relation - 5,
-        CSRP: Q.csrp_relation + 5,
-        WP: (Q.wp_relation || 30) - 5,
-        CNBL: (Q.cnbl_relation || 25) + 5,
-        CSVD: (Q.csvd_relation || 35) + 5,  // Added - both are moderate splinter parties
-        DNVP: Q.dnvp_relation - 10,
-        NSDAP: 0
-    },
-    
-    // === DDP (Liberals) ===
-    DDP: {
-        KPD: 15,
-        SAPD: 35,
-        SPD: Q.ddp_relation,
-        SRPD: Q.ddp_relation + 10,
-        Z: 70,
-        BVP: 60,
-        CSRP: 75,
-        DVP: 65 - (Q.dvp_right_shift || 0) * 8,
-        WP: 55,
-        CNBL: 45,
-        CSVD: 60,  // Added - both moderate, pro-constitutional, anti-extremist
-        DNVP: Q.dnvp_line === 3 ? 15 : 35,
-        NSDAP: 10
-    },
-    
-    // === Z (Center Party) ===
-    Z: {
-        KPD: 10,
-        SAPD: 30,
-        SPD: Q.z_relation,
-        SRPD: Q.z_relation + 5,
-        DDP: 70,
-        BVP: 80,
-        CSRP: 40,
-        DVP: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
-        WP: 50,
-        CNBL: 35,
-        CSVD: 55,  // Added - both Christian parties, but confessional divide (Catholic vs Protestant)
-        DNVP: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
-        NSDAP: Math.max(5, 30 - Q.nazi_urgency * 4)
-    },
-
-    // === CSRP (Christian Social Reichs Party) ===
-    CSRP: {
-        KPD: 15,
-        SAPD: 40,
-        Z: 40,
-        SPD: Q.csrp_relation,
-        SRPD: Q.csrp_relation + 5,
-        DDP: 70,
-        BVP: 80,
-        DVP: 30,
-        WP: 50,
-        CNBL: 25,
-        CSVD: 35,  
-        DNVP: 15,
-        NSDAP: 5
-    },
-    
-    // === BVP (Bavarian People's Party) ===
-    BVP: {
-        KPD: 5,
-        SAPD: 25,
-        SPD: Q.bvp_relation || 40,
-        SRPD: (Q.bvp_relation || 40) + 5,
-        DDP: 60,
-        Z: 80,
-        CSRP: 35,
-        DVP: 55,
-        WP: 45,
-        CNBL: 65,
-        CSVD: 50,  // Added - both Christian conservatives, but Catholic-Protestant divide
-        DNVP: 50,
-        NSDAP: 25 - (Q.nazi_urgency * 2)
-    },
-    
-    // === DVP (People's Party) ===
-    DVP: {
-        KPD: 5,
-        SAPD: 20,
-        SPD: Q.dvp_relation,
-        SRPD: Q.dvp_relation - 5,
-        DDP: 65 - (Q.dvp_right_shift || 0) * 8,
-        Z: 60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
-        BVP: 55,
-        CSRP: 30,
-        WP: 70,
-        CNBL: 30,
-        CSVD: 55,  // Added - moderate bourgeois parties, potential coalition
-        DNVP: 50 + (Q.dvp_right_shift || 0) * 15,
-        NSDAP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10
-    },
-    
-    // === WP (Business Party) ===
-    WP: {
-        KPD: 5,
-        SAPD: 15,
-        SPD: Q.wp_relation || 30,
-        SRPD: (Q.wp_relation || 30) - 5,
-        DDP: 55,
-        Z: 50,
-        CSRP: 25,
-        BVP: 45,
-        DVP: 70,
-        CNBL: 40,
-        CSVD: 50,  // Added - both bourgeois parties
-        DNVP: 45,
-        NSDAP: 30 + (Q.capital_strike_progress * 3)
-    },
-
-    // === CNBL (Agrarian League) ===
-    CNBL: {
-        KPD: 5,
-        SAPD: 15,
-        SPD: Q.cnbl_relation || 25,
-        SRPD: (Q.cnbl_relation || 25) + 5,
-        DDP: 35,
-        Z: 40,
-        CSRP: 20,
-        BVP: 55,
-        DVP: 35,
-        WP: 40,
-        CSVD: 45,  // Added - both conservative, rural base overlap
-        DNVP: 40,
-        NSDAP: 20 + (Q.capital_strike_progress * 3)
-    },
-    
-    // === CSVD (Christian-Social People's Service) ===
-    CSVD: {
-        KPD: 0,
-        SAPD: 20,
-        SPD: Q.csvd_relation || 35,  // Can work with SPD against extremism
-        SRPD: (Q.csvd_relation || 35) + 5,
-        DDP: 60,  // Good - both moderate, pro-constitutional
-        Z: 55,  // Decent - both Christian parties, but Protestant vs Catholic
-        BVP: 50,  // Same confessional divide as Z
-        CSRP: 40,
-        DVP: 55,  // Good - moderate bourgeois coalition potential
-        WP: 50,  // Okay - both middle-class parties
-        CNBL: 45,  // Some overlap in rural Protestant areas
-        DNVP: Q.dnvp_line === 3 ? 10 : 65,  // Key: hostile to Hugenberg DNVP, friendly to moderate DNVP
-        NSDAP: 15  // Anti-Nazi but some voters might defect
-    },
-    
-    // === DNVP (Nationalists) ===
-    DNVP: {
-        KPD: 0,
-        SAPD: 5,
-        SPD: Q.dnvp_relation,
-        SRPD: Q.dnvp_relation - 5,
-        DDP: Q.dnvp_line === 3 ? 15 : 35,
-        Z: (Q.dnvp_line === 3 ? 25 : 50) + (Q.z_party_leader === "Kaas" ? 10 : -10),
-        BVP: 50,
-        CSRP: 30,
-        DVP: 50 + (Q.dvp_right_shift || 0) * 15,
-        WP: 45,
-        CNBL: 35,
-        CSVD: Q.dnvp_line === 3 ? 10 : 65,  // Added - CSVD split FROM DNVP due to Hugenberg
-        NSDAP: Q.dnvp_line === 3 ? 60 : 35
-    },
-    
-    // === NSDAP (Nazis) ===
-    NSDAP: {
-        KPD: 0,
-        SAPD: 0,
-        SPD: Q.nsdap_relation || 5,
-        SRPD: 0,
-        DDP: 10,
-        CSRP: 5,
-        Z: Math.max(5, 30 - Q.nazi_urgency * 4),
-        BVP: 25 - (Q.nazi_urgency * 2),
-        DVP: 25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift || 0) * 10,
-        WP: 30 + (Q.capital_strike_progress * 3),
-        CNBL: 25,
-        CSVD: 15,  // Added - CSVD is anti-Nazi, but some voter crossover
-        DNVP: Q.dnvp_line === 3 ? 60 : 35
-    }
-};
-
 
     // ========================================
     // HELPER FUNCTION: Get relation between two parties
@@ -989,6 +748,99 @@ on-arrival: {!
         Q.csvd_candidate = null;
         Q.csvd_default_candidate = null;
     }
+
+// ========================================
+    // VRP (VOLKSRECHTPARTEI)
+    // ========================================
+    if (Q.vrp_votes > 0.2) {
+        
+        // VRP's mood depends on economic misery and revaluation progress
+        var vrp_desperate = Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3;
+        var vrp_anxious   = Q.inflation >= 3 || Q.unemployed >= 12 || Q.economy_growth <= -1;
+        
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // Conservative unity ticket exists
+            
+            if (vrp_desperate) {
+                // Economic crisis has radicalized savers - protest candidate
+                Q.vrp_candidate = "Böhm";
+                Q.vrp_default_candidate = "Böhm";
+                
+            } else if (Q.dnvp_line !== 3 && Q.ddp_relation >= 40 && Q.dvp_relation < 35) {
+                // Moderate DNVP in ticket, good DDP ties, DVP hostile (inflation profiteers)
+                // VRP joins if DDP is also in
+                if (Q.ddp_candidate === Q.z_dnvp_joint_candidate) {
+                    Q.vrp_candidate = Q.z_dnvp_joint_candidate;
+                    Q.vrp_default_candidate = Q.z_dnvp_joint_candidate;
+                } else {
+                    // DDP not in - VRP follows DDP, not unity ticket
+                    Q.vrp_candidate = Q.ddp_candidate || "Böhm";
+                    Q.vrp_default_candidate = Q.ddp_candidate || "Böhm";
+                }
+                
+            } else if (Q.dnvp_line === 3) {
+                // Hugenberg DNVP in ticket - VRP will not touch it
+                // Too radical, too volkisch, not about legal restitution
+                Q.vrp_candidate = Q.ddp_candidate || "Böhm";
+                Q.vrp_default_candidate = Q.ddp_candidate || "Böhm";
+                
+            } else if (Q.dvp_candidate === Q.z_dnvp_joint_candidate && Q.ddp_candidate === Q.z_dnvp_joint_candidate) {
+                // Both liberal parties joined - VRP follows
+                Q.vrp_candidate = Q.z_dnvp_joint_candidate;
+                Q.vrp_default_candidate = Q.z_dnvp_joint_candidate;
+                
+            } else {
+                // Unclear - VRP prefers DDP over unity ticket
+                Q.vrp_candidate = Q.ddp_candidate || "Böhm";
+                Q.vrp_default_candidate = Q.ddp_candidate || "Böhm";
+            }
+            
+        } else {
+            // No unity ticket - normal VRP logic
+            
+            if (vrp_desperate) {
+                // Desperation: protest candidate, voters hemorrhaging to NSDAP
+                Q.vrp_candidate = "Böhm";
+                Q.vrp_default_candidate = "Böhm";
+                
+            } else if (vrp_anxious) {
+                // Anxious: follow DDP if possible, otherwise own candidate
+                if (Q.ddp_candidate && Q.ddp_relation >= 35) {
+                    Q.vrp_candidate = Q.ddp_candidate;
+                    Q.vrp_default_candidate = Q.ddp_candidate;
+                } else {
+                    Q.vrp_candidate = "Böhm";
+                    Q.vrp_default_candidate = "Böhm";
+                }
+                
+            } else {
+                // Stable economy: VRP acts like cooperative liberal party
+                // Follows DDP first, then CSVD (shared Protestant saver base)
+                // Never follows WP (direct rival - inflation winners)
+                if (Q.ddp_candidate && Q.ddp_relation >= 40) {
+                    Q.vrp_candidate = Q.ddp_candidate;
+                    Q.vrp_default_candidate = Q.ddp_candidate;
+                    
+                } else if (Q.csvd_flee === 1 && Q.csvd_candidate && Q.csvd_relation >= 40) {
+                    Q.vrp_candidate = Q.csvd_candidate;
+                    Q.vrp_default_candidate = Q.csvd_candidate;
+                    
+                } else if (Q.dvp_candidate && Q.dvp_right_shift < 1 && Q.dvp_relation >= 35) {
+                    // DVP acceptable only if not yet captured by heavy industry right
+                    Q.vrp_candidate = Q.dvp_candidate;
+                    Q.vrp_default_candidate = Q.dvp_candidate;
+                    
+                } else {
+                    Q.vrp_candidate = "Böhm";
+                    Q.vrp_default_candidate = "Böhm";
+                }
+            }
+        }
+        
+    } else {
+        Q.vrp_candidate = null;
+        Q.vrp_default_candidate = null;
+    }
     
     // ========================================
     // SAPD (SOCIALIST WORKERS' PARTY)
@@ -1055,6 +907,8 @@ The parties are preparing their candidates:
  [+ ddp_name +]: [+ ddp_candidate +]
 
  DVP: [+ dvp_candidate +]
+
+[? if vrp_votes > 0.1 : VRP: [+ vrp_candidate +] ?]
 
  WP: [+ wp_candidate +]
 
@@ -1501,6 +1355,41 @@ on-arrival: {!
         // Independent
         Q.bvp_candidate = Q.bvp_default_candidate;
     }
+
+    // ========================================
+    // VRP - finalize after SPD choice
+    // ========================================
+    if (Q.vrp_formed) {
+        var vrp_desperate = Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3;
+        
+        if (vrp_desperate) {
+            // Crisis locks in protest vote regardless of SPD
+            Q.vrp_candidate = "Böhm";
+            
+        } else if (Q.vrp_default_candidate && Q.vrp_default_candidate !== "Böhm") {
+            // Already aligned with a liberal candidate - check if SPD disrupts that
+            if (Q.spd_candidate === Q.kpd_candidate) {
+                // SPD went left - VRP breaks from any SPD-adjacent candidate
+                Q.vrp_candidate = Q.ddp_candidate !== Q.spd_candidate
+                    ? Q.ddp_candidate || "Böhm"
+                    : "Böhm";
+            } else if (Q.is_unity_candidate && Q.vrp_relation >= 40 && Q.ddp_candidate === Q.spd_candidate) {
+                // Unity candidate with DDP support - VRP joins
+                Q.vrp_candidate = Q.spd_candidate;
+            } else {
+                // Keep pre-SPD choice
+                Q.vrp_candidate = Q.vrp_default_candidate;
+            }
+            
+        } else {
+            // Was running Böhm - only abandon if SPD proposes DDP-style unity
+            if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate && Q.vrp_relation >= 45) {
+                Q.vrp_candidate = Q.spd_candidate;
+            } else {
+                Q.vrp_candidate = "Böhm";
+            }
+        }
+    }
     
     // ========================================
     // DVP (PEOPLE'S PARTY)
@@ -1665,7 +1554,11 @@ on-arrival: {!
     }
     // CSRP sure.
     Q.csrp_candidate = "Hindenburg";
-    }
+
+    // VRP - savers are broadly pro-Hindenburg as a stable constitutional figure.
+    Q.vrp_candidate = "Hindenburg";
+    Q.vrp_default_candidate = "Hindenburg";
+}
 !}
 go-to: r1_finalized
 
@@ -2170,6 +2063,11 @@ on-arrival: {!
         Q.cnbl_candidate = pickClosestFinalist(Q.cnbl_candidate, [center_right, center, far_right, center_left, left]);
     }
 
+    // === VRP ===
+    if (Q.vrp_candidate) {
+        Q.vrp_candidate = pickClosestFinalist(Q.vrp_candidate, [center_right, center, center_left, far_right, left]);
+    }
+
     // === CSVD ===
     if (Q.csvd_candidate) {
         Q.csvd_candidate = pickClosestFinalist(Q.csvd_candidate, [center_right, center, center_left, cultural, left]);
@@ -2185,6 +2083,7 @@ on-arrival: {!
 No candidate achieved a majority in the first round. The top two candidates advance to a runoff:
 
 1. **[+ round1_winner +]** - [+ round1_winner_votes +]%
+
 2. **[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
 
 - @r2_menu: What should we do?
