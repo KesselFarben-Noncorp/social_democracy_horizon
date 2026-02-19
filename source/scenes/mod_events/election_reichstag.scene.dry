@@ -1902,12 +1902,26 @@ Q.government_parties = coalition;
 Q.coalition_votes = Q.chosen_coalition.votes;
 Q.coalition_type = Q.chosen_coalition.type;
 
-// Pre-calculate coalition partners display
+// Replace the coalition_partners_list building block in @coalition_success:
+
 Q.coalition_partners_list = "";
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var votes = Q[party.toLowerCase() + '_r'];
     Q.coalition_partners_list += "- **" + party + "**: " + Math.round(votes * 10) / 10 + "%\n";
+}
+
+if (Q.chosen_coalition.toleration) {
+    Q.coalition_partners_list += "\n**External Support (Toleration):**\n";
+    var tol_parties = Q.chosen_coalition.tolerating_parties;
+    for (var i = 0; i < tol_parties.length; i++) {
+        var tparty = tol_parties[i];
+        var tvotes = Q[tparty.toLowerCase() + '_r'];
+        Q.coalition_partners_list += "- **" + tparty + "**: " + Math.round(tvotes * 10) / 10 + "% *(tolerating)*\n";
+    }
+    Q.coalition_votes_display = Math.round(Q.chosen_coalition.votes * 10) / 10 + "% (effective: " + Math.round(Q.chosen_coalition.effective_votes * 10) / 10 + "%)";
+} else {
+    Q.coalition_votes_display = Math.round(Q.chosen_coalition.votes * 10) / 10 + "%";
 }
 
 // ============================================
@@ -2486,7 +2500,7 @@ if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
 
 [+ coalition_partners_list +]
 
-**Total Reichstag Support:** [+ coalition_votes +]%
+**Total Reichstag Support:** [+ coalition_votes_display +]%
 
 [? if hindenburg_forced_z : President Hindenburg insisted that the Center Party provide the Chancellor, despite another party being larger in the coalition. ?]
 
