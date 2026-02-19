@@ -1290,6 +1290,169 @@ if (Q.unity_government_possible && Q.possible_coalitions.length === 0) {
 }
 
 // ============================================
+// GENERALIZED TOLERATION / EXTERNAL SUPPORT
+// ============================================
+
+// After majority coalition evaluation, before declaring failure:
+
+// Helper: Which parties would tolerate a given government?
+function get_tolerating_parties(gov_parties, available_parties) {
+    var tolerators = [];
+    
+    for (var i = 0; i < available_parties.length; i++) {
+        var candidate = available_parties[i].party;
+        
+        // Skip parties already in government
+        if (gov_parties.indexOf(candidate) >= 0) continue;
+        
+        // Check relations with ALL government parties
+        var willing = true;
+        for (var j = 0; j < gov_parties.length; j++) {
+            var rel = get_relation(candidate, gov_parties[j]);
+            if (rel < 30) { willing = false; break; }
+            if (is_blocked(candidate, gov_parties[j])) { willing = false; break; }
+        }
+        
+        if (willing) {
+            tolerators.push({
+                party: candidate,
+                votes: available_parties[i].votes
+            });
+        }
+    }
+    
+    return tolerators;
+}
+
+// Helper: Build all subsets of tolerating parties that push gov over 50%
+function find_toleration_combinations(gov_votes, tolerators) {
+    var combos = [];
+    var n = tolerators.length;
+    
+    // Try all subsets (up to 4 tolerators for performance)
+    var max = Math.min(n, 4);
+    
+    for (var size = 1; size <= max; size++) {
+        find_subsets(tolerators, size, 0, [], gov_votes, combos);
+    }
+    
+    return combos;
+}
+
+function find_subsets(arr, size, start, current, gov_votes, results) {
+    if (current.length === size) {
+        var total_support = gov_votes;
+        for (var i = 0; i < current.length; i++) {
+            total_support += current[i].votes;
+        }
+        if (total_support >= 50) {
+            results.push({
+                parties: current.slice(),
+                total_support: total_support
+            });
+        }
+        return;
+    }
+    for (var i = start; i < arr.length; i++) {
+        current.push(arr[i]);
+        find_subsets(arr, size, i + 1, current, gov_votes, results);
+        current.pop();
+    }
+}
+
+// ============================================
+// EVALUATE MINORITY GOVERNMENTS
+// ============================================
+
+var MIN_GOV_SEATS = 25; // Government must have some base to be credible
+
+// All possible government compositions (1 to 4 parties), below majority
+var minority_gov_candidates = [];
+
+// Single party minority
+if (formateur_votes >= MIN_GOV_SEATS && formateur_votes < 50) {
+    minority_gov_candidates.push({
+        parties: [formateur],
+        votes: formateur_votes,
+        compatibility: 100,
+        size: 1
+    });
+}
+
+// Multi-party minority (reuse existing coalition logic but don't require >= 50)
+// 2-party
+for (var i = 0; i < other_parties.length; i++) {
+    var p1 = other_parties[i].party;
+    var v1 = other_parties[i].votes;
+    var total = formateur_votes + v1;
+    
+    if (total >= MIN_GOV_SEATS && total < 50 && can_partner(formateur, p1)) {
+        var compat = coalition_compatibility([formateur, p1]);
+        if (compat >= 0) {
+            minority_gov_candidates.push({
+                parties: [formateur, p1],
+                votes: total,
+                compatibility: compat,
+                size: 2
+            });
+        }
+    }
+}
+
+// 3-party
+for (var i = 0; i < other_parties.length; i++) {
+    for (var j = i + 1; j < other_parties.length; j++) {
+        var p1 = other_parties[i].party;
+        var p2 = other_parties[j].party;
+        var total = formateur_votes + other_parties[i].votes + other_parties[j].votes;
+        
+        if (total >= MIN_GOV_SEATS && total < 50 &&
+            can_partner(formateur, p1) && can_partner(formateur, p2) && can_partner(p1, p2)) {
+            
+            var compat = coalition_compatibility([formateur, p1, p2]);
+            if (compat >= 0) {
+                minority_gov_candidates.push({
+                    parties: [formateur, p1, p2],
+                    votes: total,
+                    compatibility: compat,
+                    size: 3
+                });
+            }
+        }
+    }
+}
+
+// Now find which minority govs can survive via external toleration
+for (var g = 0; g < minority_gov_candidates.length; g++) {
+    var gov = minority_gov_candidates[g];
+    
+    var tolerators = get_tolerating_parties(gov.parties, Q.party_votes.filter(function(p) {
+        return gov.parties.indexOf(p.party) < 0;
+    }));
+    
+    if (tolerators.length === 0) continue;
+    
+    var toleration_combos = find_toleration_combinations(gov.votes, tolerators);
+    
+    for (var t = 0; t < toleration_combos.length; t++) {
+        var combo = toleration_combos[t];
+        var tolerator_parties = combo.parties.map(function(p) { return p.party; });
+        
+        Q.possible_coalitions.push({
+            parties: gov.parties,
+            votes: gov.votes,
+            effective_votes: combo.total_support,
+            compatibility: gov.compatibility,
+            size: gov.size,
+            type: classify_coalition(gov.parties),
+            toleration: true,
+            tolerating_parties: tolerator_parties,
+            tolerating_votes: combo.total_support - gov.votes
+        });
+    }
+}
+
+// ============================================
 // COALITION CLASSIFICATION HELPER
 // ============================================
 
@@ -1353,20 +1516,21 @@ if (Q.possible_coalitions.length === 0) {
     // 3. Highest compatibility (better relations)
     // 4. Smallest majority (less wasted votes)
     Q.possible_coalitions.sort(function(a, b) {
-        // Prioritize sole majority
         if (a.type === 'sole_majority' && b.type !== 'sole_majority') return -1;
         if (b.type === 'sole_majority' && a.type !== 'sole_majority') return 1;
-        
+    
+        // Majority coalitions before minority/toleration
+        if (!a.toleration && b.toleration) return -1;
+        if (a.toleration && !b.toleration) return 1;
+    
         if (a.size !== b.size) return a.size - b.size;
-        if (Math.abs(a.compatibility - b.compatibility) > 5) {
-            return b.compatibility - a.compatibility;
-        }
+        if (Math.abs(a.compatibility - b.compatibility) > 5) return b.compatibility - a.compatibility;
         return a.votes - b.votes;
     });
     
     Q.chosen_coalition = Q.possible_coalitions[0];
     Q.coalition_formed = 1;
-}
+    }
 
 // After all coalition evaluation is complete:
 if (Q.coalition_formed && Q.spd_is_formateur) {
@@ -1421,6 +1585,15 @@ if (Q.possible_coalitions.length === 0) {
         var type_text = coal.type.replace(/_/g, ' ');
         
         Q.coalition_options_display += (i + 1) + ". **" + partners_text + "**<br>";
+
+        if (coal.toleration) {
+            var tol_text = coal.tolerating_parties.join(' + ');
+            Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Minority government, tolerated by: **" + tol_text + "**<br>";
+            Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Government seats: " + Math.round(coal.votes * 10) / 10 + "% | Effective majority: " + Math.round(coal.effective_votes * 10) / 10 + "%<br>";
+        } else {
+            Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Support: " + Math.round(coal.votes * 10) / 10 + "%<br>";
+        }
+
         Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Type: " + type_text + "<br>";
         Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Support: " + Math.round(coal.votes * 10) / 10 + "%<br>";
         Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Compatibility: " + Math.round(coal.compatibility) + "/100<br><br>";
@@ -1428,7 +1601,7 @@ if (Q.possible_coalitions.length === 0) {
     }
     
     if (Q.possible_coalitions.length > 10) {
-        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 6) + " more options available)*\n";
+        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 10) + " more options available)*\n";
     }
 }
 !}
@@ -1712,6 +1885,17 @@ on-arrival: {!
 // ============================================
 // COALITION SUCCESSFULLY FORMED
 // ============================================
+
+Q.is_minority_government = Q.chosen_coalition.toleration ? 1 : 0;
+Q.tolerating_parties = Q.chosen_coalition.toleration ? Q.chosen_coalition.tolerating_parties : [];
+
+// Set flags for each tolerating party
+if (Q.chosen_coalition.toleration) {
+    for (var i = 0; i < Q.chosen_coalition.tolerating_parties.length; i++) {
+        var t = Q.chosen_coalition.tolerating_parties[i].toLowerCase();
+        Q[t + '_tolerating'] = 1;
+    }
+}
 
 var coalition = Q.chosen_coalition.parties;
 Q.government_parties = coalition;
