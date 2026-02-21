@@ -1364,7 +1364,7 @@ function find_subsets(arr, size, start, current, gov_votes, results) {
 // EVALUATE MINORITY GOVERNMENTS
 // ============================================
 
-var MIN_GOV_SEATS = 30; // Government must have some base to be credible
+var MIN_GOV_SEATS = 25; // Government must have some base to be credible
 
 // All possible government compositions (1 to 4 parties), below majority
 var minority_gov_candidates = [];
@@ -1533,34 +1533,15 @@ if (Q.possible_coalitions.length === 0) {
     }
 
 // After all coalition evaluation is complete:
-if (Q.coalition_formed) {
-    if (formateur !== 'SPD') {
-        Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
-        Q.spd_is_tolerator = 0;
-        if (Q.chosen_coalition.toleration && Q.chosen_coalition.tolerating_parties) {
-            Q.spd_is_tolerator = Q.chosen_coalition.tolerating_parties.indexOf('SPD') >= 0 ? 1 : 0;
-        }
-    } else {
-        Q.spd_in_chosen_coalition = 0;
-        Q.spd_is_tolerator = 0;
-    }
+if (Q.coalition_formed && Q.spd_is_formateur) {
+    // SPD gets to choose - don't auto-select
+    Q.spd_must_decide = 1;
+} else if (Q.coalition_formed) {
+    // Other party formed coalition, check if SPD is invited
+    Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
 }
 !}
-go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; spd_toleration_choice if coalition_formed and spd_is_tolerator and not spd_in_chosen_coalition; player_coalition_review if coalition_formed and spd_in_chosen_coalition; coalition_success if coalition_formed and not spd_in_chosen_coalition and not spd_is_tolerator; coalition_failure if not coalition_formed
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_coalition_review if coalition_formed and formateur != "SPD" and spd_in_chosen_coalition; coalition_success if coalition_formed and not spd_in_chosen_coalition; coalition_failure if not coalition_formed
 
 
 
@@ -1758,70 +1739,6 @@ We have chosen not to form a government at this time.
 **The President will now approach the next party in line.**
 
 - @coalition_failure: Continue
-
-
-
-
-
-
-@spd_toleration_choice
-on-arrival: {!
-Q.toleration_gov_parties = Q.chosen_coalition.parties.join(', ');
-Q.toleration_gov_votes = Math.round(Q.chosen_coalition.votes * 10) / 10;
-Q.toleration_effective = Math.round(Q.chosen_coalition.effective_votes * 10) / 10;
-!}
-
-= Toleration Decision
-
-**[+ formateur +] has formed a minority government and requests our external support.**
-
-**Government:** [+ toleration_gov_parties +] ([+ toleration_gov_votes +]% of seats)
-
-With our toleration, they reach an effective majority of [+ toleration_effective +]%.
-
-We would not hold ministerial posts, but our abstention on confidence votes keeps them in power.
-
-**Do we extend toleration?**
-
-- @accept_toleration: Yes, tolerate this government
-- @refuse_toleration: No, withdraw our support
-
-@accept_toleration
-on-arrival: {!
-Q.spd_tolerating = 1;
-Q.spd_in_government = 0;
-!}
-go-to: coalition_success
-
-@refuse_toleration
-on-arrival: {!
-Q.spd_tolerating = 0;
-Q.spd_is_tolerator = 0;
-
-Q.chosen_coalition.tolerating_parties = Q.chosen_coalition.tolerating_parties.filter(function(p) {
-    return p !== 'SPD';
-});
-
-var new_effective = Q.chosen_coalition.votes;
-for (var i = 0; i < Q.chosen_coalition.tolerating_parties.length; i++) {
-    new_effective += Q[Q.chosen_coalition.tolerating_parties[i].toLowerCase() + '_r'];
-}
-Q.chosen_coalition.effective_votes = new_effective;
-Q.coalition_formed = new_effective >= 50 ? 1 : 0;
-
-Q.coalition_votes_display = Q.coalition_formed
-    ? Math.round(Q.chosen_coalition.votes * 10) / 10 + "% (effective: " + Math.round(new_effective * 10) / 10 + "%)"
-    : Math.round(Q.chosen_coalition.votes * 10) / 10 + "%";
-!}
-go-to: coalition_success if coalition_formed; coalition_failure if not coalition_formed
-
-
-
-
-
-
-
-
 
 # ============================================
 # PLAYER REVIEWS COALITION INVITATION (NON-FORMATEUR)
