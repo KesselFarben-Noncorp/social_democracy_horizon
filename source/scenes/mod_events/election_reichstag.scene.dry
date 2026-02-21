@@ -2152,7 +2152,61 @@ Q.csvd_in_government = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
 Q.csrp_in_government = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
 
 !}
-go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
+go-to: spd_toleration_choice if spd_is_tolerator and not spd_in_government; chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government and not spd_is_tolerator
+
+@spd_toleration_choice
+on-arrival: {!
+Q.toleration_gov_parties = Q.chosen_coalition.parties.join(', ');
+Q.toleration_gov_votes = Math.round(Q.chosen_coalition.votes * 10) / 10;
+Q.toleration_effective = Math.round(Q.chosen_coalition.effective_votes * 10) / 10;
+!}
+
+= Toleration Decision
+
+**[+ formateur +] has formed a minority government and requests our external support.**
+
+**Government:** [+ toleration_gov_parties +] ([+ toleration_gov_votes +]% of seats)
+
+With our toleration, they reach an effective majority of [+ toleration_effective +]%.
+
+We would not hold ministerial posts, but our abstention on confidence votes keeps them in power. In return, we may extract policy concessions.
+
+**Do we extend toleration?**
+
+- @accept_toleration: Yes, tolerate this government
+- @refuse_toleration: No, withdraw our support
+
+@accept_toleration
+on-arrival: {!
+Q.spd_tolerating = 1;
+Q.spd_in_government = 0;
+!}
+go-to: chancellor_negotiation_ai
+
+@refuse_toleration
+on-arrival: {!
+Q.spd_tolerating = 0;
+Q.spd_is_tolerator = 0;
+
+// Remove SPD from tolerating parties
+Q.chosen_coalition.tolerating_parties = Q.chosen_coalition.tolerating_parties.filter(function(p) {
+    return p !== 'SPD';
+});
+
+// Recalculate effective votes
+var new_effective = Q.chosen_coalition.votes;
+for (var i = 0; i < Q.chosen_coalition.tolerating_parties.length; i++) {
+    new_effective += Q[Q.chosen_coalition.tolerating_parties[i].toLowerCase() + '_r'];
+}
+Q.chosen_coalition.effective_votes = new_effective;
+Q.coalition_formed = new_effective >= 50 ? 1 : 0;
+
+// Rebuild display
+Q.coalition_votes_display = Q.coalition_formed
+    ? Math.round(Q.chosen_coalition.votes * 10) / 10 + "% (effective: " + Math.round(new_effective * 10) / 10 + "%)"
+    : Math.round(Q.chosen_coalition.votes * 10) / 10 + "%";
+!}
+go-to: chancellor_negotiation_ai if coalition_formed; coalition_failure if not coalition_formed
 
 - @continue_to_negotiation: Continue to coalition negotiations
 
