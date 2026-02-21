@@ -1,21 +1,14 @@
 title: Constitutional Reform
 new-page: true
 is-card: true
-view-if: spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer = 0 and judicial_reform >= 4 and neorevisionism and ((in_weimar_coalition) or (in_spd_majority) or (in_left_front) or (in_popular_front) or (in_social_liberal_coalition) or (in_social_christian_coalition)) and constitutional_reform < 6
+view-if: spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer = 0 and judicial_reform >= 4 and full_reform_initiated = 1 and ((in_weimar_coalition) or (in_spd_majority) or (in_left_front) or (in_popular_front) or (in_social_liberal_coalition) or (in_social_christian_coalition)) and constitutional_reform < 5
 frequency: 25
 on-arrival: month_actions += 1; constitutional_reform_timer += 12; pass_threshold = 0.51; pass_threshold = 0.6 if pro_republic < 65;
 card-image: img/portraits/RadbruchGustav.jpg
 go-to: reforms_menu
 tags: govt_affairs, cabinet
-#subtitle: Major changes to government.
-
-# technically you could do some trickery to get a 2/3 quorum in the Reichstag by stopping some people from attending... if the NSDAP is boycotting the Reichstag, or if the NSDAP or DNVP are banned in the aftermath of a coup atempt...
-
-# alternatively, a constitutional referendum can be initiated, that requires a simple majority of voters to pass (as I understand article 76). This should depend on support for the republic and for democracy, and the relationships with the other parties (more similar to the presidential election).
 
 = Constitutional Reform
-
-# the ideas for constitutional reform here are based on the bundesrepublik basic law... I'm not sure if it's totally realistic to what someone like Mierendorff would've wanted.
 
 Many neorevisionists consider the Weimar Constitution to be inadequate. They believe that the clauses of the constitution are in part responsible for the instability of the country, and must change in order to build a more stable democratic republic. Ideas from both socialists and liberals
 
@@ -24,11 +17,9 @@ A constitutional reform requires either a two-thirds supermajority in the Reichs
 @reforms_menu
 
 - @vote_threshold: Change the vote threshold.
-- @constructive_vonc: Ban non-constructive votes of no confidence.
 - @presidential_powers: Reduce presidential powers.
 - @party_bans: Allow banning of anti-constitutional parties.
 - @ban_party_menu: Initiate ban on anti-constititional parties.
-- @basic_rights: Strengthen constitutional protection of basic rights.
 - @as_is: Do not pursue constitutional reform.
 - @easy_discard
 - @cancel_advisor_action
@@ -70,34 +61,6 @@ achievement: verfassungsreform
 # this should result in a redistribution of votes - other parties should not get so many votes anymore. maybe ddp and dvp get a recovery of middle-class votes? or maybe they flow to the others.
 
 We have passed a constitutional amendment to increase the electoral threshold to 5%. This is likely to benefit the larger parties and harm the smaller ones.
-
-
-
-@constructive_vonc
-subtitle: Votes of no confidence can only be called if an alternative plan for government formation can be passed, greatly reducing their incidence.
-on-arrival: {!
-Q.reform_support = Q.spd_normalized + Q.ddp_normalized;
-if (Q.z_relation >= 30) {
-    Q.reform_support += Q.z_normalized - 0.03;
-}
-if (!Q.stresemann_dead) {
-    Q.reform_support += Q.dvp_normalized;
-}
-!}
-view-if: constructive_vonc = 0
-
-[? if z_relation >= 30 : The Weimar Coalition parties, the [+ ddp_name +] and Center Party, support this reform, which will greatly improve the stability of the government. ?] [? if z_relation < 30 : The [+ ddp_name +] supports this reform, but the Center Party does not trust us enough to support the constitutional referendum. ?] The more conservative and radical right-wing parties and the KPD are in opposition, as they seem to relish in the republican system's instability.
-
-- @constructive_vonc_2: Call a constitutional referendum to pass the reform!
-- @reforms_menu: See other reform options.
-
-@constructive_vonc_2
-choose-if: reform_support >= pass_threshold
-unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?] [? if z_relation <= 30 : The Center Party does not trust us enough to support this policy. ?]
-on-arrival: constitutional_reform += 1; constructive_vonc = 1
-achievement: verfassungsreform
-
-We have successfully passed a constitutional amendment to ban votes of no confidence when a new government cannot be formed. Hopefully this increases the stability of our governments.
 
 @presidential_powers
 subtitle: The president can no longer dissolve the Reichstag at will, or call a *Reichsexekution* on state governments.
@@ -172,58 +135,6 @@ on-arrival: constitutional_reform += 1; constitutional_court = 1; left_dissent +
 achievement: verfassungsreform
 
 We have established a Constitutional Court with the power to ban anti-constitutional parties! This is a powerful tool for defending democracy, though it must be used carefully.
-
-
-
-@basic_rights
-subtitle: Strengthen constitutional guarantees of civil liberties and social rights.
-on-arrival: {!
-Q.reform_support = Q.spd_normalized;
-if (Q.ddp_relation >= 35) {
-    Q.reform_support += Q.ddp_normalized;
-}
-if (Q.z_relation >= 45 && Q.z_party_leader == "Joos") {
-    Q.reform_support += Q.z_normalized * 0.8;
-} else if (Q.z_relation >= 35) {
-    Q.reform_support += Q.z_normalized * 0.5;
-}
-if (Q.kpd_relation >= 50) {
-    Q.reform_support += Q.kpd_normalized * 0.7;
-}
-!}
-view-if: basic_rights_protection = 0
-
-The Weimar Constitution lists many rights, but lacks strong mechanisms to enforce them. This reform would:
-- Make basic rights directly enforceable in courts
-- Strengthen protections for freedom of speech, assembly, and press
-- Guarantee social rights (housing, education, work)
-- Protect workers' rights to organize and strike
-- Strengthen protections against discrimination
-
-**Support:**
-- Strong support from the [+ ddp_name +] and progressive republicans.
-[? if z_relation >= 45 and z_party_leader == "Joos" : - The Center Party's progressive wing strongly supports this. ?]
-[? if z_relation >= 35 and z_party_leader != "Joos" : - The Center Party gives cautious support. ?]
-[? if kpd_relation >= 50 : - The KPD supports this, though they want to go further. ?]
-
-**Opposition:**
-- The DNVP opposes expanded rights protections.
-- Business interests fear stronger worker protections.
-- Conservatives worry about judicial activism.
-
-- @basic_rights_2: Call a constitutional referendum to pass the reform!
-- @reforms_menu: See other reform options.
-
-@basic_rights_2
-choose-if: reform_support >= pass_threshold
-unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We need a larger margin for the referendum. ?]
-on-arrival: constitutional_reform += 1; basic_rights_protection = 1; pro_republic += 3; workers_spd += 3; unemployed_spd += 2; new_middle_spd += 2; dvp_relation -= 8; dnvp_relation -= 12; labor_strength += 5;
-achievement: verfassungsreform
-
-We have strengthened constitutional protections for basic rights! Germany now has some of the most progressive civil liberties protections in Europe.
-
-@as_is
-go-to: root
 
 
 
