@@ -298,8 +298,16 @@ We offered a middle path.
 
 [? if vonc_partial_failed and vonc_likely_falls : We are running out of options. ?]
 
-- @vonc_aftermath if vonc_partial_worked: Continue
-- @vonc_options if vonc_partial_failed: Try something else
+- @vonc_partial_worked_continue: Continue
+- @vonc_try_again: Try something else
+
+@vonc_partial_worked_continue
+view-if: vonc_partial_worked
+go-to: vonc_aftermath
+
+@vonc_try_again
+view-if: vonc_partial_failed
+go-to: vonc_options
 
 @vonc_refuse_negotiate
 on-arrival: {!
@@ -355,8 +363,16 @@ We work the phones, call in favors, meet privately with our partners.
 [? if appeal_worked : With our coalition holding together, the vote fails even without [+ vonc_caller +]. ?]
 [? if not appeal_worked : Even with firm partners, the numbers don't add up without [+ vonc_caller +]. We need another approach. ?]
 
-- @vonc_aftermath if appeal_worked: Continue
-- @vonc_options if not appeal_worked: Try something else
+- @vonc_aftermath_2 if appeal_worked: Continue
+- @vonc_options_2 if not appeal_worked: Try something else
+
+@vonc_options_2
+view-if: not appeal_worked
+go-to: vonc_options
+
+@vonc_aftermath_2
+view-if: appeal_worked
+go-to: vonc_aftermath
 
 @vonc_resources
 choose-if: resources >= 3
@@ -379,6 +395,7 @@ for (var i = 0; i < partner_list.length; i++) {
 
 Q.vonc_resolved = Q.negotiation_easy || Q.coalition_dissent < 2 ? 1 : 0;
 !}
+go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
 
 = Backroom Dealing
 
@@ -386,9 +403,6 @@ Money and favors change hands. Promises are made in private that cannot be made 
 
 [? if vonc_resolved : The vote is quietly withdrawn. [+ vonc_caller +] has been... persuaded. ?]
 [? if not vonc_resolved : The pressure eases somewhat, but [+ vonc_caller +] is not yet satisfied. ?]
-
-- @vonc_aftermath if vonc_resolved: Continue
-- @vonc_options if not vonc_resolved: Try something else
 
 @vonc_vote_proceeds
 on-arrival: {!
@@ -450,7 +464,15 @@ if (Q.vonc_resolved) {
     Q.pro_republic -= 5;
     Q.presidential_government = 1;
     Q.chancellor = "Caretaker";
-    
+    // Call new elections
+        Q.next_election_time = Q.time + 3;
+        Q.next_election_month = Q.month + 3;
+        Q.next_election_year = Q.year;
+        if (Q.next_election_month > 12) {
+            Q.next_election_month -= 12;
+            Q.next_election_year += 1;
+        }
+
     // Reset all in_government flags
     var party_list = ['KPD','SPD','Z','NSDAP','DNVP','DVP','DDP','BVP','SAPD','SRPD','WP','CNBL','CSRP','CSVD','VRP'];
     for (var i = 0; i < party_list.length; i++) {
@@ -458,7 +480,6 @@ if (Q.vonc_resolved) {
     }
 }
 !}
-call: set_next_election_time if not vonc_resolved
 
 = [? if vonc_resolved : The Coalition Holds ?][? if not vonc_resolved : The Government Falls ?]
 
