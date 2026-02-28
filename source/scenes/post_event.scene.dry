@@ -1296,13 +1296,64 @@ for (var rel of relations) {
         },
     
         spd: {
-            base: Q.spd_banned ? 0 : (Q.pro_republic_factor * 110) + (Q.socialism_factor * 49),
-            workers: 1.20,      // Organized labor - core base
-            old_middle: 0.70,   // Limited petty bourgeois appeal
-            new_middle: 0.85,   // White collar unions
-            rural: 0.80,        // Agricultural workers
-            unemployed: 1.10,   // Some appeal but KPD competes
-            catholics: 0.90     // Catholic workers exist but Z competes
+            base: Q.spd_banned ? 0 : (() => {
+                let soc = Q.socialism_factor;
+                let rep = Q.pro_republic_factor;
+
+                if (Q.peoples_party === 1) {
+                    soc *= 0.80;
+                    rep *= 1.15;
+                }
+
+                if (Q.ideology === 'left') {
+                    soc *= 1.15;
+                    rep *= 0.90;
+                } else if (Q.ideology === 'reformist') {
+                    rep *= 1.10;
+                    soc *= 0.90;
+                } else if (Q.ideology === 'neorev') {
+                    soc *= 1.05;
+                    rep *= 1.05;
+                }
+
+                return (rep * 110) + (soc * 49);
+            })(),
+
+            workers: (() => {
+                let m = 1.20;
+                if (Q.peoples_party === 1) m *= 0.88;
+                if (Q.ideology === 'left')      m *= 1.12;
+                if (Q.ideology === 'reformist') m *= 0.92;
+                return m;
+            })(),
+            old_middle: (() => {
+                let m = 0.70;
+                if (Q.peoples_party === 1) m *= 1.15;
+                if (Q.ideology === 'left')      m *= 0.88;
+                if (Q.ideology === 'reformist') m *= 1.10;
+                if (Q.ideology === 'neorev')    m *= 1.05;
+                return m;
+            })(),
+            new_middle: (() => {
+                let m = 0.85;
+                if (Q.peoples_party === 1) m *= 1.15;
+                if (Q.ideology === 'left')      m *= 0.88;
+                if (Q.ideology === 'reformist') m *= 1.10;
+                if (Q.ideology === 'neorev')    m *= 1.05;
+                return m;
+            })(),
+            rural: (() => {
+                let m = 0.80;
+                if (Q.peoples_party === 1) m *= 1.12;
+                return m;
+            })(),
+            unemployed: (() => {
+                let m = 1.10;
+                if (Q.peoples_party === 1) m *= 0.88;
+                if (Q.ideology === 'left') m *= 1.10;
+                return m;
+            })(),
+            catholics: 0.90
         },
     
         ddp: {
