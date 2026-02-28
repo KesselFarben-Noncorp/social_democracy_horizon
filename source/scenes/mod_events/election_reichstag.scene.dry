@@ -1437,7 +1437,7 @@ for (var g = 0; g < minority_gov_candidates.length; g++) {
     for (var t = 0; t < toleration_combos.length; t++) {
         var combo = toleration_combos[t];
         var tolerator_parties = combo.parties.map(function(p) { return p.party; });
-        
+    
         Q.possible_coalitions.push({
             parties: gov.parties,
             votes: gov.votes,
@@ -1451,6 +1451,33 @@ for (var g = 0; g < minority_gov_candidates.length; g++) {
         });
     }
 }
+
+// If SPD is formateur (player), cap toleration options at 2 to avoid clutter.
+// Keep the 2 with highest effective_votes.
+if (formateur === 'SPD') {
+    var majority_coalitions = Q.possible_coalitions.filter(function(c) { return !c.toleration; });
+    var toleration_coalitions = Q.possible_coalitions.filter(function(c) { return c.toleration; });
+    
+    // Sort toleration options: prefer smaller gov (easier to manage), then higher effective support
+    toleration_coalitions.sort(function(a, b) {
+        if (a.size !== b.size) return a.size - b.size;
+        return b.effective_votes - a.effective_votes;
+    });
+    
+    // Keep only top 2 toleration options
+    toleration_coalitions = toleration_coalitions.slice(0, 2);
+    
+    Q.possible_coalitions = majority_coalitions.concat(toleration_coalitions);
+}
+
+
+
+
+
+
+
+
+
 
 // ============================================
 // COALITION CLASSIFICATION HELPER
@@ -1474,6 +1501,7 @@ function classify_coalition(parties) {
     var has_nsdap = parties.indexOf('NSDAP') >= 0;
     var has_csvd = parties.indexOf('CSVD') >= 0;
     var has_csrp = parties.indexOf('CSRP') >= 0;
+    var has_vrp = parties.indexOf('VRP') >= 0;
     
     // Left coalitions
     if (has_spd && has_kpd && !has_z) return 'left_front';
@@ -1755,6 +1783,17 @@ if (Q.coalition_formed) {
         Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
     }
     Q.coalition_total_votes = Q.chosen_coalition.votes;
+    Q.coalition_is_minority = Q.chosen_coalition.toleration ? 1 : 0;
+    Q.coalition_toleration_display = "";
+    if (Q.chosen_coalition.toleration) {
+        Q.coalition_toleration_display = "\n**External Toleration (not in cabinet):**\n";
+        var tols = Q.chosen_coalition.tolerating_parties;
+        for (var i = 0; i < tols.length; i++) {
+            var tvotes = Q[tols[i].toLowerCase() + '_r'];
+            Q.coalition_toleration_display += "- " + tols[i] + " (" + Math.round(tvotes * 10) / 10 + "%) — tolerating\n";
+        }
+        Q.coalition_effective_votes = Q.chosen_coalition.effective_votes;
+    }
 }
 !}
 
@@ -1767,6 +1806,12 @@ if (Q.coalition_formed) {
 [+ coalition_partners_list +]
 
 **Total Reichstag Support:** [+ coalition_total_votes +]%
+
+[? if coalition_is_minority : This is a **minority government** that will rely on external toleration to survive votes of no confidence. ?]
+
+[+ coalition_toleration_display +]
+
+[? if coalition_is_minority : **Effective majority with tolerating parties:** [+ coalition_effective_votes +]% ?]
 
 **Chancellor:** [+ formateur +] will provide the Chancellor.
 
@@ -1888,6 +1933,7 @@ on-arrival: {!
 
 Q.is_minority_government = Q.chosen_coalition.toleration ? 1 : 0;
 Q.tolerating_parties = Q.chosen_coalition.toleration ? Q.chosen_coalition.tolerating_parties : [];
+Q.spd_toleration = (Q.chosen_coalition.toleration && Q.chosen_coalition.tolerating_parties.indexOf('SPD') >= 0) ? 1 : 0;
 
 // Set flags for each tolerating party
 if (Q.chosen_coalition.toleration) {
