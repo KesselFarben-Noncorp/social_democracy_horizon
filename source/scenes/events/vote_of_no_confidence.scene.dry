@@ -164,8 +164,7 @@ We sit down with their leadership. Grievances are aired. Promises are made.
 [? if vonc_resolved : That is enough. [+ vonc_caller +] withdraws the vote. The crisis passes — for now. ?]
 [? if not vonc_resolved : They are not satisfied. The vote will still proceed unless we do more. ?]
 
-- @vonc_aftermath if vonc_resolved
-- @vonc_options if not vonc_resolved
+go-to; vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
 
 @vonc_shore_up_others
 on-arrival: {!
@@ -201,6 +200,7 @@ var new_support = Q.votes_after_defection + secured_votes;
 Q.vonc_resolved = new_support >= 50 ? 1 : 0;
 Q.vonc_final_support = Math.round(new_support * 10) / 10;
 !}
+go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
 
 = Shoring Up the Coalition
 
@@ -213,9 +213,6 @@ We work the phones. Private assurances are exchanged with wavering partners.
 
 [? if vonc_resolved : It is enough. The vote fails even with [+ vonc_caller +] against us. ?]
 [? if not vonc_resolved : Still not enough. We need to deal with [+ vonc_caller +] directly. ?]
-
-- @vonc_aftermath if vonc_resolved
-- @vonc_options if not vonc_resolved
 
 @vonc_offer_ministry_to_caller
 view-if: vonc_caller_in_gov = 0
@@ -341,6 +338,7 @@ if (!worst_partner) {
     }
 }
 !}
+go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
 
 = Internal Reshuffle
 
@@ -351,9 +349,6 @@ if (!worst_partner) {
 
 [? if vonc_resolved : [+ vonc_caller +] withdraws the vote. ?]
 [? if not vonc_resolved : Their dissent has eased but not enough. The vote proceeds. ?]
-
-- @vonc_aftermath if vonc_resolved
-- @vonc_options if not vonc_resolved
 
 @vonc_spend_resources
 choose-if: resources >= 3
@@ -373,6 +368,7 @@ for (var i = 0; i < Q.vonc_co_callers.length; i++) {
 
 Q.vonc_resolved = Q[caller_lower + '_dissent'] < 5 ? 1 : 0;
 !}
+go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
 
 = Resources Spent
 
@@ -380,9 +376,6 @@ Favors are called in. Debts are settled quietly.
 
 [? if vonc_resolved : [+ vonc_caller +] steps back. The vote is withdrawn. ?]
 [? if not vonc_resolved : Their dissent eases but the underlying problem remains. The vote will proceed. ?]
-
-- @vonc_aftermath if vonc_resolved
-- @vonc_vote_proceeds if not vonc_resolved
 
 @vonc_let_it_happen
 on-arrival: vonc_resolved = 0
