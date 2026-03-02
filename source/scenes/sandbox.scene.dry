@@ -13,6 +13,20 @@ go-to: sandbox_menu
 - @secretmode: Secret Mode
 - @wacky: All wacky things (unlocked when reaching 1935)
 - @technical: Technical things, just messing with variables.
+- @truesandbox
+
+@truesandbox
+title: True Sandbox
+
+Here.
+
+- @kpd: KPD normalization (50)
+
+@kpd
+on-arrival: kpd_relation = 50.
+go-to: truesandbox
+
+Normalized KPD relations.
 
 @technical
 
@@ -142,7 +156,16 @@ Set election time to default?
 - @technical: No.
 
 @yes
-call: set_next_election_time
+on-arrival: {!
+Q.new_elections_imminent = 1;
+Q.next_election_month = Q.month + 2;
+Q.next_election_year = Q.year;
+if (Q.next_election_month > 12) {
+    Q.next_election_month -= 12;
+    Q.next_election_year += 1;
+}
+Q.next_election_time = Q.time + 2;
+!}
 go-to: technical
 
 
