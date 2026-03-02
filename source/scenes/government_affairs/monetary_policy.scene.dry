@@ -41,7 +41,7 @@ The Reichsbank pursues a middle course, adjusting interest rates modestly while 
 @expansionary_credit
 title: Expansionary Credit Policy
 subtitle: Lower rates and expand lending to combat unemployment and deflation
-view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding"
+view-if: reichsbank_president = "Blessing" or reichsbank_president = "Hilferding" or (year > 1940 and judicial_reform > 20 and wtb_implemented > 7)
 on-arrival: demand_impulse += 0.5; investment_chill -= 0.3; price_pressure += 0.3; inflation_expectations += 0.2; capital_pressure -= 0.3; dInflation += 0.3; dGrowth += 0.4; dUnemployment -= 0.25
 
 The Reichsbank slashes the discount rate and instructs banks to expand lending, particularly for productive investment and employment-creating projects.
@@ -53,7 +53,7 @@ The Reichsbank slashes the discount rate and instructs banks to expand lending, 
 @emergency_reflation
 title: Emergency Reflation Measures
 subtitle: Deploy extraordinary monetary expansion to combat severe deflation
-view-if: inflation < -5
+view-if: inflation < -5 or unemployment > 14
 on-arrival: demand_impulse += 1.0; price_pressure += 0.8; inflation_expectations += 0.6; capital_pressure -= 0.6; investment_chill -= 0.8; dInflation += 0.8; dGrowth += 0.7; dUnemployment -= 0.5
 
 Facing catastrophic deflation, the Reichsbank abandons orthodoxy: near-zero interest rates, direct lending to critical industries, and massive monetary base expansion.
