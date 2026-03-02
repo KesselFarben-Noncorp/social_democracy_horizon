@@ -18,6 +18,18 @@ It appears that President [+ president +] is looking favorably upon the fascist 
 
 - @fight
 - @accept
+- @launch
+
+@launch
+title: Launch the revolution!
+subtitle: Are we sure?
+view-if: sandbox = 1 and (ideology = "left" or ideology = "center") and left_strength + center_strength > reformist_strength + neorevisionist_strength + labor_strength
+choose-if: rb_strength > sa_strength + sh_strength 
+unavailable-subtitle: We are not powerful enough.
+on-arrival: sa_strength *= 1.01; sh_strength *= 1.01; sh_strength += coup_progress * 100; sh_militancy += 0.05
+We have launched the revolution. Republic fades away.
+
+- @civil_war: Truly, the end of the Weimar.
 
 @accept
 title: There is nothing we can do.
