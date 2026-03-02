@@ -23,8 +23,8 @@ It appears that President [+ president +] is looking favorably upon the fascist 
 @launch
 title: Launch the revolution!
 subtitle: Are we sure?
-view-if: sandbox = 1 and (ideology = "left" or ideology = "center") and left_strength + center_strength > reformist_strength + neorevisionist_strength + labor_strength
-choose-if: rb_strength > sa_strength + sh_strength 
+view-if: (ideology = "left" or ideology = "centrist") and (left_strength + center_strength > reformist_strength + neorevisionist_strength + labor_strength)
+choose-if: rb_strength * rb_militancy > sa_strength + sh_strength 
 unavailable-subtitle: We are not powerful enough.
 on-arrival: sa_strength *= 1.01; sh_strength *= 1.01; sh_strength += coup_progress * 100; sh_militancy += 0.05 + (rb_militancy * 0.1); sa_militancy += 0.05 + (rb_militancy * 0.1)
 
@@ -45,7 +45,7 @@ President [+ president +] has called for emergency elections, to be held next mo
 @accept_hitler
 on-arrival: chancellor = "Hitler"; chancellor_party = "NSDAP"; spd_in_government = 0
 
-After the resignation of the chancellor, Hitler has been appointed chancellor[? if hitler_deported: , after being made a citizen again ?].
+After the resignation of the chancellor, Hitler has been appointed chancellor [? if hitler_deported: , after being made a citizen again ?].
 
 - @hitler_takes_power
 
