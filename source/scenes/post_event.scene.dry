@@ -294,162 +294,297 @@ if (Q.month_actions >= 1) {
         Q.inflation_crisis_event = 0;
         }
     
-    // Initialize once
-    if (!Q.economyInitialized) {
-        Q.inflation = 2.5;
-        Q.unemployed = 6.0;
-        Q.economic_growth = 2.5;
-        Q.budget = 0;
-        Q.inflation_expectations = 2.5;
-        Q.demand_impulse = 0;
-        Q.supply_impulse = 0;
-        Q.price_pressure = 0;
-        Q.trade_pressure = 0;
-        Q.capital_pressure = 0;
-        Q.fiscal_stance = 0;
-        Q.distribution_shift = 0;
-        Q.fiscal_demand = 0;
-        Q.cycle_phase = 0;
-        Q.shock_residual = 0;
-        Q.tax_drag = 0;
-        Q.investment_chill = 0;
-        Q.economyInitialized = true;
-    }
+    // ============================================================
+// ECONOMIC SIMULATION — PHASE-CYCLING MODEL
+// ============================================================
 
-// Constants
-Q.NAIRU = 6.0;
+// === INITIALIZATION ===
+if (!Q.economyInitialized) {
+    Q.inflation = 2.5;
+    Q.unemployed = 6.0;
+    Q.economic_growth = 2.5;
+    Q.budget = 0;
+    Q.inflation_expectations = 2.5;
+    Q.demand_impulse = 0;
+    Q.supply_impulse = 0;
+    Q.price_pressure = 0;
+    Q.trade_pressure = 0;
+    Q.capital_pressure = 0;
+    Q.fiscal_stance = 0;
+    Q.distribution_shift = 0;
+    Q.fiscal_demand = 0;
+    Q.cycle_phase = 0;
+    Q.shock_residual = 0;
+    Q.tax_drag = 0;
+    Q.investment_chill = 0;
+
+    Q.phase = "growth";
+    Q.phase_duration = 0;
+    Q.last_phase_change = 0;
+    Q.tick = 0;
+
+    Q.expectations_anchored = true;
+    Q.high_inflation_streak = 0;
+    Q.low_inflation_streak = 0;
+
+    Q.supply_cost_drag = 0;
+    Q.credit_expansion = 0;
+
+    Q.economyInitialized = true;
+}
+
+Q.NAIRU = Q.NAIRU || 6.0;
 Q.POTENTIAL_GROWTH = 2.5;
 Q.dt = 1;
+Q.tick = (Q.tick || 0) + 1;
 
-// === CRISIS DETECTION ===
-// FIX: Detect crisis depth so we can apply asymmetric recovery forces.
-// Without this, all stabilizers are symmetric and dampen recovery equally.
-Q.is_in_crisis = (Q.inflation < -3 || Q.economic_growth < -3 || Q.unemployed > 15);
-Q.crisis_depth = Math.max(
-    Math.max(0, -3 - Q.inflation) / 9,        // 0 at -3, 1 at -12
-    Math.max(0, -3 - Q.economic_growth) / 12,  // 0 at -3, 1 at -15
-    Math.max(0, Q.unemployed - 15) / 60        // 0 at 15, 1 at 75
-);
+// ============================================================
+// SECTION 1 — PHASE STATE MACHINE
+// ============================================================
 
-// === PASSIVE ECONOMIC DRIFT ===
+const MIN_PHASE_DURATION = 3;
+Q.phase_duration = (Q.phase_duration || 0) + 1;
 
-// 1. Business cycle
-Q.cycle_phase = Q.cycle_phase || 0;
-Q.cycle_phase += 0.018 * Q.dt;
-Q.cycle_amplitude = 0.8 * (1 + (Q.shock_residual || 0) * 0.3);
+if (Q.phase_duration >= MIN_PHASE_DURATION) {
+    const prev_phase = Q.phase;
+
+    if (Q.phase === "growth") {
+        if (Q.inflation > 5 && Q.unemployed < Q.NAIRU)
+            Q.phase = "overheating";
+        else if (Q.economic_growth < 0 && Q.inflation < 2)
+            Q.phase = "correction";
+    }
+    else if (Q.phase === "overheating") {
+        if (Q.inflation > 8 && !Q.expectations_anchored)
+            Q.phase = "hyperinflation";
+        else if (Q.economic_growth < 0)
+            Q.phase = "correction";
+        else if (Q.inflation < 4 && Q.economic_growth > 1)
+            Q.phase = "growth";
+    }
+    else if (Q.phase === "hyperinflation") {
+        if (Q.economic_growth < -2 && Q.unemployed > 10)
+            Q.phase = (Q.inflation > 4) ? "stagflation" : "depression";
+        else if (Q.inflation < 5 && Q.expectations_anchored)
+            Q.phase = "correction";
+    }
+    else if (Q.phase === "correction") {
+        if (Q.economic_growth < -3 && Q.inflation < 1)
+            Q.phase = "depression";
+        else if (Q.inflation > 4 && Q.unemployed > Q.NAIRU + 2)
+            Q.phase = "stagflation";
+        else if (Q.economic_growth > 1 && Q.inflation < 4)
+            Q.phase = "growth";
+    }
+    else if (Q.phase === "depression") {
+        if (Q.economic_growth > 0 && Q.inflation > -1)
+            Q.phase = "correction";
+        else if ((Q.price_pressure || 0) > 0.3 && Q.unemployed > 12)
+            Q.phase = "stagflation";
+    }
+    else if (Q.phase === "stagflation") {
+        if (Q.inflation < 3 && Q.economic_growth > 0)
+            Q.phase = "growth";
+        else if (Q.inflation < 1 && Q.economic_growth < -2)
+            Q.phase = "depression";
+        else if (Q.inflation > 9)
+            Q.phase = "hyperinflation";
+    }
+
+    if (Q.phase !== prev_phase) {
+        Q.phase_duration = 0;
+        Q.last_phase_change = Q.tick;
+    }
+}
+
+// ============================================================
+// SECTION 2 — PHASE-SPECIFIC DECAY MULTIPLIERS
+// ============================================================
+
+let decay_demand  = 0.35;
+let decay_supply  = 0.25;
+let decay_price   = 0.50;
+let decay_trade   = 0.30;
+let decay_capital = 0.20;
+let decay_fiscal  = 0.15;
+let decay_distrib = 0.08;
+
+switch (Q.phase) {
+    case "growth":
+        decay_demand  *= 0.45;
+        decay_capital *= 0.60;
+        break;
+    case "overheating":
+        decay_price   *= 0.35;
+        decay_demand  *= 0.55;
+        break;
+    case "hyperinflation":
+        decay_price   *= 0.10;
+        decay_supply  *= 0.30;
+        decay_trade   *= 0.45;
+        break;
+    case "correction":
+        decay_capital *= 0.50;
+        decay_trade   *= 0.60;
+        break;
+    case "depression":
+        decay_capital *= 0.20;
+        decay_trade   *= 0.35;
+        decay_supply  *= 0.40;
+        break;
+    case "stagflation":
+        decay_price   *= 0.25;
+        decay_capital *= 0.30;
+        decay_trade   *= 0.30;
+        decay_demand  *= 0.70;
+        break;
+}
+
+// ============================================================
+// SECTION 3 — BUSINESS CYCLE (phase-scaled amplitude)
+// ============================================================
+
+Q.cycle_phase = (Q.cycle_phase || 0) + 0.018 * Q.dt;
+const cycle_amps = {
+    growth: 1.4, overheating: 1.8, hyperinflation: 1.2,
+    correction: 0.9, depression: 0.3, stagflation: 0.6
+};
+Q.cycle_amplitude = (cycle_amps[Q.phase] || 1.0) * (1 + (Q.shock_residual || 0) * 0.3);
 Q.business_cycle = Q.cycle_amplitude * Math.sin(Q.cycle_phase);
 
-// 2. Productivity drift
-Q.productivity_trend = 0.01 * Q.dt;
-Q.productivity_trend *= (1 - (Q.capital_pressure || 0) * 0.2);
+// ============================================================
+// SECTION 4 — PASSIVE DRIFTS
+// ============================================================
 
-// 3. Labor market churn
-// FIX: Nonlinear boost at extreme unemployment so labor_churn can punch through.
-// Previously it was linear and too weak to matter at high unemployment.
+Q.productivity_trend = 0.01 * Q.dt * (1 - (Q.capital_pressure || 0) * 0.2);
+
 Q.labor_churn = 0;
 if (Q.unemployed > Q.NAIRU) {
     const u_gap = Q.unemployed - Q.NAIRU;
-    const churn_force = 0.02 * u_gap * (1 + Math.max(0, u_gap - 10) * 0.15);
-    Q.labor_churn = -churn_force * Q.dt;
-} else if (Q.unemployed < Q.NAIRU) {
+    Q.labor_churn = -0.02 * u_gap * (1 + Math.max(0, u_gap - 10) * 0.15) * Q.dt;
+} else {
     Q.labor_churn = 0.015 * (Q.NAIRU - Q.unemployed) * Q.dt;
 }
 
-// 4. Inflation persistence
 Q.inflation_momentum = 0.005 * Q.inflation * Q.dt;
 
-// 5. Trade balance drift
-Q.trade_drift = 0;
-if (Q.economic_growth > Q.POTENTIAL_GROWTH + 2) {
-    Q.trade_drift = 0.02 * Q.dt;
-} else if (Q.economic_growth < Q.POTENTIAL_GROWTH - 2) {
-    Q.trade_drift = -0.015 * Q.dt;
-}
-Q.trade_pressure = (Q.trade_pressure || 0) + Q.trade_drift;
+Q.trade_pressure = (Q.trade_pressure || 0);
+if (Q.economic_growth > Q.POTENTIAL_GROWTH + 2)
+    Q.trade_pressure += 0.02 * Q.dt;
+else if (Q.economic_growth < Q.POTENTIAL_GROWTH - 2)
+    Q.trade_pressure -= 0.015 * Q.dt;
 
-// 6. Capital accumulation/decumulation
-Q.capital_drift = 0;
-if (Q.economic_growth > 4 && (Q.capital_pressure || 0) < 0.3) {
-    Q.capital_drift = -0.01 * Q.dt;
-} else if (Q.economic_growth < 0) {
-    Q.capital_drift = 0.025 * Q.dt;
-}
-Q.capital_pressure = (Q.capital_pressure || 0) + Q.capital_drift;
+Q.capital_pressure = (Q.capital_pressure || 0);
+if (Q.economic_growth > 4 && Q.capital_pressure < 0.3)
+    Q.capital_pressure -= 0.01 * Q.dt;
+else if (Q.economic_growth < 0)
+    Q.capital_pressure += 0.025 * Q.dt;
 Q.capital_pressure = Math.max(0, Q.capital_pressure);
 
-// 7. Wage-price spiral
-Q.wage_pressure = 0;
 if (Q.unemployed < Q.NAIRU - 2 && Q.inflation > 3) {
-    Q.wage_pressure = 0.05 * (Q.NAIRU - Q.unemployed) * (Q.inflation / 10) * Q.dt;
-    Q.price_pressure = (Q.price_pressure || 0) + Q.wage_pressure;
+    Q.price_pressure = (Q.price_pressure || 0)
+        + 0.05 * (Q.NAIRU - Q.unemployed) * (Q.inflation / 10) * Q.dt;
 }
 
-// 8. Demographic/structural drift
-// FIX: Pause NAIRU drift during crisis. It makes no structural sense for NAIRU
-// to keep rising during a depression — that was locking in permanent high unemployment.
-if (!Q.is_in_crisis) {
-    Q.structural_unemployment_drift = 0.003 * Q.dt;
-    Q.NAIRU += Q.structural_unemployment_drift;
-} else {
-    // Slowly drift NAIRU back toward baseline (6.0) during crisis
+// NAIRU drift
+if (Q.phase === "depression" || Q.phase === "correction")
     Q.NAIRU += (6.0 - Q.NAIRU) * 0.01 * Q.dt;
-}
+else if (Q.phase !== "stagflation")
+    Q.NAIRU += 0.003 * Q.dt;
 
-// 9. Financial sector effects
-Q.credit_conditions = 0;
-if (Q.inflation > 8 || Q.budget < -20) {
-    Q.credit_conditions = 0.02 * Q.dt;
-    Q.capital_pressure = (Q.capital_pressure || 0) + Q.credit_conditions;
-} else if (Q.inflation < 2 && Q.economic_growth > 3) {
-    Q.credit_conditions = -0.015 * Q.dt;
-    Q.capital_pressure = (Q.capital_pressure || 0) + Q.credit_conditions;
-}
+// Financial sector
+if (Q.inflation > 8 || Q.budget < -20)
+    Q.capital_pressure += 0.02 * Q.dt;
+else if (Q.inflation < 2 && Q.economic_growth > 3)
+    Q.capital_pressure -= 0.015 * Q.dt;
 
-// 10. Expectational shocks
+// Random shocks
 if (Math.random() < 0.03 * Q.dt) {
-    Q.shock_size = (Math.random() - 0.5) * 0.12;
-    if (Q.unemployed > 20 || Q.inflation > 12) {
-        Q.shock_size *= 1.5;
-    }
-    Q.price_pressure = (Q.price_pressure || 0) + Q.shock_size;
-    Q.shock_residual = (Q.shock_residual || 0) + Q.shock_size * 0.3;
+    const shock = (Math.random() - 0.5) * 0.12 * (Q.unemployed > 20 || Q.inflation > 12 ? 1.5 : 1);
+    Q.price_pressure = (Q.price_pressure || 0) + shock;
+    Q.shock_residual = (Q.shock_residual || 0) + shock * 0.3;
 }
-
-// Decay shock residual over time
 Q.shock_residual = (Q.shock_residual || 0) * Math.exp(-0.4 * Q.dt);
 
-Q.cycle_growth_effect = Q.business_cycle * 0.05;
-Q.productivity_growth = Q.productivity_trend * 0.4;
-Q.passive_inflation = Q.inflation_momentum;
+// ============================================================
+// SECTION 5 — BOOM CREDIT EXPANSION
+// ============================================================
 
-// === IMPULSE → STATE MAPPINGS ===
+Q.credit_expansion = Q.credit_expansion || 0;
+if (Q.phase === "growth" && Q.unemployed < Q.NAIRU - 1) {
+    Q.credit_expansion += 0.04 * Math.max(0, Q.NAIRU - 1 - Q.unemployed) * Q.dt;
+    Q.credit_expansion = Math.min(Q.credit_expansion, 0.8);
+} else {
+    Q.credit_expansion *= Math.exp(-0.2 * Q.dt);
+}
+Q.demand_impulse = (Q.demand_impulse || 0) + Q.credit_expansion * 0.15;
+Q.capital_pressure = Math.max(0, Q.capital_pressure - Q.credit_expansion * 0.02);
+
+// ============================================================
+// SECTION 6 — STAGFLATION SUPPLY-DEMAND COUPLING
+// ============================================================
+
+Q.supply_cost_drag = Q.supply_cost_drag || 0;
+if (Q.phase === "stagflation" || (Q.price_pressure || 0) > 0.3) {
+    Q.supply_cost_drag += (Q.price_pressure || 0) * 0.06 * Q.dt;
+    Q.supply_cost_drag = Math.min(Q.supply_cost_drag, 0.5);
+} else {
+    Q.supply_cost_drag *= Math.exp(-0.15 * Q.dt);
+}
+Q.supply_impulse = (Q.supply_impulse || 0) - Q.supply_cost_drag * 0.3;
+
+// ============================================================
+// SECTION 7 — NONLINEAR EXPECTATIONS WITH HYSTERESIS
+// ============================================================
+
+Q.high_inflation_streak = Q.high_inflation_streak || 0;
+Q.low_inflation_streak = Q.low_inflation_streak || 0;
+
+if (Q.inflation > 5) {
+    Q.high_inflation_streak += Q.dt;
+    Q.low_inflation_streak = 0;
+} else if (Q.inflation < 3 && !Q.expectations_anchored) {
+    Q.low_inflation_streak += Q.dt;
+    Q.high_inflation_streak *= 0.85;
+} else {
+    Q.high_inflation_streak *= 0.85;
+}
+
+if (Q.expectations_anchored && Q.high_inflation_streak > 4)
+    Q.expectations_anchored = false;
+if (!Q.expectations_anchored && Q.low_inflation_streak > 6) {
+    Q.expectations_anchored = true;
+    Q.high_inflation_streak = 0;
+}
+
+Q.inflation_expectations = Q.inflation_expectations || Q.inflation;
+if (Q.expectations_anchored) {
+    Q.inflation_expectations += 0.03 * (Q.inflation - Q.inflation_expectations) * Q.dt;
+    Q.inflation_expectations += 0.04 * (2.5 - Q.inflation_expectations) * Q.dt;
+} else {
+    const lead = 0.10 + (Q.phase === "hyperinflation" ? 0.08 : 0);
+    Q.inflation_expectations += lead * (Q.inflation - Q.inflation_expectations) * Q.dt;
+    Q.inflation_expectations += 0.05 * Math.max(0, Q.inflation - 4) * Q.dt;
+}
+
+// ============================================================
+// SECTION 8 — FISCAL & TAX
+// ============================================================
 
 Q.budget += Q.fiscal_stance * 0.4 * Q.dt;
-
-// Fiscal demand
 Q.fiscal_demand = -Q.fiscal_stance * 0.2;
 
-// Private consumption demand
-Q.consumption_demand = (Q.demand_impulse || 0);
-Q.consumption_multiplier = 1 + (Q.distribution_shift || 0) * 0.15;
-Q.consumption_demand *= Q.consumption_multiplier;
-
-// === TAX REVENUE CALCULATION ===
+Q.consumption_demand = (Q.demand_impulse || 0)
+    * (1 + (Q.distribution_shift || 0) * 0.15);
 
 Q.upper_tax_base = (Q.old_middle + Q.new_middle) / 100;
 Q.lower_tax_base = (Q.workers + Q.unemployed + Q.rural) / 100;
-
-Q.upper_tax_revenue = Q.upper_tax_rates * Q.upper_tax_base * 0.035;
-Q.lower_tax_revenue = Q.lower_tax_rates * Q.lower_tax_base * 0.018;
-
-Q.tax_efficiency = 1 + (Q.economic_growth / 100) - (Q.unemployed / 100);
-Q.tax_efficiency = Math.max(0.5, Math.min(Q.tax_efficiency, 1.5));
-
-Q.tax_revenue = (Q.upper_tax_revenue + Q.lower_tax_revenue) * Q.tax_efficiency;
-
+Q.tax_efficiency = Math.max(0.5, Math.min(1.5,
+    1 + (Q.economic_growth / 100) - (Q.unemployed / 100)));
+Q.tax_revenue = (Q.upper_tax_rates * Q.upper_tax_base * 0.035
+    + Q.lower_tax_rates * Q.lower_tax_base * 0.018) * Q.tax_efficiency;
 Q.budget += Q.tax_revenue * Q.dt;
 
-// Tax drag
 if (Q.tax_drag && Math.abs(Q.tax_drag) > 0.01) {
     Q.consumption_demand -= Q.tax_drag * 0.2;
     Q.tax_drag *= 0.94;
@@ -457,11 +592,8 @@ if (Q.tax_drag && Math.abs(Q.tax_drag) > 0.01) {
 }
 
 Q.total_demand = Q.consumption_demand + Q.fiscal_demand;
-
-// Investment
 Q.investment_effect = (Q.supply_impulse || 0) * (1 - (Q.capital_pressure || 0) * 0.3);
 
-// Investment chill
 if (Q.investment_chill && Math.abs(Q.investment_chill) > 0.01) {
     Q.investment_effect -= Q.investment_chill * 0.25;
     Q.capital_pressure += Math.abs(Q.investment_chill) * 0.08;
@@ -471,328 +603,206 @@ if (Q.investment_chill && Math.abs(Q.investment_chill) > 0.01) {
 
 Q.budget = Math.round(Q.budget * 100) / 100;
 
-// === CORE ECONOMIC DYNAMICS ===
+// ============================================================
+// SECTION 9 — INFLATION DYNAMICS
+// ============================================================
+
 Q.output_gap = Q.economic_growth - Q.POTENTIAL_GROWTH;
 Q.overheating = Math.max(0, Q.economic_growth - 6);
-
-// === CRISIS-MODE PRESSURE DECAY ACCELERATION ===
-// FIX: When in crisis, structural damage variables (capital_pressure, trade_pressure)
-// decay faster. Previously they decayed slowly while accumulating continuously,
-// making recovery mathematically impossible since damage > any possible repair.
-if (Q.is_in_crisis) {
-    const crisis_decay_boost = 1 + Q.crisis_depth * 2.0;
-    Q.capital_pressure = (Q.capital_pressure || 0) * Math.exp(-0.20 * crisis_decay_boost * Q.dt);
-    Q.trade_pressure = (Q.trade_pressure || 0) * Math.exp(-0.30 * crisis_decay_boost * Q.dt);
-    Q.price_pressure = (Q.price_pressure || 0) * Math.exp(-0.50 * crisis_decay_boost * Q.dt);
-}
-
-// === INFLATION DYNAMICS ===
 Q.dInflation = 0;
 
-// Phillips curve
 Q.dInflation += 0.016 * (Q.NAIRU - Q.unemployed);
-
-// Output gap
 Q.dInflation += 0.010 * Q.output_gap;
 
-// Fiscal effect
-// FIX: The tanh multiplier was neutering deficit spending at high unemployment,
-// collapsing it to ~0 when you need it most. Now deficit still has reduced
-// but non-zero effect even at high unemployment.
 if (Q.budget < 0) {
-    Q.deficitEffect = -Q.budget * 0.008;
-    // Old: fully zeroed at high unemployment. New: floored at 30% effectiveness.
-    const tanh_factor = (1 - Math.tanh((Q.unemployed - 10) / 5));
-    Q.deficitEffect *= Math.max(0.30, tanh_factor);
-    Q.dInflation += Q.deficitEffect;
+    const tanh_factor = Math.max(0.30, 1 - Math.tanh((Q.unemployed - 10) / 5));
+    Q.dInflation += -Q.budget * 0.008 * tanh_factor;
 }
 
-// Expectations anchoring
-// FIX: In deflation, expectations drift toward actual inflation (chasing disaster).
-// Now expectations are more resistant to chasing deflation below 0 —
-// they anchor more strongly, creating a genuine pull-back force.
-Q.inflation_expectations = Q.inflation_expectations || Q.inflation;
-if (Q.inflation < 0 && Q.inflation_expectations < 1.0) {
-    // In deflation: stronger anchoring pull toward 1% (mild positive expectation)
-    const anchor_target = Math.max(Q.inflation_expectations, 1.0);
-    Q.dInflation -= 0.08 * (Q.inflation - anchor_target); // Stronger than normal 0.05
-} else {
+if (Q.inflation < 0 && Q.inflation_expectations < 1.0)
+    Q.dInflation -= 0.08 * (Q.inflation - Math.max(Q.inflation_expectations, 1.0));
+else
     Q.dInflation -= 0.05 * (Q.inflation - Q.inflation_expectations);
-}
 
-// Cost-push factors
+if (!Q.expectations_anchored)
+    Q.dInflation += 0.06 * Math.max(0, Q.inflation_expectations - Q.inflation);
+
 Q.dInflation += (Q.price_pressure || 0) * 0.10;
 Q.dInflation += (Q.trade_pressure || 0) * 0.05;
-Q.dInflation += Q.passive_inflation;
+Q.dInflation += Q.inflation_momentum;
 
-// === DEFLATION EFFECTS ===
 if (Q.inflation < 0) {
-    Q.deflation_magnitude = Math.abs(Q.inflation);
-    Q.dampening = 0.7;
-
-    Q.base_deflation_effect = 0.015 * Q.deflation_magnitude / (1 + Q.deflation_magnitude * Q.dampening);
-    Q.dInflation -= Q.base_deflation_effect * (Q.unemployed / 20);
-
+    const dm = Math.abs(Q.inflation), damp = 0.7;
+    Q.dInflation -= (0.015 * dm / (1 + dm * damp)) * (Q.unemployed / 20);
     if (Q.inflation < -3) {
-        Q.deflation_severity = Q.deflation_magnitude - 3;
-        Q.deflation_debt_effect = 0.03 * Q.deflation_severity / (1 + Q.deflation_severity * Q.dampening);
-        Q.dInflation -= Math.min(Q.deflation_debt_effect, 0.2);
-
-        Q.consumption_defer = 0.008 * Q.deflation_severity / (1 + Q.deflation_severity * Q.dampening);
-        Q.demand_impulse -= Math.min(Q.consumption_defer, 0.10);
+        const ds = dm - 3;
+        Q.dInflation -= Math.min(0.03 * ds / (1 + ds * damp), 0.2);
+        Q.demand_impulse = (Q.demand_impulse || 0) - Math.min(0.008 * ds / (1 + ds * damp), 0.10);
     }
-
-    if (Q.inflation < -6) {
-        Q.severe_deflation = Q.deflation_magnitude - 6;
-        Q.banking_stress = 0.05 * Q.severe_deflation / (1 + Q.severe_deflation * Q.dampening);
-        Q.capital_pressure += Math.min(Q.banking_stress, 0.15);
-    }
+    if (Q.inflation < -6)
+        Q.capital_pressure += Math.min(0.05 * (dm - 6) / (1 + (dm - 6) * damp), 0.15);
 }
 
 Q.dInflation += (Math.random() - 0.5) * 2 * 0.02;
 
-// Expectation update
-// FIX: In deflation, slow down the expectation-chasing so expectations don't
-// fully converge to disaster and destroy the anchoring force.
-if (Q.inflation < 0) {
-    // Only drift expectations 40% as fast toward deflation
-    Q.inflation_expectations += 0.016 * (Q.inflation - Q.inflation_expectations) * Q.dt;
-} else {
-    Q.inflation_expectations += 0.04 * (Q.inflation - Q.inflation_expectations) * Q.dt;
-}
+// ============================================================
+// SECTION 10 — UNEMPLOYMENT DYNAMICS
+// ============================================================
 
-// === UNEMPLOYMENT DYNAMICS ===
 Q.dUnemployment = 0;
-
-// Okun's law
 Q.growth_gap = Q.economic_growth - Q.POTENTIAL_GROWTH;
-if (Q.growth_gap < 0) {
-    Q.dUnemployment -= 0.032 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.12);
-} else {
-    Q.dUnemployment -= 0.020 * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.12);
-}
+Q.dUnemployment -= (Q.growth_gap < 0 ? 0.032 : 0.020)
+    * Q.growth_gap / (1 + Math.abs(Q.growth_gap) * 0.12);
 
-// High inflation unemployment effect
 Q.dUnemployment += 0.005 * Math.max(0, Q.inflation - 6);
-
-// Demand and supply effects
 Q.dUnemployment -= Q.total_demand * 0.35;
 Q.dUnemployment += Math.min((Q.capital_pressure || 0) * 0.06, 1.5);
 Q.dUnemployment += Math.min((Q.trade_pressure || 0) * 0.04, 1.0);
 Q.dUnemployment += Q.labor_churn;
 
-// === DEFLATION UNEMPLOYMENT EFFECTS ===
+if (Q.phase === "stagflation")
+    Q.dUnemployment += Q.supply_cost_drag * 0.4;
+
 if (Q.inflation < 0) {
-    Q.deflation_magnitude = Math.abs(Q.inflation);
-    Q.dampening = 0.7;
-
-    Q.deflation_base_u = 0.03 * Q.deflation_magnitude / (1 + Q.deflation_magnitude * Q.dampening);
-    Q.deflation_base_u *= (1 - Math.exp(-Q.unemployed / 20));
-    Q.dUnemployment += Math.min(Q.deflation_base_u, 0.6);
-
-    if (Q.inflation < -5) {
-        Q.severe_deflation_u = Q.deflation_magnitude - 5;
-        Q.deflation_unemployment = 0.05 * Q.severe_deflation_u / (1 + Q.severe_deflation_u * Q.dampening);
-        Q.dUnemployment += Math.min(Q.deflation_unemployment, 0.4);
-    }
-
-    if (Q.inflation < -8) {
-        Q.extreme_deflation_u = Q.deflation_magnitude - 8;
-        Q.depression_unemployment = 0.07 * Q.extreme_deflation_u / (1 + Q.extreme_deflation_u * Q.dampening);
-        Q.dUnemployment += Math.min(Q.depression_unemployment, 0.3);
-    }
+    const dm = Math.abs(Q.inflation), damp = 0.7;
+    Q.dUnemployment += Math.min((0.03 * dm / (1 + dm * damp))
+        * (1 - Math.exp(-Q.unemployed / 20)), 0.6);
+    if (Q.inflation < -5)
+        Q.dUnemployment += Math.min(0.05 * (dm-5) / (1 + (dm-5) * damp), 0.4);
+    if (Q.inflation < -8)
+        Q.dUnemployment += Math.min(0.07 * (dm-8) / (1 + (dm-8) * damp), 0.3);
 }
 
 Q.dUnemployment += (Math.random() - 0.5) * 2 * 0.01;
-
 Q.dUnemployment = Math.max(-2, Math.min(2, Q.dUnemployment));
 
-// === GROWTH DYNAMICS ===
+// ============================================================
+// SECTION 11 — GROWTH DYNAMICS
+// ============================================================
+
 Q.dGrowth = 0;
+Q.dGrowth += 0.020 * (Q.output_gap / (1 + Math.abs(Q.output_gap) * 0.25));
+Q.dGrowth += Q.business_cycle * 0.05;
+Q.dGrowth += Q.productivity_trend * 0.4;
 
-// Output gap effect
-Q.output_gap_dampened = Q.output_gap / (1 + Math.abs(Q.output_gap) * 0.25);
-Q.dGrowth += 0.020 * Q.output_gap_dampened;
+if (Q.inflation > 6) Q.dGrowth -= Math.min(0.015 * (Q.inflation - 6), 2.0);
 
-// Business cycle and productivity
-Q.dGrowth += Q.cycle_growth_effect;
-Q.dGrowth += Q.productivity_growth;
-
-// High inflation drag
-if (Q.inflation > 6) {
-    Q.dGrowth -= Math.min(0.015 * (Q.inflation - 6), 2.0);
-}
-
-// === DEFLATION DAMAGE ===
 if (Q.inflation < -2) {
-    Q.deflation_magnitude = Math.abs(Q.inflation);
-    Q.dampening = 0.7;
-    Q.deflation_severity = Q.deflation_magnitude - 2;
-
-    Q.deflation_drag = 0.03 * Q.deflation_severity / (1 + Q.deflation_severity * Q.dampening);
-    Q.dGrowth -= Math.min(Q.deflation_drag, 0.8);
-
+    const dm = Math.abs(Q.inflation), damp = 0.7;
+    Q.dGrowth -= Math.min(0.03 * (dm-2) / (1 + (dm-2) * damp), 0.8);
     if (Q.inflation < -5) {
-        Q.severe_deflation_g = Q.deflation_magnitude - 5;
-
-        Q.depression_effect = 0.05 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * Q.dampening);
-        Q.dGrowth -= Math.min(Q.depression_effect, 0.7);
-
-        Q.investment_collapse = 0.010 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * Q.dampening);
-        Q.supply_impulse -= Math.min(Q.investment_collapse, 0.2);
-
-        Q.deflation_trade = 0.020 * Q.severe_deflation_g / (1 + Q.severe_deflation_g * Q.dampening);
-        Q.trade_pressure += Math.min(Q.deflation_trade, 0.3);
+        const ds5 = dm - 5;
+        Q.dGrowth -= Math.min(0.05 * ds5 / (1 + ds5 * damp), 0.7);
+        Q.supply_impulse = (Q.supply_impulse||0) - Math.min(0.010 * ds5 / (1 + ds5*damp), 0.2);
+        Q.trade_pressure += Math.min(0.020 * ds5 / (1 + ds5 * damp), 0.3);
     }
-
     if (Q.inflation < -8) {
-        Q.catastrophic_deflation = Q.deflation_magnitude - 8;
-        Q.deflation_catastrophe = 0.05 * Q.catastrophic_deflation / (1 + Q.catastrophic_deflation * Q.dampening);
-        Q.dGrowth -= Math.min(Q.deflation_catastrophe, 0.5);
-        Q.capital_pressure += Math.min(0.03, 0.03);
+        Q.dGrowth -= Math.min(0.05 * (dm-8) / (1 + (dm-8) * damp), 0.5);
+        Q.capital_pressure += 0.03;
     }
 }
 
-// Inflation volatility penalty
-Q.inflation_penalty = 0.003 * Math.pow(Math.abs(Q.inflation), 1.5);
-Q.dGrowth -= Math.min(Q.inflation_penalty, 0.7);
+Q.dGrowth -= Math.min(0.003 * Math.pow(Math.abs(Q.inflation), 1.5), 0.7);
+const u_gap_g = Math.max(0, Q.unemployed - Q.NAIRU);
+Q.dGrowth -= Math.min(0.004 * u_gap_g / (1 + u_gap_g * 0.10), 1.5);
+if (Q.unemployed > 10)
+    Q.dGrowth -= Math.min(0.007 * (Q.unemployed-10) / (1 + (Q.unemployed-10) * 0.18), 1.0);
 
-// Unemployment drag
-Q.unemployment_gap = Math.max(0, Q.unemployed - Q.NAIRU);
-Q.dGrowth -= Math.min(0.004 * Q.unemployment_gap / (1 + Q.unemployment_gap * 0.10), 1.5);
-
-// Severe unemployment crisis
-if (Q.unemployed > 10) {
-    Q.dGrowth -= Math.min(0.007 * (Q.unemployed - 10) / (1 + (Q.unemployed - 10) * 0.18), 1.0);
-}
-
-// Overheating penalty
 Q.dGrowth -= 0.007 * Q.overheating;
+if (Q.economic_growth > 8) Q.dGrowth -= 0.005 * (Q.economic_growth - 8);
 
-// Extreme growth drag
-if (Q.economic_growth > 8) {
-    Q.dGrowth -= 0.005 * (Q.economic_growth - 8);
-}
-
-// Demand and supply impulses
 Q.dGrowth += Q.total_demand * 1.3;
 Q.dGrowth += Q.investment_effect * 1.6;
-
-// External pressures
 Q.dGrowth -= Math.min((Q.trade_pressure || 0) * 0.07, 1.5);
 Q.dGrowth -= Math.min((Q.capital_pressure || 0) * 0.08, 1.5);
-
-// Random noise
 Q.dGrowth += (Math.random() - 0.5) * 2 * 0.015;
-
 Q.dGrowth = Math.max(-3, Math.min(3, Q.dGrowth));
 
-// === TIERED EMERGENCY STABILIZERS ===
-// FIX: Old stabilizers only fired at -9/-9/25 — by then the system was in
-// irreversible freefall. New system has three tiers: early warning, crisis, severe.
-// Each tier is proportional so there's no jarring discontinuity.
+// ============================================================
+// SECTION 12 — TIERED EMERGENCY STABILIZERS
+// ============================================================
 
-// --- INFLATION STABILIZERS ---
 if (Q.inflation < -4) {
-    // Tier 1: Early crisis (-4 to -7)
-    const t1_strength = Math.min(1, (-4 - Q.inflation) / 3);
-    Q.dInflation += 0.06 * t1_strength;
-    Q.demand_impulse += 0.03 * t1_strength;
+    const t1 = Math.min(1, (-4 - Q.inflation) / 3);
+    Q.dInflation += 0.06 * t1;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.03 * t1;
 }
 if (Q.inflation < -7) {
-    // Tier 2: Severe crisis (-7 to -9)
-    const t2_strength = Math.min(1, (-7 - Q.inflation) / 2);
-    Q.dInflation += 0.10 * t2_strength;
-    Q.price_pressure += 0.15 * t2_strength;
-    Q.demand_impulse += 0.05 * t2_strength;
+    const t2 = Math.min(1, (-7 - Q.inflation) / 2);
+    Q.dInflation += 0.10 * t2;
+    Q.price_pressure = (Q.price_pressure||0) + 0.15 * t2;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.05 * t2;
 }
 if (Q.inflation <= -9 && Q.inflation_expectations > Q.inflation + 2) {
-    // Tier 3: Emergency (original, kept for catastrophic scenario)
-    Q.emergency_reflation = 0.15 * (Q.inflation_expectations - Q.inflation);
-    Q.dInflation += Q.emergency_reflation;
-    Q.demand_impulse += 0.08;
-    Q.price_pressure += 0.25;
-    Q.fiscal_stance += -0.08;
+    Q.dInflation += 0.15 * (Q.inflation_expectations - Q.inflation);
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.08;
+    Q.price_pressure = (Q.price_pressure||0) + 0.25;
+    Q.fiscal_stance = (Q.fiscal_stance||0) - 0.08;
 }
 
-// --- GROWTH STABILIZERS ---
 if (Q.economic_growth < -4) {
-    // Tier 1
-    const t1_strength = Math.min(1, (-4 - Q.economic_growth) / 5);
-    Q.dGrowth += 0.08 * t1_strength;
-    Q.demand_impulse += 0.05 * t1_strength;
+    const t1 = Math.min(1, (-4 - Q.economic_growth) / 5);
+    Q.dGrowth += 0.08 * t1;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.05 * t1;
 }
 if (Q.economic_growth < -7) {
-    // Tier 2
-    const t2_strength = Math.min(1, (-7 - Q.economic_growth) / 2);
-    Q.dGrowth += 0.12 * t2_strength;
-    Q.demand_impulse += 0.08 * t2_strength;
+    const t2 = Math.min(1, (-7 - Q.economic_growth) / 2);
+    Q.dGrowth += 0.12 * t2;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.08 * t2;
 }
 if (Q.economic_growth < -9) {
-    // Tier 3: Emergency (original, kept)
-    Q.stabilizer_boost = (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.05;
-    Q.dGrowth += Q.stabilizer_boost;
-    Q.demand_impulse += 0.15;
+    Q.dGrowth += (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.05;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.15;
 }
 
-// --- UNEMPLOYMENT STABILIZERS ---
 if (Q.unemployed > 18) {
-    // Tier 1 (was only at >25)
-    const t1_strength = Math.min(1, (Q.unemployed - 18) / 7);
-    Q.dUnemployment -= 0.10 * t1_strength;
+    Q.dUnemployment -= 0.10 * Math.min(1, (Q.unemployed - 18) / 7);
 }
 if (Q.unemployed > 25) {
-    // Tier 2 (original threshold, stronger)
-    Q.unemployment_stabilizer = -(Q.unemployed - 35) * 0.08;
-    Q.dUnemployment += Q.unemployment_stabilizer;
+    Q.dUnemployment += -(Q.unemployed - 35) * 0.08;
 }
 
-// === APPLY CHANGES ===
-// FIX: Apply asymmetric damping — in crisis, allow recovery changes to pass
-// through with less dampening while still damping deterioration.
-// This breaks the symmetric 0.86 that was equally throttling recovery.
-Q.apply_damping = 0.86;
-if (Q.is_in_crisis) {
-    // In crisis: recovery-direction changes get less dampening (0.95),
-    // deterioration-direction changes keep normal dampening (0.86).
-    Q.inflation_damping = (Q.dInflation > 0) ? 0.95 : Q.apply_damping;
-    Q.unemployment_damping = (Q.dUnemployment < 0) ? 0.95 : Q.apply_damping;
-    Q.growth_damping = (Q.dGrowth > 0) ? 0.95 : Q.apply_damping;
-} else {
-    Q.inflation_damping = Q.apply_damping;
-    Q.unemployment_damping = Q.apply_damping;
-    Q.growth_damping = Q.apply_damping;
-}
+// ============================================================
+// SECTION 13 — APPLY CHANGES
+// ============================================================
 
-Q.inflation += Q.dInflation * Q.dt * Q.inflation_damping;
-Q.unemployed += Q.dUnemployment * Q.dt * Q.unemployment_damping;
-Q.economic_growth += Q.dGrowth * Q.dt * Q.growth_damping;
+const in_crisis = (Q.phase === "depression" || Q.phase === "hyperinflation");
+Q.inflation       += Q.dInflation    * Q.dt * ((in_crisis && Q.dInflation > 0)    ? 0.95 : 0.86);
+Q.unemployed      += Q.dUnemployment * Q.dt * ((in_crisis && Q.dUnemployment < 0) ? 0.95 : 0.86);
+Q.economic_growth += Q.dGrowth       * Q.dt * ((in_crisis && Q.dGrowth > 0)       ? 0.95 : 0.86);
 
-// === DECAY IMPULSES ===
-Q.demand_impulse = (Q.demand_impulse || 0) * Math.exp(-0.35 * Q.dt);
-Q.supply_impulse = (Q.supply_impulse || 0) * Math.exp(-0.25 * Q.dt);
-Q.price_pressure = (Q.price_pressure || 0) * Math.exp(-0.5 * Q.dt);
-Q.trade_pressure = (Q.trade_pressure || 0) * Math.exp(-0.3 * Q.dt);
-Q.capital_pressure = (Q.capital_pressure || 0) * Math.exp(-0.2 * Q.dt);
-Q.fiscal_stance = (Q.fiscal_stance || 0) * Math.exp(-0.15 * Q.dt);
-Q.distribution_shift = (Q.distribution_shift || 0) * Math.exp(-0.08 * Q.dt);
+// ============================================================
+// SECTION 14 — DECAY (phase-adjusted rates)
+// ============================================================
 
-// === ECONOMIC CONSTRAINTS ===
+Q.demand_impulse    = (Q.demand_impulse    || 0) * Math.exp(-decay_demand  * Q.dt);
+Q.supply_impulse    = (Q.supply_impulse    || 0) * Math.exp(-decay_supply  * Q.dt);
+Q.price_pressure    = (Q.price_pressure    || 0) * Math.exp(-decay_price   * Q.dt);
+Q.trade_pressure    = (Q.trade_pressure    || 0) * Math.exp(-decay_trade   * Q.dt);
+Q.capital_pressure  = (Q.capital_pressure  || 0) * Math.exp(-decay_capital * Q.dt);
+Q.fiscal_stance     = (Q.fiscal_stance     || 0) * Math.exp(-decay_fiscal  * Q.dt);
+Q.distribution_shift= (Q.distribution_shift|| 0) * Math.exp(-decay_distrib * Q.dt);
+
+// ============================================================
+// SECTION 15 — CONSTRAINTS
+// ============================================================
+
 if (!Q.math_broken) {
-    Q.inflation = Math.max(-12, Math.min(99, Q.inflation));
-    Q.unemployed = Math.max(0, Math.min(75, Q.unemployed));
-    Q.economic_growth = Math.max(-15, Math.min(20, Q.economic_growth));
+    Q.inflation          = Math.max(-12, Math.min(99, Q.inflation));
+    Q.unemployed         = Math.max(0,   Math.min(75, Q.unemployed));
+    Q.economic_growth    = Math.max(-15, Math.min(20, Q.economic_growth));
     Q.inflation_expectations = Math.max(-9, Math.min(99, Q.inflation_expectations));
-    Q.budget = Math.max(-50, Math.min(50, Q.budget));
-    Q.capital_pressure = Math.max(0, Math.min(1.0, Q.capital_pressure));
+    Q.budget             = Math.max(-50, Math.min(50, Q.budget));
+    Q.capital_pressure   = Math.max(0,   Math.min(1.0, Q.capital_pressure));
+    Q.credit_expansion   = Math.max(0,   Math.min(0.8, Q.credit_expansion));
+    Q.supply_cost_drag   = Math.max(0,   Math.min(0.5, Q.supply_cost_drag));
 } else {
-    Q.inflation = Q.impossible_add(Q.inflation, 0);
-    Q.unemployed = Q.impossible_percentage(Q.unemployed);
+    Q.inflation       = Q.impossible_add(Q.inflation, 0);
+    Q.unemployed      = Q.impossible_percentage(Q.unemployed);
     Q.economic_growth = Q.impossible_subtract(Q.economic_growth, 0);
-    Q.budget = Q.impossible_multiply(Q.budget, 1);
-    Q.capital_pressure = Q.impossible_add(Q.capital_pressure, 0);
+    Q.budget          = Q.impossible_multiply(Q.budget, 1);
+    Q.capital_pressure= Q.impossible_add(Q.capital_pressure, 0);
 }
-
 
 
 
