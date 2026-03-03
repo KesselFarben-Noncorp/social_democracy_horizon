@@ -1301,229 +1301,560 @@ for (var rel of relations) {
 
     Q.ideology_elasticity = 1.7;
 
-    Q.ideology_caps = {
-        nsdap: {
-            base: Q.nsdap_banned ? 0 : (Q.nationalism_factor * 10) + (Q.unrest_factor * 23),
-            workers: 0.70,      // Labor movement resistance
-            old_middle: 1.35,   // Petty bourgeoisie - prime target
-            new_middle: 1.20,   // White collar - susceptible
-            rural: 1.45,        // Farmers - very susceptible
-            unemployed: 1.60,   // Desperate - most susceptible
-            catholics: 0.35     // Religious/cultural resistance
-        },
-    
-        dnvp: {
-            base: Q.dnvp_banned ? 0 : (
-                Q.dnvp_line === 1 ? 
-                    (Q.nationalism_factor * 28 + Q.pro_republic_factor * 30) : 
-                    Q.nationalism_factor * 56
-            ),
-            workers: 0.30,      // Hostile to organized labor
-            old_middle: 1.40,   // Traditional conservatives
-            new_middle: 0.90,   // Modern professionals less interested
-            rural: 1.60,        // Junker/landed aristocracy base
-            unemployed: 0.50,   // Seen as elite party
-            catholics: 0.40     // Protestant party
-        },
-    
-        dvp: {
-            base: Q.dvp_banned ? 0 : (
-                (Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor) * 62
-            ),
-            workers: 0.40,      // Business party
-            old_middle: 1.30,   // Small business owners
-            new_middle: 1.40,   // Professionals, managers - core base
-            rural: 0.70,        // Limited rural appeal
-            unemployed: 0.35,   // Free market party
-            catholics: 0.75     // Moderate appeal
-        },
-    
-        wp: {
-            base: Q.wp_banned ? 0 : (Q.pro_republic_factor * 37) + (Q.inflation * 0.18),
-            workers: 0.50,      // Working class less interested
-            old_middle: 1.50,   // Rentiers, pensioners - core base
-            new_middle: 1.30,   // Salaried employees
-            rural: 0.60,        // Urban party
-            unemployed: 0.80,   // Some appeal to desperate
-            catholics: 0.70     // Secular-leaning
-        },
-    
-        cnbl: {
-            base: Q.cnbl_banned ? 0 : (
-                (Q.pro_republic_factor * 23 + Q.nationalism_factor * 25) + (Q.rural * 0.85)
-            ),
-            workers: 0.25,      // Agrarian party
-            old_middle: 0.60,   // Urban middle class not interested
-            new_middle: 0.40,   
-            rural: 1.80,        // Farmers - absolute core base
-            unemployed: 0.30,   
-            catholics: 0.50     // Regional/Protestant focus
-        },
-    
-        kpd: {
-            base: Q.kpd_banned ? 0 : Q.socialism_factor * 45,
-            workers: 1.50,      // Industrial proletariat - core base
-            old_middle: 0.20,   // Class enemy
-            new_middle: 0.35,   // Petit bourgeois - hostile
-            rural: 0.15,        // Peasants - very hostile
-            unemployed: 1.40,   // Lumpenproletariat - secondary base
-            catholics: 0.60     // Religious barrier
-        },
-    
-        sapd: {
-            base: Q.sapd_banned ? 0 : Q.socialism_factor * 10,
-            workers: 1.30,      // Left-wing workers
-            old_middle: 0.25,   
-            new_middle: 0.40,   // Some intellectual appeal
-            rural: 0.20,        
-            unemployed: 1.20,   
-            catholics: 0.55     
-        },
+     Q.ideology_caps = {
+    nsdap: {
+        base: Q.nsdap_banned ? 0 : (() => {
+            let nat = Q.nationalism_factor;
+            let unr = Q.unrest_factor;
+            // Nationalism factor scales cap heavily
+            return (nat * 10 * 2.2) + (unr * 23 * 1.8);
+        })(),
+        workers: (() => {
+            let m = 0.70;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.35;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.25);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 1.20;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.20);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 1.45;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.22);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 1.60;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        catholics: 0.35
+    },
 
-        csrp: {
-            base: Q.csrp_banned ? 0 : Q.pro_republic_factor * 16,
-            workers: 0.20,      // Left-wing workers
-            old_middle: 0.05,   
-            new_middle: 0.15,   // Some intellectual appeal
-            rural: 0.10,        
-            unemployed: 0.30,   
-            catholics: 0.65     
-        },
+    dnvp: {
+        base: Q.dnvp_banned ? 0 : (() => {
+            let nat = Q.nationalism_factor;
+            let rep = Q.pro_republic_factor;
+            let scale = Q.dnvp_line === 1 ? 
+                (nat * 28 * 2.0 + rep * 30 * 1.8) :
+                Q.dnvp_line === 3 ?
+                (nat * 56 * 2.5) :
+                (nat * 56 * 2.2);
+            return scale;
+        })(),
+        workers: (() => {
+            let m = 0.30;
+            if (Q.peoples_party === 1) m *= 0.90;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.40;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.28);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.90;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.18);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 1.60;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.30);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 0.50;
+            if (Q.peoples_party === 1) m *= 0.92;
+            return m;
+        })(),
+        catholics: 0.40
+    },
+
+    dvp: {
+        base: Q.dvp_banned ? 0 : (() => {
+            let factor = Q.dvp_right_shift ? Q.nationalism_factor : Q.pro_republic_factor;
+            // Economic stability baked into base cap
+            let econ = Math.max(0, (100 - Math.abs(Q.inflation) - Q.unemployed) / 100);
+            let scale = Q.dvp_right_shift ? 2.2 : 1.8;
+            return factor * 62 * scale * (1 + econ * 0.30);
+        })(),
+        workers: (() => {
+            let m = 0.40;
+            if (Q.peoples_party === 1) m *= 0.92;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.30;
+            if (Q.dvp_right_shift) {
+                let nat = Math.min(Q.nationalism / 100, 1);
+                m *= (1 + nat * 0.22);
+            }
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 1.40;
+            if (Q.dvp_right_shift) {
+                let nat = Math.min(Q.nationalism / 100, 1);
+                m *= (1 + nat * 0.18);
+            }
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 0.70;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 0.35;
+            if (Q.peoples_party === 1) m *= 0.92;
+            return m;
+        })(),
+        catholics: 0.75
+    },
+
+    wp: {
+        base: Q.wp_banned ? 0 : (() => {
+            let rep = Q.pro_republic_factor;
+            // Middle class size and inflation sensitivity baked in
+            let middle_norm = (Q.old_middle + Q.new_middle) / 102;
+            let crisis = 1 + (Q.inflation * 0.18) - (Q.unemployed * 0.12);
+            return rep * 37 * middle_norm * Math.max(0.3, crisis);
+        })(),
+        workers: 0.50,
+        old_middle: (() => {
+            let m = 1.50;
+            // Rentiers hit harder by inflation
+            m *= (1 + Math.max(0, Q.inflation * 0.008));
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 1.30;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        rural: 0.60,
+        unemployed: 0.80,
+        catholics: 0.70
+    },
+
+    cnbl: {
+        base: Q.cnbl_banned ? 0 : (() => {
+            let rep = Q.pro_republic_factor;
+            let nat = Q.nationalism_factor;
+            // Rural population baked into base
+            return (rep * 23 + nat * 25) * (1 + Q.rural * 0.012);
+        })(),
+        workers: 0.25,
+        old_middle: 0.60,
+        new_middle: 0.40,
+        rural: (() => {
+            let m = 1.80;
+            // Stronger cap when rural population is high
+            m *= (1 + Math.min(Q.rural / 100, 0.4));
+            return m;
+        })(),
+        unemployed: 0.30,
+        catholics: 0.50
+    },
+
+    kpd: {
+        base: Q.kpd_banned ? 0 : (() => {
+            let soc = Q.socialism_factor;
+            let unr = Q.unrest_factor;
+            return soc * 45 * 2.2 * (1 + unr * 0.15);
+        })(),
+        workers: (() => {
+            let m = 1.50;
+            if (Q.peoples_party === 1) m *= 1.08;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 0.20;
+            if (Q.peoples_party === 1) m *= 0.92;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.35;
+            if (Q.peoples_party === 1) m *= 0.92;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 0.15;
+            if (Q.peoples_party === 1) m *= 0.92;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 1.40;
+            if (Q.peoples_party === 1) m *= 1.08;
+            return m;
+        })(),
+        catholics: 0.60
+    },
+
+    sapd: {
+        base: Q.sapd_banned ? 0 : (() => {
+            let soc = Q.socialism_factor;
+            let unr = Q.unrest_factor;
+            return soc * 10 * 2.0 * (1 + unr * 0.12);
+        })(),
+        workers: (() => {
+            let m = 1.30;
+            if (Q.peoples_party === 1) m *= 1.07;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 0.25;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.40;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 0.20;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 1.20;
+            if (Q.peoples_party === 1) m *= 1.07;
+            return m;
+        })(),
+        catholics: 0.55
+    },
+
+    csrp: {
+        base: Q.csrp_banned ? 0 : Q.pro_republic_factor * 16,
+        workers: 0.20,
+        old_middle: 0.05,
+        new_middle: 0.15,
+        rural: 0.10,
+        unemployed: 0.30,
+        catholics: 0.65
+    },
+
+    vrp: {
+        base: Q.vrp_banned ? 0 : (() => {
+            return Q.pro_republic_factor * 10 + Math.max(0, Q.inflation) * 0.05;
+        })(),
+        workers: 0.25,
+        old_middle: 0.01,
+        new_middle: 0.10,
+        rural: 0.04,
+        unemployed: 0.40,
+        catholics: 0.20
+    },
+
+    srpd: {
+        base: Q.srpd_banned ? 0 : (() => {
+            let soc = Q.socialism_factor;
+            let rep = Q.pro_republic_factor;
+            let rb = Q.rb_strength * 0.0008;
+            return (soc * 13 * 2.0 + rep * 29 * 1.8 + rb);
+        })(),
+        workers: (() => {
+            let m = 1.25;
+            if (Q.peoples_party === 1) m *= 1.06;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 0.80;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.90;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 0.70;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 1.10;
+            if (Q.peoples_party === 1) m *= 1.06;
+            return m;
+        })(),
+        catholics: 1.00
+    },
+
+    spd: {
+        base: Q.spd_banned ? 0 : (() => {
+            let soc = Q.socialism_factor;
+            let rep = Q.pro_republic_factor;
+
+            if (Q.peoples_party === 1) {
+                soc *= 0.80;
+                rep *= 1.15;
+            }
+
+            if (Q.ideology === 'left') {
+                soc *= 1.15;
+                rep *= 0.90;
+            } else if (Q.ideology === 'reformist') {
+                rep *= 1.10;
+                soc *= 0.90;
+            } else if (Q.ideology === 'neorev') {
+                soc *= 1.05;
+                rep *= 1.05;
+            }
+
+            return (rep * 110) + (soc * 49);
+        })(),
+        workers: (() => {
+            let m = 1.20;
+            if (Q.peoples_party === 1) m *= 0.88;
+            if (Q.ideology === 'left')      m *= 1.12;
+            if (Q.ideology === 'reformist') m *= 0.92;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 0.70;
+            if (Q.peoples_party === 1) m *= 1.15;
+            if (Q.ideology === 'left')      m *= 0.88;
+            if (Q.ideology === 'reformist') m *= 1.10;
+            if (Q.ideology === 'neorev')    m *= 1.05;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.85;
+            if (Q.peoples_party === 1) m *= 1.15;
+            if (Q.ideology === 'left')      m *= 0.88;
+            if (Q.ideology === 'reformist') m *= 1.10;
+            if (Q.ideology === 'neorev')    m *= 1.05;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 0.80;
+            if (Q.peoples_party === 1) m *= 1.12;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 1.10;
+            if (Q.peoples_party === 1) m *= 0.88;
+            if (Q.ideology === 'left') m *= 1.10;
+            return m;
+        })(),
+        catholics: 0.90
+    },
+
+    ddp: {
+        base: Q.ddp_banned ? 0 : (() => {
+            let rep = Q.pro_republic_factor;
+            let nat = Q.nationalism_factor;
+            // Education bonuses baked into base cap
+            let edu_bonus = (Q.education_science || 0) * 0.03
+                          + (Q.secularized || 0) * 0.05
+                          + (Q.science || 0) * 0.10
+                          + (Q.womens_rights || 0) * 0.05;
+            if (!Q.ddp_name || Q.ddp_name === "DDP") {
+                let sec_bonus = (100 - Q.catholics) / 100 * 0.10;
+                let nat_pen = (Q.nationalism / 100) * 0.15;
+                return (rep * 59 * (1 + sec_bonus - nat_pen + edu_bonus));
+            } else {
+                // DStP
+                let jungdo = (Q.jungdo_strength || 0) * 0.0003;
+                let edu_pen = (Q.education_science || 0) * 0.01
+                            + (Q.secularized || 0) * 0.05
+                            + (Q.science || 0) * 0.10
+                            + (Q.womens_rights || 0) * 0.05;
+                return (rep * 0.42 + nat * 0.25 + jungdo - edu_pen) * 59;
+            }
+        })(),
+        workers: (() => {
+            let m = (!Q.ddp_name || Q.ddp_name === "DDP") ? 0.60 : 0.50;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = (!Q.ddp_name || Q.ddp_name === "DDP") ? 0.85 : 1.05;
+            if (Q.peoples_party === 1) m *= 1.08;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = (!Q.ddp_name || Q.ddp_name === "DDP") ? 1.40 : 1.10;
+            if (Q.peoples_party === 1) m *= 1.08;
+            // Education science bonus to new middle cap
+            if (Q.education_science >= 2 || Q.womens_rights >= 3) m *= 1.05;
+            return m;
+        })(),
+        rural: (() => {
+            let m = (!Q.ddp_name || Q.ddp_name === "DDP") ? 0.50 : 1.15;
+            if (Q.peoples_party === 1) m *= 1.05;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 0.55;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        catholics: 0.70
+    },
+
+    z: {
+        base: Q.z_banned ? 0 : (() => {
+            let rep = Q.pro_republic_factor;
+            let cath_bonus = Q.catholics / 12;
+            let leader_mod = Q.z_party_leader === "Kaas" ? 0.94 :
+                             Q.z_party_leader === "Joos" ? 1.06 : 1.0;
+            let gov_mod = Q.z_in_government ? 1.12 : 0.93;
+            return (rep * 85 + cath_bonus) * leader_mod * gov_mod;
+        })(),
+        workers: (() => {
+            let m = 0.80;
+            if (Q.z_party_leader !== "Kaas") m *= 1.03;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.10;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.90;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 1.05;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 0.70;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        catholics: (() => {
+            // Catholic cap scales with actual catholic population
+            let m = 1.80;
+            m *= (1 + Math.min(Q.catholics / 100, 0.4));
+            return m;
+        })()
+    },
+
+    bvp: {
+        base: Q.bvp_banned ? 0 : (() => {
+            let rep = Q.pro_republic_factor;
+            let cath = Q.catholics * 0.05;
+            let rur  = Q.rural * 0.03;
+            return Math.min(4.5, rep * 30 + cath + rur);
+        })(),
+        workers: (() => {
+            let m = 0.80;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.10;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.90;
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 1.15;
+            m *= (1 + Math.min(Q.rural / 100, 0.25));
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 0.70;
+            if (Q.peoples_party === 1) m *= 0.94;
+            return m;
+        })(),
+        catholics: (() => {
+            let m = 1.70;
+            m *= (1 + Math.min(Q.catholics / 100, 0.35));
+            return m;
+        })()
+    },
+
+    csvd: {
+        base: Q.csvd_banned ? 0 : (() => {
+            let nat = Q.nationalism_factor;
+            // csvd_flee bonus already handled in ideology_factor switch
+            // but nationalism scales the cap ceiling
+            return nat * 26 * 2.3;
+        })(),
+        workers: (() => {
+            let m = 0.50;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.20;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.22);
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 1.10;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.18);
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 1.30;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.25);
+            if (Q.peoples_party === 1) m *= 0.96;
+            return m;
+        })(),
+        unemployed: (() => {
+            let m = 0.60;
+            if (Q.peoples_party === 1) m *= 0.93;
+            return m;
+        })(),
+        catholics: 0.25
+    },
+
+    other: {
+        base: Q.other_banned ? 0 : (() => {
+            return (Q.nationalism_factor + Q.pro_republic_factor) * 6;
+        })(),
+        workers: 1.00,
+        old_middle: 1.00,
+        new_middle: 1.00,
+        rural: 1.00,
+        unemployed: 1.00,
+        catholics: 1.00
+    }
+};
 
 
-        vrp: {
-            base: Q.vrp_banned ? 0 : Q.pro_republic_factor * 10 + Q.inflation * 0.05,
-            workers: 0.25,      
-            old_middle: 0.01,   
-            new_middle: 0.10,  
-            rural: 0.04,        
-            unemployed: 0.40,   
-            catholics: 0.20     
-        },
-    
-        srpd: {
-            base: Q.srpd_banned ? 0 : (
-                (Q.socialism_factor * 13) + (Q.rb_strength * 0.0008) + (Q.pro_republic_factor * 29)
-            ),
-            workers: 1.25,      // Social democratic workers
-            old_middle: 0.80,   
-            new_middle: 0.90,   
-            rural: 0.70,        
-            unemployed: 1.10,   
-            catholics: 1.00     // Less religious barrier than SPD
-        },
-    
-        spd: {
-            base: Q.spd_banned ? 0 : (() => {
-                let soc = Q.socialism_factor;
-                let rep = Q.pro_republic_factor;
 
-                if (Q.peoples_party === 1) {
-                    soc *= 0.80;
-                    rep *= 1.15;
-                }
-
-                if (Q.ideology === 'left') {
-                    soc *= 1.15;
-                    rep *= 0.90;
-                } else if (Q.ideology === 'reformist') {
-                    rep *= 1.10;
-                    soc *= 0.90;
-                } else if (Q.ideology === 'neorev') {
-                    soc *= 1.05;
-                    rep *= 1.05;
-                }
-
-                return (rep * 110) + (soc * 49);
-            })(),
-
-            workers: (() => {
-                let m = 1.20;
-                if (Q.peoples_party === 1) m *= 0.88;
-                if (Q.ideology === 'left')      m *= 1.12;
-                if (Q.ideology === 'reformist') m *= 0.92;
-                return m;
-            })(),
-            old_middle: (() => {
-                let m = 0.70;
-                if (Q.peoples_party === 1) m *= 1.15;
-                if (Q.ideology === 'left')      m *= 0.88;
-                if (Q.ideology === 'reformist') m *= 1.10;
-                if (Q.ideology === 'neorev')    m *= 1.05;
-                return m;
-            })(),
-            new_middle: (() => {
-                let m = 0.85;
-                if (Q.peoples_party === 1) m *= 1.15;
-                if (Q.ideology === 'left')      m *= 0.88;
-                if (Q.ideology === 'reformist') m *= 1.10;
-                if (Q.ideology === 'neorev')    m *= 1.05;
-                return m;
-            })(),
-            rural: (() => {
-                let m = 0.80;
-                if (Q.peoples_party === 1) m *= 1.12;
-                return m;
-            })(),
-            unemployed: (() => {
-                let m = 1.10;
-                if (Q.peoples_party === 1) m *= 0.88;
-                if (Q.ideology === 'left') m *= 1.10;
-                return m;
-            })(),
-            catholics: 0.90
-        },
-    
-        ddp: {
-            base: Q.ddp_banned ? 0 : Q.pro_republic_factor * 59,
-            workers: 0.60,      // Liberal intellectuals only
-            old_middle: 0.85,   
-            new_middle: 1.40,   // Educated professionals - core base
-            rural: 0.50,        // Urban liberal party
-            unemployed: 0.45,   
-            catholics: 0.70     // Secular liberal party
-        },
-    
-        z: {
-            base: Q.z_banned ? 0 : Q.pro_republic_factor * 85 + (Q.catholics / 12),
-            workers: 0.80,      // Catholic workers exist but SPD competes
-            old_middle: 1.10,   // Catholic middle class
-            new_middle: 0.90,   
-            rural: 1.05,        // Catholic peasants
-            unemployed: 0.70,   // Church charity helps but limited
-            catholics: 1.80     // Catholic confessional party - absolute dominance
-        },
-    
-        bvp: {
-            base: Q.bvp_banned ? 0 : Math.min(4.5, Q.pro_republic_factor * 33 + Q.catholics * 0.07),
-            workers: 0.80,      // Bavarian Catholic workers
-            old_middle: 1.10,   // Bavarian Catholic middle class
-            new_middle: 0.90,   
-            rural: 1.15,        // Bavarian Catholic peasants
-            unemployed: 0.70,   
-            catholics: 1.70     // Bavarian Catholic party - regional dominance
-        },
-    
-        csvd: {
-            base: Q.csvd_banned ? 0 : Q.nationalism_factor * 26,
-            workers: 0.50,      
-            old_middle: 1.20,   // Conservative Protestant middle class
-            new_middle: 1.10,   
-            rural: 1.30,        // Protestant rural areas
-            unemployed: 0.60,   
-            catholics: 0.25     // Protestant splinter party
-        },
-    
-        other: {
-            base: Q.other_banned ? 0 : ((Q.nationalism_factor + Q.pro_republic_factor) * 6),
-            workers: 1.00,      // Miscellaneous/regional parties
-            old_middle: 1.00,   
-            new_middle: 1.00,   
-            rural: 1.00,        
-            unemployed: 1.00,   
-            catholics: 1.00     
-        }
-    };
 
     // Reworked drift per class
     for (Q.c of Q.classes) {
@@ -1886,11 +2217,6 @@ for (var rel of relations) {
         
                          Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.55 + Q.secular_bonus - Q.nationalism_penalty - (Q.unemployed / 100) * 0.20 - (Q.street_pressure_factor * 0.50), 0.15);
         
-                         if (Q.education_science || Q.secularized || Q.science || Q.womens_rights) {
-                             Q.education_bonus = (Q.education_science || 0) * 0.03 + (Q.secularized || 0) * 0.05 + (Q.science || 0) * 0.10 + (Q.womens_rights || 0) * 0.05;
-                             Q.ideology_factor += Q.education_bonus;
-                         }
-        
                           if (Q.c === 'new_middle') {
                              Q.ideology_factor *= 1.25;
                          } else if (Q.c === 'old_middle') {
@@ -1901,19 +2227,10 @@ for (var rel of relations) {
                              Q.ideology_factor *= 0.75;
                          }
         
-                         if (Q.education_science >= 2 || Q.womens_rights >= 3) {
-                             Q.ideology_factor *= 1.05;
-                         }
-        
                      } else if (Q.ddp_name === "DStP") {
                          Q.jungdo_bonus = (Q.jungdo_strength || 0) * 0.0003;
         
                          Q.ideology_factor = Q.random_factor(Q.pro_republic_factor * 0.42 + Q.nationalism_factor * 0.25 + Q.jungdo_bonus - (Q.unemployed / 100) * 0.30 + (Q.street_pressure_factor * 0.25), 0.15);
-        
-                         if (Q.education_science || Q.secularized || Q.science || Q.womens_rights) {
-                             Q.education_penalty = (Q.education_science || 0) * 0.01 + (Q.secularized || 0) * 0.05 + (Q.science || 0) * 0.10 + (Q.womens_rights || 0) * 0.05;
-                             Q.ideology_factor -= Q.education_penalty;
-                         }
         
                          if (Q.c === 'new_middle') {
                              Q.ideology_factor *= 1.10;
@@ -1923,10 +2240,6 @@ for (var rel of relations) {
                              Q.ideology_factor *= 0.50;
                          } else if (Q.c === 'rural') {
                              Q.ideology_factor *= 1.15;
-                         }
-        
-                         if (Q.education_science >= 2 || Q.welfare >= 3) {
-                              Q.ideology_factor *= 0.90;
                          }
                      }
                      break;
