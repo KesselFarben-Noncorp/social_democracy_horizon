@@ -29,6 +29,7 @@ Reparations progress: [+ reparations_negotiation +]
 - @concordat_negotiate
 - @concordat
 - @tyrole
+- @ruhr
 - @support_austria
 - @support_austria_2
 - @root: Do not enact any policies for now.
@@ -37,7 +38,7 @@ Reparations progress: [+ reparations_negotiation +]
 
 @improve_west
 title: Improve our relations with the Western Allies.
-on-arrival: west_relation += 2; reparations_negotiation += 1; west_relation -= 1 if (young_plan_seen = 0 or young_plan_catastrophy = 1)
+on-arrival: west_relation += 2; britain_relation += 1; france_relation += 1; reparations_negotiation += 1; west_relation -= 1 if (young_plan_seen = 0 or young_plan_catastrophy = 1)
 
 The key to peace in Europe is a rapproachment between France and Germany. We are taking steps towards that rapproachment. [? if young_plan_seen == 0 : This is difficult to do when France is occupying a major portion of Germany's territory, but we are working on that part. ?]
 
@@ -49,10 +50,10 @@ We also aim to improve relations with our eastern neighbors, Poland and Czechosl
 
 @improve_italy
 title: Improve relations with Fasci regime of Italy
-view-if: west_relation < 4
+view-if: britain_relation + france_relation < 12
 choose-if: eu = 0
 unavailable-subtitle: This is superseded by the European Union!
-on-arrival: italy_relation += 1; west_relation -= 0.5; nationalism += 1; left_dissent += 2; center_dissent += 2; labor_dissent += 2; reformist_dissent += 2
+on-arrival: italy_relation += 1; west_relation -= 0.5; france_relation -= 1; nationalism += 1; left_dissent += 2; center_dissent += 2; labor_dissent += 2; reformist_dissent += 2
 
 Despite the fasci regime of the Italian Dictatorship under Mussolini, we may initiate negotiations and talks with them in order to disable their expansionist policy.
 
@@ -119,7 +120,7 @@ However, the Allies, especially France, are likely to object. This agreement wou
 - @fp_menu: No, we should do something else.
 
 @customs_union_2
-on-arrival: banking_crisis_timer = 2; customs_union = 1; west_relation -= 2; poland_relation -= 2; czech_relation -= 1; z_relation += 4; dvp_relation += 6; coalition_dissent -= 1 if coalition_dissent > 0; coup_progress -= 1; italy_relation -= 2; foreign_policy_timer -= 2
+on-arrival: banking_crisis_timer = 2; customs_union = 1; west_relation -= 2; britain_relation -= 2; france_relation -= 3; poland_relation -= 2; czech_relation -= 1; z_relation += 4; dvp_relation += 6; coalition_dissent -= 1 if coalition_dissent > 0; coup_progress -= 1; italy_relation -= 2; foreign_policy_timer -= 2
 max-visits: 1
 
 We have formed a customs union with Austria! The right-wing parties are praising us for this unexpected turn of events.
@@ -131,9 +132,9 @@ Immediately, France and other neighboring countries lodge their protests. The lo
 title: Negotiate regarding our remaining obligations from the Treaty of Versailles.
 subtitle: [? if young_plan_seen == 1 : After passing the Young Plan, France has committed to withdrawing from the Rhineland. Now, we must see if they can reduce our reparations further, given the economic depression. ?]
 view-if: reparations > -2 and reparations_negotiation < 4
-choose-if: ruhr_labor = 0 or west_relation < -1 or young_plan_seen = 1
-unavailable-subtitle: [? if (ruhr_labor = 1 or young_plan_seen = 0): French unfavor us in the negotiations! ?] [? if west_relation < -1: Western Countries heavily disfavor our government! ?]
-on-arrival: west_relation += 1; reparations_negotiation += 1; reparations_negotiation += 1 if pacifism >= 3; reparations_negotiations += 1 if nationalism <= 50; reparations_negotiation += 1 if west_relation >= 3; reparations_negotiation += 1 if young_plan_seen = 1; reparations_negotiation -= 1 if ruhr_labor = 1
+choose-if: ruhr_labor = 0 or (france_relation + britain_relation) < -1 or young_plan_seen = 1
+unavailable-subtitle: [? if (ruhr_labor = 1 or young_plan_seen = 0): French unfavor us in the negotiations! ?] [? if britain_relation + france_relation < -1: Western Countries heavily disfavor our government! ?]
+on-arrival: west_relation += 1; britain_relation += 1; france_relation += 1; reparations_negotiation += 1; reparations_negotiation += 1 if pacifism >= 3; reparations_negotiations += 1 if nationalism <= 50; reparations_negotiation += 1 if west_relation >= 3; reparations_negotiation += 1 if young_plan_seen = 1; reparations_negotiation -= 1 if ruhr_labor = 1
 
 Negotiations procede smoothly for the most part. The Western powers are convinced of Germany's sincerity and goodwill. [? if nationalism <= 50 or pacifism >= 3 : They are pleased to see that we are renouncing militarism. ?]
 
@@ -142,7 +143,7 @@ Negotiations procede smoothly for the most part. The Western powers are convince
 title: The Western Allies are finally willing to pause our reparations payments!
 subtitle: Our negotiations have been successful.
 view-if: reparations_negotiation >= 4 and black_thursday_seen == 1 and reparations > -2
-on-arrival: west_relation += 1; reparations = -2; budget += 2 if hoover_memorandum_seen == 0; budget += 1 if hoover_memorandum_seen == 1; coalition_dissent -= 1 if coalition_dissent > 0; workers_spd += 8*(1-dissent); old_middle_spd += 5*(1-dissent); new_middle_spd += 5*(1-dissent); rural_spd += 5*(1-dissent); coup_progress -= 2 if coup_progress > 2; economic_growth += 0.7; economic_growth += 0.5 if economic_growth < 0; foreign_policy_timer -= 2
+on-arrival: britain_relation += 1; france_relation += 1; reparations = -2; budget += 2 if hoover_memorandum_seen == 0; budget += 1 if hoover_memorandum_seen == 1; coalition_dissent -= 1 if coalition_dissent > 0; workers_spd += 8*(1-dissent); old_middle_spd += 5*(1-dissent); new_middle_spd += 5*(1-dissent); rural_spd += 5*(1-dissent); coup_progress -= 2 if coup_progress > 2; economic_growth += 0.7; economic_growth += 0.5 if economic_growth < 0; foreign_policy_timer -= 2
 max-visits: 2
 
 Finally, given both the economic circumstances and our continued negotiations, the Western Allies are willing to pause our reparations payments! Much of the credit must go to American president Hoover, who has been friendlier towards us than the Europeans.
@@ -152,7 +153,7 @@ This has reduced tensions within our government, and our party has gotten credit
 @expose
 title: Expose the secret rearmament plans of the previous foreign ministry!
 view-if: rearmament_exposed == 0
-on-arrival: west_relation += 2; poland_relation += 1; czech_relation += 2; nationalism -= 5*(1-dissent); pro_republic += 5*(1-dissent); coalition_dissent += 1 if in_grand_coalition = 1; rearmament_exposed += 1; reparations_negotiation += 2; coup_progress += 2
+on-arrival: britain_relation += 2; france_relation += 2; poland_relation += 1; czech_relation += 2; nationalism -= 5*(1-dissent); pro_republic += 5*(1-dissent); coalition_dissent += 1 if in_grand_coalition = 1; rearmament_exposed += 1; reparations_negotiation += 2; coup_progress += 2
 
 The previous foreign ministry, despite its benevolent and peaceful face, was secretly helping the Reichswehr to build up its forces, in contravention of the Treaty of Versailles.
 
@@ -205,10 +206,10 @@ In public, we provide verbal backing to Austrian democracy, wage a war of words 
 @european_union
 title: Take steps to form a "European Union".
 subtitle: Is a "United States of Europe" possible?
-unavailable-subtitle: [? if west_relation < 4 : Our relations with the West are not good enough. ?] [? if poland_relation < 2 or czech_relation < 1 : Our relations with the East are not good enough. ?]
+unavailable-subtitle: [? if britain_relation + france_relation < 5: Our relations with the West are not good enough. ?] [? if poland_relation < 2 or czech_relation < 1 : Our relations with the East are not good enough. ?]
 view-if: reparations <= -2 and eu_progress < 3 and eu = 0
-choose-if: west_relation >= 4 and poland_relation >= 2 and czech_relation >= 1
-on-arrival: eu_progress += 1; west_relation += 1
+choose-if: britain_relation + france_relation >= 5 and poland_relation >= 2 and czech_relation >= 1
+on-arrival: eu_progress += 1; britain_relation += 1
 
 Forming a "United States of Europe" has long been part of the Social Democratic foreign program. Finally, we are taking steps towards it. Given our positive relations with the other countries of Europe, we can begin to hold multilateral negotiations for more European federalism. It will take time to hammer out the exact shape of this future "European Union", however.
 
@@ -228,15 +229,15 @@ Fascist Italy remains a problem, and the Soviet Union also lies outside the syst
 
 Question remains - who will lead the European Union?
 
-Three major thinkers propose competing frameworks:
+The core of European peace rests on a reconciliation between France and Germany. We are seeking the path toward that reconciliation through these distinct visions:
 
-**Aristide Briand** (French): Diplomatic cooperation preserving national sovereignty. Gradual economic integration through treaties and conferences.
+​Aristide Briand: A league of sovereign states bound by mutual diplomacy. We shall pursue economic unity through the careful work of treaties.
 
-**Richard Coudenhove-Kalergi** (Pan-European Union): Cultural and civilizational unity. Federal structure to defend European identity against external threats.
+​Richard Coudenhove-Kalergi: A continental union rooted in our shared cultural heritage. We must build a federal shield to protect the spirit of Europe.
 
-**Altiero Spinelli** (Federalist): Bold democratic federation with shared sovereignty. Elected European Parliament and federal constitution.
+​Altiero Spinelli: A democratic federation founded upon the surrender of national sovereignty. We require a common parliament to forge a truly united people.
 
-Germany's choice will shape European identity for decades.
+​The decision of the Republic will determine the fate of the West.
 
 - @briand_europe: Support Briand's diplomatic pragmatism
 - @kalergi_europe: Support Coudenhove-Kalergi's Pan-Europa
@@ -265,7 +266,7 @@ Germany endorses Coudenhove-Kalergi's vision: Europe as unified civilization wit
 
 Pan-European institutes, federal parliament proposals, and European identity education will follow.
 
-[? if peoples_party_support >= 40 : Educated classes are enthusiastic about European cultural unity. ?]
+[? if peoples_party_support >= 12 : Educated classes are enthusiastic about European cultural unity. ?]
 [? if left_strength >= 40 : The left is skeptical: "This is elitist romanticism. Where are the workers?" ?]
 
 [? if left_strength >= 30 or reformist_strength >= 40 : We can work to democratize this vision, making it inclusive rather than elitist. ?]
@@ -290,3 +291,12 @@ This is bold and controversial—but could end nationalist wars forever.
 [? if reformist_strength >= 40 : We could adopt a more gradual federalist approach to reduce backlash. ?]
 
 - @root: The European project begins.
+
+@ruhr 
+title: Negotiate the Ruhrland's status once again.
+view-if: sandbox = 1 and (young_plan_seen = 0 or young_plan_catastrophy = 1)
+choose-if: france_relation > 6 and britain_relation > 3 and reparations_negotiation >= 4
+unavailable-subtitle: British or French relation is too low or reparations are not negotiated!
+on-arrival; young_plan_catastrophy = 0; ruhr_labor = 0; young_plan_seen = 1; france_relation += 2; britain_relation += 1; economic_growth *= 1.20; 
+
+We negotiated the Rheinland status and French finally submitted in, giving the way for Germany to reintegrate the Ruhr. We are gonna celebrate this case, for sure.
