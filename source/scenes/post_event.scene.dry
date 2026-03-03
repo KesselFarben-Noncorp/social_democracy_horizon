@@ -887,7 +887,7 @@ if (!Q.math_broken) {
 
 /// SMALL SETTINGS
 
-Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r;
+Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
 
 
 
@@ -916,7 +916,7 @@ Q.relation_gravity = function(value) {
     }
 };
 
-var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'ddp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
+var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'ddp', 'vrp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
 for (var rel of relations) {
     Q[rel + '_relation'] = Q.relation_gravity(Q[rel + '_relation']);
     // Hard cap just in case
@@ -1226,7 +1226,7 @@ for (var rel of relations) {
     
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
-    Q.drift_base = 1.15;
+    Q.drift_base = 1.12;
 
     Q.random_factor = function(f, variance = 0.65) {
         return f * (1 - variance/2 + Math.random()*variance);
@@ -1480,7 +1480,7 @@ for (var rel of relations) {
             old_middle: 0.85,   
             new_middle: 1.40,   // Educated professionals - core base
             rural: 0.50,        // Urban liberal party
-            unemployed: 0.55,   
+            unemployed: 0.45,   
             catholics: 0.70     // Secular liberal party
         },
     
@@ -1495,7 +1495,7 @@ for (var rel of relations) {
         },
     
         bvp: {
-            base: Q.bvp_banned ? 0 : Math.min(4.5, Q.pro_republic_factor * 30 + Q.catholics * 0.05),
+            base: Q.bvp_banned ? 0 : Math.min(4.5, Q.pro_republic_factor * 33 + Q.catholics * 0.07),
             workers: 0.80,      // Bavarian Catholic workers
             old_middle: 1.10,   // Bavarian Catholic middle class
             new_middle: 0.90,   
@@ -2039,16 +2039,16 @@ for (var rel of relations) {
     // Banned parties' paramilitaries decay rapidly
     if (Q.nsdap_banned) {
         Q.sa_strength *= 0.70; // Rapid decay when banned
-        Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.5);
+        Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
     } else {
-        Q.sa_strength  += Q.random_factor(Q.unrest_factor/5, 0.3);
+        Q.sa_strength  += Q.random_factor(Q.unrest_factor/3, 0.3);
     }
     
     if (Q.dnvp_banned || Q.sh_banned) {
         Q.sh_strength *= 0.75; // Moderate decay when banned
         Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
     } else {
-        Q.sh_strength  += Q.random_factor(Q.unrest_factor/10, 0.3);
+        Q.sh_strength  += Q.random_factor(Q.unrest_factor/6, 0.3);
     }
     
     if (Q.kpd_banned) {
@@ -2063,7 +2063,7 @@ for (var rel of relations) {
 
     // Decay factors
     Q.stability_decay = Math.max(0, (0.6 - Q.unrest_factor)) * 10;
-    Q.prosperity_factor = Math.max(0, 1 - Q.inflation/100 - Q.unemployed/50) * 3;
+    Q.prosperity_factor = Math.max(0, 1 - Q.inflation/100 - Q.unemployed/50) * 4;
 
     // Apply natural decay
     Q.sa_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
