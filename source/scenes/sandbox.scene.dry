@@ -25,9 +25,31 @@ Here.
 - @strike: Launch capital strike
 - @dvpposition: Change DVP orientation
 - @dnvpposition: Change DNVP orientation
+- @changeddp: Change DDP orientation
 - @sandbox_menu: Back
 
-@dnvpposition:
+@changeddp
+
+DDP position?
+
+- @ddp_right: DDP turns DStP.
+- @ddp_left: DDP turns democratic.
+
+@ddp_right
+on-arrival: ddp_name = "DStP"; ddp_dstp_seen = 1;
+go-to: changeddp
+
+DDP is now DStP.
+
+---
+
+@ddp_left
+on-arrival: ddp_name = "DDP"; ddp_dstp_seen = 0;
+go-to: changeddp
+
+DDP is now Democratic.
+
+@dnvpposition
 
 DNvp position?
 
@@ -35,7 +57,7 @@ DNvp position?
 - @dnvp_left: Emil Hartwig Left guys
 - @dnvp_center: Westarp guys
 
-@dnvp_right:
+@dnvp_right
 on-arrival: dnvp_line = 3
 go-to: dnvpposition
 
@@ -61,7 +83,7 @@ Westarp rules now
 
 
 
-@dvpposition:
+@dvpposition
 
 Dvp position?
 
@@ -101,6 +123,12 @@ on-arrival: kpd_relation = 50; kpd_party_leader = "Conciliators"; communist_coal
 go-to: truesandbox
 
 Normalized KPD relations.
+
+
+
+
+
+
 
 @technical
 
