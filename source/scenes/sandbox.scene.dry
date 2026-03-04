@@ -22,12 +22,79 @@ Here.
 
 - @kpd: KPD normalization (50 relation, communist coalition 6)
 - @coup: Launch right coup
+- @strike: Launch capital strike
+- @dvpposition: Change DVP orientation
+- @dnvpposition: Change DNVP orientation
+- @sandbox_menu: Back
+
+@dnvpposition:
+
+DNvp position?
+
+- @dnvp_right: Hugenberg bossman
+- @dnvp_left: Emil Hartwig Left guys
+- @dnvp_center: Westarp guys
+
+@dnvp_right:
+on-arrival: dnvp_line = 3
+go-to: dnvpposition
+
+DNVP is now Hugenbossite.
+
+---
+
+@dnvp_left
+on-arrival: dnvp_line = 1
+go-to: dnvpposition
+
+DNVP is now democratic (?).
+
+---
+
+@dnvp_center
+on-arrival: dnvp_line = 2
+go-to: dnvpposition
+
+Westarp rules now
+
+---
+
+
+
+@dvpposition:
+
+Dvp position?
+
+- @dvp_right: Dvp shifts right - Dingeldey
+- @dvp_left: Dvp shifts left - Curtius
+
+@dvp_right:
+on-arrival: dvp_right_shift = 1
+go-to: dvpposition
+
+DVP is now Hitlerist.
+
+---
+
+@dvp_left
+on-arrival: dvp_right_shift = 0
+go-to: dvpposition
+
+DVP is now Democratic.
+
+
 
 @coup
 on-arrival: coup_progress += 10
 go-to: truesandbox
 
 Gg i suppose, but you might survive because if you banned sa and sh, they wont launch coup.
+
+@strike
+on-arrival: capital_strike_progress = 12
+go-to: truesandbox
+
+Gg i suppose.
 
 @kpd 
 on-arrival: kpd_relation = 50; kpd_party_leader = "Conciliators"; communist_coalition = 10
@@ -942,6 +1009,7 @@ In essence, secret mode enables wacky and strange events that may or not trigger
 - @unsecret_modum: Secret mode is enabled
 - @intel_upgrade_partial: Partial access of intel upgrade stage 1 in case of bugs - OFF
 - @intel_upgrade_partial_2: Partial access of intel upgrade stage 1 in case of bugs - ON
+- @sandbox_menu: Back
 
 @secret_modum
 view-if: secret_mode = 0
