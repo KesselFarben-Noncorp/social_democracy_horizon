@@ -871,6 +871,108 @@ on-arrival: {!
     } else {
         Q.srpd_candidate = null;
     }
+
+// ========================================
+    // KVP (CONSERVATIVE PEOPLE'S PARTY)
+    // ========================================
+    if (Q.kvp_flee === 1 && !Q.kvp_banned) {
+        // KVP exists only as DNVP splinter under Hugenberg
+        // Their natural candidate is always a moderate conservative
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate && Q.dnvp_line !== 3) {
+            // Join conservative unity - this is ideal for KVP
+            Q.kvp_candidate = Q.z_dnvp_joint_candidate;
+            Q.kvp_default_candidate = Q.z_dnvp_joint_candidate;
+        } else if (Q.dnvp_candidate && Q.dnvp_candidate !== "Hitler" 
+                   && Q.dnvp_candidate !== "Hugenberg" && Q.dnvp_line !== 3) {
+            // Support moderate DNVP candidate
+            Q.kvp_candidate = Q.dnvp_candidate;
+            Q.kvp_default_candidate = Q.dnvp_candidate;
+        } else if (Q.csvd_candidate && Q.csvd_candidate !== "Hitler") {
+            // Fellow DNVP splinter - natural ally
+            Q.kvp_candidate = Q.csvd_candidate;
+            Q.kvp_default_candidate = Q.csvd_candidate;
+        } else if (Q.z_candidate) {
+            // Fall back to Center as moderate conservative anchor
+            Q.kvp_candidate = Q.z_default_candidate;
+            Q.kvp_default_candidate = Q.z_default_candidate;
+        } else {
+            // Independent - Westarp is the obvious KVP figure
+            Q.kvp_candidate = "Westarp";
+            Q.kvp_default_candidate = "Westarp";
+        }
+    } else {
+        Q.kvp_candidate = null;
+        Q.kvp_default_candidate = null;
+    }
+
+    // ========================================
+    // DHV (GERMAN HANNOVER PARTY)
+    // ========================================
+    if (!Q.dhv_banned) {
+        // Protestant agrarian regionalists - anti-Prussian, vaguely conservative
+        // Never support NSDAP or KPD
+        // Natural home: moderate DNVP, CNBL, or CSVD
+        if (Q.cnbl_candidate && Q.cnbl_candidate !== "Hitler" 
+            && Q.cnbl_candidate !== "Hugenberg" && Q.cnbl_candidate !== Q.kpd_candidate) {
+            // Agrarian solidarity - follow CNBL
+            Q.dhv_candidate = Q.cnbl_candidate;
+            Q.dhv_default_candidate = Q.cnbl_candidate;
+        } else if (Q.dnvp_line !== 3 && Q.dnvp_candidate 
+                   && Q.dnvp_candidate !== "Hitler" && !Q.dnvp_banned) {
+            // Moderate DNVP acceptable
+            Q.dhv_candidate = Q.dnvp_candidate;
+            Q.dhv_default_candidate = Q.dnvp_candidate;
+        } else if (Q.csvd_candidate && Q.csvd_candidate !== "Hitler") {
+            // Fellow Protestant conservative
+            Q.dhv_candidate = Q.csvd_candidate;
+            Q.dhv_default_candidate = Q.csvd_candidate;
+        } else if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // Unity ticket if DNVP is moderate
+            Q.dhv_candidate = Q.z_dnvp_joint_candidate;
+            Q.dhv_default_candidate = Q.z_dnvp_joint_candidate;
+        } else {
+            // Independent - Hamkens as rural Protestant default
+            Q.dhv_candidate = "Hamkens";
+            Q.dhv_default_candidate = "Hamkens";
+        }
+    } else {
+        Q.dhv_candidate = null;
+        Q.dhv_default_candidate = null;
+    }
+
+    // ========================================
+    // BB (BAVARIAN PEASANTS PARTY)
+    // ========================================
+    if (!Q.bb_banned) {
+        // Agrarian populists, Catholic but not clericalist
+        // More radical than BVP on farm issues, less tied to church
+        var bb_crisis = Q.inflation < 0 || Q.unemployed >= 15;
+        
+        if (bb_crisis) {
+            // Agricultural crisis - protest candidate, won't follow BVP establishment
+            Q.bb_candidate = "Hamkens";
+            Q.bb_default_candidate = "Hamkens";
+        } else if (Q.bvp_candidate && Q.bvp_candidate !== "Hitler" 
+                   && Q.bvp_candidate !== Q.kpd_candidate) {
+            // Normal times - follow BVP as fellow Bavarian Catholics
+            Q.bb_candidate = Q.bvp_candidate;
+            Q.bb_default_candidate = Q.bvp_candidate;
+        } else if (Q.cnbl_candidate && Q.cnbl_candidate !== "Hitler") {
+            // Agrarian solidarity with CNBL
+            Q.bb_candidate = Q.cnbl_candidate;
+            Q.bb_default_candidate = Q.cnbl_candidate;
+        } else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) {
+            // Z as Catholic fallback
+            Q.bb_candidate = Q.z_candidate;
+            Q.bb_default_candidate = Q.z_candidate;
+        } else {
+            Q.bb_candidate = "Hamkens";
+            Q.bb_default_candidate = "Hamkens";
+        }
+    } else {
+        Q.bb_candidate = null;
+        Q.bb_default_candidate = null;
+    }
     
     // ========================================
     // OTHER (Minor parties/splinters)
@@ -1505,6 +1607,64 @@ on-arrival: {!
         }
     }
 
+// ========================================
+    // KVP - finalize after SPD choice
+    // ========================================
+    if (Q.kvp_flee === 1 && !Q.kvp_banned) {
+        if (Q.kvp_default_candidate && Q.kvp_default_candidate !== "Hitler"
+            && Q.kvp_default_candidate !== "Hugenberg") {
+            // Already aligned with moderate conservative - keep unless SPD disrupts
+            if (Q.spd_candidate === Q.kpd_candidate) {
+                // SPD went far left - KVP will not follow any SPD-adjacent candidate
+                Q.kvp_candidate = Q.kvp_default_candidate;
+            } else if (Q.is_unity_candidate && Q.z_candidate === Q.spd_candidate
+                       && Q.dnvp_line !== 3) {
+                // Unity candidate with Z - KVP joins if moderate enough
+                Q.kvp_candidate = Q.spd_candidate;
+            } else {
+                Q.kvp_candidate = Q.kvp_default_candidate;
+            }
+        } else {
+            Q.kvp_candidate = Q.z_candidate || "Westarp";
+        }
+    }
+
+    // ========================================
+    // DHV - finalize after SPD choice
+    // ========================================
+    if (!Q.dhv_banned) {
+        if (Q.spd_candidate === Q.kpd_candidate) {
+            // Far left SPD - DHV locks in conservative agrarian choice
+            Q.dhv_candidate = Q.dhv_default_candidate || "Hamkens";
+        } else if (Q.is_unity_candidate && Q.cnbl_candidate === Q.spd_candidate
+                   && Q.dnvp_line !== 3) {
+            // CNBL joined unity - DHV follows agrarian allies
+            Q.dhv_candidate = Q.spd_candidate;
+        } else {
+            Q.dhv_candidate = Q.dhv_default_candidate || "Hamkens";
+        }
+    }
+
+    // ========================================
+    // BB - finalize after SPD choice
+    // ========================================
+    if (!Q.bb_banned) {
+        var bb_crisis = Q.inflation < 0 || Q.unemployed >= 15;
+        
+        if (bb_crisis) {
+            // Crisis locks protest vote regardless of SPD
+            Q.bb_candidate = "Hamkens";
+        } else if (Q.spd_candidate === Q.kpd_candidate) {
+            // Far left - BB retreats to BVP or CNBL
+            Q.bb_candidate = Q.bvp_candidate || Q.cnbl_candidate || "Hamkens";
+        } else if (Q.bvp_candidate === Q.spd_candidate && Q.z_candidate === Q.spd_candidate) {
+            // Broad Catholic unity including BVP - BB joins
+            Q.bb_candidate = Q.spd_candidate;
+        } else {
+            Q.bb_candidate = Q.bb_default_candidate || "Hamkens";
+        }
+    }
+
     // ========================================
     // HINDENBURG (INDEPENDENT) - 1932 only
     // ========================================
@@ -1754,7 +1914,8 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 
+                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhv', 'bb', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2073,6 +2234,25 @@ on-arrival: {!
         Q.csvd_candidate = pickClosestFinalist(Q.csvd_candidate, [center_right, center, center_left, cultural, left]);
     }
 
+    // === KVP ===
+    if (Q.kvp_formed === 1 && Q.kvp_candidate) {
+        Q.kvp_candidate = pickClosestFinalist(Q.kvp_candidate, 
+            [center_right, center, center_left, far_right, left]);
+    }
+
+    // === DHV ===
+    if (Q.dhv_formed === 1 && Q.dhv_candidate) {
+        Q.dhv_candidate = pickClosestFinalist(Q.dhv_candidate, 
+            [center_right, center, far_right, center_left, left]);
+    }
+
+    // === BB ===
+    if (Q.bb_formed === 1 && Q.bb_candidate) {
+        // BB will go far-right before far-left — agrarian debt anger
+        Q.bb_candidate = pickClosestFinalist(Q.bb_candidate, 
+            [center_right, center, far_right, center_left, left, far_left]);
+    }
+
     // === OTHER ===
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
 
@@ -2183,7 +2363,8 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 'cnbl', 'sapd', 'wp' , 'csrp', 'csvd', 'srpd', 'other'];
+    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 
+                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhv', 'bb', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
