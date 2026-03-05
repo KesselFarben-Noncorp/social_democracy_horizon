@@ -58,7 +58,7 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       }
 
       // Declare the y (vertical position) scale.
-      if (dataMax === undefined || dataMax === null) {
+      if (!dataMax) {
           const maxSPD = d3.max(data, d => d.spd);
           const maxNSDAP = d3.max(data, d => d.nsdap);
           dataMax = maxSPD >= maxNSDAP ? maxSPD + 10 : maxNSDAP + 10;
@@ -150,36 +150,15 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       }
 
       // draw right-hand labels
-      // Sort series by last-point Y value to resolve collisions
-      const labelData = series.map(s => ({
-          series: s,
-          rawY: yScale(s[s.length - 1].y)
-      }));
-      
-      // Sort by Y position (top to bottom)
-      labelData.sort((a, b) => a.rawY - b.rawY);
-      
-      // Push apart labels that are too close (min 14px apart)
-      const minSpacing = 14;
-      for (let i = 1; i < labelData.length; i++) {
-          const prev = labelData[i - 1];
-          const curr = labelData[i];
-          if (curr.rawY - prev.rawY < minSpacing) {
-              curr.rawY = prev.rawY + minSpacing;
-          }
-      }
-
       svg.selectAll(".labels")
-        .data(labelData)
+        .data(series)
         .enter().append("text")
-        .text(d => partyNames[d.series[0].series])
-        .attr("series", d => d.series[0].series)
+        .text(s => partyNames[s[0].series])
+        .attr("series", s => s[0].series)
         .attr("font-size", "0.8em")
-        .attr("class", d => d.series[0].series + "-label party-label")
-        .attr("opacity", 1)  // add this line
-        .attr("font-size", "0.8em")
-        .attr("x", d => xScale(d.series[d.series.length - 1].x) + 15)
-        .attr("y", d => d.rawY + 5)
+        .attr("class", s => s[0].series + "-label party-label")
+        .attr("x", s => xScale(s[s.length - 1].x) + 15)
+        .attr("y", s => yScale(s[s.length - 1].y) + 5)
         .on("mouseover", function (d) {
           const text = d3.select(this);
           const series = text.attr('series');
