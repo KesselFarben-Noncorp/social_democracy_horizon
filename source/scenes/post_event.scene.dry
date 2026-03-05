@@ -1850,7 +1850,7 @@ for (var rel of relations) {
         rural: 1.00,
         unemployed: 1.00,
         catholics: 1.00
-    }
+    },
 
     kvp: {
     base: Q.kvp_banned ? 0 : (() => {
@@ -1866,7 +1866,7 @@ for (var rel of relations) {
     rural:      0.90,
     unemployed: 0.30,
     catholics:  0.55
-}
+    },
 
     dhv: {
     base: Q.dhv_banned ? 0 : (() => {
@@ -1882,7 +1882,7 @@ for (var rel of relations) {
     rural:      1.70,  // Its actual base
     unemployed: 0.25,
     catholics:  0.30   // Protestant Guelph tradition
-}
+    },
 
     bb: {
     base: Q.bb_banned ? 0 : (() => {
@@ -1900,7 +1900,7 @@ for (var rel of relations) {
     rural:      2.10,  // Highest rural cap of any party
     unemployed: 0.35,
     catholics:  0.90   // Catholic but not clericalist
-}
+    }
 
 };
 
@@ -1997,9 +1997,22 @@ for (var rel of relations) {
                     ['z',     0.20, () => !Q.z_banned],
                     ['other', 0.40, () => true]  // abstention
                 ]
-                kvp:  [['dnvp', 0.45], ['csvd', 0.30], ['other', 0.25]]
-                dhv:  [['cnbl', 0.40], ['dnvp', 0.30], ['other', 0.30]]
-                bb:   [['cnbl', 0.35], ['bvp',  0.30], ['nsdap', 0.20], ['other', 0.15]]
+                kvp: [
+                    ['dnvp',  0.45, () => !Q.dnvp_banned],
+                    ['csvd',  0.30, () => !Q.csvd_banned],
+                    ['other', 0.25, () => true]
+                ],
+                dhv: [
+                    ['cnbl',  0.40, () => !Q.cnbl_banned],
+                    ['dnvp',  0.30, () => !Q.dnvp_banned],
+                    ['other', 0.30, () => true]
+                ],
+                bb: [
+                    ['cnbl',  0.35, () => !Q.cnbl_banned],
+                    ['bvp',   0.30, () => !Q.bvp_banned],
+                    ['nsdap', 0.20, () => !Q.nsdap_banned],
+                    ['other', 0.15, () => true]
+                ]
             };
 
             // === BANNED CHECK (single block, covers all parties) ===
@@ -2326,37 +2339,35 @@ for (var rel of relations) {
                 case 'kvp':
                     if (Q.kvp_flee === 1) {
                         Q.ideology_factor = Q.random_factor(
-                            (Q.pro_republic_factor * 0.55 + Q.nationalism_factor * 0.45)
-                            * (Q.dnvp_line === 3 ? 1.6 : 0.7),
-                            0.20
-                        );
-                        if (Q.c === 'old_middle') Q.ideology_factor *= 1.25;
-                        if (Q.c === 'rural')      Q.ideology_factor *= 0.90;
-                        if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.55;
+                        (Q.pro_republic_factor * 0.55 + Q.nationalism_factor * 0.45)
+                        * (Q.dnvp_line === 3 ? 1.6 : 0.7),
+                        0.20
+                    );
+                    if (Q.c === 'old_middle') Q.ideology_factor *= 1.25;
+                    if (Q.c === 'rural')      Q.ideology_factor *= 0.90;
+                    if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.55;
                     }
                     break;
-                
                 case 'dhv':
-                        Q.ideology_factor = Q.random_factor(
-                            Q.pro_republic_factor * 0.12 + Q.nationalism_factor * 0.10,
-                            0.25
-                        );
-                        if (Q.c === 'rural')      Q.ideology_factor *= 1.40;
-                        if (Q.c === 'old_middle') Q.ideology_factor *= 1.15;
-                        if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.35;
+                    Q.ideology_factor = Q.random_factor(
+                        Q.pro_republic_factor * 0.12 + Q.nationalism_factor * 0.10,
+                        0.25
+                    );
+                    if (Q.c === 'rural')      Q.ideology_factor *= 1.40;
+                    if (Q.c === 'old_middle') Q.ideology_factor *= 1.15;
+                    if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.35;
                     break;
-
                 case 'bb':
-                        let deflation_mod = Q.inflation < 0 ?
-                            (1 + Math.abs(Q.inflation) * 0.05) : 1.0;
-                        Q.ideology_factor = Q.random_factor(
-                            (Q.pro_republic_factor * 0.15 + Q.nationalism_factor * 0.18)
-                            * (Q.rural / 50) * deflation_mod,
-                            0.25
-                        );
-                        if (Q.c === 'rural')      Q.ideology_factor *= 1.60;
-                        if (Q.c === 'catholics')  Q.ideology_factor *= 0.85;
-                        if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.25;
+                    let deflation_mod = Q.inflation < 0 ?
+                        (1 + Math.abs(Q.inflation) * 0.05) : 1.0;
+                    Q.ideology_factor = Q.random_factor(
+                        (Q.pro_republic_factor * 0.15 + Q.nationalism_factor * 0.18)
+                        * (Q.rural / 50) * deflation_mod,
+                        0.25
+                    );
+                    if (Q.c === 'rural')      Q.ideology_factor *= 1.60;
+                    if (Q.c === 'catholics')  Q.ideology_factor *= 0.85;
+                    if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.25;
                     break;
                 default:
                     Q.ideology_factor = Q.random_factor(1, 0.1);
