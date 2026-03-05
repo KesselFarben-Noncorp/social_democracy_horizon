@@ -1873,8 +1873,7 @@ for (var rel of relations) {
         let rep = Q.pro_republic_factor;
         let nat = Q.nationalism_factor;
         // Hard national ceiling — regional party
-        let regional_weight = Q.hannover_region || 0.3;
-        return Math.min(3.5, (rep * 8 + nat * 6) * regional_weight);
+        return Math.min(3.5, (rep * 8 + nat * 6) * 0.3);
     })(),
     workers:    0.20,
     old_middle: 1.35,
@@ -2350,7 +2349,7 @@ for (var rel of relations) {
                     break;
                 case 'dhv':
                     Q.ideology_factor = Q.random_factor(
-                        Q.pro_republic_factor * 0.12 + Q.nationalism_factor * 0.10,
+                        Q.pro_republic_factor * 0.18 + Q.nationalism_factor * 0.10,
                         0.25
                     );
                     if (Q.c === 'rural')      Q.ideology_factor *= 1.40;
