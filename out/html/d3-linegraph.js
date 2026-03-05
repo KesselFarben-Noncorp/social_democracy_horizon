@@ -58,7 +58,7 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       }
 
       // Declare the y (vertical position) scale.
-      if (!dataMax) {
+      if (dataMax === undefined || dataMax === null) {
           const maxSPD = d3.max(data, d => d.spd);
           const maxNSDAP = d3.max(data, d => d.nsdap);
           dataMax = maxSPD >= maxNSDAP ? maxSPD + 10 : maxNSDAP + 10;
@@ -176,6 +176,8 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
         .attr("series", d => d.series[0].series)
         .attr("font-size", "0.8em")
         .attr("class", d => d.series[0].series + "-label party-label")
+        .attr("opacity", 1)  // add this line
+        .attr("font-size", "0.8em")
         .attr("x", d => xScale(d.series[d.series.length - 1].x) + 15)
         .attr("y", d => d.rawY + 5)
         .on("mouseover", function (d) {
