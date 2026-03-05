@@ -1882,6 +1882,24 @@ for (var rel of relations) {
     rural:      1.70,  // Its actual base
     unemployed: 0.25,
     catholics:  0.30   // Protestant Guelph tradition
+    },
+
+    bb: {
+    base: Q.bb_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat = Q.nationalism_factor;
+        let rural_weight = Q.rural / 50;
+        // Deflation bonus — agrarian debt crisis
+        let deflation_bonus = Q.inflation < 0 ? 
+            (1 + Math.abs(Q.inflation) * 0.08) : 1.0;
+        return (rep * 10 + nat * 12) * rural_weight * deflation_bonus;
+    })(),
+    workers:    0.10,
+    old_middle: 0.40,
+    new_middle: 0.20,
+    rural:      2.10,  // Highest rural cap of any party
+    unemployed: 0.35,
+    catholics:  0.90   // Catholic but not clericalist
     }
 
 };
@@ -2339,7 +2357,18 @@ for (var rel of relations) {
                     if (Q.c === 'old_middle') Q.ideology_factor *= 1.15;
                     if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.35;
                     break;
-
+                case 'bb':
+                    let deflation_mod = Q.inflation < 0 ?
+                        (1 + Math.abs(Q.inflation) * 0.05) : 1.0;
+                    Q.ideology_factor = Q.random_factor(
+                        (Q.pro_republic_factor * 0.15 + Q.nationalism_factor * 0.18)
+                        * (Q.rural / 50) * deflation_mod,
+                        0.25
+                    );
+                    if (Q.c === 'rural')      Q.ideology_factor *= 1.60;
+                    if (Q.c === 'catholics')  Q.ideology_factor *= 0.85;
+                    if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.25;
+                    break;
                 default:
                     Q.ideology_factor = Q.random_factor(1, 0.1);
             }
