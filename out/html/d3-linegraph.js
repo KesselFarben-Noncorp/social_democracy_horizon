@@ -1,4 +1,3 @@
-
 /*
  * generating a line graph of multipile parties with multiple dates...
  * */
@@ -33,7 +32,7 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
     var width = 500;
     var height = 400;
     var marginTop = 20;
-    var marginRight = 120;
+    var marginRight = 20;
     var marginBottom = 50;
     var marginLeft = 40;
 
@@ -44,9 +43,8 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       const series = parties.map(party => data.map(d => ({'x': new Date(d.date), 'y': d[party], 'series': party})));
 
       // Declare the x (horizontal position) scale.
-      const minDate = d3.min(dates);
       const maxDate = d3.max(dates);
-      const xScale = d3.scaleUtc([minDate, addMonths(maxDate, additionalMonths)], [marginLeft, width - marginRight]);
+      const xScale = d3.scaleUtc([new Date(1928, 0), addMonths(maxDate, additionalMonths)], [marginLeft, width - marginRight]);
 
       var xaxis = d3.axisBottom()
         .tickFormat(d3.timeFormat('%b %Y'))
@@ -60,7 +58,7 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       }
 
       // Declare the y (vertical position) scale.
-      if (dataMax === undefined || dataMax === null) {
+      if (!dataMax) {
           const maxSPD = d3.max(data, d => d.spd);
           const maxNSDAP = d3.max(data, d => d.nsdap);
           dataMax = maxSPD >= maxNSDAP ? maxSPD + 10 : maxNSDAP + 10;
@@ -68,7 +66,12 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
       }
       const yScale = d3.scaleLinear([dataMin, dataMax], [height - marginBottom, marginTop]);
 
+      //Create the SVG container.
+      //const svg = d3.create("svg")
+      //    .attr("width", width)
+      //    .attr("height", height);
      var svg = d3.select(this);
+
 
       // Add the x-axis.
       svg.append("g")
@@ -86,7 +89,6 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
           .call(d3.axisLeft(yScale));
 
       const partyLine = (party) => d3.line()
-          .defined(d => d[party] !== undefined && d[party] !== null)
           .x(d => xScale(new Date(d.date)))
           .y(d => yScale(d[party]));
 
@@ -147,25 +149,6 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
               });
       }
 
-      // draw right-hand labels with collision detection
-      const labelData = series.map(s => ({
-          series: s,
-          rawY: yScale(s[s.length - 1].y)
-      }));
-
-      // Sort by Y position top to bottom
-      labelData.sort((a, b) => a.rawY - b.rawY);
-
-      // Push apart labels that are too close
-      const minSpacing = 16;
-      for (let i = 1; i < labelData.length; i++) {
-          const prev = labelData[i - 1];
-          const curr = labelData[i];
-          if (curr.rawY - prev.rawY < minSpacing) {
-              curr.rawY = Math.min(prev.rawY + minSpacing, height - marginBottom - 5);
-          }
-      }
-
       // draw right-hand labels
       svg.selectAll(".labels")
         .data(series)
@@ -174,12 +157,8 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
         .attr("series", s => s[0].series)
         .attr("font-size", "0.8em")
         .attr("class", s => s[0].series + "-label party-label")
-        .attr("opacity", 1)
         .attr("x", s => xScale(s[s.length - 1].x) + 15)
-        .attr("y", s => Math.min(
-    Math.max(yScale(s[s.length - 1].y) + 5, marginTop + 10),
-    height - marginBottom - 5
-))
+        .attr("y", s => yScale(s[s.length - 1].y) + 5)
         .on("mouseover", function (d) {
           const text = d3.select(this);
           const series = text.attr('series');
