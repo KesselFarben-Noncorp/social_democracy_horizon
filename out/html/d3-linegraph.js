@@ -176,7 +176,10 @@ d3.linegraph = function(noTicks, noDots, parties, partyColors, partyNames, dataM
         .attr("class", s => s[0].series + "-label party-label")
         .attr("opacity", 1)
         .attr("x", s => xScale(s[s.length - 1].x) + 15)
-        .attr("y", s => yScale(s[s.length - 1].y) + 5)
+        .attr("y", s => Math.min(
+    Math.max(yScale(s[s.length - 1].y) + 5, marginTop + 10),
+    height - marginBottom - 5
+))
         .on("mouseover", function (d) {
           const text = d3.select(this);
           const series = text.attr('series');
