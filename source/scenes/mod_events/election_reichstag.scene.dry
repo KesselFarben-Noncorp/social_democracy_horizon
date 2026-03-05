@@ -231,7 +231,7 @@ if (!Q.party_relations) {
         VRP:   3,   // Savers' party = petty bourgeois class enemies, but negligible
         NSDAP: 0,
         KVP:  0,
-        DHV:  0,
+        DHP:  0,
         BB:   2,
     },
 
@@ -252,7 +252,7 @@ if (!Q.party_relations) {
         VRP:   5,   // Inflation victims get some sympathy but VRP is still bourgeois
         NSDAP: 0,
         KVP:  5,
-        DHV:  8,
+        DHP:  8,
         BB:   10,
     },
 
@@ -273,7 +273,7 @@ if (!Q.party_relations) {
         VRP:   Q.vrp_relation ?? 20,  // SPD is blamed by VRP for inflationary policy; mutual coolness
         NSDAP: Q.nsdap_relation,
         KVP:  Q.kvp_relation,
-        DHV:  Q.dhv_relation,
+        DHP:  Q.dhp_relation,
         BB:   Q.bb_relation,
     },
 
@@ -294,7 +294,7 @@ if (!Q.party_relations) {
         VRP:   20,  // Same as SPD; SRPD inherits the blame
         NSDAP: 0,
         KVP:  30,
-        DHV:  25,
+        DHP:  25,
         BB:   25,
     },
 
@@ -316,7 +316,7 @@ if (!Q.party_relations) {
                    // but VRP's single-issue grievance politics limits the warmth
         NSDAP: 0,
         KVP:  55,
-        DHV:  40,
+        DHP:  40,
         BB:   30,
     },
 
@@ -338,7 +338,7 @@ if (!Q.party_relations) {
                    // Catholic savers exist but Z won't restructure policy around them
         NSDAP: Q.nazi_urgency >= 7 ? 0 : Math.max(0, 25 - Q.nazi_urgency * 5),
         KVP:  45,
-        DHV:  30,
+        DHP:  30,
         BB:   45,
     },
 
@@ -360,7 +360,7 @@ if (!Q.party_relations) {
                    // but VRP's liberal economics clash with Christian social doctrine
         NSDAP: 0,
         KVP:  35,
-        DHV:  25,
+        DHP:  25,
         BB:   30,
     },
 
@@ -382,7 +382,7 @@ if (!Q.party_relations) {
                    // but won't prioritise revaluation over confessional politics
         NSDAP: Math.max(0, 15 - Q.nazi_urgency * 3),
         KVP:  40,
-        DHV:  25,
+        DHP:  25,
         BB:   60,
     },
 
@@ -406,7 +406,7 @@ if (!Q.party_relations) {
                    // mutual coolness; some overlap on anti-socialism
         NSDAP: 20 + (Q.capital_strike_progress * 6) + (Q.dvp_right_shift ?? 0) * 12,
         KVP:  55,
-        DHV:  40,
+        DHP:  40,
         BB:   25,
     },
 
@@ -431,7 +431,7 @@ if (!Q.party_relations) {
                    // They fight over the same Mittelstand identity with opposite memories
         NSDAP: 35 + (Q.capital_strike_progress * 4),
         KVP:  40,
-        DHV:  35,
+        DHP:  35,
         BB:   30,
     },
 
@@ -453,7 +453,7 @@ if (!Q.party_relations) {
                    // but Landbund prioritises agricultural tariffs over savings policy
         NSDAP: 30 + (Q.capital_strike_progress * 4) + (Q.year >= 1930 ? 10 : 0),
         KVP:  45,
-        DHV:  55,
+        DHP:  55,
         BB:   55,
     },
 
@@ -475,7 +475,7 @@ if (!Q.party_relations) {
                    // with VRP's base; both anti-Hugenberg, both pro-republic
         NSDAP: 8,
         KVP:  65,
-        DHV:  45,
+        DHP:  45,
         BB:   30,
     },
 
@@ -497,7 +497,7 @@ if (!Q.party_relations) {
                    // Hugenberg-era DNVP is too volkisch for VRP's legal-liberal savers
         NSDAP: Q.dnvp_line === 3 ? 70 : 40,
         KVP:  Q.dnvp_line === 3 ? 5 : 60,
-        DHV:  Q.dnvp_line === 3 ? 15 : 55,
+        DHP:  Q.dnvp_line === 3 ? 15 : 55,
         BB:   35,
     },
 
@@ -521,7 +521,7 @@ if (!Q.party_relations) {
         // is a central Nazi propaganda figure ("November criminals," "Jewish finance").
         // NSDAP actively courted this demographic.
         KVP:  5,
-        DHV:  15,
+        DHP:  15,
         BB:   20,
     },
 
@@ -551,7 +551,7 @@ if (!Q.party_relations) {
         NSDAP: 0,    // VRP is a legal party demanding justice through courts and parliament;
                     // but its voters are the Nazis' #1 recruitment target as hope fades
         KVP:  35,
-        DHV:  30,
+        DHP:  30,
         BB:   25,
     },
     // === KVP ===
@@ -571,12 +571,12 @@ if (!Q.party_relations) {
         DNVP:  Q.dnvp_line === 3 ? 5 : 60,
         VRP:   35,
         NSDAP: 5,
-        DHV:   50,
+        DHP;   50,
         BB:    35,
     },
 
-    // === DHV (German Hannover Party) ===
-    DHV: {
+    // === DHP (German Hannover Party) ===
+    DHP: {
         KPD:   0,
         SAPD:  5,
         SPD:   20,
@@ -614,7 +614,7 @@ if (!Q.party_relations) {
         VRP:   25,
         NSDAP: 20,  // Agrarian grievance overlap — danger zone
         KVP:   35,
-        DHV:   40,
+        DHP:   40,
     },
 };
 
@@ -731,9 +731,9 @@ Q.coalition_blocks = {
     KVP_SPD:   false,  // Workable in emergency
 
     // --- DHV ---
-    DHV_KPD:   true,
-    DHV_SAPD:  true,
-    DHV_NSDAP: Q.nazi_urgency >= 5,  // Weaker resistance than most
+    DHP_KPD:   true,
+    DHP_SAPD:  true,
+    DHP_NSDAP: Q.nazi_urgency >= 5,  // Weaker resistance than most
 
     // --- BB ---
     BB_KPD:   true,
@@ -839,10 +839,10 @@ data = data.concat([
 ]);
 if (Q.dhv_r && Q.dhv_r > 0) {
     data.push({
-        "id": "dhv",
-        "legend": "DHV",
-        "name": "DHV",
-        "seats": Math.round(Q.dhv_r*6),
+        "id": "dhp",
+        "legend": "DHP",
+        "name": "DHP",
+        "seats": Math.round(Q.dhp_r*6),
     });
 }
 if (Q.vrp_r && Q.vrp_r > 0) {
@@ -991,10 +991,10 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_csrp_r > 0 : color: green; ?][? if change_csrp_r < 0 : color: red; ?]">[+ str_change_csrp +]</td>
 </tr>
 <tr style="background-color: #e6f2f8;">
-    <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>DHV</td>
-    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dhv_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ dhv_seats +]</td>
-    <td style="padding: 8px; text-align: right; [? if change_dhv_r > 0 : color: green; ?][? if change_dhv_r < 0 : color: red; ?]">[+ str_change_dhv +]</td>
+    <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>DHP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dhp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ dhp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dhp_r > 0 : color: green; ?][? if change_dhp_r < 0 : color: red; ?]">[+ str_change_dhp +]</td>
 </tr>
 <tr style="background-color: #fef9e6;">
     <td style="padding: 8px;"><div class="box" style='background-color:#D5AC27; display:inline-block; margin-right:8px;'> </div>DVP</td>
@@ -1110,7 +1110,7 @@ if (Q.bb_r && Q.bb_r > 0) {
     Q.party_votes.push({party: 'BB', votes: Q.bb_r});
 }
 if (Q.dhv_r && Q.dhv_r > 0) {
-    Q.party_votes.push({party: 'DHV', votes: Q.dhv_r});
+    Q.party_votes.push({party: 'DHP', votes: Q.dhp_r});
 }
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
@@ -1681,7 +1681,7 @@ function classify_coalition(parties) {
     var has_vrp = parties.indexOf('VRP') >= 0;
     var has_kvp = parties.indexOf('KVP') >= 0;
     var has_bb = parties.indexOf('BB') >= 0;
-    var has_dhv = parties.indexOf('DHV') >= 0;
+    var has_dhp = parties.indexOf('DHP') >= 0;
     
     // Left coalitions
     if (has_spd && has_kpd && !has_z) return 'left_front';
@@ -2376,6 +2376,10 @@ Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
 Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
 Q.csvd_in_government = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
 Q.csrp_in_government = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
+Q.dhp_in_government = coalition.indexOf('DHP') >= 0 ? 1 : 0;
+Q.bb_in_government = coalition.indexOf('BB') >= 0 ? 1 : 0;
+Q.kvp_in_government = coalition.indexOf('KVP') >= 0 ? 1 : 0;
+Q.vrp_in_government = coalition.indexOf('VRP') >= 0 ? 1 : 0;
 
 !}
 go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
