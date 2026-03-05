@@ -57,15 +57,21 @@ Q.pacifism_disp = Q.pacifism;
 
 {!<span class="tooltip-text" title="Bavarian People's Party">BVP</span>!}: [+ bvp_relation : relationships +] [+ bvp_relation +]
 
+{!<span class="tooltip-text" title="Bavarian Peasants' Party">BB</span>!}: [+ bb_relation : relationships +] [+ bb_relation +]
+
 {!<span class="tooltip-text" title="Christian Social German Party">CSRP</span>!}: [+ csrp_relation : relationships +] [+ csrp_relation +]
 
 {!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [+ ddp_relation +]
+
+{!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [+ dhp_relation +]
 
 {!<span class="tooltip-text" title="German People's Party">DVP</span>!}: [+ dvp_relation : relationships +] [+ dvp_relation +]
 
 {!<span class="tooltip-text" title="Economic Party">WP </span>!}: [+ wp_relation : relationships +] [+ wp_relation +]
 
 {!<span class="tooltip-text" title="Chrisliche National bauern land">CNBL </span>!}: [+ cnbl_relation : relationships +] [+ wp_relation +]
+
+[? if kvp_flee = 1 {!<span class="tooltip-text" title="Konservative Volkspartei"> KVP </span>!}: [+ kvp_relation : relationships +] [+ kvp_relation +] ?]
 
 {!<span class="tooltip-text" title="KPD">KPD</span>!}: [+ kpd_relation : relationships +] [+ kpd_relation +]
 
@@ -177,6 +183,10 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +]
 
 [? if csrp_votes > 1: CSRP: [+ csrp_votes +]% ?]
 
+[? if bb_votes > 1: BB: [+ b_votes +]% ?]
+
+[? if dhv_votes > 1: DHV: [+ dhv_votes +]% ?]
+
 [? if bvp_votes > 1: BVP: [+ bvp_votes +]% ?]
 
 [? if dvp_votes > 1: DVP: [+ dvp_votes +]% ?]
@@ -189,6 +199,8 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +]
 
 [? if csvd_votes > 1: CSVD: [+ csvd_votes +]% ?]
 
+[? if kvp_votes > 1: KVP: [+ kvp_votes +]% ?]
+
 [? if dnvp_votes > 1: DNVP: [+ dnvp_votes +]% ?]
 
 [? if nsdap_votes > 1: NSDAP: [+ nsdap_votes +]% ?]
@@ -198,10 +210,14 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +]
 **Detailed results for each demographic**
 
 Workers:
+
 [? if spd_votes > 1: SPD: [+ workers_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ workers_z_display +]%, ?]
 [? if bvp_votes > 1: BVP: [+ workers_bvp_display +]%, ?]
 [? if kpd_votes > 1: KPD: [+ workers_kpd_display +]%, ?]
+[? if dhv_votes > 1: DHV: [+ workers_dhv_display +]%, ?]
+[? if bb_votes > 1: BB: [+ workers_bb_display +]%, ?]
+[? if kvp_votes > 1: KVP: [+ workers_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ workers_ddp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ workers_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ workers_vrp_display +]% ?]
@@ -217,10 +233,14 @@ Workers:
 
 
 New Middle Class:
+
 [? if spd_votes > 1: SPD: [+ new_middle_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ new_middle_z_display +]%, ?]
 [? if bvp_votes > 1: BVP: [+ new_middle_bvp_display +]%, ?]
 [? if kpd_votes > 1: KPD: [+ new_middle_kpd_display +]%, ?]
+[? if dhv_votes > 1: DHV: [+ new_middle_dhv_display +]%, ?]
+[? if bb_votes > 1: BB: [+ new_middle_bb_display +]%, ?]
+[? if kvp_votes > 1: KVP: [+ new_middle_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ new_middle_ddp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ new_middle_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ new_middle_vrp_display +]%, ?]
@@ -236,10 +256,14 @@ New Middle Class:
 
 
 Old Middle Class:
+
 [? if spd_votes > 1: SPD: [+ old_middle_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ old_middle_z_display +]%, ?]
 [? if bvp_votes > 1: BVP: [+ old_middle_bvp_display +]%, ?]
 [? if kpd_votes > 1: KPD: [+ old_middle_kpd_display +]%, ?]
+[? if dhv_votes > 1: DHV: [+ old_middle_dhv_display +]%, ?]
+[? if bb_votes > 1: BB: [+ old_middle_bb_display +]%, ?]
+[? if kvp_votes > 1: KVP: [+ old_middle_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ old_middle_ddp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ old_middle_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ old_middle_vrp_display +]%, ?]
@@ -254,10 +278,14 @@ Old Middle Class:
 [? if csrp_votes > 1: CSRP: [+ old_middle_csrp_display +]% ?]
 
 Rural:
+
 [? if spd_votes > 1: SPD: [+ rural_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ rural_z_display +]%, ?]
 [? if bvp_votes > 1: BVP: [+ rural_bvp_display +]%, ?]
 [? if kpd_votes > 1: KPD: [+ rural_kpd_display +]%, ?]
+[? if dhv_votes > 1: DHV: [+ rural_dhv_display +]%, ?]
+[? if bb_votes > 1: BB: [+ rural_bb_display +]%, ?]
+[? if kvp_votes > 1: KVP: [+ rural_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ rural_ddp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ rural_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ rural_vrp_display +]%, ?]
@@ -273,10 +301,14 @@ Rural:
 
 
 Unemployed:
+
 [? if spd_votes > 1: SPD: [+ unemployed_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ unemployed_z_display +]%, ?]
 [? if bvp_votes > 1: BVP: [+ unemployed_bvp_display +]%, ?]
 [? if kpd_votes > 1: KPD: [+ unemployed_kpd_display +]%, ?]
+[? if dhv_votes > 1: DHV: [+ unemployed_dhv_display +]%, ?]
+[? if bb_votes > 1: BB: [+ unemployed_bb_display +]%, ?]
+[? if kvp_votes > 1: KVP: [+ unemployed_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ unemployed_ddp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ unemployed_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ unemployed_vrp_display +]%, ?]
@@ -292,10 +324,14 @@ Unemployed:
 
 
 Catholics:
+
 [? if spd_votes > 1: SPD: [+ catholics_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ catholics_z_display +]%, ?]
 [? if bvp_votes > 1: BVP: [+ catholics_bvp_display +]%, ?]
 [? if kpd_votes > 1: KPD: [+ catholics_kpd_display +]%, ?]
+[? if dhv_votes > 1: DHV: [+ catholics_dhv_display +]%, ?]
+[? if bb_votes > 1: BB: [+ catholics_bb_display +]%, ?]
+[? if kvp_votes > 1: KVP: [+ catholics_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ catholics_ddp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ catholics_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ catholics_vrp_display +]%, ?]
