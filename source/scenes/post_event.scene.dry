@@ -1853,7 +1853,7 @@ for (var rel of relations) {
     },
 
     kvp: {
-    base: Q.kvp_banned ? 0 : (() => {
+        base: Q.kvp_banned ? 0 : (() => {
         let rep = Q.pro_republic_factor;
         let nat = Q.nationalism_factor;
         // Only viable when Hugenberg DNVP alienates moderates
@@ -1869,18 +1869,18 @@ for (var rel of relations) {
     },
 
     dhv: {
-    base: Q.dhv_banned ? 0 : (() => {
-        let rep = Q.pro_republic_factor;
-        let nat = Q.nationalism_factor;
-        // Hard national ceiling — regional party
-        return Math.min(3.5, (rep * 12 + nat * 6) * 0.8);
-    })(),
-    workers:    0.20,
-    old_middle: 1.35,
-    new_middle: 0.60,
-    rural:      1.70,  // Its actual base
-    unemployed: 0.25,
-    catholics:  0.30   // Protestant Guelph tradition
+        base: Q.dhv_banned ? 0 : (() => {
+            let rep = Q.pro_republic_factor;
+            let nat = Q.nationalism_factor;
+            // Hard national ceiling — regional party
+            return Math.min(3.5, (rep * 40 + nat * 10) * 0.8);
+        })(),
+        workers:    0.20,
+        old_middle: 1.35,
+        new_middle: 0.60,
+        rural:      1.70,  // Its actual base
+        unemployed: 0.25,
+        catholics:  0.30   // Protestant Guelph tradition
     },
 
     bb: {
@@ -2349,12 +2349,9 @@ for (var rel of relations) {
                     break;
                 case 'dhv':
                     Q.ideology_factor = Q.random_factor(
-                        Q.pro_republic_factor * 0.18 + Q.nationalism_factor * 0.10,
+                        Q.pro_republic_factor * 0.28 + Q.nationalism_factor * 0.10,
                         0.25
                     );
-                    if (Q.c === 'rural')      Q.ideology_factor *= 1.40;
-                    if (Q.c === 'old_middle') Q.ideology_factor *= 1.15;
-                    if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.35;
                     break;
                 case 'bb':
                     let deflation_mod = Q.inflation < 0 ?
