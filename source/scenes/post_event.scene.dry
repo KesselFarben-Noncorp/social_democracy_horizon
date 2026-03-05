@@ -1226,7 +1226,7 @@ for (var rel of relations) {
     
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
-    Q.drift_base = 1.12;
+    Q.drift_base = 1.13;
 
     Q.random_factor = function(f, variance = 0.65) {
         return f * (1 - variance/2 + Math.random()*variance);
@@ -1868,7 +1868,7 @@ for (var rel of relations) {
     catholics:  0.55
     },
 
-    dhv: {
+    dhp: {
         base: Q.dhv_banned ? 0 : (() => {
             let rep = Q.pro_republic_factor;
             let nat = Q.nationalism_factor;
@@ -2001,7 +2001,7 @@ for (var rel of relations) {
                     ['csvd',  0.30, () => !Q.csvd_banned],
                     ['other', 0.25, () => true]
                 ],
-                dhv: [
+                dhp: [
                     ['cnbl',  0.40, () => !Q.cnbl_banned],
                     ['dnvp',  0.30, () => !Q.dnvp_banned],
                     ['other', 0.30, () => true]
@@ -2347,7 +2347,7 @@ for (var rel of relations) {
                     if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.55;
                     }
                     break;
-                case 'dhv':
+                case 'dhp':
                     Q.ideology_factor = Q.random_factor(
                         Q.pro_republic_factor * 0.28 + Q.nationalism_factor * 0.10,
                         0.25
