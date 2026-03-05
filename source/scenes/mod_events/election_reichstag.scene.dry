@@ -825,12 +825,6 @@ data = data.concat([
         "seats": Math.round(Q.csrp_r*6),
     },
     {
-        "id": "dhv",
-        "legend": "DHV",
-        "name": "DHV",
-        "seats": Math.round(Q.dhv_r*6),
-    },
-    {
         "id": "dvp",
         "legend": "DVP",
         "name": "DVP",
@@ -843,6 +837,14 @@ data = data.concat([
         "seats": Math.round(Q.other_r*6),
     },
 ]);
+if (Q.dhv_r && Q.dhv_r > 0) {
+    data.push({
+        "id": "dhv",
+        "legend": "DHV",
+        "name": "DHV",
+        "seats": Math.round(Q.dhv_r*6),
+    });
+}
 if (Q.vrp_r && Q.vrp_r > 0) {
     data.push({
         "id": "vrp",
