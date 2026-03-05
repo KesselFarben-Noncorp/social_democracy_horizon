@@ -537,7 +537,7 @@ Q.old_middle_qol = 100;
 Q.new_middle_qol = 100;
 
 Q.classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed', 'catholics'];
-Q.parties = ['spd', 'kpd', 'z', 'bvp', 'ddp', 'dvp', 'wp', 'cnbl', 'dnvp', 'nsdap', 'other', 'csrp', 'vrp'];
+Q.parties = ['spd', 'kpd', 'z', 'bvp', 'ddp', 'dvp', 'wp', 'cnbl', 'dnvp', 'nsdap', 'other', 'dhp', 'bb', 'csrp', 'vrp'];
 
 // Support for party by social group
 // they don't have to sum to 100 since the electoral calculations will be normalized.
@@ -695,7 +695,8 @@ Q.kpd_in_government = 0;
 Q.nsdap_in_government = 0;
 Q.csrp_in_government = 0;
 Q.vrp_in_government = 0;
-
+Q.dhp_in_government = 0;
+Q.bb_in_government = 0;
 
 
 Q.in_right_coalition = 0;
@@ -1205,12 +1206,15 @@ if (Q.new_partei_challenge === 1) {
 
 if (Q.gang_challenge === 1) {
     Q.srpd_formed = 1;
+    Q.kvp_flee = 1;
+    Q.old_middle_kvp = 10;
     Q.sapd_formed = 1;
     Q.csvd_flee = 1;
     Q.unemployed_sapd = 10;
     Q.workers_srpd = 10;
     Q.rural_csvd = 10;
     Q.parties.push('sapd');
+    Q.parties.push('kvp');
     Q.parties.push('srpd');
     Q.parties.push('csvd');
 }
@@ -1256,12 +1260,15 @@ if (Q.inverted_challenge === 1) {
         BVP: {},
         DVP: {},
         WP: {},
+        DHP: {},
+        BB: {},
+        KVP: {},
         CNBL: {},
         DNVP: {},
         NSDAP: {}
     };
 
-    var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'CSRP', 'VRP', 'CSVD', 'DVP', 'WP', 'CNBL', 'DNVP', 'NSDAP'];
+    var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'CSRP', 'VRP', 'CSVD', 'DVP', 'WP', 'CNBL', 'KVP', 'BB', 'DHP', 'DNVP', 'NSDAP'];
 
     // Randomize all party-to-party relations
     for (var party1 of all_parties) {
