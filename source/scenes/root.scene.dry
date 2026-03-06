@@ -374,6 +374,417 @@ Q.moderate_plan_adopted = 0;
 
 // organizations
 
+
+
+if (!Q.party_relations) { 
+    Q.party_relations = {
+
+    // === KPD ===
+    KPD: {
+        SAPD:  40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
+        SPD:   Q.kpd_relation,
+        SRPD:  Q.kpd_relation + 5,
+        DDP:   8,
+        Z:     5,
+        BVP:   3,
+        CSRP:  8,
+        DVP:   3,
+        WP:    3,
+        CNBL:  2,
+        CSVD:  0,
+        DNVP:  0,
+        VRP:   3,   // Savers' party = petty bourgeois class enemies, but negligible
+        NSDAP: 0,
+        KVP:  0,
+        DHP:  0,
+        BB:   2,
+    },
+
+    // === SAPD ===
+    SAPD: {
+        KPD:   40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
+        SPD:   55 + (Q.left_strength >= 50 ? 15 : 0),
+        SRPD:  60,
+        DDP:   20,
+        Z:     15,
+        BVP:   10,
+        CSRP:  15,
+        DVP:   8,
+        WP:    8,
+        CNBL:  8,
+        CSVD:  12,
+        DNVP:  3,
+        VRP:   5,   // Inflation victims get some sympathy but VRP is still bourgeois
+        NSDAP: 0,
+        KVP:  5,
+        DHP:  8,
+        BB:   10,
+    },
+
+    // === SPD ===
+    SPD: {
+        KPD:   Q.kpd_relation,
+        SAPD:  50 + (Q.left_strength >= 50 ? 15 : 0),
+        SRPD:  65,
+        DDP:   Q.ddp_relation,
+        Z:     Q.z_relation,
+        BVP:   Q.bvp_relation  ?? 35,
+        DVP:   Q.dvp_relation,
+        CSRP:  Q.csrp_relation,
+        WP:    Q.wp_relation   ?? 25,
+        CNBL:  Q.cnbl_relation ?? 20,
+        CSVD:  Q.csvd_relation ?? 35,
+        DNVP:  Q.dnvp_relation,
+        VRP:   Q.vrp_relation ?? 20,  // SPD is blamed by VRP for inflationary policy; mutual coolness
+        NSDAP: Q.nsdap_relation,
+        KVP:  Q.kvp_relation,
+        DHP:  Q.dhp_relation,
+        BB:   Q.bb_relation,
+    },
+
+    // === SRPD ===
+    SRPD: {
+        KPD:   Q.kpd_relation - 10,
+        SAPD:  55,
+        SPD:   65,
+        DDP:   Q.ddp_relation + 10,
+        Z:     Q.z_relation + 5,
+        BVP:   (Q.bvp_relation ?? 35) + 5,
+        DVP:   Q.dvp_relation - 5,
+        CSRP:  Q.csrp_relation + 5,
+        WP:    (Q.wp_relation ?? 25) - 5,
+        CNBL:  (Q.cnbl_relation ?? 20) + 5,
+        CSVD:  (Q.csvd_relation ?? 35) + 5,
+        DNVP:  Q.dnvp_line === 3 ? 0 : Q.dnvp_relation - 10,
+        VRP:   20,  // Same as SPD; SRPD inherits the blame
+        NSDAP: 0,
+        KVP:  30,
+        DHP:  25,
+        BB:   25,
+    },
+
+    // === DDP ===
+    DDP: {
+        KPD:   8,
+        SAPD:  20,
+        SPD:   Q.ddp_relation,
+        SRPD:  Q.ddp_relation + 10,
+        Z:     70,
+        BVP:   60,
+        CSRP:  70,
+        DVP:   65 - (Q.dvp_right_shift ?? 0) * 10,
+        WP:    50,
+        CNBL:  35,
+        CSVD:  60,
+        DNVP:  Q.dnvp_line === 3 ? 5 : 30,
+        VRP:   55, // Shared liberal Mittelstand base; DDP sympathetic to revaluation demands
+                   // but VRP's single-issue grievance politics limits the warmth
+        NSDAP: 0,
+        KVP:  55,
+        DHP:  40,
+        BB:   30,
+    },
+
+    // === Z ===
+    Z: {
+        KPD:   5,
+        SAPD:  20,
+        SPD:   Q.z_relation,
+        SRPD:  Q.z_relation + 5,
+        DDP:   70,
+        BVP:   80,
+        CSRP:  45,
+        DVP:   60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
+        WP:    50,
+        CNBL:  35,
+        CSVD:  50,
+        DNVP:  (Q.dnvp_line === 3 ? 20 : 50) + (Q.z_party_leader === "Kaas" ? 15 : -10),
+        VRP:   35, // Z passed the 1925 revaluation measures VRP found inadequate;
+                   // Catholic savers exist but Z won't restructure policy around them
+        NSDAP: Q.nazi_urgency >= 7 ? 0 : Math.max(0, 25 - Q.nazi_urgency * 5),
+        KVP:  45,
+        DHP:  30,
+        BB:   45,
+    },
+
+    // === CSRP ===
+    CSRP: {
+        KPD:   8,
+        SAPD:  35,
+        SPD:   Q.csrp_relation,
+        SRPD:  Q.csrp_relation + 5,
+        Z:     60,
+        DDP:   65,
+        BVP:   70,
+        DVP:   25,
+        WP:    40,
+        CNBL:  20,
+        CSVD:  30,
+        DNVP:  10,
+        VRP:   30, // Some sympathy for small saver; CSRP has a social justice streak,
+                   // but VRP's liberal economics clash with Christian social doctrine
+        NSDAP: 0,
+        KVP:  35,
+        DHP:  25,
+        BB:   30,
+    },
+
+    // === BVP ===
+    BVP: {
+        KPD:   3,
+        SAPD:  15,
+        SPD:   Q.bvp_relation ?? 35,
+        SRPD:  (Q.bvp_relation ?? 35) + 5,
+        DDP:   60,
+        Z:     80,
+        CSRP:  40,
+        DVP:   55,
+        WP:    45,
+        CNBL:  65,
+        CSVD:  45,
+        DNVP:  50,
+        VRP:   35, // Bavaria had many small savers; BVP modestly sympathetic
+                   // but won't prioritise revaluation over confessional politics
+        NSDAP: Math.max(0, 15 - Q.nazi_urgency * 3),
+        KVP:  40,
+        DHP:  25,
+        BB:   60,
+    },
+
+    // === DVP ===
+    // Heavy industry benefited from inflation wiping out debt — VRP views DVP
+    // as an arch-enemy representing those who prospered at savers' expense.
+    DVP: {
+        KPD:   3,
+        SAPD:  10,
+        SPD:   Q.dvp_relation,
+        SRPD:  Q.dvp_relation - 5,
+        DDP:   65 - (Q.dvp_right_shift ?? 0) * 10,
+        Z:     60 + (Q.z_party_leader === "Kaas" ? 10 : 0),
+        BVP:   55,
+        CSRP:  25,
+        WP:    70,
+        CNBL:  30,
+        CSVD:  50,
+        DNVP:  50 + (Q.dvp_right_shift ?? 0) * 15,
+        VRP:   20, // DVP represents the inflation profiteers in VRP's worldview;
+                   // mutual coolness; some overlap on anti-socialism
+        NSDAP: 20 + (Q.capital_strike_progress * 6) + (Q.dvp_right_shift ?? 0) * 12,
+        KVP:  55,
+        DHP:  40,
+        BB:   25,
+    },
+
+    // === WP ===
+    // WP represents property owners who did WELL from inflation — VRP's direct rival
+    // and ideological nemesis within the Mittelstand. Historically they competed
+    // directly for the same social stratum with opposite grievances.
+    WP: {
+        KPD:   3,
+        SAPD:  10,
+        SPD:   Q.wp_relation ?? 25,
+        SRPD:  (Q.wp_relation ?? 25) - 5,
+        DDP:   50,
+        Z:     50,
+        CSRP:  20,
+        BVP:   45,
+        DVP:   70,
+        CNBL:  40,
+        CSVD:  50,
+        DNVP:  45,
+        VRP:   15, // Direct rivals — WP = inflation winners, VRP = inflation losers.
+                   // They fight over the same Mittelstand identity with opposite memories
+        NSDAP: 35 + (Q.capital_strike_progress * 4),
+        KVP:  40,
+        DHP:  35,
+        BB:   30,
+    },
+
+    // === CNBL ===
+    CNBL: {
+        KPD:   2,
+        SAPD:  8,
+        SPD:   Q.cnbl_relation ?? 20,
+        SRPD:  (Q.cnbl_relation ?? 20) + 5,
+        DDP:   30,
+        Z:     40,
+        CSRP:  15,
+        BVP:   55,
+        DVP:   35,
+        WP:    40,
+        CSVD:  40,
+        DNVP:  45,
+        VRP:   25, // Some rural savers align with VRP's revaluation demands;
+                   // but Landbund prioritises agricultural tariffs over savings policy
+        NSDAP: 30 + (Q.capital_strike_progress * 4) + (Q.year >= 1930 ? 10 : 0),
+        KVP:  45,
+        DHP:  55,
+        BB:   55,
+    },
+
+    // === CSVD ===
+    CSVD: {
+        KPD:   0,
+        SAPD:  15,
+        SPD:   Q.csvd_relation ?? 40,
+        SRPD:  (Q.csvd_relation ?? 40) + 5,
+        DDP:   60,
+        Z:     50,
+        BVP:   45,
+        CSRP:  35,
+        DVP:   55,
+        WP:    45,
+        CNBL:  40,
+        DNVP:  Q.dnvp_line === 3 ? 5 : 55,
+        VRP:   45, // CSVD has Protestant pietist small-saver constituents who overlap
+                   // with VRP's base; both anti-Hugenberg, both pro-republic
+        NSDAP: 8,
+        KVP:  65,
+        DHP:  45,
+        BB:   30,
+    },
+
+    // === DNVP ===
+    DNVP: {
+        KPD:   0,
+        SAPD:  3,
+        SPD:   Q.dnvp_relation,
+        SRPD:  Q.dnvp_relation - 5,
+        DDP:   Q.dnvp_line === 3 ? 5 : 30,
+        Z:     (Q.dnvp_line === 3 ? 20 : 50) + (Q.z_party_leader === "Kaas" ? 15 : -10),
+        BVP:   50,
+        CSRP:  20,
+        DVP:   50 + (Q.dvp_right_shift ?? 0) * 15,
+        WP:    45,
+        CNBL:  45,
+        CSVD:  Q.dnvp_line === 3 ? 5 : 55,
+        VRP:   30, // DNVP rhetorically sympathised with revaluation but did little;
+                   // Hugenberg-era DNVP is too volkisch for VRP's legal-liberal savers
+        NSDAP: Q.dnvp_line === 3 ? 70 : 40,
+        KVP:  Q.dnvp_line === 3 ? 5 : 60,
+        DHP:  Q.dnvp_line === 3 ? 15 : 55,
+        BB:   35,
+    },
+
+    // === NSDAP ===
+    NSDAP: {
+        KPD:   0,
+        SAPD:  0,
+        SPD:   0,
+        SRPD:  0,
+        DDP:   0,
+        CSRP:  0,
+        Z:     Q.nazi_urgency >= 7 ? 0 : Math.max(0, 20 - Q.nazi_urgency * 4),
+        BVP:   Math.max(0, 15 - Q.nazi_urgency * 3),
+        DVP:   25 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift ?? 0) * 10,
+        WP:    30 + (Q.capital_strike_progress * 3),
+        CNBL:  30,
+        CSVD:  8,
+        DNVP:  Q.dnvp_line === 3 ? 70 : 40,
+        VRP:   25 + (Q.capital_strike_progress * 3),
+        // VRP voters are NSDAP's prime recruitment pool — the cheated saver
+        // is a central Nazi propaganda figure ("November criminals," "Jewish finance").
+        // NSDAP actively courted this demographic.
+        KVP:  5,
+        DHP:  15,
+        BB:   20,
+    },
+
+    // === VRP (Volksrechtpartei / People's Justice Party) ===
+    // Founded 1926 by the Sparerbund für das Deutsche Reich.
+    // Represents small savers, pensioners, and bondholders wiped out by 1923 hyperinflation.
+    // Demands full revaluation of savings. Sees WP (inflation property-owners) as rivals.
+    // Sees DVP (heavy industry, inflation profiteers) as enemies.
+    // Politically: right-liberal, anti-socialist, pro-Rechtsstaat, single-issue grievance.
+    // Demographic: elderly rentiers, widows, civil servants, small depositors.
+    // Danger: as revaluation hopes fade, this electorate drifts toward NSDAP rapidly.
+    VRP: {
+        KPD:   3,
+        SAPD:  5,
+        SPD:   Q.vrp_relation,  // SPD blamed for inflationary Weimar finance policy
+        SRPD:  20,
+        DDP:   55,  // Natural liberal ally; shared Mittelstand base
+        Z:     35,  // Z passed inadequate 1925 measures; disappointment, not hostility
+        BVP:   35,
+        CSRP:  30,
+        DVP:   20,  // DVP = big industry = inflation profiteers in VRP's worldview
+        WP:    15,  // Direct rival — WP represents those who GAINED from inflation
+        CNBL:  25,
+        CSVD:  45,  // Good overlap: Protestant small-saver base, anti-Hugenberg, pro-republic
+        DNVP:  Q.dnvp_line === 3 ? 10 : 35, // DNVP talked revaluation but didn't deliver;
+                                              // Hugenberg era is too radical for VRP
+        NSDAP: 0,    // VRP is a legal party demanding justice through courts and parliament;
+                    // but its voters are the Nazis' #1 recruitment target as hope fades
+        KVP:  35,
+        DHP:  30,
+        BB:   25,
+    },
+    // === KVP ===
+    KVP: {
+        KPD:   0,
+        SAPD:  5,
+        SPD:   25,
+        SRPD:  30,
+        DDP:   5,
+        Z:     45,
+        BVP:   40,
+        CSRP:  35,
+        DVP:   55,
+        WP:    40,
+        CNBL:  45,
+        CSVD:  65,
+        DNVP:  Q.dnvp_line === 3 ? 5 : 60,
+        VRP:   35,
+        NSDAP: 5,
+        DHP:   50,
+        BB:    35,
+    },
+
+    // === DHP (German Hannover Party) ===
+    DHP: {
+        KPD:   0,
+        SAPD:  5,
+        SPD:   20,
+        SRPD:  25,
+        DDP:   40,
+        Z:     30,
+        BVP:   25,
+        CSRP:  25,
+        DVP:   40,
+        WP:    35,
+        CNBL:  55,  // Agrarian overlap
+        CSVD:  45,
+        DNVP:  Q.dnvp_line === 3 ? 15 : 55,
+        VRP:   30,
+        NSDAP: 15,
+        KVP:   50,
+        BB:    40,
+    },
+
+    // === BB (Bavarian Peasants Party) ===
+    BB: {
+        KPD:   0,
+        SAPD:  5,
+        SPD:   20,
+        SRPD:  25,
+        DDP:   30,
+        Z:     45,
+        BVP:   60,  // Natural Bavarian Catholic overlap but rivals
+        CSRP:  30,
+        DVP:   25,
+        WP:    30,
+        CNBL:  55,  // Agrarian solidarity
+        CSVD:  30,
+        DNVP:  35,
+        VRP:   25,
+        NSDAP: 20,  // Agrarian grievance overlap — danger zone
+        KVP:   35,
+        DHP:   40,
+    },
+};
+
+
+
 // inter-party relations
 Q.z_relation = 50;
 Q.kpd_relation = 25;
