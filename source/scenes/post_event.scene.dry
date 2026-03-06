@@ -1337,8 +1337,9 @@ for (var rel of relations) {
             return m;
         })(),
         unemployed: (() => {
-            let m = 1.60;
-            if (Q.peoples_party === 1) m *= 0.93;
+            let m = 1.40;
+            m += Math.min(Q.unemployed / 20, 0.60);  // up to 2.00 at 12%+ unemployment
+            if (Q.peoples_party === 1) m *= 1.03;
             return m;
         })(),
         catholics: 0.35
@@ -2037,14 +2038,18 @@ for (var rel of relations) {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.4) + (Q.unrest_factor * 2.4) + (Q.street_pressure_factor * 0.70), 0.3);
+                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.4) + (Q.unrest_factor * 2.7) + (Q.street_pressure_factor * 0.70), 0.3);
 
                     if (Q.c === 'workers') {
                         Q.ideology_factor *= 0.90;
                     } else if (Q.c === 'catholics') {
                         Q.ideology_factor *= 0.35;
+                    } else if (Q.c === 'rural' && Q.unemployed > 12) {
+                        Q.ideology_factor *= 1.15;
                     } else if (Q.c === 'unemployed') {
-                        Q.ideology_factor *= 1.40;
+                        let unemp_scale = 1.20 + Math.min(Q.unemployed / 25, 0.80);
+                        // Scales from 1.20 at 0% unemp to 2.00 at 25%+ unemp
+                        Q.ideology_factor *= unemp_scale;
                     }
                     break;
                 case 'csvd':
@@ -2275,7 +2280,7 @@ for (var rel of relations) {
                         Q.ideology_factor *= 0.86;
                     }
                     
-                    Q.ideology_factor *= (1 - Q.unrest_factor * 0.1);
+                    Q.ideology_factor *= Math.max(0.75, 1 - Q.unrest_factor * 0.04);
                     break;
                 case 'ddp':
                      if (!Q.ddp_name || Q.ddp_name === "DDP") {
