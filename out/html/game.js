@@ -25,6 +25,13 @@
       ui.loadGame(url);
   };
 
+  window.updateSandboxLink = function() {
+    var sandboxLink = document.getElementById('sandbox-link');
+    if (!sandboxLink) return;
+    var sandbox = window.dendryUI.dendryEngine.state.qualities.sandbox;
+    sandboxLink.style.display = (sandbox === 1) ? 'inline' : 'none';
+  };
+
   window.showSandbox = function() {
       if (window.dendryUI.dendryEngine.state.sceneId.startsWith('sandbox')) {
           window.dendryUI.dendryEngine.goToScene('backSpecialScene');
@@ -236,6 +243,7 @@
     if (window.justLoaded) {
         window.justLoaded = false;
     }
+    window.updateSandboxLink();
   };
 
   // TODO: have some code for tabbed sidebar browsing.
@@ -309,6 +317,7 @@
         document.body.classList.add('dark-mode');
     }
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per 6 months.";
+    window.updateSandboxLink();
   };
 
 }());
