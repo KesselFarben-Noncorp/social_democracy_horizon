@@ -66,7 +66,13 @@ Q.sa_power = Q.sa_strength*Q.sa_militancy;
 Q.enemy_power += Q.sa_power;
 Q.sh_power = Q.sh_strength*Q.sh_militancy;
 Q.enemy_power += Q.sh_power;
-Q.hostile_reichswehr_power = Q.reichswehr_strength*Q.reichswehr_militancy*(1-Q.reichswehr_loyalty);
+if (Q.reichswehr_coup_civil_war) {
+    // The Reichswehr initiated this — treat them as primary enemy, loyalty to republic near-irrelevant
+    Q.hostile_reichswehr_power = Q.reichswehr_strength * Q.reichswehr_militancy * (1 - Q.reichswehr_loyalty * 0.4);
+    Q.loyal_reichswehr_power *= 0.3; // Far fewer defectors when the army itself led the coup
+} else {
+    Q.hostile_reichswehr_power = Q.reichswehr_strength*Q.reichswehr_militancy*(1-Q.reichswehr_loyalty);
+}
 Q.enemy_power += Q.hostile_reichswehr_power;
 console.log("Enemy strength:", Q.enemy_power);
 
@@ -87,7 +93,9 @@ go-to: war_menu
 
 = The Array of Forces
 
-Our enemies are the nationalist Stahlhelm, with [+ sh_strength +] thousand troops, and the Nazi SA, with [+ sa_strength +] thousand troops. The loyalties of the Reichswehr, with its [+ reichswehr_strength +] thousand regular soldiers, and Prussian police, with [+ prussian_police_strength +] thousand members, are unclear.
+[? if not reichswehr_coup_civil_war : Our enemies are the nationalist Stahlhelm, with [+ sh_strength +] thousand troops, and the Nazi SA, with [+ sa_strength +] thousand troops. The loyalties of the Reichswehr, with its [+ reichswehr_strength +] thousand regular soldiers, and Prussian police, with [+ prussian_police_strength +] thousand members, are unclear. ?]
+
+[? if reichswehr_coup_civil_war : Our enemies are the Reichswehr itself — [+ reichswehr_strength +] thousand regular soldiers, now turned against the republic. The Stahlhelm, with [+ sh_strength +] thousand troops, and the SA, with [+ sa_strength +] thousand, fight alongside them. The Prussian police, with [+ prussian_police_strength +] thousand members, must choose a side. ?]
 
 [? if chancellor_party == "KPD" or president == "Thälmann" : The KPD's paramilitary, the RFB, is leading the battle, and we are their co-combatants. ?]
 
@@ -183,11 +191,13 @@ if (Q.chancellor_party == "KPD" || Q.president == "Thälmann") {
 go-to: socialist_victory if victory_type == "socialist"; republic_victory if victory_type == "republican"
 
 @defeat
-on-arrival: sandbox = 1; civil_war_end = "national"
+on-arrival: sandbox = 1; civil_war_end = "national"; reichswehr_coup_civil_war = 0
 
 = Total Defeat
 
 Our forces are no match for those of the reactionaries. Reichsbanner fighters are quickly overpowered by the forces of the Stahlhelm, SA, and Reichswehr. Many are killed before the rest surrender. Our remaining leaders flee the country or face execution, as the reactionaries take absolute power over Germany.
+
+[? if reichswehr_coup_civil_war : The professional army proved insurmountable. Without defections from within the officer corps, no paramilitary force could match trained soldiers with artillery and armor. ?]
 
 Our resistance will be recorded in the history books, and in the future, our names will be honored. But for now, all is lost.
 
@@ -246,11 +256,13 @@ go-to: long_war_intervention
 Poland and Czechoslovakia are largely too absorbed in their own problems to be of much help, but weapons and volunteers filter through the parts of the borders that we control.
 
 @republic_victory
-on-arrival: sandbox = 1; civil_war_end = "republic"
+on-arrival: sandbox = 1; civil_war_end = "republic"; reichswehr_coup_civil_war = 0
 
 = Victory for the Republic
 
 The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. Today, the forces of the republic prevail over the fascists and the reactionaries. 
+
+[? if reichswehr_coup_civil_war : That the army itself rose against us — and was defeated — marks a turning point. The officer corps must be fundamentally reformed if the republic is to survive. ?]
 
 [? if kpd_relation >= 60 : The Communists fought alongside us, and together we have defended democratic Germany. ?]
 
@@ -260,7 +272,7 @@ The Weimar Republic has survived its greatest test. Democracy, not dictatorship,
 - @root: You may continue.
 
 @socialist_victory
-on-arrival: sandbox = 1; civil_war_end = "socialist"
+on-arrival: sandbox = 1; civil_war_end = "socialist"; reichswehr_coup_civil_war = 0
 
 = Victory for the Revolution
 
