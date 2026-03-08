@@ -932,286 +932,371 @@ for (var rel of relations) {
 
 
     
-    // === UPDATE OPINIONS BASED ON ECONOMY ===
+    // ============================================================
+// OPINION DYNAMICS
+// Rule: a party in power takes credit/blame for the economy.
+//       A party in opposition gains when its rivals are blamed.
+//       Phase-aware: Q.phase modulates which pressures bite hardest.
+// ============================================================
 
-    // --- Helpers: smooth scaling between two thresholds ---
-    function scale(value, low, high) {
-        return Math.max(0, Math.min(1, (value - low) / (high - low)));
+// --- Helpers ---
+function scale(value, low, high) {
+    return Math.max(0, Math.min(1, (value - low) / (high - low)));
+}
+
+// --- Base economic stress/relief signals ---
+var unemp_stress  = scale(Q.unemployed, 8, 25);
+var unemp_relief  = 1 - scale(Q.unemployed, 3, 10);
+var inflation_stress = scale(Q.inflation, 5, 15);
+var inflation_stable = 1 - scale(Math.abs(Q.inflation), 3, 8);
+var growth_boost  = scale(Q.economic_growth, 1, 6);
+var growth_penalty = scale(-Q.economic_growth, 1, 10);
+
+// --- Phase multipliers ---
+// Each phase amplifies the pressures most associated with it historically.
+// Depression: unemployment dominates. Hyperinflation: inflation dominates.
+// Stagflation: both hurt, centrists uniquely exposed. Overheating: optimism.
+var phase_unemp_mult    = 1.0;
+var phase_inflation_mult = 1.0;
+var phase_growth_mult   = 1.0;
+var phase_centrist_penalty = 0.0; // extra drain on republic when centrists hold bag
+
+switch (Q.phase) {
+    case "growth":
+        phase_unemp_mult    = 0.7;
+        phase_inflation_mult = 0.8;
+        phase_growth_mult   = 1.4;
+        break;
+    case "overheating":
+        phase_unemp_mult    = 0.8;
+        phase_inflation_mult = 1.3;
+        phase_growth_mult   = 1.2;
+        break;
+    case "hyperinflation":
+        // Inflation crisis: nationalists gain most, republic bleeds fast
+        phase_unemp_mult    = 0.9;
+        phase_inflation_mult = 2.2;
+        phase_growth_mult   = 1.0;
+        phase_centrist_penalty = 0.8;
+        break;
+    case "correction":
+        phase_unemp_mult    = 1.2;
+        phase_inflation_mult = 1.0;
+        phase_growth_mult   = 1.3;
+        break;
+    case "depression":
+        // Unemployment crisis: socialism and nationalism both surge
+        phase_unemp_mult    = 2.0;
+        phase_inflation_mult = 0.7;
+        phase_growth_mult   = 1.6;
+        phase_centrist_penalty = 1.0;
+        break;
+    case "stagflation":
+        // Both pressures active, neither resolves — uniquely punishes centrists
+        phase_unemp_mult    = 1.4;
+        phase_inflation_mult = 1.4;
+        phase_growth_mult   = 1.2;
+        phase_centrist_penalty = 1.4;
+        break;
+}
+
+// Apply phase scaling to base signals
+var eff_unemp_stress   = unemp_stress   * phase_unemp_mult;
+var eff_unemp_relief   = unemp_relief   * (2.0 - phase_unemp_mult); // relief shrinks when phase amplifies stress
+var eff_inflation_stress = inflation_stress * phase_inflation_mult;
+var eff_inflation_stable = inflation_stable * (2.0 - phase_inflation_mult);
+var eff_growth_boost   = growth_boost   * phase_growth_mult;
+var eff_growth_penalty = growth_penalty * phase_growth_mult;
+
+// Clamp effective values so multipliers don't push past [0,1] range on base signals
+eff_unemp_relief    = Math.max(0, Math.min(1, eff_unemp_relief));
+eff_inflation_stable = Math.max(0, Math.min(1, eff_inflation_stable));
+
+// --- Economy state flags ---
+var economy_good  = (Q.unemployed < 8 && Q.inflation > -2 && Q.inflation < 6 && Q.economic_growth > 1);
+var economy_bad   = (Q.unemployed > 15 || Math.abs(Q.inflation) > 8 || Q.economic_growth < -2);
+var economy_mixed = !economy_good && !economy_bad;
+
+// --- Party bloc counts and influence ---
+var socialist_party_count  = 0;
+var centrist_party_count   = 0;
+var nationalist_party_count = 0;
+
+if (Q.ideology === "left" && Q.spd_in_government) socialist_party_count++;
+if (Q.kpd_in_government)  socialist_party_count++;
+if (Q.sapd_in_government) socialist_party_count++;
+
+if (Q.spd_in_government && Q.ideology !== "left") centrist_party_count++;
+if (Q.z_in_government)    centrist_party_count++;
+if (Q.ddp_in_government)  centrist_party_count++;
+if (Q.dvp_in_government && (Q.dvp_right_shift || 0) < 1) centrist_party_count++;
+if (Q.srpd_in_government) centrist_party_count++;
+if (Q.wp_in_government)   centrist_party_count++;
+if (Q.bvp_in_government)  centrist_party_count++;
+if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
+
+if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
+if (Q.cnbl_in_government)  nationalist_party_count++;
+if (Q.nsdap_in_government) nationalist_party_count++;
+if (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1) nationalist_party_count++;
+
+// 1 party = 0.35, 2 = 0.70, 3+ = 1.0
+var socialist_influence  = Math.min(socialist_party_count  * 0.35, 1.0);
+var centrist_influence   = Math.min(centrist_party_count   * 0.25, 1.0);
+var nationalist_influence = Math.min(nationalist_party_count * 0.35, 1.0);
+
+var socialist_in_power   = socialist_party_count > 0;
+var centrist_in_power    = centrist_party_count > 0;
+var nationalist_in_power = nationalist_party_count > 0;
+
+// ============================================================
+// PRO_REPUBLIC
+// ============================================================
+// Republic is tied to economic stability, not ideology.
+// Good economy helps it regardless of who governs.
+// Bad economy hurts it, especially without a strong anchor party.
+// Phase centrist_penalty bleeds republic when the moderate bloc
+// is left holding an unsolvable crisis (depression, stagflation).
+
+var pr_push = 0;
+var pr_pull = 0;
+
+if (economy_good) {
+    pr_push += (eff_unemp_relief * 2.0) + (eff_inflation_stable * 1.0) + (eff_growth_boost * 1.5);
+}
+
+if (economy_bad) {
+    pr_pull += (eff_unemp_stress * 3.5) + (eff_inflation_stress * 1.5) + (eff_growth_penalty * 3.0);
+
+    // Weak government anchor accelerates republic decline
+    if (!Q.spd_in_government && !Q.z_in_government) {
+        pr_pull += 1.0;
     }
 
-    // --- UNEMPLOYMENT PRESSURE ---
-    var unemp_stress   = scale(Q.unemployed, 8, 25);
-    var unemp_relief   = 1 - scale(Q.unemployed, 3, 10);
+    // Centrist-only government in an unsolvable crisis bleeds republic
+    // (they're blamed for inaction on problems ideology can't fix)
+    if (centrist_in_power && !socialist_in_power && !nationalist_in_power) {
+        pr_pull += phase_centrist_penalty * centrist_influence;
+    }
+}
 
-    // --- INFLATION PRESSURE ---
-    var inflation_stress  = scale(Q.inflation, 5, 15);
-    var inflation_stable  = 1 - scale(Math.abs(Q.inflation), 3, 8);
+var pr_delta = (pr_push - pr_pull) * 0.65;
 
-    // GROWTH
-    var growth_boost = scale(Q.economic_growth, 1, 6);
-    var growth_penalty = scale(-Q.economic_growth, 1, 10);
+// Soft ceiling/floor — diminishing returns near extremes
+if (pr_delta > 0 && Q.pro_republic > 70) pr_delta *= (1 - scale(Q.pro_republic, 70, 90));
+if (pr_delta < 0 && Q.pro_republic < 25) pr_delta *= (1 - scale(25 - Q.pro_republic, 0, 15));
 
+Q.pro_republic += pr_delta;
 
-    // ============================================
-        // DETERMINE WHO GETS CREDIT/BLAME (WITH GRADUAL INFLUENCE)
-    // ============================================
+// ============================================================
+// NATIONALISM
+// ============================================================
+// Gains from economic pain when NOT in power.
+// Gains credit when IN power during good times.
+// Takes blame when IN power during bad times.
+// Hyperinflation phase specifically boosts nationalism (scapegoating, foreign blame).
+// Depression phase also boosts it but more gradually (unemployment-driven).
 
-    // Count parties in government per bloc
-    var socialist_party_count = 0;
-    var centrist_party_count = 0;
-    var nationalist_party_count = 0;
+var nat_push = 0;
+var nat_pull = 0;
 
-    // Socialist bloc
-    if (Q.ideology === "left" && Q.spd_in_government) socialist_party_count++;
-    if (Q.kpd_in_government) socialist_party_count++;
-    if (Q.sapd_in_government) socialist_party_count++;
+if (economy_bad) {
+    nat_push += (eff_unemp_stress * 4.0) + (eff_inflation_stress * 1.5) + (eff_growth_penalty * 3.0);
 
-    // Centrist bloc
-    if (Q.spd_in_government && Q.ideology !== "left") centrist_party_count++;
-    if (Q.z_in_government) centrist_party_count++;
-    if (Q.ddp_in_government) centrist_party_count++;
-    if (Q.dvp_in_government && (Q.dvp_right_shift || 0) < 1) centrist_party_count++;
-    if (Q.srpd_in_government) centrist_party_count++;
-    if (Q.wp_in_government) centrist_party_count++;
-    if (Q.bvp_in_government) centrist_party_count++;
-    if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
-
-    // Nationalist bloc
-    if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
-    if (Q.cnbl_in_government) nationalist_party_count++;
-    if (Q.nsdap_in_government) nationalist_party_count++;
-    if (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1) nationalist_party_count++;
-
-    // Calculate influence (0.0 to 1.0 scale)
-    // 1 party = 0.3 influence, 2 parties = 0.6, 3+ parties = 1.0
-    var socialist_influence = Math.min(socialist_party_count * 0.35, 1.0);
-    var centrist_influence = Math.min(centrist_party_count * 0.25, 1.0);
-    var nationalist_influence = Math.min(nationalist_party_count * 0.35, 1.0);
-
-    // Binary flags for simpler checks
-    var socialist_in_power = (socialist_party_count > 0);
-    var centrist_in_power = (centrist_party_count > 0);
-    var nationalist_in_power = (nationalist_party_count > 0);
-
-    // Economic performance assessment
-    var economy_good = (Q.unemployed < 8 && Q.inflation > -2 && Q.inflation < 6 && Q.economic_growth > 1);
-    var economy_bad = (Q.unemployed > 15 || Math.abs(Q.inflation) > 8 || Q.economic_growth < -2);
-    var economy_mixed = !economy_good && !economy_bad;
-
-    // ============================================
-    // PRO_REPUBLIC
-    // ============================================
-
-    var pr_push = 0;
-    var pr_pull = 0;
-
-    // Good economy helps republic REGARDLESS of who's in charge
-    if (economy_good) {
-        pr_push += (unemp_relief * 2.0) + (inflation_stable * 1.0) + (growth_boost * 1.5);
+    if (nationalist_in_power) {
+        // In power during crisis: takes proportional blame
+        nat_pull += 2.0 * nationalist_influence;
     }
 
-    // Bad economy hurts republic
-    if (economy_bad) {
-        pr_pull += (unemp_stress * 3.5) + (inflation_stress * 1.5) + (growth_penalty * 3.0);
-    
-        // Extra damage if crisis + weak government
-        if (!Q.spd_in_government && !Q.in_grand_coalition) {
-            pr_pull += 1.0;
-        }
+    if (socialist_in_power || centrist_in_power) {
+        // Rivals are in power during crisis: nationalism gains as opposition
+        var other_influence = Math.max(socialist_influence, centrist_influence);
+        nat_push += 1.5 * other_influence;
+    }
+}
+
+if (economy_good) {
+    nat_pull += (eff_unemp_relief * 1.5) + (eff_inflation_stable * 1.0);
+
+    if (nationalist_in_power) {
+        // In power during good times: takes credit
+        nat_push += 1.5 * nationalist_influence;
     }
 
-    var pr_delta = pr_push - pr_pull;
-    pr_delta *= 0.65;
+    if (socialist_in_power) {
+        // Left in power during good times: nationalism loses ground
+        nat_pull += 1.0 * socialist_influence;
+    }
+}
 
-    if (pr_delta > 0 && Q.pro_republic > 70) pr_delta *= (1 - scale(Q.pro_republic, 70, 90));
-    if (pr_delta < 0 && Q.pro_republic < 25) pr_delta *= (1 - scale(25 - Q.pro_republic, 0, 15));
+var nat_delta = (nat_push - nat_pull) * 0.65;
 
-    Q.pro_republic += pr_delta;
+if (nat_delta > 0 && Q.nationalism > 70) nat_delta *= (1 - scale(Q.nationalism, 70, 90));
+if (nat_delta < 0 && Q.nationalism < 20) nat_delta *= (1 - scale(20 - Q.nationalism, 0, 15));
 
-    // ============================================
-    // NATIONALISM
-    // ============================================
+Q.nationalism += nat_delta;
 
-    var nat_push = 0;
-    var nat_pull = 0;
+// ============================================================
+// SOCIALISM
+// ============================================================
+// Mirror of nationalism logic but on the left axis.
+// Depression phase hits unemp_stress hardest — socialism's natural terrain.
+// Gains when nationalists or centrists hold power during a crisis.
+// Takes blame when in power during a crisis.
 
-    if (economy_bad) {
-        // Bad economy creates nationalist pressure
-        nat_push += (unemp_stress * 4.0) + (inflation_stress * 1.5) + (growth_penalty * 3.0);
-    
-        // GRADUATED: Nationalists get blamed proportionally to their influence
-        if (nationalist_in_power) {
-            nat_pull += 2.0 * nationalist_influence; // 1 party = 0.7 blame, 3 parties = 2.0 blame
-        }
-    
-        // GRADUATED: Other blocs in power boost nationalism proportionally
-        if (socialist_in_power || centrist_in_power) {
-            var other_influence = Math.max(socialist_influence, centrist_influence);
-            nat_push += 1.5 * other_influence; // 1 party = 0.5 boost, 3 parties = 1.5 boost
-        }
+var soc_push = 0;
+var soc_pull = 0;
+
+if (economy_bad) {
+    soc_push += (eff_unemp_stress * 4.0) + (eff_inflation_stress * 1.2) + (eff_growth_penalty * 2.5);
+
+    if (socialist_in_power) {
+        soc_pull += 2.0 * socialist_influence;
     }
 
-    if (economy_good) {
-        nat_pull += (unemp_relief * 1.5) + (inflation_stable * 1.0);
-        
-        // GRADUATED: Nationalists get credit proportionally
-        if (nationalist_in_power) {
-            nat_push += 1.5 * nationalist_influence; // 1 party = 0.5 credit, 3 parties = 1.5 credit
-            nat_pull *= (1 - 0.5 * nationalist_influence); // More parties = more resistance to decline
-        }
-    
-        // GRADUATED: Left in power hurts nationalism proportionally
-        if (socialist_in_power) {
-            nat_pull += 1.0 * socialist_influence;
-        }
+    if (nationalist_in_power && !Q.in_grand_coalition) {
+        // Right in power during crisis: socialism gains as opposition
+        soc_push += 1.5 * nationalist_influence;
+    }
+}
+
+if (economy_good) {
+    soc_pull += (eff_unemp_relief * 1.5) + (eff_inflation_stable * 1.0);
+
+    if (socialist_in_power) {
+        soc_push += 1.5 * socialist_influence;
     }
 
-    var nat_delta = nat_push - nat_pull;
-    nat_delta *= 0.65;
+    if (nationalist_in_power && !socialist_in_power) {
+        // Right in power during good times: socialism loses ground
+        soc_pull += 1.0 * nationalist_influence;
+    }
+}
 
-    if (nat_delta > 0 && Q.nationalism > 70) nat_delta *= (1 - scale(Q.nationalism, 70, 90));
-    if (nat_delta < 0 && Q.nationalism < 20) nat_delta *= (1 - scale(20 - Q.nationalism, 0, 15));
+var soc_delta = (soc_push - soc_pull) * 0.65;
 
-    Q.nationalism += nat_delta;
+if (soc_delta > 0 && Q.socialism > 70) soc_delta *= (1 - scale(Q.socialism, 70, 90));
+if (soc_delta < 0 && Q.socialism < 20) soc_delta *= (1 - scale(20 - Q.socialism, 0, 15));
 
-    // ============================================
-        // SOCIALISM
-    // ============================================
-    
-    var soc_push = 0;
-    var soc_pull = 0;
+Q.socialism += soc_delta;
 
-    if (economy_bad) {
-        // Bad economy creates socialist pressure
-        soc_push += (unemp_stress * 4.0) + (inflation_stress * 1.2) + (growth_penalty * 2.5);
-    
-        // GRADUATED: Socialists get blamed proportionally
-        if (socialist_in_power) {
-            soc_pull += 2.0 * socialist_influence; // 1 party = 0.7 blame, 3 parties = 2.0 blame
-        }
-        
-        // GRADUATED: Right-wing in power boosts socialism proportionally
-        if (nationalist_in_power && !Q.in_grand_coalition) {
-            soc_push += 1.5 * nationalist_influence;
-        }
+// ============================================================
+// COMPETENCE COUNTERS
+// Tracks sustained good/bad performance to build or destroy legitimacy.
+// FIX: Previously soc_pull/nat_pull were modified AFTER soc_delta/nat_delta
+// were already computed, so those multiplications did nothing.
+// Now legitimacy bonuses apply directly to the opinion variable.
+// ============================================================
+
+if (Q.socialist_govt_success_counter  === undefined) Q.socialist_govt_success_counter  = 0;
+if (Q.nationalist_govt_success_counter === undefined) Q.nationalist_govt_success_counter = 0;
+
+if (economy_good && socialist_in_power) {
+    Q.socialist_govt_success_counter += socialist_influence;
+    if (Q.socialist_govt_success_counter > 4) {
+        // Sustained good performance builds genuine legitimacy
+        Q.socialism += 0.15 * socialist_influence;
+    }
+} else if (economy_bad && socialist_in_power) {
+    Q.socialist_govt_success_counter = Math.max(0,
+        Q.socialist_govt_success_counter - socialist_influence);
+}
+
+if (economy_good && nationalist_in_power) {
+    Q.nationalist_govt_success_counter += nationalist_influence;
+    if (Q.nationalist_govt_success_counter > 4) {
+        Q.nationalism += 0.15 * nationalist_influence;
+    }
+} else if (economy_bad && nationalist_in_power) {
+    Q.nationalist_govt_success_counter = Math.max(0,
+        Q.nationalist_govt_success_counter - nationalist_influence);
+}
+
+// ============================================================
+// CROSS-PRESSURE
+// When an extreme rises, republic bleeds proportionally.
+// If both rise simultaneously, effects are additive — no cap.
+// The losing extreme also nudges the other down (they compete for the same
+// alienated voter pool, so one dominating crowds out the other).
+// ============================================================
+
+if (Q.nationalism > 40 || Q.socialism > 40) {
+
+    // Republic bleeds from each rising extreme independently
+    if (nat_delta > 0) {
+        Q.pro_republic -= nat_delta * 0.25;
+    }
+    if (soc_delta > 0) {
+        Q.pro_republic -= soc_delta * 0.25;
     }
 
-    if (economy_good) {
-        soc_pull += (unemp_relief * 1.5) + (inflation_stable * 1.0);
-    
-        // GRADUATED: Socialists get credit proportionally
-        if (socialist_in_power) {
-            soc_push += 1.5 * socialist_influence; // 1 party = 0.5 credit, 3 parties = 1.5 credit
-            soc_pull *= (1 - 0.5 * socialist_influence);
+    // Extremes compete: whichever gained less gets nudged down
+    // (they're drawing from the same pool of republic-skeptic voters)
+    if (nat_delta > 0 && soc_delta > 0) {
+        // Both rising: smaller one gets crowded out
+        if (nat_delta > soc_delta) {
+            Q.socialism -= (nat_delta - soc_delta) * 0.15;
+        } else if (soc_delta > nat_delta) {
+            Q.nationalism -= (soc_delta - nat_delta) * 0.15;
         }
-    
-        // GRADUATED: Right in power hurts socialism proportionally
-        if (nationalist_in_power && !socialist_in_power) {
-            soc_pull += 1.0 * nationalist_influence;
-        }
+    } else if (nat_delta > 0 && soc_delta <= 0) {
+        // Only nationalism rising: nudges socialism down (and vice versa)
+        Q.socialism -= nat_delta * 0.15;
+    } else if (soc_delta > 0 && nat_delta <= 0) {
+        Q.nationalism -= soc_delta * 0.15;
+    }
+}
+
+// ============================================================
+// BROKEN PROMISES
+// Parties in power during severe crises take ideology-specific damage.
+// ============================================================
+
+if (economy_bad) {
+    // Socialists: unemployment is their core promise — high unemployment is a betrayal
+    if (socialist_in_power && Q.unemployed > 20) {
+        Q.socialism    -= 0.5  * socialist_influence;
+        Q.pro_republic -= 0.15 * socialist_influence;
     }
 
-    var soc_delta = soc_push - soc_pull;
-    soc_delta *= 0.65;
-    
-    if (soc_delta > 0 && Q.socialism > 70) soc_delta *= (1 - scale(Q.socialism, 70, 90));
-    if (soc_delta < 0 && Q.socialism < 20) soc_delta *= (1 - scale(20 - Q.socialism, 0, 15));
-
-    Q.socialism += soc_delta;
-
-// ============================================
-// ADDITIONAL DYNAMICS: COMPETENCE VS IDEOLOGY
-// ============================================
-
-    if (Q.socialist_govt_success_counter === undefined) Q.socialist_govt_success_counter = 0;
-    if (Q.nationalist_govt_success_counter === undefined) Q.nationalist_govt_success_counter = 0;
-
-    // GRADUATED: Success counters scale with influence
-    if (economy_good && socialist_in_power) {
-        Q.socialist_govt_success_counter += socialist_influence; // More parties = faster counter growth
-    
-        if (Q.socialist_govt_success_counter > 4) {
-            Q.socialism += 0.15 * socialist_influence; // Legitimacy boost scales with influence
-            soc_pull *= (1 - 0.1 * socialist_influence);
-        }
-    } else if (economy_bad && socialist_in_power) {
-        Q.socialist_govt_success_counter = Math.max(0, Q.socialist_govt_success_counter - socialist_influence);
+    // Nationalists: inflation and collapse are their core failure modes
+    if (nationalist_in_power && (Q.inflation > 15 || Q.economic_growth < -5)) {
+        Q.nationalism  -= 0.5  * nationalist_influence;
+        Q.pro_republic -= 0.15 * nationalist_influence;
     }
 
-    if (economy_good && nationalist_in_power) {
-        Q.nationalist_govt_success_counter += nationalist_influence;
-    
-        if (Q.nationalist_govt_success_counter > 4) {
-            Q.nationalism += 0.15 * nationalist_influence;
-            nat_pull *= (1 - 0.1 * nationalist_influence);
-        }
-    } else if (economy_bad && nationalist_in_power) {
-       Q.nationalist_govt_success_counter = Math.max(0, Q.nationalist_govt_success_counter - nationalist_influence);
+    // Centrist-only government: neither extreme takes blame, so both gain
+    // and the republic pays the price for having no strong anchor
+    if (!socialist_in_power && !nationalist_in_power && centrist_in_power) {
+        Q.socialism    += 0.3 * centrist_influence;
+        Q.nationalism  += 0.3 * centrist_influence;
+        Q.pro_republic -= 0.3 * centrist_influence;
     }
+}
 
-    // ============================================
-    // CROSS-PRESSURE
-    // ============================================
+// ============================================================
+// HISTORICAL PRECEDENT (scaled version)
+// Past crisis victories/failures compound over time, scaled by
+// how many parties of that bloc are currently in government.
+// ============================================================
 
-    if (Q.socialism > 40 && Q.nationalism > 40) {
-        if (soc_delta > nat_delta) {
-            Q.nationalism -= 0.15;
-        } else if (nat_delta > soc_delta) {
-            Q.socialism -= 0.15;
-        }
-    }
+if (Q.spd_crisis_victories && Q.spd_crisis_victories > 0
+        && economy_good && socialist_in_power) {
+    Q.socialism += 0.1 * Q.spd_crisis_victories * socialist_influence;
+}
 
-    // ============================================
-    // BROKEN PROMISES (GRADUATED)
-    // ============================================
+if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0
+        && nationalist_in_power) {
+    Q.nationalism -= 0.07 * Q.nationalist_crisis_failures * nationalist_influence;
+}
 
-    if (economy_bad) {
-        // GRADUATED: Bigger coalitions = bigger disappointment
-        if (socialist_in_power && Q.unemployed > 20) {
-            Q.socialism -= 0.5 * socialist_influence;
-            Q.pro_republic -= 0.15 * socialist_influence;
-        }
-    
-        if (nationalist_in_power && (Q.inflation > 15 || Q.economic_growth < -5)) {
-            Q.nationalism -= 0.5 * nationalist_influence;
-            Q.pro_republic -= 0.15 * nationalist_influence;
-        }
-    
-        // GRADUATED: Weak centrist governments hurt more when they're bigger
-        if (!socialist_in_power && !nationalist_in_power && centrist_in_power) {
-            Q.socialism += 0.3 * centrist_influence;
-            Q.nationalism += 0.3 * centrist_influence;
-            Q.pro_republic -= 0.3 * centrist_influence;
-        }
-    }
+// ============================================================
+// CLAMP & ROUND
+// ============================================================
 
-    // ============================================
-    // HISTORICAL PRECEDENT (GRADUATED)
-    // ============================================
-
-    if (Q.spd_crisis_victories && Q.spd_crisis_victories > 0 && economy_good && socialist_in_power) {
-        Q.socialism += 0.1 * Q.spd_crisis_victories * socialist_influence;
-    }
-
-    if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0 && nationalist_in_power) {
-        Q.nationalism -= 0.07 * Q.nationalist_crisis_failures * nationalist_influence;
-    }
-
-    Q.pro_republic = Math.round(Q.pro_republic * 10) / 10;
-    Q.nationalism  = Math.round(Q.nationalism  * 10) / 10;
-    Q.socialism    = Math.round(Q.socialism    * 10) / 10;
-
-    // ============================================
-    // HISTORICAL PRECEDENT
-    // ============================================
-
-    if (Q.spd_crisis_victories && Q.spd_crisis_victories > 0 && economy_good && socialist_in_power) {
-        Q.socialism += 0.1 * Q.spd_crisis_victories;
-    }
-
-    if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0 && nationalist_in_power) {
-        Q.nationalism -= 0.07 * Q.nationalist_crisis_failures;
-    }
+Q.pro_republic = Math.round(Math.max(0, Math.min(100, Q.pro_republic)) * 10) / 10;
+Q.nationalism  = Math.round(Math.max(0, Math.min(100, Q.nationalism))  * 10) / 10;
+Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 10;
 
 
 
@@ -2566,47 +2651,58 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         }
     }
 
-    // === PARAMILITARY STRENGTH UPDATES ===
-    // Banned parties' paramilitaries decay rapidly
-    if (Q.nsdap_banned) {
-        Q.sa_strength *= 0.70; // Rapid decay when banned
-        Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
-    } else {
-        Q.sa_strength  += Q.random_factor(Q.unrest_factor/3, 0.3);
-    }
-    
-    if (Q.dnvp_banned || Q.sh_banned) {
-        Q.sh_strength *= 0.75; // Moderate decay when banned
-        Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
-    } else {
-        Q.sh_strength  += Q.random_factor(Q.unrest_factor/6, 0.3);
-    }
-    
-    if (Q.kpd_banned) {
-        Q.rfb_strength *= 0.65; // Fastest decay (underground)
-        Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
-    } else {
-        Q.rfb_strength += Q.random_factor(Q.unrest_factor/5, 0.3);
-    }
-    
-    Q.rb_strength  += Q.random_factor(Q.unrest_factor/20, 0.3);
-    Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
+// === PARAMILITARY STRENGTH UPDATES ===
 
-    // Decay factors
-    Q.stability_decay = Math.max(0, (0.6 - Q.unrest_factor)) * 10;
-    Q.prosperity_factor = Math.max(0, 1 - Q.inflation/100 - Q.unemployed/50) * 4;
+if (Q.nsdap_banned) {
+    Q.sa_strength *= 0.70;
+    Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
+} else {
+    Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
+}
 
-    // Apply natural decay
-    Q.sa_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.sh_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.rfb_strength -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.rb_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    Q.jungdo_strength  -= Q.random_factor(Q.stability_decay + Q.prosperity_factor, 0.25);
-    
-    // Ensure banned parties' paramilitaries stay at low levels
-    if (Q.nsdap_banned) Q.sa_strength = Math.min(Q.sa_strength, 10);
-    if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
-    if (Q.kpd_banned) Q.rfb_strength = Math.min(Q.rfb_strength, 5);
+if (Q.dnvp_banned || Q.sh_banned) {
+    Q.sh_strength *= 0.75;
+    Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
+} else {
+    Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
+}
+
+if (Q.kpd_banned) {
+    Q.rfb_strength *= 0.65;
+    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else {
+    Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
+}
+
+Q.rb_strength     += Q.random_factor(Q.unrest_factor / 20, 0.3);
+Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
+
+// Decay factors — FIXED
+// stability_decay: only applies when things are genuinely calm (low unrest)
+// Multiplier reduced from 10 → 2 so it doesn't obliterate growth
+Q.stability_decay = Math.max(0, (0.4 - Q.unrest_factor)) * 2;
+
+// prosperity_factor: INVERTED so economic collapse REDUCES decay instead of adding to it
+// Previously this was always ~3-4 even in crisis — now crisis = near zero decay from this term
+// Formula: high unemployment and inflation push this toward 0, stable economy pushes toward 1
+Q.prosperity_factor = Math.max(0, Q.inflation / 100 + Q.unemployed / 50) * 1.5;
+// This now reads: the worse the economy, the MORE this subtracts from decay pressure
+
+// Combined decay = calm conditions + good economy both reduce paramilitaries
+// Crisis conditions = both terms shrink toward 0, so decay is minimal
+Q.combined_decay = Math.max(0, Q.stability_decay - Q.prosperity_factor);
+
+// Apply natural decay
+Q.sa_strength     -= Q.random_factor(Q.combined_decay, 0.25);
+Q.sh_strength     -= Q.random_factor(Q.combined_decay, 0.25);
+Q.rfb_strength    -= Q.random_factor(Q.combined_decay, 0.25);
+Q.rb_strength     -= Q.random_factor(Q.combined_decay, 0.25);
+Q.jungdo_strength -= Q.random_factor(Q.combined_decay, 0.25);
+
+// Caps for banned orgs
+if (Q.nsdap_banned) Q.sa_strength     = Math.min(Q.sa_strength, 10);
+if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
+if (Q.kpd_banned)  Q.rfb_strength    = Math.min(Q.rfb_strength, 5);
 
 
         // === PARAMILITARY CONSTRAINTS (SKIP IN CHAOS MODE) ===
