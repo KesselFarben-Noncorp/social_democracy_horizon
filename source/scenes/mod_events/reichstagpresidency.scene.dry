@@ -1,0 +1,325 @@
+title: Reichstag Parliamentary Formation
+new-page: true
+tags: event
+view-if: true
+on-arrival: {!
+
+var total_seats = Q.total_seats_filled || 600;
+
+var left_seats = 
+    Math.round((Q.kpd_r || 0) * 6) +
+    Math.round((Q.sapd_r || 0) * 6) +
+    Math.round((Q.spd_r || 0) * 6) +
+    Math.round((Q.srpd_r || 0) * 6);
+
+var center_seats =
+    Math.round((Q.ddp_r || 0) * 6) +
+    Math.round((Q.z_r || 0) * 6) +
+    Math.round((Q.bvp_r || 0) * 6) +
+    Math.round((Q.csrp_r || 0) * 6) +
+    Math.round((Q.csvd_r || 0) * 6) +
+    Math.round((Q.kvp_r || 0) * 6);
+
+var liberal_right_seats =
+    Math.round((Q.dvp_r || 0) * 6) +
+    Math.round((Q.wp_r || 0) * 6) +
+    Math.round((Q.vrp_r || 0) * 6) +
+    Math.round((Q.dhp_r || 0) * 6);
+
+var nationalist_seats =
+    Math.round((Q.dnvp_r || 0) * 6) +
+    Math.round((Q.cnbl_r || 0) * 6) +
+    Math.round((Q.bb_r || 0) * 6);
+
+var far_right_seats = Math.round((Q.nsdap_r || 0) * 6);
+var other_seats = Math.round((Q.other_r || 0) * 6);
+
+var faction_total = left_seats + center_seats + liberal_right_seats +
+                    nationalist_seats + far_right_seats + other_seats;
+if (faction_total === 0) faction_total = 600;
+
+var council_total = 21;
+Q.council_left        = Math.round((left_seats / faction_total) * council_total);
+Q.council_center      = Math.round((center_seats / faction_total) * council_total);
+Q.council_lib_right   = Math.round((liberal_right_seats / faction_total) * council_total);
+Q.council_nationalist = Math.round((nationalist_seats / faction_total) * council_total);
+Q.council_far_right   = Math.round((far_right_seats / faction_total) * council_total);
+Q.council_other       = Math.round((other_seats / faction_total) * council_total);
+
+var council_sum = Q.council_left + Q.council_center + Q.council_lib_right +
+                  Q.council_nationalist + Q.council_far_right + Q.council_other;
+var council_diff = council_total - council_sum;
+var factions_by_size = [
+    {key: 'council_left',        val: Q.council_left},
+    {key: 'council_center',      val: Q.council_center},
+    {key: 'council_lib_right',   val: Q.council_lib_right},
+    {key: 'council_nationalist', val: Q.council_nationalist},
+    {key: 'council_far_right',   val: Q.council_far_right},
+];
+factions_by_size.sort(function(a,b){ return b.val - a.val; });
+Q[factions_by_size[0].key] += council_diff;
+
+var gov_parties = Q.government_parties || ['SPD'];
+var gov_seats = 0;
+for (var i = 0; i < gov_parties.length; i++) {
+    gov_seats += Math.round((Q[gov_parties[i].toLowerCase() + '_r'] || 0) * 6);
+}
+var opposition_seats = total_seats - gov_seats;
+Q.gov_reichstag_seats = gov_seats;
+Q.opp_reichstag_seats = opposition_seats;
+Q.gov_seat_majority   = gov_seats > (total_seats / 2) ? 1 : 0;
+
+var largest_gov_party = gov_parties[0];
+var largest_gov_seats = 0;
+for (var i = 0; i < gov_parties.length; i++) {
+    var ps = Math.round((Q[gov_parties[i].toLowerCase() + '_r'] || 0) * 6);
+    if (ps > largest_gov_seats) { largest_gov_seats = ps; largest_gov_party = gov_parties[i]; }
+}
+
+var all_parties = Q.parties ||
+    ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','CSVD','KVP',
+     'DVP','WP','VRP','DHP','BB','CNBL','DNVP','NSDAP'];
+
+var largest_opp_party = null;
+var largest_opp_seats = 0;
+for (var i = 0; i < all_parties.length; i++) {
+    var p = all_parties[i];
+    if (gov_parties.indexOf(p) >= 0) continue;
+    var ps = Math.round((Q[p.toLowerCase() + '_r'] || 0) * 6);
+    if (ps > largest_opp_seats) { largest_opp_seats = ps; largest_opp_party = p; }
+}
+
+Q.rt_president_convention_party = largest_gov_party;
+Q.rt_president_challenger_party = largest_opp_party;
+Q.rt_president_challenger_seats = largest_opp_seats;
+
+Q.rt_president_contested        = 0;
+Q.rt_president_goering_scenario = 0;
+Q.rt_president_hugenberg_threat = 0;
+
+var nsdap_seats = Math.round((Q.nsdap_r || 0) * 6);
+var nsdap_is_largest = 1;
+for (var i = 0; i < all_parties.length; i++) {
+    if (all_parties[i] === 'NSDAP') continue;
+    if (Math.round((Q[all_parties[i].toLowerCase() + '_r'] || 0) * 6) > nsdap_seats) {
+        nsdap_is_largest = 0; break;
+    }
+}
+if (nsdap_seats > 100 && nsdap_is_largest) {
+    Q.rt_president_contested        = 1;
+    Q.rt_president_goering_scenario = 1;
+}
+if (!Q.gov_seat_majority && largest_opp_seats >= largest_gov_seats * 0.6) {
+    Q.rt_president_contested = 1;
+}
+if (Q.dnvp_line === 3 && Math.round((Q.dnvp_r || 0) * 6) > 80 && !Q.gov_seat_majority) {
+    Q.rt_president_contested        = 1;
+    Q.rt_president_hugenberg_threat = 1;
+}
+
+function get_rt_president_candidate(party) {
+    if (party === 'SPD')   return 'Paul Löbe';
+    if (party === 'KPD')   return 'Wilhelm Pieck';
+    if (party === 'Z')     return Q.z_party_leader === 'Kaas' ? 'Ludwig Kaas' : 'Josef Joos';
+    if (party === 'DDP')   return 'Anton Erkelenz';
+    if (party === 'DVP')   return Q.stresemann_dead ? 'Eduard Dingeldey' : 'Gustav Stresemann';
+    if (party === 'DNVP')  return Q.dnvp_line === 3 ? 'Alfred Hugenberg' : 'Kuno von Westarp';
+    if (party === 'NSDAP') return 'Hermann Göring';
+    if (party === 'BVP')   return 'Heinrich Held';
+    if (party === 'SAPD')  return 'Max Seydewitz';
+    if (party === 'SRPD')  return 'Otto Horsing';
+    return party + ' representative';
+}
+
+Q.rt_president_gov_candidate = get_rt_president_candidate(largest_gov_party);
+Q.rt_president_opp_candidate = largest_opp_party ? get_rt_president_candidate(largest_opp_party) : '';
+Q.spd_nominates_president    = (largest_gov_party === 'SPD') ? 1 : 0;
+
+Q.council_display =
+    "Left (" + Q.council_left + "), " +
+    "Center (" + Q.council_center + "), " +
+    "Liberal-Right (" + Q.council_lib_right + "), " +
+    "Nationalist (" + Q.council_nationalist + "), " +
+    "Far-Right (" + Q.council_far_right + ")";
+if (Q.council_other > 0) Q.council_display += ", Other (" + Q.council_other + ")";
+
+Q.gov_seats_pct = Math.round((gov_seats / total_seats) * 1000) / 10;
+Q.opp_seats_pct = Math.round((opposition_seats / total_seats) * 1000) / 10;
+
+!}
+
+= The Reichstag Constitutes Itself
+
+With the new Reichstag elected and the government formed, the chamber must now organize itself.
+
+**Council of Elders — Seat Allocation (21 seats)**
+
+*[+ council_display +]*
+
+**Reichstag Balance of Power:**
+- Government: **[+ gov_seats_pct +]%** ([+ gov_reichstag_seats +] seats)
+- Opposition: **[+ opp_seats_pct +]%** ([+ opp_reichstag_seats +] seats)
+
+[? if gov_seat_majority : The government commands a majority. The session should proceed in an orderly fashion. ?]
+[? if not gov_seat_majority : The government lacks a majority. Parliamentary business will require negotiation with opposition factions. ?]
+
+- @rt_president_election: Proceed to Reichstag President election
+
+
+@rt_president_election
+
+= Election of the Reichstag President
+
+[? if not rt_president_contested : By convention, **[+ rt_president_convention_party +]** nominates **[+ rt_president_gov_candidate +]**. No opposing nomination has been put forward. ?]
+
+[? if rt_president_contested and not rt_president_goering_scenario and not rt_president_hugenberg_threat : The government nominates **[+ rt_president_gov_candidate +]** ([+ rt_president_convention_party +]), but **[+ rt_president_challenger_party +]** has put forward **[+ rt_president_opp_candidate +]** as a rival. ?]
+
+[? if rt_president_goering_scenario : **⚠ The Nazis Claim the Chair.** The NSDAP demands the Presidency by electoral right. **Hermann Göring** has been nominated against the government's candidate **[+ rt_president_gov_candidate +]**. ?]
+
+[? if rt_president_hugenberg_threat : **⚠ Hugenberg Demands the Presidency.** The DNVP is strong enough to contest the chair. ?]
+
+- @rt_president_uncontested: Confirm [+ rt_president_gov_candidate +] as Reichstag President
+- @rt_president_fight: Support our candidate — push [+ rt_president_gov_candidate +]
+- @rt_president_yield: Accept the opposition candidate
+
+
+@rt_president_uncontested
+view-if: not rt_president_contested
+on-arrival: {!
+Q.reichstag_president        = Q.rt_president_gov_candidate;
+Q.reichstag_president_party  = Q.rt_president_convention_party;
+Q.reichstag_president_stance =
+    (['SPD','KPD','SAPD'].indexOf(Q.rt_president_convention_party) >= 0) ? 'friendly' : 'neutral';
+Q.loebe_president = (Q.reichstag_president === 'Paul Löbe') ? 1 : 0;
+!}
+
+= [+ reichstag_president +] Elected Reichstag President
+
+**[+ reichstag_president +]** ([+ reichstag_president_party +]) has been elected without opposition.
+
+[? if reichstag_president = "Paul Löbe" : Löbe's firm procedural hand will protect the government's legislative agenda. ?]
+
+**President's Stance:** [+ reichstag_president_stance +]
+
+- @parliament_formation_complete: Continue
+
+
+@rt_president_fight
+view-if: rt_president_contested
+on-arrival: {!
+var gov_seats  = Q.gov_reichstag_seats || 300;
+var total      = Q.total_seats_filled  || 600;
+var win_prob   = gov_seats / total;
+
+if ((Q.coalition_dissent || 0) < 2)  win_prob += 0.08;
+if ((Q.coalition_dissent || 0) >= 3) win_prob -= 0.10;
+if ((Q.pro_republic || 50) < 40)     win_prob -= 0.10;
+if (Q.in_unity_government)           win_prob += 0.15;
+
+win_prob = Math.max(0.05, Math.min(0.90, win_prob));
+Q.rt_president_gov_won = (Math.random() < win_prob) ? 1 : 0;
+
+if (Q.rt_president_gov_won) {
+    Q.reichstag_president        = Q.rt_president_gov_candidate;
+    Q.reichstag_president_party  = Q.rt_president_convention_party;
+    Q.reichstag_president_stance =
+        (Q.rt_president_convention_party === 'SPD') ? 'friendly' : 'neutral';
+    if (Q.rt_president_goering_scenario) { Q.pro_republic += 3; Q.workers_spd += 2; }
+} else {
+    Q.reichstag_president        = Q.rt_president_opp_candidate;
+    Q.reichstag_president_party  = Q.rt_president_challenger_party;
+    Q.reichstag_president_stance = 'hostile';
+    Q.pro_republic -= (Q.rt_president_goering_scenario ? 10 : 5);
+    if (Q.rt_president_goering_scenario)  { Q.coup_progress += 2; Q.goering_president  = 1; }
+    if (Q.rt_president_hugenberg_threat)  { Q.coup_progress += 1; Q.hugenberg_president = 1; }
+}
+Q.loebe_president = (Q.reichstag_president === 'Paul Löbe') ? 1 : 0;
+!}
+
+[? if rt_president_gov_won : = [+ rt_president_gov_candidate +] Wins the Presidency
+
+The democratic parties held. **[+ reichstag_president +]** is elected Reichstag President.
+
+[? if rt_president_goering_scenario : Göring has been denied the chair. The NSDAP will not forget this. ?]
+
+**President's Stance:** [+ reichstag_president_stance +]
+?]
+
+[? if not rt_president_gov_won : = [+ rt_president_opp_candidate +] Claims the Presidency
+
+Our candidate was defeated. **[+ rt_president_opp_candidate +]** ([+ rt_president_challenger_party +]) now controls the chair.
+
+[? if goering_president : Göring will use the Presidency to obstruct, delay, and destroy the Republic's ability to govern. No-confidence motions can be fast-tracked. Government bills can be buried. ?]
+[? if hugenberg_president : Hugenberg will use the position to legitimize the reactionary opposition and obstruct the government's agenda. ?]
+
+**President's Stance:** hostile
+?]
+
+- @parliament_formation_complete: Continue
+
+
+@rt_president_yield
+view-if: rt_president_contested
+on-arrival: {!
+Q.reichstag_president        = Q.rt_president_opp_candidate;
+Q.reichstag_president_party  = Q.rt_president_challenger_party;
+Q.reichstag_president_stance =
+    (['NSDAP','DNVP'].indexOf(Q.rt_president_challenger_party) >= 0) ? 'hostile' : 'neutral';
+if (Q.rt_president_challenger_party === 'NSDAP') { Q.pro_republic -= 8; Q.coup_progress += 2; Q.goering_president  = 1; }
+if (Q.rt_president_challenger_party === 'DNVP')  { Q.pro_republic -= 5; Q.coup_progress += 1; Q.hugenberg_president = 1; }
+Q.loebe_president      = 0;
+Q.rt_president_gov_won = 0;
+!}
+
+= [+ rt_president_opp_candidate +] Takes the Chair
+
+We have chosen not to contest the Presidency. **[+ rt_president_opp_candidate +]** ([+ rt_president_challenger_party +]) is Reichstag President.
+
+[? if goering_president : Göring's control of the Presidium is not merely an inconvenience — it is an instrument of the Republic's destruction. ?]
+[? if hugenberg_president : Hugenberg will use the position to obstruct the government and legitimize reaction. ?]
+[? if reichstag_president_stance = "neutral" : Not an ally, but procedural norms should be respected. ?]
+
+**President's Stance:** [+ reichstag_president_stance +]
+
+- @parliament_formation_complete: Continue
+
+
+@parliament_formation_complete
+on-arrival: {!
+Q.parliament_summary =
+    "Reichstag President: " + Q.reichstag_president +
+    " (" + Q.reichstag_president_party + ", " + Q.reichstag_president_stance + ")";
+
+var gov_council = 0;
+var gov_parties = Q.government_parties || [];
+for (var i = 0; i < gov_parties.length; i++) {
+    var p = gov_parties[i];
+    if (['KPD','SAPD','SPD','SRPD'].indexOf(p) >= 0)              gov_council += Q.council_left || 0;
+    else if (['DDP','Z','BVP','CSRP','CSVD','KVP'].indexOf(p) >= 0) gov_council += Q.council_center || 0;
+    else if (['DVP','WP','VRP','DHP'].indexOf(p) >= 0)             gov_council += Q.council_lib_right || 0;
+    else if (['DNVP','CNBL','BB'].indexOf(p) >= 0)                 gov_council += Q.council_nationalist || 0;
+    else if (p === 'NSDAP')                                         gov_council += Q.council_far_right || 0;
+}
+Q.council_gov_influence = gov_council;
+Q.council_opp_influence = 21 - gov_council;
+
+if      (Q.reichstag_president_stance === 'friendly') Q.agenda_president_bonus =  2;
+else if (Q.reichstag_president_stance === 'neutral')  Q.agenda_president_bonus =  0;
+else                                                   Q.agenda_president_bonus = -1;
+
+Q.parliament_constituted        = 1;
+Q.parliament_constitution_year  = Q.year;
+Q.parliament_constitution_month = Q.month;
+!}
+
+= The Reichstag Is Constituted
+
+**[+ parliament_summary +]**
+
+**Council of Elders:** [+ council_display +]
+
+[? if reichstag_president_stance = "friendly" : With a friendly Reichstag President, the government's legislative agenda should proceed with minimal obstruction. ?]
+[? if reichstag_president_stance = "neutral" : The President will apply the rules impartially. The government must negotiate through the Council to schedule priority legislation. ?]
+[? if reichstag_president_stance = "hostile" : The hostile Reichstag President is a serious obstacle. The government's ability to set the agenda will be constrained. ?]
+
+The Reichstag is now in session.
