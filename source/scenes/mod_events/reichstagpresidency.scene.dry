@@ -236,24 +236,16 @@ if (Q.rt_president_gov_won) {
 Q.loebe_president = (Q.reichstag_president === 'Paul Löbe') ? 1 : 0;
 !}
 
-[? if rt_president_gov_won : = [+ rt_president_gov_candidate +] Wins the Presidency
+= [+ rt_president_gov_candidate +] Wins / Opposition Claims the Presidency
 
-The democratic parties held. **[+ reichstag_president +]** is elected Reichstag President.
+[? if rt_president_gov_won : The democratic parties held. **[+ reichstag_president +]** is elected Reichstag President. ?]
+[? if rt_president_gov_won and rt_president_goering_scenario : Göring has been denied the chair. The NSDAP will not forget this. ?]
+[? if rt_president_gov_won : **President's Stance:** [+ reichstag_president_stance +] ?]
 
-[? if rt_president_goering_scenario : Göring has been denied the chair. The NSDAP will not forget this. ?]
-
-**President's Stance:** [+ reichstag_president_stance +]
-?]
-
-[? if not rt_president_gov_won : = [+ rt_president_opp_candidate +] Claims the Presidency
-
-Our candidate was defeated. **[+ rt_president_opp_candidate +]** ([+ rt_president_challenger_party +]) now controls the chair.
-
+[? if not rt_president_gov_won : Our candidate was defeated. **[+ rt_president_opp_candidate +]** ([+ rt_president_challenger_party +]) now controls the chair. ?]
 [? if goering_president : Göring will use the Presidency to obstruct, delay, and destroy the Republic's ability to govern. No-confidence motions can be fast-tracked. Government bills can be buried. ?]
 [? if hugenberg_president : Hugenberg will use the position to legitimize the reactionary opposition and obstruct the government's agenda. ?]
-
-**President's Stance:** hostile
-?]
+[? if not rt_president_gov_won : **President's Stance:** hostile ?]
 
 - @parliament_formation_complete: Continue
 
