@@ -1,8 +1,8 @@
 title: Reichswehr Putsch
 subtitle: The army is moving on Berlin...
-view-if: reichswehr_coup_timer = 0 and not civil_war_end_modifier_national and reichswehr_militancy >= 3 and ((reichswehr_loyalty < 0.2 and reichswehr_strength >= 50) or (reichswehr_militancy >= 8 and reichswehr_loyalty < 0.3 and reichswehr_strength >= 100 and year >= 1930) or (reichswehr_strength >= 101 and reichswehr_loyalty < 0.5 and coup_progress >= 8))
+view-if: reichswehr_coup_timer = 0 and not civil_war_end_modifier_national and reichswehr_militancy >= 3 and ((reichswehr_loyalty < 0.15 and reichswehr_strength >= 80) or (reichswehr_militancy >= 8 and reichswehr_loyalty < 0.3 and reichswehr_strength >= 100 and year >= 1930) or (reichswehr_strength >= 101 and reichswehr_loyalty < 0.5 and coup_progress >= 8)) and martial_law_state != 2 and civil_war_end_modifier_national != 1
 new-page: true
-on-arrival: reichswehr_putsch_seen += 1; strife += 2; reichswehr_putsch_timer += 10
+on-arrival: reichswehr_coup_seen += 1; strife += 2; reichswehr_coup_timer += 10; reichswehr_strength *= 1.10
 go-to: reichswehr_putsch_spd if spd_in_government; reichswehr_putsch_non_spd if spd_in_government = 0
 tags: event
 
@@ -132,8 +132,8 @@ The military directorate takes power. Germany is now governed by generals. The R
 What comes next — whether this junta can hold, whether it slides toward the fascists or toward something of its own — is uncertain. But the Weimar Republic is over.
 
 @submit_presidential
-on-arrival: chancellor = "Papen"; chancellor_party = "I"; spd_in_government = 0; martial_law = 1; pro_republic -= 8
+on-arrival: chancellor = "Papen"; chancellor_party = "I"; spd_in_government = 0; martial_law_state = 1; pro_republic -= 8
 
 Hindenburg, always more comfortable with generals than with parliamentarians, formalizes the new arrangement. Papen is reinstalled. The SPD is banned from the coalition. The Reichstag continues to sit — for now — but under the shadow of the barracks.
 
-It is a presidential dictatorship, not a military one. The distinction may not matter for long.
+It is a presidential dictatorship, not a military one. The distinction may not matter in a long term run.
