@@ -14,56 +14,6 @@ max-cards: 3
 
 #Here, the main deck will be displayed. Clicking on the deck draws a card into your hand. Clicking on a card activates that card.
 
-= NEWS:
-
-[? if year = 1928 and month = 1: 14 January 1928: Reichswehrminister Otto Gessler resigns over the Phoebus-Affäre (Lohmann Affair), a political scandal involving secret rearmament funding through the Phoebus film company. ?]
-
-[? if year = 1928 and month = 1: 18 January: Wilhelm Groener is appointed and sworn in as new Reichswehrminister. ?]
-
-[? if year = 1928 and month = 2 : The current bourgeois-right government has fallen following the collapse of negotiations over School Law (Reichsschulgesetz). ?]
-
-[? if year = 1928 and month = 2 : The Weimar Constitution, in Article 147 paragraph 2, had left the detailed regulation of school law to be "prescribed by state legislation on the basis of a national law", but the law had never been written. Marx's inability to pass one as promised brought down his government. The proposed legislation was intended to guarantee the fundamental equality of interdenominational, confessional and secular schools. The Centre Party, BVP and DNVP were in general agreement with the proposed law, but the DVP had reservations about it. They wanted to secure the primacy of the interdenominational schools and limit the church's voice in determining religious instruction. ?]
-
-[? if year = 1928 and month = 2 : When talks collapsed on 15 February 1928, the Centre Party declared the coalition dissolved but agreed to continue work until 1 April on crucial issues such as the budget. ?]
-
-[? if year = 1928 and month = 2 : New Reichstag election will be held on 20 May. ?]
-
-- @party
-- @govt
-- @intel
-- #advisor
-- @shuffle_leadership_pinned
-
-@main_easy
-set-bg: img/weimar.jpg
-is-hand: true
-on-arrival: {!
-if (Q.advisor_action_timer <= 0) {
-    Q.pinnedCardsDescription = 'Advisors - an action is available.';
-} else if (Q.advisor_action_timer == 1) {
-    Q.pinnedCardsDescription = 'Advisors - next action available in 1 month.';
-} else {
-    Q.pinnedCardsDescription = 'Advisors - next action available in ' + Q.advisor_action_timer + ' months.';
-}
-!}
-max-cards: 4
-
-#Here, the main deck will be displayed. Clicking on the deck draws a card into your hand. Clicking on a card activates that card.
-
-= NEWS:
-
-[? if year = 1928 and month = 1: 14 January 1928: Reichswehrminister Otto Gessler resigns over the Phoebus-Affäre (Lohmann Affair), a political scandal involving secret rearmament funding through the Phoebus film company. ?]
-
-[? if year = 1928 and month = 1: 18 January: Wilhelm Groener is appointed and sworn in as new Reichswehrminister. ?]
-
-[? if year = 1928 and month = 2 : The current bourgeois-right government has fallen following the collapse of negotiations over School Law (Reichsschulgesetz). ?]
-
-[? if year = 1928 and month = 2 : The Weimar Constitution, in Article 147 paragraph 2, had left the detailed regulation of school law to be "prescribed by state legislation on the basis of a national law", but the law had never been written. Marx's inability to pass one as promised brought down his government. The proposed legislation was intended to guarantee the fundamental equality of interdenominational, confessional and secular schools. The Centre Party, BVP and DNVP were in general agreement with the proposed law, but the DVP had reservations about it. They wanted to secure the primacy of the interdenominational schools and limit the church's voice in determining religious instruction. ?]
-
-[? if year = 1928 and month = 2 : When talks collapsed on 15 February 1928, the Centre Party declared the coalition dissolved but agreed to continue work until 1 April on crucial issues such as the budget. ?]
-
-[? if year = 1928 and month = 2 : New Reichstag election will be held on 20 May. ?]
-
 - @party
 - @govt
 - @intel
@@ -80,7 +30,7 @@ is-deck: true
 
 @govt
 title: Government Affairs
-view-if: time >= 6
+view-if: time >= 12 and (spd_in_government = 1 or spd_toleration = 1)
 card-image: img/reichstag_2.jpg
 is-deck: true
 
