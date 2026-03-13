@@ -65,18 +65,12 @@ if (!Q.math_broken) {
 // === UNEMPLOYMENT FLOOR (SKIP IN CHAOS MODE) ===
 if (!Q.math_broken) {
     if (Q.unemployed <= 1) {
-            Q.unemployed = 1;
+        Q.unemployed = 1;
     }
-
-    // Derive demographic voter share from economic unemployment rate
-    // Baseline: 8% unemployment = ~10% of electorate identifies as unemployed
     Q.unemployedc = Math.max(2, 10 + (Q.unemployed - 8) * 0.55);
-    }
 } else {
-    // MATH BROKEN: Unemployment can be negative or zero
     Q.unemployed = Q.impossible_add(Q.unemployed, 0);
 }
-
 
 // === CLASS NORMALIZATION (SKIP IN CHAOS MODE) ===
 let classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployedc'];
@@ -584,7 +578,7 @@ Q.consumption_demand = (Q.demand_impulse || 0)
     * (1 + (Q.distribution_shift || 0) * 0.15);
 
 Q.upper_tax_base = (Q.old_middle + Q.new_middle) / 100;
-Q.lower_tax_base = (Q.workers + Q.unemployed + Q.rural) / 100;
+Q.lower_tax_base = (Q.workers + Q.unemployedc + Q.rural) / 100;
 Q.tax_efficiency = Math.max(0.5, Math.min(1.5,
     1 + (Q.economic_growth / 100) - (Q.unemployed / 100)));
 Q.tax_revenue = (Q.upper_tax_rates * Q.upper_tax_base * 0.035
@@ -1541,7 +1535,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 1.40;
             m += Math.min(Q.unemployed / 20, 0.60);  // up to 2.00 at 12%+ unemployment
             if (Q.peoples_party === 1) m *= 1.03;
@@ -1586,7 +1580,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 0.50;
             if (Q.peoples_party === 1) m *= 0.92;
             return m;
@@ -1629,7 +1623,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.96;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 0.35;
             if (Q.peoples_party === 1) m *= 0.92;
             return m;
@@ -1657,9 +1651,8 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.96;
             return m;
         })(),
-        rural: 0.60,
-        unemployed: 0.80,
-        catholics: 0.70
+        rural: 0.70,
+        unemployedc: 0.50,
     },
 
     cnbl: {
@@ -1678,7 +1671,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             m *= (1 + Math.min(Q.rural / 100, 0.4));
             return m;
         })(),
-        unemployed: 0.30,
+        unemployedc: 0.30,
     },
 
     kpd: {
@@ -1707,7 +1700,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.92;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 1.40;
             if (Q.peoples_party === 1) m *= 1.08;
             return m;
@@ -1740,7 +1733,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.93;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 1.20;
             if (Q.peoples_party === 1) m *= 1.07;
             return m;
@@ -1764,8 +1757,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         old_middle: 0.01,
         new_middle: 0.10,
         rural: 0.04,
-        unemployed: 0.40,
-        catholics: 0.20
+        unemployedc: 0.40,
     },
 
     srpd: {
@@ -1795,7 +1787,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.94;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 1.10;
             if (Q.peoples_party === 1) m *= 1.06;
             return m;
@@ -1853,7 +1845,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 1.12;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 1.10;
             if (Q.peoples_party === 1) m *= 0.88;
             if (Q.ideology === 'left') m *= 1.10;
@@ -1906,7 +1898,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 1.05;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 0.55;
             if (Q.peoples_party === 1) m *= 0.93;
             return m;
@@ -1943,7 +1935,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.96;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 0.70;
             if (Q.peoples_party === 1) m *= 0.94;
             return m;
@@ -1978,7 +1970,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.96;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 0.70;
             if (Q.peoples_party === 1) m *= 0.94;
             return m;
@@ -2018,7 +2010,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.96;
             return m;
         })(),
-        unemployed: (() => {
+        unemployedc: (() => {
             let m = 0.60;
             if (Q.peoples_party === 1) m *= 0.93;
             return m;
@@ -2033,7 +2025,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         old_middle: 1.00,
         new_middle: 1.00,
         rural: 1.00,
-        unemployed: 1.00,
+        unemployedc: 1.00,
     },
 
     kvp: {
@@ -2048,7 +2040,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
     old_middle: 1.45,
     new_middle: 1.20,
     rural:      0.90,
-    unemployed: 0.30,
+    unemployedc: 0.30,
     },
 
     dhp: {
@@ -2062,7 +2054,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         old_middle: 1.35,
         new_middle: 0.60,
         rural:      1.70,  // Its actual base
-        unemployed: 0.25,
+        unemployedc: 0.25,
     },
 
     bb: {
@@ -2079,7 +2071,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
     old_middle: 0.40,
     new_middle: 0.20,
     rural:      2.10,  // Highest rural cap of any party
-    unemployed: 0.35,  // Catholic but not clericalist
+    unemployedc: 0.35,  // Catholic but not clericalist
     }
 
 };
@@ -2221,11 +2213,9 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
 
                     if (Q.c === 'workers') {
                         Q.ideology_factor *= 0.90;
-                    } else if (Q.c === 'catholics') {
-                        Q.ideology_factor *= 0.35;
                     } else if (Q.c === 'rural' && Q.unemployed > 12) {
                         Q.ideology_factor *= 1.15;
-                    } else if (Q.c === 'unemployed') {
+                    } else if (Q.c === 'unemployedc') {
                         let unemp_scale = 1.20 + Math.min(Q.unemployed / 25, 0.80);
                         // Scales from 1.20 at 0% unemp to 2.00 at 25%+ unemp
                         Q.ideology_factor *= unemp_scale;
@@ -2547,7 +2537,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
                         0.25
                     );
                     if (Q.c === 'rural')      Q.ideology_factor *= 1.60;
-                    if (Q.c === 'catholics')  Q.ideology_factor *= 0.85;
                     if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.25;
                     break;
                 default:
