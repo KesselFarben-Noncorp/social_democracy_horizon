@@ -5,7 +5,7 @@
    Theme/visuals: second CSS (Crimson Text serif, dark/retro/crt modes)
    Layout/structure: first CSS (CSS Grid, sidebar right+sticky,
                      #main_column, #bottom_panel, .stats-box)
-   Target HTML: newer HTML (aside.tools, #main_column, two .stats-box)
+   Target HTML: older HTML (#mid_panel, #tools_wrapper, #stats_sidebar, single #qualities)
    =================================================== */
 
 /* =====================================================================
@@ -30,7 +30,7 @@ body {
   --bg-color:             #f3f3e3;
   --border-color:         #000;
   --content-bg-color:     #f3f3f3;
-  --text-color:           #111;
+  --text-color:           #431;
   --link-color:           #900;
   --link-hover-color:     rgba(0, 0, 0, 0.05);
   --unavailable-bg-color: rgba(0, 0, 0, 0.1);
@@ -164,7 +164,8 @@ body.crt-mode::after {
 
 /* =====================================================================
    PAGE LAYOUT — CSS Grid (from first CSS)
-   #page → [#main_column] [aside.tools]
+   Older HTML: #page → [#mid_panel (main)] [#stats_sidebar (sidebar)]
+   #tools_wrapper and .left/.right classes are overridden by grid.
    ===================================================================== */
 #page {
   display: grid;
@@ -177,11 +178,31 @@ body.crt-mode::after {
   align-items: start;
 }
 
+/* #mid_panel is the main content column */
+#mid_panel {
+  grid-area: main;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 /* =====================================================================
-   SIDEBAR — aside.tools (right, sticky)
-   The HTML uses aside.tools.left — the "left" class is legacy/ignored.
-   Grid places it on the RIGHT via grid-area: sidebar.
+   SIDEBAR — #stats_sidebar.tools.left
+   #tools_wrapper is position:static so the sidebar can be pulled out
+   into the grid. The sidebar is placed RIGHT via grid-area: sidebar.
    ===================================================================== */
+#tools_wrapper {
+  position: static;
+  width: auto;
+  max-width: none;
+  left: auto;
+  right: auto;
+  margin: 0;
+}
+
 .tools {
   grid-area: sidebar;
   width: 260px;
@@ -190,43 +211,34 @@ body.crt-mode::after {
   padding: 0;
   color: var(--text-color);
   font-family: "Crimson Text", Georgia, serif;
-  background-color: transparent;
-  box-shadow: none;
+  background-color: var(--content-bg-color);
+  box-shadow: 2px 2px 12px rgba(0,0,0,0.2);
+  border: 1px solid var(--border-color);
   position: sticky;
   top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   overflow-x: hidden;
+  /* Override the float from the original .tools.left */
+  float: none !important;
+  left: auto !important;
 }
 
 .tools::-webkit-scrollbar       { width: 5px; }
 .tools::-webkit-scrollbar-track { background: var(--tab-bg-color); }
 .tools::-webkit-scrollbar-thumb { background: var(--border-color); }
 
-/* =====================================================================
-   STATS BOXES — each .stats-box is a card inside the sidebar
-   ===================================================================== */
-.stats-box {
-  background-color: var(--content-bg-color);
-  padding: 0;
-  box-shadow: 2px 2px 12px rgba(0,0,0,0.2);
-  border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  width: 100%;
-  min-height: 200px;
-  flex: 0 0 auto;
-}
+/* Dark/retro mode sidebar borders */
+body.dark-mode .tools  { border-style: double; border-width: 4px; border-color: #888; }
+body.retro-mode .tools { border-style: double; border-width: 4px; border-color: #888; }
+body.crt-mode .tools   { border: 2px solid var(--border-color); background: var(--bg-color); animation: crt-jitter 6s infinite linear; }
 
 /* =====================================================================
-   QUALITIES PANELS (#qualities, #qualities_2)
+   QUALITIES PANEL (#qualities — single panel in older HTML)
    ===================================================================== */
-#qualities,
-#qualities_2 {
+#qualities {
   padding: 0.6em;
   text-indent: 0;
   line-height: 1.3em;
@@ -235,28 +247,22 @@ body.crt-mode::after {
   color: var(--text-color);
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 340px;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
-#qualities::-webkit-scrollbar,
-#qualities_2::-webkit-scrollbar       { width: 4px; }
-#qualities::-webkit-scrollbar-track,
-#qualities_2::-webkit-scrollbar-track { background: var(--tab-bg-color); }
-#qualities::-webkit-scrollbar-thumb,
-#qualities_2::-webkit-scrollbar-thumb { background: var(--border-color); }
+#qualities::-webkit-scrollbar       { width: 4px; }
+#qualities::-webkit-scrollbar-track { background: var(--tab-bg-color); }
+#qualities::-webkit-scrollbar-thumb { background: var(--border-color); }
 
-#qualities p,
-#qualities_2 p {
+#qualities p {
   text-indent: 0;
   margin-bottom: 0.5em;
   text-align: left;
   color: var(--text-color);
 }
 
-#qualities h1,
-#qualities_2 h1 {
+#qualities h1 {
   font-size: 1.1em;
   font-weight: normal;
   text-align: center;
@@ -267,70 +273,52 @@ body.crt-mode::after {
 }
 
 /* =====================================================================
-   MAIN COLUMN — #main_column
-   ===================================================================== */
-#main_column {
-  grid-area: main;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* =====================================================================
-   HEADER
+   HEADER — older HTML: header is a direct child of #mid_panel,
+   contains h1, h2, and #header-links (float:left in original).
    ===================================================================== */
 header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
   color: var(--text-color);
   font-family: "Playfair Display", Georgia, serif;
+  margin-bottom: 20px;
+  text-align: right;
+  overflow: auto;
 }
 
-#header-text h1,
-#header-text h2 {
-  display: block;
+header h1,
+header h2 {
+  display: inline-block;
   font-weight: normal;
   margin: 0;
   font-size: 1em;
   font-family: "Playfair Display", Georgia, serif;
 }
 
-#header-text h1 {
+header h1 {
   font-weight: bold;
 }
 
-#header-text h2::before {
+header h2::before {
   content: "by ";
   font-style: italic;
   padding-right: 0.3em;
 }
 
 #header-links {
-  display: flex;
-  flex-direction: row;
-  gap: 0;
-  align-self: flex-start;
-  background-color: var(--bg-color);
-  box-shadow: 2px 2px 12px rgba(0,0,0,0.2);
-  font-family: "Playfair Display", Georgia, serif;
-  flex-shrink: 0;
+  text-align: left;
+  float: left;
+  display: inline-block;
+  margin-bottom: 0.5em;
   padding-left: 1em;
+  box-shadow: 2px 2px 12px rgba(0,0,0,0.2);
+  background-color: var(--bg-color);
+  font-family: "Playfair Display", Georgia, serif;
 }
 
 #header-links a {
-  padding: 0 1em 0 0;
+  padding-right: 1em;
   color: var(--link-color);
   text-decoration: none;
   transition: all 0.15s ease;
-  font-size: 1em;
 }
 
 #header-links a:hover {
@@ -594,6 +582,15 @@ ul.choices a {
   border: 2px solid;
   color: white;
   padding: 1em;
+}
+
+.overlay_top,
+.overlay_top table,
+.overlay_top td,
+.overlay_top label,
+.overlay_top input,
+.overlay_top button {
+  color: white;
 }
 
 .save_info {
@@ -862,29 +859,17 @@ img {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 15px;
+    float: none !important;
     max-height: none;
     overflow-y: visible;
   }
 
-  .stats-box {
-    width: calc(50% - 8px);
-    flex: 1 1 calc(50% - 8px);
-    min-width: 200px;
-  }
-
-  #qualities,
-  #qualities_2 { max-height: 280px; }
-
   header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    text-align: left;
   }
 
   #header-links {
+    float: none;
     width: 100%;
     padding-left: 0;
   }
@@ -894,10 +879,22 @@ img {
 }
 
 @media screen and (max-width: 560px) {
-  .tools { flex-direction: column; }
-  .stats-box { width: 100%; flex: none; }
+  #page { position: static; }
 
-  #content { padding: 1em; font-size: 1em; }
+  #content {
+    position: static;
+    font-size: 1em;
+    line-height: 160%;
+    padding: 1em 1em 1.5em 1em;
+  }
+
+  #tools_wrapper { position: static; }
+
+  .tools {
+    width: 90%;
+    margin: 0.4em;
+  }
+
   #bottom_panel { padding: 1em; margin-top: 15px; }
 
   ul.decks, ul.hand, ul.pinned-cards { gap: 0.5em; justify-content: center; }
