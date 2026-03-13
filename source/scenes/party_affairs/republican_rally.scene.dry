@@ -2,7 +2,7 @@ title: Republican Rally
 new-page: true
 is-card: true
 tags: party_affairs
-view-if: republican_rally_timer <= 0
+view-if: republican_rally_timer <= 0 and (z_relation > 40 and ddp_relation > 35)
 on-arrival: month_actions += 1; republican_rally_timer += 6; republican_rally_timer += 5 if nazi_urgency > 4;
 card-image: img/republican_rally.jpg
 
@@ -14,20 +14,19 @@ How should we rally the republican forces?
 
 - @coord_rally: Coordinate a unified republican demonstration with our coalition partners.
 - @veterans_rally: Organize the "Iron Front" veterans' march for democracy.
-- @iron_front_rally_0: Organize coordination of the Republicans for One Concentrated Front.
+- @iron_front_rally_0: Organize coordination for the united front.
 - @cultural_festival: Host a "Festival of the Republic" celebrating democratic culture.
 - @defend_prussia: Launch a "Prussia Stands Firm" campaign defending democratic federalism.
 - @easy_discard
 
 @coord_rally
-on-arrival: catholics_z += 3; workers_spd += 3; new_middle_ddp += 3; z_relation += 3; ddp_relation += 3; pro_republic += 1; coalition_dissent -= 1 if in_weimar_coalition = 1; dvp_relation += 3 if dvp_in_government and dvp_right_shift = 0; old_middle_dvp += 2 if dvp_in_government and dvp_right_shift = 0; coup_progress += 0.5
+on-arrival: catholics_z += 3; workers_spd += 3; new_middle_ddp += 3; z_relation += 3; ddp_relation += 3; pro_republic += 4; coalition_dissent -= 1 if in_weimar_coalition = 1; dvp_relation += 3 if dvp_in_government and dvp_right_shift = 0; old_middle_dvp += 2 if dvp_in_government and dvp_right_shift = 0; coup_progress += 0.5; ddp_dissent -= 1; z_dissent -= 1; old_middle_dhp += 1
 
 We organize a massive demonstration in Berlin, with banners reading "Unity Against Extremism!" The Social Democratic "Three Arrows," the Center's black-red-gold, and the DDP's constitutional liberalism march together through the streets. The *Reichsbanner Schwarz-Rot-Gold* provides security, keeping Nazi and Communist agitators at bay.
 
 [? if dvp_in_government and dvp_right_shift = 0: Even some DVP members join us—proof that moderate business liberals can still be won to the republican cause. Gustav Stresemann's legacy lives on in these men. ?]
 
 The bourgeois press is cautiously positive, though they warn against "socialist overreach." Our own base appreciates the show of democratic solidarity, even if some grumble about marching alongside "capitalist parties."
-
 
 @iron_front_rally_0
 view-if: not iron_front_formed 
@@ -85,6 +84,7 @@ In contrast to the Nazi torchlight parades and Communist agitprop, we offer some
 Even skeptics admit the Republic has fostered remarkable creativity. For a few weeks, the blackshirt and brownshirt violence seems distant, almost unreal.
 
 @veterans_rally
+view-if: iron_front_formed
 on-arrival: pro_republic += 1; nationalism -= 1; reichswehr_loyalty += 0.02; interior_police_loyalty += 0.01; center_strength += 3; left_dissent += 5; reichswehr_loyalty += 0.1 if in_weimar_coalition
 
 We organize a "March of the Iron Front"—Social Democratic, Catholic, and liberal veterans marching in their old uniforms, medals gleaming, but now under the black-red-gold flag of the Republic rather than the Imperial tricolor.
@@ -96,7 +96,7 @@ Some officers in the Reichswehr watch approvingly—proof that the military is n
 [? if left_dissent > 20: Our left wing is furious. "Why are we glorifying militarism?" they demand. "These men fought for the Kaiser's imperialism!" The tension between pacifist principle and anti-fascist pragmatism grows. ?]
 
 @defend_prussia
-view-if: prussian_government == "SPD" and prussian_police_loyalty >= 0.65 and interior_police_loyalty >= 0.65
+view-if: (prussian_government == "SPD" or spd_prussia = 1) and prussian_police_loyalty >= 0.65 and interior_police_loyalty >= 0.65
 on-arrival: advisor_action_timer = 6; interior_police_loyalty += 0.05; prussian_police_loyalty += 0.05; pro_republic += 1; hindenburg_relation -= 2; dnvp_relation -= 3; dvp_relation -= 3 if in_weimar_coalition = 1
 
 "Prussia is the fortress of German democracy!" we declare. "While the Reich government may waver, Prussia stands firm under Social Democratic leadership!"
@@ -107,4 +107,4 @@ The Junkers and Nationalists are apoplectic. "The Marxists have turned Frederick
 
 But for now, Prussia remains our bulwark. The Prussian police are loyal. The bureaucracy is professional. And the largest German state stands with the Republic.
 
-[? if hindenburg_relation < -5: Hindenburg's hostility is dangerous. As Reich President, he has the constitutional authority to dissolve the Prussian government under Article 48. We must tread carefully. ?]
+[? if president_relation < 30: [+ president +]'s hostility is dangerous. As Reich President, they have the constitutional authority to dissolve the Prussian government under Article 48. We must tread carefully. ?]
