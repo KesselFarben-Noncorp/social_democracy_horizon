@@ -146,41 +146,38 @@
       document.body.classList.remove('retro-mode');
       window.dendryUI.saveSettings();
   };
+
   window.enableDarkMode = function() {
     window.dendryUI.dark_mode = true;
     window.dendryUI.crt_mode = false; 
     window.dendryUI.retro_mode = false;
-    
     document.body.classList.remove('crt-mode');
     document.body.classList.remove('retro-mode');
     document.body.classList.add('dark-mode');
-    
     window.dendryUI.saveSettings();
   };
+
   window.enableRetroMode = function() {
     window.dendryUI.retro_mode = true; 
     window.dendryUI.crt_mode = false; 
     window.dendryUI.dark_mode = false;
-    
     document.body.classList.remove('dark-mode');
     document.body.classList.remove('crt-mode');
     document.body.classList.add('retro-mode');
-    
     window.dendryUI.saveSettings();
   };
+
   window.enableCRTMode = function() {
     window.dendryUI.crt_mode = true;
     window.dendryUI.dark_mode = false;
     window.dendryUI.retro_mode = false;
-
     document.body.classList.remove('dark-mode');
     document.body.classList.remove('retro-mode');
     document.body.classList.add('crt-mode');
-
     window.dendryUI.saveSettings();
-};
+  };
 
-  // populates the checkboxes in the options view
+  // Populates the checkboxes in the options view.
   window.populateOptions = function() {
     var disable_bg = window.dendryUI.disable_bg;
     var animate = window.dendryUI.animate;
@@ -223,18 +220,65 @@
     }
   };
 
-  
   // This function allows you to modify the text before it's displayed.
-  // E.g. wrapping chat-like messages in spans.
   window.displayText = function(text) {
       return text;
   };
 
-  // This function allows you to do something in response to signals.
+  // Refreshes the bottom panel on scene change signals.
   window.handleSignal = function(signal, event, scene_id) {
+      if (signal === 'scene-arrival') {
+          window.updateBottomPanel();
+      }
   };
-  
-  // This function runs on a new page. Right now, this auto-saves.
+
+  // Updates the main sidebar (#qualities) from the current statusTab scene.
+  window.updateSidebar = function() {
+      $('#qualities').empty();
+      var scene = dendryUI.game.scenes[window.statusTab];
+      dendryUI.dendryEngine._runActions(scene.onArrival);
+      var displayContent = dendryUI.dendryEngine._makeDisplayContent(scene.content, true);
+      $('#qualities').append(dendryUI.contentToHTML.convert(displayContent));
+  };
+
+  // -----------------------------------------------------------------------
+  // BOTTOM PANEL — linked to the 'news' scene (news.scene.dry)
+  // -----------------------------------------------------------------------
+  var BOTTOM_PANEL_SCENE = 'news';
+
+  window.updateBottomPanel = function() {
+      var panel = $('#bottom_panel');
+      if (!panel.length) return;
+
+      // Guard: scene must exist before we try to render it.
+      var scene = dendryUI.game.scenes[BOTTOM_PANEL_SCENE];
+      if (!scene) return;
+
+      panel.empty();
+      dendryUI.dendryEngine._runActions(scene.onArrival);
+      var displayContent = dendryUI.dendryEngine._makeDisplayContent(scene.content, true);
+      panel.append(dendryUI.contentToHTML.convert(displayContent));
+  };
+
+  // Tab switching — still 2-arg so existing HTML onclick calls keep working.
+  // The optional 3rd arg (target panel selector) is accepted but unused for
+  // now since #qualities_2 is left empty.
+  window.changeTab = function(newTab, tabId /*, targetPanel */) {
+      if (tabId == 'poll_tab' && dendryUI.dendryEngine.state.qualities.historical_mode) {
+          window.alert('Polls are not available in historical mode.');
+          return;
+      }
+      var tabButton = document.getElementById(tabId);
+      var tabButtons = document.getElementsByClassName('tab_button');
+      for (var i = 0; i < tabButtons.length; i++) {
+          tabButtons[i].className = tabButtons[i].className.replace(' active', '');
+      }
+      tabButton.className += ' active';
+      window.statusTab = newTab;
+      window.updateSidebar();
+  };
+
+  // Runs on every new page of content.
   window.onNewPage = function() {
     var scene = window.dendryUI.dendryEngine.state.sceneId;
     if (scene != 'root' && !window.justLoaded) {
@@ -244,44 +288,15 @@
         window.justLoaded = false;
     }
     window.updateSandboxLink();
+    window.updateBottomPanel();
   };
 
-  // TODO: have some code for tabbed sidebar browsing.
-  window.updateSidebar = function() {
-      $('#qualities').empty();
-      var scene = dendryUI.game.scenes[window.statusTab];
-      dendryUI.dendryEngine._runActions(scene.onArrival);
-      var displayContent = dendryUI.dendryEngine._makeDisplayContent(scene.content, true);
-      $('#qualities').append(dendryUI.contentToHTML.convert(displayContent));
-  };
-
-  window.changeTab = function(newTab, tabId) {
-      if (tabId == 'poll_tab' && dendryUI.dendryEngine.state.qualities.historical_mode) {
-          window.alert('Polls are not available in historical mode.');
-          return;
-      }
-      var tabButton = document.getElementById(tabId);
-      var tabButtons = document.getElementsByClassName('tab_button');
-      for (i = 0; i < tabButtons.length; i++) {
-        tabButtons[i].className = tabButtons[i].className.replace(' active', '');
-      }
-      tabButton.className += ' active';
-      window.statusTab = newTab;
-      window.updateSidebar();
-  };
-
+  // Runs whenever content is displayed.
   window.onDisplayContent = function() {
       window.updateSidebar();
+      window.updateBottomPanel();
   };
 
-  /*
-   * This function copied from the code for Infinite Space Battle Simulator
-   *
-   * quality - a number between max and min
-   * qualityName - the name of the quality
-   * max and min - numbers
-   * colors - if true/1, will use some color scheme - green to yellow to red for high to low
-   * */
   window.generateBar = function(quality, qualityName, max, min, colors) {
       var bar = document.createElement('div');
       bar.className = 'bar';
@@ -304,7 +319,6 @@
       bar.appendChild(value);
       return bar;
   };
-
 
   window.justLoaded = true;
   window.statusTab = "status";
