@@ -65,7 +65,12 @@ if (!Q.math_broken) {
 // === UNEMPLOYMENT FLOOR (SKIP IN CHAOS MODE) ===
 if (!Q.math_broken) {
     if (Q.unemployed <= 1) {
-        Q.unemployed = 1;
+            Q.unemployed = 1;
+    }
+
+    // Derive demographic voter share from economic unemployment rate
+    // Baseline: 8% unemployment = ~10% of electorate identifies as unemployed
+    Q.unemployedc = Math.max(2, 10 + (Q.unemployed - 8) * 0.55);
     }
 } else {
     // MATH BROKEN: Unemployment can be negative or zero
@@ -74,7 +79,7 @@ if (!Q.math_broken) {
 
 
 // === CLASS NORMALIZATION (SKIP IN CHAOS MODE) ===
-let classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed', 'catholics'];
+let classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployedc'];
 
 if (!Q.math_broken) {
     // NORMAL: Classes sum to 100%
@@ -93,7 +98,7 @@ if (!Q.math_broken) {
         Q[c] = Q.impossible_percentage(Q[c]);
     }
     // Total will NOT equal 100
-    console.log("CLASS CHAOS: Total = " + (Q.workers + Q.old_middle + Q.new_middle + Q.rural + Q.unemployed) + "%");
+    console.log("CLASS CHAOS: Total = " + (Q.workers + Q.old_middle + Q.new_middle + Q.rural + Q.unemployedc) + "%");
 }
 
 // After this, sum of Q.workers + Q.old_middle + ... + Q.catholics === 100
@@ -1496,8 +1501,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         old_middle: 1 + Q.sh_influence,
         new_middle: 1 + Q.sh_influence,
         rural:      1 + Q.sh_influence,
-        unemployed: 1.3 + Q.sa_influence,
-        catholics:  1 + Q.rb_influence
+        unemployedc: 1.3 + Q.sa_influence,
         }
 
 
@@ -1543,7 +1547,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 1.03;
             return m;
         })(),
-        catholics: 0.35
     },
 
     dnvp: {
@@ -1588,7 +1591,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.92;
             return m;
         })(),
-        catholics: 0.40
     },
 
     dvp: {
@@ -1632,7 +1634,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.92;
             return m;
         })(),
-        catholics: 0.75
     },
 
     wp: {
@@ -1678,7 +1679,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             return m;
         })(),
         unemployed: 0.30,
-        catholics: 0.50
     },
 
     kpd: {
@@ -1712,7 +1712,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 1.08;
             return m;
         })(),
-        catholics: 0.60
     },
 
     sapd: {
@@ -1746,7 +1745,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 1.07;
             return m;
         })(),
-        catholics: 0.55
     },
 
     csrp: {
@@ -1756,7 +1754,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         new_middle: 0.15,
         rural: 0.10,
         unemployed: 0.30,
-        catholics: 0.65
     },
 
     vrp: {
@@ -1803,7 +1800,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 1.06;
             return m;
         })(),
-        catholics: 1.00
     },
 
     spd: {
@@ -1863,7 +1859,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.ideology === 'left') m *= 1.10;
             return m;
         })(),
-        catholics: 0.90
     },
 
     ddp: {
@@ -1916,7 +1911,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.93;
             return m;
         })(),
-        catholics: 0.70
     },
 
     z: {
@@ -1954,12 +1948,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.94;
             return m;
         })(),
-        catholics: (() => {
-            // Catholic cap scales with actual catholic population
-            let m = 1.80;
-            m *= (1 + Math.min(Q.catholics / 100, 0.4));
-            return m;
-        })()
     },
 
     bvp: {
@@ -1995,11 +1983,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.94;
             return m;
         })(),
-        catholics: (() => {
-            let m = 1.70;
-            m *= (1 + Math.min(Q.catholics / 100, 0.35));
-            return m;
-        })()
     },
 
     csvd: {
@@ -2040,7 +2023,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
             if (Q.peoples_party === 1) m *= 0.93;
             return m;
         })(),
-        catholics: 0.25
     },
 
     other: {
@@ -2052,7 +2034,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         new_middle: 1.00,
         rural: 1.00,
         unemployed: 1.00,
-        catholics: 1.00
     },
 
     kvp: {
@@ -2068,7 +2049,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
     new_middle: 1.20,
     rural:      0.90,
     unemployed: 0.30,
-    catholics:  0.55
     },
 
     dhp: {
@@ -2083,7 +2063,6 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
         new_middle: 0.60,
         rural:      1.70,  // Its actual base
         unemployed: 0.25,
-        catholics:  0.30   // Protestant Guelph tradition
     },
 
     bb: {
@@ -2100,8 +2079,7 @@ Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
     old_middle: 0.40,
     new_middle: 0.20,
     rural:      2.10,  // Highest rural cap of any party
-    unemployed: 0.35,
-    catholics:  0.90   // Catholic but not clericalist
+    unemployed: 0.35,  // Catholic but not clericalist
     }
 
 };
