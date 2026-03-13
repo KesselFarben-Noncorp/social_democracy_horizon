@@ -40,12 +40,65 @@ if (Q.spd_in_government && Q.chancellor_party == "SPD") {
 } else {
     Q.total_power += Q.loyal_reichswehr_power/4;
 }
-Q.rfb_power = Q.rfb_strength*Q.rfb_militancy;
+// === RFB (Red Front Fighters League) ===
+// Already partially handled above, but expand based on kpd_relation
+Q.rfb_power = Q.rfb_strength * Q.rfb_militancy;
+
 if (Q.kpd_relation >= 60) {
     Q.total_power += Q.rfb_power;
+    Q.rfb_side = "ally";
 } else if (Q.kpd_relation >= 45) {
-    Q.total_power += Q.rfb_power*0.5;
+    Q.total_power += Q.rfb_power * 0.5;
+    Q.rfb_side = "partial";
+} else if (Q.kpd_relation >= 30) {
+    // RFB stays neutral — fights neither side
+    Q.rfb_side = "neutral";
+} else {
+    // KPD actively hostile — RFB fights against republic
+    // They won't join fascists but will attack SPD forces opportunistically
+    Q.total_power -= Q.rfb_power * 0.3;
+    Q.enemy_power += Q.rfb_power * 0.3;
+    Q.rfb_side = "hostile";
 }
+
+// === JUNGDO (Young German Order) ===
+// Jungdeutsche Orden — republican nationalist, anti-Nazi, anti-Marxist
+// DDP-affiliated but independent paramilitary tradition
+// Joins republic if: good DDP relations + low nationalism + high pro_republic
+// Joins right if: bad DDP relations + high nationalism + low pro_republic
+// Stays neutral if: mixed signals
+
+Q.jungdo_strength = Q.jungdo_strength || 80; // ~80k members historically
+Q.jungdo_militancy = Q.jungdo_militancy || 0.4;
+Q.jungdo_power = Q.jungdo_strength * Q.jungdo_militancy;
+
+// Calculate Jungdo loyalty factor
+// ddp_relation: 0-100, nationalism: 0-100, pro_republic: 0-100
+var jungdo_republic_pull = (Q.ddp_relation || 50) * 0.4 + Q.pro_republic * 0.4 - Q.nationalism * 0.2;
+var jungdo_right_pull = Q.nationalism * 0.4 + (100 - Q.pro_republic) * 0.3 - (Q.ddp_relation || 50) * 0.3;
+
+// Adjust for specific conditions
+if (Q.ddp_relation >= 60) jungdo_republic_pull += 15;
+if (Q.ddp_relation < 30) jungdo_republic_pull -= 20;
+if (Q.nationalism >= 60) jungdo_right_pull += 15;
+if (Q.pro_republic >= 60) jungdo_republic_pull += 10;
+if (Q.pro_republic < 30) jungdo_right_pull += 20;
+
+// Jungdo will NOT join NSDAP — they despise Hitler
+// But they might join Stahlhelm/DNVP side if sufficiently nationalist
+if (Q.dnvp_line === 3) jungdo_right_pull -= 15; // hate Hugenberg too
+
+if (jungdo_republic_pull > jungdo_right_pull + 10) {
+    Q.total_power += Q.jungdo_power;
+    Q.jungdo_side = "republic";
+} else if (jungdo_right_pull > jungdo_republic_pull + 10) {
+    Q.enemy_power += Q.jungdo_power;
+    Q.jungdo_side = "right";
+} else {
+    // Splits — half and half, effectively cancels out
+    Q.jungdo_side = "split";
+}
+
 // general strike strength
 // maximum (given 25 labor strength) is 400
 // use normalized workers_spd instead of labor_strength?
@@ -76,12 +129,40 @@ if (Q.reichswehr_coup_civil_war) {
 Q.enemy_power += Q.hostile_reichswehr_power;
 console.log("Enemy strength:", Q.enemy_power);
 
+// === KPD VICTORY CONDITION ===
+// KPD wins if: RFB+workers overwhelm both republic AND fascist forces
+// Only possible if SPD is weak/hostile AND KPD is strong
+
+Q.kpd_victory = 0;
+
 if (Q.total_power > Q.enemy_power*1.1) {
     Q.republic_victory = 1;
 } else if (Q.total_power/Q.enemy_power >= 0.6) {
     Q.long_war = 1;
 } else {
     Q.total_defeat = 1;
+}
+
+// === KPD VICTORY CONDITION ===
+// KPD wins if: RFB+workers overwhelm both republic AND fascist forces
+// Only possible if SPD is weak/hostile AND KPD is strong
+
+Q.kpd_victory = 0;
+
+if (Q.rfb_side === "hostile" || Q.kpd_relation < 30) {
+    var kpd_power = Q.rfb_power;
+    kpd_power += Q.normalized_workers_kpd * 3;
+    kpd_power += Q.kpd_r * 10; // electoral strength = organizational depth
+    
+    // KPD needs to overwhelm BOTH sides
+    var both_sides = Q.total_power + Q.enemy_power;
+    
+    if (kpd_power > both_sides * 0.6 && kpd_power > Q.total_power * 1.5) {
+        Q.kpd_victory = 1;
+        Q.republic_victory = 0;
+        Q.long_war = 0;
+        Q.total_defeat = 0;
+    }
 }
 
 Q.is_favorable = 0;
@@ -97,7 +178,16 @@ go-to: war_menu
 
 [? if reichswehr_coup_civil_war : Our enemies are the Reichswehr itself — [+ reichswehr_strength +] thousand regular soldiers, now turned against the republic. The Stahlhelm, with [+ sh_strength +] thousand troops, and the SA, with [+ sa_strength +] thousand, fight alongside them. The Prussian police, with [+ prussian_police_strength +] thousand members, must choose a side. ?]
 
-[? if chancellor_party == "KPD" or president == "Thälmann" : The KPD's paramilitary, the RFB, is leading the battle, and we are their co-combatants. ?]
+[? if jungdo_side = "republic" : The Young German Order, the paramilitary wing of the democratic nationalists, has sided with the republic. Their [+ jungdo_strength +] thousand members bring genuine military experience to our cause. ?]
+[? if jungdo_side = "right" : The Young German Order has sided with the nationalists — though they fight under Stahlhelm command rather than with the SA, whom they despise. Their [+ jungdo_strength +] thousand members add to our enemies. ?]
+[? if jungdo_side = "split" : The Young German Order is internally divided. Half march with the republic, half with the nationalists. They may end up fighting each other before they fight us. ?]
+
+[? if rfb_side = "ally" : The Red Front Fighters League stands with us fully. Communist and Social Democrat fight side by side. ?]
+[? if rfb_side = "partial" : The Red Front Fighters League is partially with us - their rank and file willing, but their leadership hesitant. ?]
+[? if rfb_side = "neutral" : The Red Front Fighters League watches from the sidelines. The KPD has decided this is not their fight. ?]
+[? if rfb_side = "hostile" : The Red Front Fighters League is actively working against us, attacking our rear positions even as the fascists advance. The KPD has declared this a war between two bourgeois factions. ?]
+
+[? if chancellor_party == "KPD" or president == "Thälmann" : The KPD's paramilitary, the RFB, is leading the battle. ?]
 
 On our side, we have the Reichsbanner, at [+ rb_strength +] thousand members. [? if dissent > 0.15 and dissent <= 0.25: It is somewhat weakened by dissent within the party, and some members choose not to fight. ?][? if dissent > 0.25 and dissent < 0.5: It is weakened by dissent within the party, and many members choose not to fight. ?][? if dissent >= 0.5: It is heavily weakened by dissent within the party, and a substantial portion of members choose not to fight. ?]
 
@@ -132,6 +222,9 @@ There are [+ rfb_strength +] thousand fighters with the Communist RFB, in additi
 
 [? if kpd_relation >= 60 : The KPD is entirely on our side, owing to our good relations.. ?][? if kpd_relation < 60 and kpd_relation >= 45 : Most of the KPD is on our side, due to their good relations with us. ?][? if kpd_relation < 45 : The KPD does not support us. ?]
 
+[? if rfb_side = "hostile" : The RFB is actively fighting against us — calling on the KPD now may only deepen their hostility. ?]
+[? if rfb_side = "neutral" : Perhaps an appeal can shift the RFB off the sidelines. ?]
+
 @general_strike
 max-visits: 1
 go-to: war_menu
@@ -161,7 +254,7 @@ on-arrival: war_choices += 1;
 
 @war_outcome
 view-if: war_choices >= 2
-go-to: defeat if total_defeat = 1; long_war if long_war = 1; victory_router if republic_victory = 1 
+go-to: defeat if total_defeat = 1; long_war if long_war = 1; kpd_victory_scene if kpd_victory = 1; victory_router if republic_victory = 1
 
 @victory_router
 on-arrival: {!
@@ -289,3 +382,32 @@ The councils are taking control of the factories. The old order is being swept a
 
 - @game_over: Game over.
 - @root: The revolution continues.
+
+@kpd_victory_scene
+on-arrival: sandbox = 1; civil_war_end = "communist"; civil_war_end_modifier_national = 1; reichswehr_coup_civil_war = 0; spd_in_government = 0; chancellor = "Thälmann"; chancellor_party = "KPD"; president = "Thälmann"; nsdap_banned = 1; dnvp_banned = 1; csvd_banned = 1; kvp_banned = 1; cnbl_banned = 1; vrp_banned = 1; csrp_banned = 1; dvp_banned = 1; wp_banned = 1; bb_banned = 1; z_banned = 1; ddp_banned = 1; bb_banned = 1; dhp_banned = 1; spd_banned = 1 if kpd_relation < 30; others_banned = 1
+
+= Defeat — The Red Revolution
+
+The battle lines fracture — but not in the direction we feared.
+
+The SA and Stahlhelm, expecting a weakened republic, instead walk into a trap. The RFB has been preparing not for defense but for offense. While our Reichsbanner fought desperately on one front, the Communist militias encircled the fascist columns from the other direction.
+
+[? if rfb_side = "hostile" : The RFB that was moments ago attacking our rear has turned — not to help us, but to finish off the fascists first. We are merely next. ?]
+
+The Reichswehr, caught between three armed factions, collapses into desertion and neutrality. Neither the republic nor the NSDAP flag flies over the Reichstag.
+
+The red one does.
+
+Thälmann addresses the nation by radio from the steps of the Chancellery:
+
+*"Workers of Germany — the November betrayal is avenged. The SPD, the social fascists who stabbed the revolution in the back in 1918, have been swept away alongside their class enemies. The German Soviet Republic is proclaimed."*
+
+[? if kpd_relation >= 30 : Despite our prior cooperation, the KPD makes no offer of partnership. We are given a choice: exile or silence. ?]
+[? if kpd_relation < 30 : Our hostility to the KPD is returned in full. SPD leaders are arrested within hours. ?]
+
+Our party is dissolved. Some of our members join the new order. Most do not.
+
+History will record that German democracy died twice in the same week — once when the fascists marched, and once when the Communists won.
+
+- @game_over: Game over.
+- @root: Perhaps something can still be done.
