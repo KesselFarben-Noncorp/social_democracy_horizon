@@ -232,8 +232,8 @@ Rural dues reduced. This makes the party more accessible to the countryside.
 @fundraising_drive
 subtitle: Intensive fundraising campaign
 choose-if: drive_timer <= 0
-unavailable-subtitle: [? if drive_timer > 0 : Cannot launch another drive yet. Available in [+ drive_timer +] months. ?]
-on-arrival: drive_timer = 48;
+unavailable-subtitle: [? if drive_timer > 0 : Cannot launch another drive yet. Available in [+ drive_timer +] two weeks. ?]
+on-arrival: drive_timer = 96;
 go-to: fundraising_drive_roll
 
 We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
@@ -241,7 +241,7 @@ We launch a special fundraising drive, appealing to members' commitment and seek
 @fundraising_drive_roll
 on-arrival: {!
     // BASE ODDS - Start with a weak foundation
-    var base_odds = 2;
+    var base_odds = 1;
     base_odds += Q.spd_r * 0.15;
     
     // FACTION PENALTIES - Internal chaos hurts your "house edge"
