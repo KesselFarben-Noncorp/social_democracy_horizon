@@ -2,7 +2,7 @@ title: Young Plan
 new-page: true
 subtitle: A new agreement on reparations
 tags: event
-view-if: (year = 1929 and month >= 7 and in_right_coalition = 0 and young_plan_seen = 0) or (year = 1929 and month >= 7 and in_right_coalition = 1 and young_plan_seen = 0 and dnvp_line = 2)
+view-if: (year = 1929 and month >= 7 and in_right_coalition = 0 and young_plan_seen = 0) or (year = 1929 and month >= 7 and in_right_coalition = 1 and young_plan_seen = 0 and dnvp_line != 3)
 max-visits: 1
 
 = Young Plan
@@ -17,7 +17,7 @@ While this seems to be a positive development for the country, the Right is camp
 - @resist: Young Plan collapses due to non referendum reasonings.
 
 @pro_plan
-view-if: ruhr_labor = 0 and young_plan_catastrophy = 0
+view-if: ruhr_labor = 0 and young_plan_catastrophy = 0 or nationalism =< 60
 
 How should we campaign in favor of the Plan?
 
@@ -43,15 +43,19 @@ on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_
 The referendum easily fails with or without our presence in the campaign, with only around 15% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
 
 @collapse
-view-if: ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_catastrophy = 1)) and secret_mode = 0
-on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1
+view-if: ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_catastrophy = 1))
+on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1; camarilla_strength += 5; hindenburg_patience /= 2; hindenburg_patience -= 15
 achievement: ruhrland
 
 Young Plan collapses without yielding any power and soon French Forces are reinstated in the Rhineland, especially in the coal zones. Our ability to negotiate with Western countries, especially France, has severed and our Rhineland workers are more than unhappy. Ruhr is engulfed in the fire.
 
+[? if president = "Hindenburg": Hindenburg is especially displeased with this set of actions, being that our only purpose of being renewing negotiations - has collapsed. Are we done for? ?]
+
 @resist
-view-if: (reichswehr_strength >= 100 and reichswehr_loyalty > 0.20 and reichswehr_militancy >= 5) and secret_mode and (ruhr_labor = 1 or young_plan_catastrophy = 1)
-on-arrival: nationalism += 15; west_relation -= 20; young_plan_catastrophy = 1; pro_republic -= 5; reichswehr_strength *= 0.9; reichswehr_loyalty *= 1.2; italy_relation += 5; soviet_relation += 3; resources += 5; budget += 2; inflation += 1.34; new_middle_spd *= 0.98; old_middle_spd *= 1.07
+view-if: (reichswehr_strength >= 100 and reichswehr_loyalty > 0.35 and reichswehr_militancy >= 5) and secret_mode and (ruhr_labor = 1 or young_plan_catastrophy = 1)
+on-arrival: nationalism += 15; west_relation -= 20; young_plan_catastrophy = 1; pro_republic -= 5; reichswehr_strength *= 0.9; reichswehr_loyalty *= 1.2; italy_relation += 5; soviet_relation += 3; resources += 5; budget += 2; inflation += 1.34; new_middle_spd *= 0.98; old_middle_spd *= 1.07; camarilla_strength += 5; hindenburg_patience -= 10
 achievement: reichswehr_ruhrland
 
 We have resisted the re-occupation attempt from the France and maintained our control over Ruhr, forcing them to flee. Any cooperation with West is for now is unthinkable. We have won.
+
+[? if president = "Hindenburg": As unthinkable this was, our goal of renewing reparations negotiations has been nullified. Hindenburg is displeased only about one thing - to stabilize the situation. ?]
