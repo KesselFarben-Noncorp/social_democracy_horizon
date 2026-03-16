@@ -731,7 +731,7 @@ Q.coalition_blocks = {
     KVP_DNVP:  Q.dnvp_line === 3,
     KVP_SPD:   false,  // Workable in emergency
 
-    // --- DHV ---
+    // --- DHP ---
     DHP_KPD:   true,
     DHP_SAPD:  true,
     DHP_NSDAP: Q.nazi_urgency >= 5,  // Weaker resistance than most
@@ -838,7 +838,7 @@ data = data.concat([
         "seats": Math.round(Q.other_r*6),
     },
 ]);
-if (Q.dhv_r && Q.dhv_r > 0) {
+if (Q.dhp_r && Q.dhp_r > 0) {
     data.push({
         "id": "dhp",
         "legend": "DHP",
@@ -1311,7 +1311,7 @@ function coalition_compatibility(parties) {
 // Get other parties (exclude formateur and NSDAP unless special conditions)
 var other_parties = Q.party_votes.filter(function(p) {
     if (p.party === formateur) return false;
-    if (p.party === 'NSDAP' && Q.nsdap_r < 40) return false;
+    if (p.party === 'NSDAP' && Q.nsdap_r < 30) return false;
     return true;
 });
 
@@ -1507,8 +1507,8 @@ function find_toleration_combinations(gov_votes, tolerators) {
     var combos = [];
     var n = tolerators.length;
     
-    // Try all subsets (up to 4 tolerators for performance)
-    var max = Math.min(n, 4);
+    // Try all subsets (up to 3 tolerators for performance)
+    var max = Math.min(n, 3);
     
     for (var size = 1; size <= max; size++) {
         find_subsets(tolerators, size, 0, [], gov_votes, combos);
@@ -1542,7 +1542,7 @@ function find_subsets(arr, size, start, current, gov_votes, results) {
 // EVALUATE MINORITY GOVERNMENTS
 // ============================================
 
-var MIN_GOV_SEATS = 40; // Government must have some base to be credible
+var MIN_GOV_SEATS = 39.9; // Government must have some base to be credible
 
 // All possible government compositions (1 to 4 parties), below majority
 var minority_gov_candidates = [];
