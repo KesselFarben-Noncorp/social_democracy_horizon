@@ -1,7 +1,7 @@
 title: The Wagemann Plan
 subtitle: The Statistical Office Proposes Massive Stimulus
 new-page: true
-view-if: year >= 1932 and month >= 2 and ((spd_in_government = 0 and dnvp_in_government) or spd_toleration = 1 or chancellor = "Papen" or chancellor = "Schleicher" or chancellor_party = "DNVP") and unemployed >= 10
+view-if: year >= 1932 and month >= 2 and ((spd_in_government = 0 and dnvp_in_government) or spd_toleration = 1 or chancellor = "Papen" or chancellor = "Schleicher" or chancellor_party = "DNVP" or chancellor_party = "I") and unemployed >= 15
 tags: event
 max-visits: 1
 face-image: img/portraits/WagemannErnst.jpg
@@ -30,7 +30,7 @@ The **DVP** is divided—industrialists see opportunity, bankers see danger.
 
 The **Center Party** is cautious—the scale frightens fiscal conservatives.
 
-[? if chancellor = "Papen" or chancellor = "Schleicher" : The Chancellor sees potential—presidential government could implement this through decree. ?]
+[? if chancellor = "Papen" or chancellor = "Schleicher" or chancellor_party = "I" : The Chancellor sees potential—presidential government could implement this through decree. ?]
 
 [? if spd_in_government = 0 : As a tolerated opposition party, we watch this debate without direct participation. ?]
 
@@ -44,7 +44,6 @@ Our economists note this is essentially the WTB-Plan on steroids—everything we
 - @support_wagemann: Support the plan enthusiastically.
 - @support_with_conditions: Support if modified to protect labor interests.
 - @oppose_wagemann: Oppose as insufficient or problematic.
-- @demand_wtb_instead: Demand the WTB-Plan be implemented instead.
 
 @support_wagemann
 on-arrival: wagemann_supported = 1;
@@ -103,7 +102,7 @@ The Wagemann Plan dies because we demanded too much. Or perhaps it dies because 
 Either way, the stimulus doesn't happen.
 
 @oppose_wagemann
-choose-if: left_strength > reformist_strength + center_strength
+choose-if: center_strength + left_strength > reformist_strength
 unavailable-subtitle: The party lacks left-wing dominance to oppose a major stimulus plan.
 on-arrival: wagemann_opposed = 1; left_dissent -= 10; labor_dissent += 5; dnvp_relation -= 8; workers_kpd += 2;
 
@@ -114,15 +113,3 @@ Our left wing applauds the principled stand. But workers struggling with unemplo
 The KPD seizes the opportunity: "The SPD rejects jobs because they weren't socialist enough! Social fascism in action!"
 
 [? if wagemann_plan_active = 1 : The plan proceeds without our support. When it succeeds in creating jobs, we look doctrinaire and out of touch. ?]
-
-@demand_wtb_instead
-view-if: wtb_adopted = 1
-choose-if: left_strength >= 40 or labor_strength >= 60
-unavailable-subtitle: We lack the strength to demand our own plan over Wagemann's.
-on-arrival: wtb_demanded = 1; left_strength += 5; dnvp_relation -= 10;
-
-"Germany already has a superior plan—the WTB-Plan!" we declare. "If conservatives now accept massive stimulus, they should accept our democratically-developed program, not a technocrat's conservative alternative!"
-
-It's a principled stand for our own program. But it also sounds like petty jealousy: "Only our stimulus is acceptable!"
-
-The coalition is unlikely to substitute WTB for Wagemann—we've created a stalemate where nothing happens.
