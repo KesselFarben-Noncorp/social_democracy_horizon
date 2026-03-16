@@ -9,6 +9,7 @@ Q.last_cabinet_action = 0;
 if (Q.month_actions >= 1) {
     Q.time += 1;
     Q.month_actions = 0;
+    Q.ma = 1;
     console.log(Q.month);
     console.log(Q.time);
     
@@ -35,16 +36,6 @@ if (Q.month_actions >= 1) {
             Q[timer+'_timer'] -= 1;
         }
     }
-    // append to historical party support records
-    var party_support_results = {'date': new Date(Q.year, Q.month - 1)};
-    for (var party of Q.parties) {
-        party_support_results[party] = Q[party + '_normalized']*100;
-    }
-    Q.party_support_records.push(party_support_results);
-    Q.economic_records.push({'date': new Date(Q.year, Q.month - 1),
-                             'economic_growth': Q.economic_growth,
-                             'inflation': Q.inflation,
-                             'unemployment': Q.unemployed});
 
 
 
@@ -3146,6 +3137,21 @@ if (!Q.math_broken) {
     Q.dissent_percent = Q.impossible_percentage(Q.dissent*100);
     
     console.log("DISSENT CHAOS: " + Q.dissent_percent + "%");
+}
+
+
+if (Q.ma >= 1) {
+    Q.ma = 0;
+    // append to historical party support records
+    var party_support_results = {'date': new Date(Q.year, Q.month - 1)};
+    for (var party of Q.parties) {
+        party_support_results[party] = Q[party + '_normalized']*100;
+    }
+    Q.party_support_records.push(party_support_results);
+    Q.economic_records.push({'date': new Date(Q.year, Q.month - 1),
+                             'economic_growth': Q.economic_growth,
+                             'inflation': Q.inflation,
+                             'unemployment': Q.unemployed});
 }
 
 
