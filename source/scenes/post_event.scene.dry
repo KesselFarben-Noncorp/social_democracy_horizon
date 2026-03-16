@@ -1429,16 +1429,17 @@ Q.identity_modifier = {
     Q.ideology_elasticity = 1.7;
 
      Q.ideology_caps = {
-    nsdap: {
+     nsdap: {
         base: Q.nsdap_banned ? 0 : (() => {
             let nat = Q.nationalism_factor;
             let unr = Q.unrest_factor;
             // Nationalism factor scales cap heavily
-            return (nat * 10 * 2.2) + (unr * 23 * 1.8) * Q.identity_modifier.nsdap;
+            let crisis_cap = Math.pow(Math.max(0, unr - 0.25) / 1.5, 2.2) * 35;
+            return ((nat * 10 * 2.2) + crisis_cap) * Q.identity_modifier.nsdap;
         })(),
         workers: (() => {
             let m = 0.70;
-            if (Q.peoples_party === 1) m *= 0.93;
+            if (Q.peoples_party === 1) m *= 1.02;
             return m;
         })(),
         old_middle: (() => {
@@ -2136,18 +2137,44 @@ Q.identity_modifier = {
 
             switch (Q.party) {
                 case 'nsdap':
-                    Q.ideology_factor = Q.random_factor((Q.nationalism_factor * 0.4) + (Q.unrest_factor * 2.7) + (Q.street_pressure_factor * 0.70), 0.3);
+                    // === EXPONENTIAL CRISIS SCALING ===
+                    // NSDAP is nearly inert in stable conditions.
+                    // Explodes nonlinearly as unrest crosses critical thresholds.
+                    // unrest ~0.3 (stable)  → nsdap_crisis ~ 0.01  (near zero)
+                    // unrest ~1.5 (tense)   → nsdap_crisis ~ 0.15  (waking up)
+                    // unrest ~3.0 (crisis)  → nsdap_crisis ~ 1.20  (surging)
+                    // unrest ~6.0 (collapse)→ nsdap_crisis ~ 9.0   (dominant)
 
+                    Q.nsdap_crisis = Math.pow(Math.max(0, Q.unrest_factor - 0.25) / 1.5, 2.4);
+
+                    // Street violence multiplier — SA activity normalizes radicalism
+                    // Also exponential: small SA does little, large SA amplifies crisis
+                    Q.nsdap_street = Math.pow(Q.street_pressure_factor * 0.6, 1.6);
+                
+                    // Nationalism provides a stable floor — even in good times
+                    // a high nationalism environment keeps NSDAP from going to zero
+                    Q.nsdap_nat_floor = Q.nationalism_factor * 0.12;
+
+                    Q.ideology_factor = Q.random_factor(
+                        Q.nsdap_nat_floor + Q.nsdap_crisis + Q.nsdap_street,
+                        0.30
+                    );
+
+                    // Class modifiers
                     if (Q.c === 'workers') {
-                        Q.ideology_factor *= 0.90;
-                    } else if (Q.c === 'rural' && Q.unemployed > 12) {
-                        Q.ideology_factor *= 1.15;
+                        Q.ideology_factor *= 0.88;
+                    } else if (Q.c === 'old_middle') {
+                        // Petty bourgeois — most susceptible, scales with crisis depth
+                        Q.ideology_factor *= (0.95 + Math.min(Q.nsdap_crisis * 0.15, 0.35));
+                    } else if (Q.c === 'rural' && Q.unemployed > 10) {
+                        // Rural radicalization kicks in above 10% unemployment
+                        Q.ideology_factor *= (1.10 + Math.min((Q.unemployed - 10) * 0.02, 0.25));
                     } else if (Q.c === 'unemployedc') {
-                        let unemp_scale = 1.20 + Math.min(Q.unemployed / 25, 0.80);
-                        // Scales from 1.20 at 0% unemp to 2.00 at 25%+ unemp
+                        // Scales hard with actual economic unemployment rate
+                        let unemp_scale = 1.15 + Math.min(Q.unemployed / 22, 0.85);
                         Q.ideology_factor *= unemp_scale;
                     }
-                    break;
+                break;
                 case 'csvd':
                     if (Q.csvd_flee === 1) {
                         // === DNVP SPLIT FACTOR ===
