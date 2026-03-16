@@ -5,272 +5,6 @@ Q.last_advisor_action = 0;
 Q.last_cabinet_action = 0;
 // make sure no stat is below 0.
 
-// === EARLY BOUNDS CHECKING (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    Q.pro_republic = Math.round(Q.pro_republic * 10) / 10;
-    Q.nationalism  = Math.round(Q.nationalism  * 10) / 10;
-    Q.socialism    = Math.round(Q.socialism    * 10) / 10;
-
-    Q.pro_republic = Math.max(0.1, Math.min(99.9, Q.pro_republic));
-    Q.nationalism  = Math.max(0.1, Math.min(99.9, Q.nationalism));
-    Q.socialism    = Math.max(0.1, Math.min(99.9, Q.socialism));
-} else {
-    // MATH BROKEN: Political values can be anything
-    Q.pro_republic = Q.impossible_add(Q.pro_republic, 0);
-    Q.nationalism  = Q.impossible_multiply(Q.nationalism, 1);
-    Q.socialism    = Q.impossible_subtract(Q.socialism, 0);
-}
-
-// === IDEOLOGICAL NORMALIZATION (SKIP IN CHAOS MODE) ===
-let ideologies = ['pro_republic', 'socialism', 'nationalism'];
-
-if (!Q.math_broken) {
-    // NORMAL: Ideologies sum to 200
-    let total = 0;
-    for (let ideology of ideologies) {
-        total += Q[ideology];
-    }
-    let factor = 100 / total;
-    for (let ideology of ideologies) {
-        Q[ideology] = Math.round(Q[ideology] * factor * 10) / 10;
-    }
-} else {
-    // MATH BROKEN: Ideologies don't normalize
-    for (let ideology of ideologies) {
-        Q[ideology] = Q.impossible_percentage(Q[ideology]);
-    }
-    console.log("IDEOLOGY CHAOS: Total = " + (Q.pro_republic + Q.socialism + Q.nationalism));
-}
-
-// === FACTION BOUNDS (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    for (var c of Q.factions) {
-        if (Q[c+'_dissent'] < 0) {
-            Q[c+'_dissent'] = 0;
-        } else if (Q[c+'_dissent'] >= 100) {
-            Q[c+'_dissent'] = 99;
-        }
-        if (Q[c+'_strength'] < 0) {
-            Q[c+'_strength'] = 0;
-        }
-    }
-} else {
-    // MATH BROKEN: Factions can have impossible values
-    for (var c of Q.factions) {
-        Q[c+'_dissent'] = Q.impossible_percentage(Q[c+'_dissent']);
-        Q[c+'_strength'] = Q.impossible_add(Q[c+'_strength'], 0);
-    }
-}
-
-// === UNEMPLOYMENT FLOOR (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    if (Q.unemployed <= 1) {
-        Q.unemployed = 1;
-    }
-    Q.unemployedc = Math.max(2, 10 + (Q.unemployed - 8) * 0.55);
-} else {
-    Q.unemployed = Q.impossible_add(Q.unemployed, 0);
-}
-
-// === CLASS NORMALIZATION (SKIP IN CHAOS MODE) ===
-let classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployedc'];
-
-if (!Q.math_broken) {
-    // NORMAL: Classes sum to 100%
-    let total = 0;
-    for (let c of classes) {
-        total += Q[c];
-    }
-    let factor = 100 / total;
-    for (let c of classes) {
-        Q[c] = +(Q[c] * factor).toFixed(2);
-    }
-} else {
-    // MATH BROKEN: Classes don't normalize
-    // Apply impossible math to each class
-    for (let c of classes) {
-        Q[c] = Q.impossible_percentage(Q[c]);
-    }
-    // Total will NOT equal 100
-    console.log("CLASS CHAOS: Total = " + (Q.workers + Q.old_middle + Q.new_middle + Q.rural + Q.unemployedc) + "%");
-}
-
-// After this, sum of Q.workers + Q.old_middle + ... + Q.catholics === 100
-
-
-
-
-// === IDENTITY CLASS NORMALIZATION (SKIP IN CHAOS MODE) ===
-let classesI = ['protestants', 'catholics', 'seculars', 'youth'];
-
-if (!Q.math_broken) {
-    // NORMAL: ClassesI sum to 100%
-    let totalI = 0;
-    for (let c of classesI) {
-        totalI += Q[c];
-    }
-    let factor = 100 / totalI;
-    for (let c of classesI) {
-        Q[c] = +(Q[c] * factor).toFixed(2);
-    }
-} else {
-    // MATH BROKEN: Classes don't normalize
-    // Apply impossible math to each class
-    for (let c of classesI) {
-        Q[c] = Q.impossible_percentage(Q[c]);
-    }
-    }
-
-
-
-
-// === CLASS VOTE NORMALIZATION (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    // NORMAL: Class votes normalize to 100%
-    for (var c of Q.classes) {
-        let class_votes = 0;
-
-        for (var party of Q.parties) {
-            Q[c + '_' + party] = Math.max(0, Q[c + '_' + party]);
-            class_votes += Q[c + '_' + party];
-        }
-
-        for (var party of Q.parties) {
-            Q[c + '_' + party + '_normalized'] = class_votes > 0 ? Q[c + '_' + party] / class_votes : 0;
-            Q[c + '_' + party + '_display'] = (Q[c + '_' + party + '_normalized'] * 100).toFixed(1);
-        }
-    }
-} else {
-    // MATH BROKEN: Class votes don't normalize
-    for (var c of Q.classes) {
-        let class_votes = Q.impossible_add(0, 0); // "Zero" that isn't zero
-
-        for (var party of Q.parties) {
-            Q[c + '_' + party] = Q.impossible_add(Q[c + '_' + party], 0); // Can go negative
-            class_votes = Q.impossible_add(class_votes, Q[c + '_' + party]);
-        }
-
-        for (var party of Q.parties) {
-            // Division that doesn't work properly
-            if (Math.random() < 0.5) {
-                Q[c + '_' + party + '_normalized'] = Q.impossible_multiply(Q[c + '_' + party], 1/class_votes);
-            } else {
-                Q[c + '_' + party + '_normalized'] = Q.impossible_subtract(Q[c + '_' + party], -class_votes);
-            }
-            Q[c + '_' + party + '_display'] = Q.impossible_percentage(Q[c + '_' + party + '_normalized'] * 100).toFixed(1);
-        }
-    }
-}
-
-
-// === PARTY SUPPORT CALCULATION (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    // NORMAL: Party support calculated correctly
-    var total_support = 0;
-    for (var party of Q.parties) {
-        let party_support = 0;
-        for (var c of Q.classes) {
-            if (Q.old_demographics) {
-                party_support += Q[c] * Q[c + '_' + party];
-            } else {
-                party_support += Q[c] * Q[c + '_' + party + '_normalized'];
-            }
-        }
-        Q[party + '_support'] = party_support;
-        total_support += party_support;
-    }
-} else {
-    // MATH BROKEN: Party support calculation is nonsense
-    var total_support = Q.impossible_add(0, 0);
-    for (var party of Q.parties) {
-        let party_support = Q.impossible_multiply(0, 1);
-        for (var c of Q.classes) {
-            if (Q.old_demographics) {
-                party_support = Q.impossible_add(party_support, Q.impossible_multiply(Q[c], Q[c + '_' + party]));
-            } else {
-                party_support = Q.impossible_add(party_support, Q.impossible_multiply(Q[c], Q[c + '_' + party + '_normalized']));
-            }
-        }
-        Q[party + '_support'] = party_support;
-        total_support = Q.impossible_add(total_support, party_support);
-    }
-    console.log("PARTY CHAOS: Total support = " + total_support);
-}
-
-
-
-
-// === PARTY VOTE NORMALIZATION (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    // NORMAL: Parties normalize to 100%
-    for (var party of Q.parties) {
-        Q[party + '_normalized'] = total_support > 0 ? Q[party + '_support'] / total_support : 0;
-        Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10;
-    }
-} else {
-    // MATH BROKEN: Parties don't normalize
-    for (var party of Q.parties) {
-        Q[party + '_normalized'] = Q.impossible_multiply(Q[party + '_support'], 1/total_support);
-        Q[party + '_votes'] = Q.impossible_percentage(Q[party + '_normalized'] * 100);
-    }
-    console.log("VOTE CHAOS: SPD = " + Q.spd_votes + "%, NSDAP = " + Q.nsdap_votes + "%");
-}
-
-// tried merging this and draft party support changer code, went horrible for one hour... Fuck this, I tried to rewrite the code with both AI and without trying to invent some random bullshit fractions, fuck this now, im stealing code from Originn0.
-
-// === FACTION STRENGTH NORMALIZATION (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    // NORMAL: Faction strength normalizes to 100%
-    var total_strength = Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength;
-
-    Q.left_strength = 100*Q.left_strength/total_strength;
-    Q.center_strength = 100*Q.center_strength/total_strength;
-    Q.labor_strength = 100*Q.labor_strength/total_strength;
-    Q.reformist_strength = 100*Q.reformist_strength/total_strength;
-    Q.neorevisionist_strength = 100*Q.neorevisionist_strength/total_strength;
-} else {
-    // MATH BROKEN: Faction strength doesn't normalize
-    var total_strength = Q.impossible_add(Q.left_strength, Q.center_strength);
-    total_strength = Q.impossible_add(total_strength, Q.labor_strength);
-    total_strength = Q.impossible_add(total_strength, Q.reformist_strength);
-    total_strength = Q.impossible_add(total_strength, Q.neorevisionist_strength);
-
-    Q.left_strength = Q.impossible_multiply(Q.left_strength, 100/total_strength);
-    Q.center_strength = Q.impossible_multiply(Q.center_strength, 100/total_strength);
-    Q.labor_strength = Q.impossible_multiply(Q.labor_strength, 100/total_strength);
-    Q.reformist_strength = Q.impossible_multiply(Q.reformist_strength, 100/total_strength);
-    Q.neorevisionist_strength = Q.impossible_multiply(Q.neorevisionist_strength, 100/total_strength);
-    
-    console.log("FACTION CHAOS: Total = " + (Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength) + "%");
-}
-
-// === DISSENT CALCULATION (SKIP IN CHAOS MODE) ===
-if (!Q.math_broken) {
-    // NORMAL: Dissent calculated correctly
-    var total_dissent = Q.left_strength*Q.left_dissent + Q.center_strength*Q.center_dissent + Q.labor_strength*Q.labor_dissent + Q.reformist_strength*Q.reformist_dissent + Q.neorevisionist_strength*Q.neorevisionist_dissent;
-
-    Q.dissent = 0.01*total_dissent/total_strength;
-    Q.dissent_percent = Q.dissent*100;
-
-    if (Q.dissent < 0) {
-        Q.dissent = 0;
-    } else if (Q.dissent > 0.95) {
-        Q.dissent = 0.95;
-    }
-} else {
-    // MATH BROKEN: Dissent calculation is chaos
-    var total_dissent = Q.impossible_multiply(Q.left_strength, Q.left_dissent);
-    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.center_strength, Q.center_dissent));
-    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.labor_strength, Q.labor_dissent));
-    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.reformist_strength, Q.reformist_dissent));
-    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.neorevisionist_strength, Q.neorevisionist_dissent));
-
-    Q.dissent = Q.impossible_multiply(0.01, total_dissent/total_strength);
-    Q.dissent_percent = Q.impossible_percentage(Q.dissent*100);
-    
-    console.log("DISSENT CHAOS: " + Q.dissent_percent + "%");
-}
-
 // 1. update dates
 if (Q.month_actions >= 1) {
     Q.time += 1;
@@ -3120,6 +2854,278 @@ if (this.ui && this.ui.show_portraits) {
         }
     }
 }
+
+// === EARLY BOUNDS CHECKING (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    Q.pro_republic = Math.round(Q.pro_republic * 10) / 10;
+    Q.nationalism  = Math.round(Q.nationalism  * 10) / 10;
+    Q.socialism    = Math.round(Q.socialism    * 10) / 10;
+
+    Q.pro_republic = Math.max(0.1, Math.min(99.9, Q.pro_republic));
+    Q.nationalism  = Math.max(0.1, Math.min(99.9, Q.nationalism));
+    Q.socialism    = Math.max(0.1, Math.min(99.9, Q.socialism));
+} else {
+    // MATH BROKEN: Political values can be anything
+    Q.pro_republic = Q.impossible_add(Q.pro_republic, 0);
+    Q.nationalism  = Q.impossible_multiply(Q.nationalism, 1);
+    Q.socialism    = Q.impossible_subtract(Q.socialism, 0);
+}
+
+// === IDEOLOGICAL NORMALIZATION (SKIP IN CHAOS MODE) ===
+let ideologies = ['pro_republic', 'socialism', 'nationalism'];
+
+if (!Q.math_broken) {
+    // NORMAL: Ideologies sum to 200
+    let total = 0;
+    for (let ideology of ideologies) {
+        total += Q[ideology];
+    }
+    let factor = 100 / total;
+    for (let ideology of ideologies) {
+        Q[ideology] = Math.round(Q[ideology] * factor * 10) / 10;
+    }
+} else {
+    // MATH BROKEN: Ideologies don't normalize
+    for (let ideology of ideologies) {
+        Q[ideology] = Q.impossible_percentage(Q[ideology]);
+    }
+    console.log("IDEOLOGY CHAOS: Total = " + (Q.pro_republic + Q.socialism + Q.nationalism));
+}
+
+// === FACTION BOUNDS (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    for (var c of Q.factions) {
+        if (Q[c+'_dissent'] < 0) {
+            Q[c+'_dissent'] = 0;
+        } else if (Q[c+'_dissent'] >= 100) {
+            Q[c+'_dissent'] = 99;
+        }
+        if (Q[c+'_strength'] < 0) {
+            Q[c+'_strength'] = 0;
+        }
+    }
+} else {
+    // MATH BROKEN: Factions can have impossible values
+    for (var c of Q.factions) {
+        Q[c+'_dissent'] = Q.impossible_percentage(Q[c+'_dissent']);
+        Q[c+'_strength'] = Q.impossible_add(Q[c+'_strength'], 0);
+    }
+}
+
+// === UNEMPLOYMENT FLOOR (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    if (Q.unemployed <= 1) {
+        Q.unemployed = 1;
+    }
+    Q.unemployedc = Math.max(2, 10 + (Q.unemployed - 8) * 0.55);
+} else {
+    Q.unemployed = Q.impossible_add(Q.unemployed, 0);
+}
+
+// === CLASS NORMALIZATION (SKIP IN CHAOS MODE) ===
+let classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployedc'];
+
+if (!Q.math_broken) {
+    // NORMAL: Classes sum to 100%
+    let total = 0;
+    for (let c of classes) {
+        total += Q[c];
+    }
+    let factor = 100 / total;
+    for (let c of classes) {
+        Q[c] = +(Q[c] * factor).toFixed(2);
+    }
+} else {
+    // MATH BROKEN: Classes don't normalize
+    // Apply impossible math to each class
+    for (let c of classes) {
+        Q[c] = Q.impossible_percentage(Q[c]);
+    }
+    // Total will NOT equal 100
+    console.log("CLASS CHAOS: Total = " + (Q.workers + Q.old_middle + Q.new_middle + Q.rural + Q.unemployedc) + "%");
+}
+
+// After this, sum of Q.workers + Q.old_middle + ... + Q.catholics === 100
+
+
+
+
+// === IDENTITY CLASS NORMALIZATION (SKIP IN CHAOS MODE) ===
+let classesI = ['protestants', 'catholics', 'seculars', 'youth'];
+
+if (!Q.math_broken) {
+    // NORMAL: ClassesI sum to 100%
+    let totalI = 0;
+    for (let c of classesI) {
+        totalI += Q[c];
+    }
+    let factor = 100 / totalI;
+    for (let c of classesI) {
+        Q[c] = +(Q[c] * factor).toFixed(2);
+    }
+} else {
+    // MATH BROKEN: Classes don't normalize
+    // Apply impossible math to each class
+    for (let c of classesI) {
+        Q[c] = Q.impossible_percentage(Q[c]);
+    }
+    }
+
+
+
+
+// === CLASS VOTE NORMALIZATION (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    // NORMAL: Class votes normalize to 100%
+    for (var c of Q.classes) {
+        let class_votes = 0;
+
+        for (var party of Q.parties) {
+            Q[c + '_' + party] = Math.max(0, Q[c + '_' + party]);
+            class_votes += Q[c + '_' + party];
+        }
+
+        for (var party of Q.parties) {
+            Q[c + '_' + party + '_normalized'] = class_votes > 0 ? Q[c + '_' + party] / class_votes : 0;
+            Q[c + '_' + party + '_display'] = (Q[c + '_' + party + '_normalized'] * 100).toFixed(1);
+        }
+    }
+} else {
+    // MATH BROKEN: Class votes don't normalize
+    for (var c of Q.classes) {
+        let class_votes = Q.impossible_add(0, 0); // "Zero" that isn't zero
+
+        for (var party of Q.parties) {
+            Q[c + '_' + party] = Q.impossible_add(Q[c + '_' + party], 0); // Can go negative
+            class_votes = Q.impossible_add(class_votes, Q[c + '_' + party]);
+        }
+
+        for (var party of Q.parties) {
+            // Division that doesn't work properly
+            if (Math.random() < 0.5) {
+                Q[c + '_' + party + '_normalized'] = Q.impossible_multiply(Q[c + '_' + party], 1/class_votes);
+            } else {
+                Q[c + '_' + party + '_normalized'] = Q.impossible_subtract(Q[c + '_' + party], -class_votes);
+            }
+            Q[c + '_' + party + '_display'] = Q.impossible_percentage(Q[c + '_' + party + '_normalized'] * 100).toFixed(1);
+        }
+    }
+}
+
+
+// === PARTY SUPPORT CALCULATION (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    // NORMAL: Party support calculated correctly
+    var total_support = 0;
+    for (var party of Q.parties) {
+        let party_support = 0;
+        for (var c of Q.classes) {
+            if (Q.old_demographics) {
+                party_support += Q[c] * Q[c + '_' + party];
+            } else {
+                party_support += Q[c] * Q[c + '_' + party + '_normalized'];
+            }
+        }
+        Q[party + '_support'] = party_support;
+        total_support += party_support;
+    }
+} else {
+    // MATH BROKEN: Party support calculation is nonsense
+    var total_support = Q.impossible_add(0, 0);
+    for (var party of Q.parties) {
+        let party_support = Q.impossible_multiply(0, 1);
+        for (var c of Q.classes) {
+            if (Q.old_demographics) {
+                party_support = Q.impossible_add(party_support, Q.impossible_multiply(Q[c], Q[c + '_' + party]));
+            } else {
+                party_support = Q.impossible_add(party_support, Q.impossible_multiply(Q[c], Q[c + '_' + party + '_normalized']));
+            }
+        }
+        Q[party + '_support'] = party_support;
+        total_support = Q.impossible_add(total_support, party_support);
+    }
+    console.log("PARTY CHAOS: Total support = " + total_support);
+}
+
+
+
+
+// === PARTY VOTE NORMALIZATION (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    // NORMAL: Parties normalize to 100%
+    for (var party of Q.parties) {
+        Q[party + '_normalized'] = total_support > 0 ? Q[party + '_support'] / total_support : 0;
+        Q[party + '_votes'] = Math.round(Q[party + '_normalized'] * 1000) / 10;
+    }
+} else {
+    // MATH BROKEN: Parties don't normalize
+    for (var party of Q.parties) {
+        Q[party + '_normalized'] = Q.impossible_multiply(Q[party + '_support'], 1/total_support);
+        Q[party + '_votes'] = Q.impossible_percentage(Q[party + '_normalized'] * 100);
+    }
+    console.log("VOTE CHAOS: SPD = " + Q.spd_votes + "%, NSDAP = " + Q.nsdap_votes + "%");
+}
+
+// tried merging this and draft party support changer code, went horrible for one hour... Fuck this, I tried to rewrite the code with both AI and without trying to invent some random bullshit fractions, fuck this now, im stealing code from Originn0.
+
+// === FACTION STRENGTH NORMALIZATION (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    // NORMAL: Faction strength normalizes to 100%
+    var total_strength = Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength;
+
+    Q.left_strength = 100*Q.left_strength/total_strength;
+    Q.center_strength = 100*Q.center_strength/total_strength;
+    Q.labor_strength = 100*Q.labor_strength/total_strength;
+    Q.reformist_strength = 100*Q.reformist_strength/total_strength;
+    Q.neorevisionist_strength = 100*Q.neorevisionist_strength/total_strength;
+} else {
+    // MATH BROKEN: Faction strength doesn't normalize
+    var total_strength = Q.impossible_add(Q.left_strength, Q.center_strength);
+    total_strength = Q.impossible_add(total_strength, Q.labor_strength);
+    total_strength = Q.impossible_add(total_strength, Q.reformist_strength);
+    total_strength = Q.impossible_add(total_strength, Q.neorevisionist_strength);
+
+    Q.left_strength = Q.impossible_multiply(Q.left_strength, 100/total_strength);
+    Q.center_strength = Q.impossible_multiply(Q.center_strength, 100/total_strength);
+    Q.labor_strength = Q.impossible_multiply(Q.labor_strength, 100/total_strength);
+    Q.reformist_strength = Q.impossible_multiply(Q.reformist_strength, 100/total_strength);
+    Q.neorevisionist_strength = Q.impossible_multiply(Q.neorevisionist_strength, 100/total_strength);
+    
+    console.log("FACTION CHAOS: Total = " + (Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength) + "%");
+}
+
+// === DISSENT CALCULATION (SKIP IN CHAOS MODE) ===
+if (!Q.math_broken) {
+    // NORMAL: Dissent calculated correctly
+    var total_dissent = Q.left_strength*Q.left_dissent + Q.center_strength*Q.center_dissent + Q.labor_strength*Q.labor_dissent + Q.reformist_strength*Q.reformist_dissent + Q.neorevisionist_strength*Q.neorevisionist_dissent;
+
+    Q.dissent = 0.01*total_dissent/total_strength;
+    Q.dissent_percent = Q.dissent*100;
+
+    if (Q.dissent < 0) {
+        Q.dissent = 0;
+    } else if (Q.dissent > 0.95) {
+        Q.dissent = 0.95;
+    }
+} else {
+    // MATH BROKEN: Dissent calculation is chaos
+    var total_dissent = Q.impossible_multiply(Q.left_strength, Q.left_dissent);
+    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.center_strength, Q.center_dissent));
+    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.labor_strength, Q.labor_dissent));
+    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.reformist_strength, Q.reformist_dissent));
+    total_dissent = Q.impossible_add(total_dissent, Q.impossible_multiply(Q.neorevisionist_strength, Q.neorevisionist_dissent));
+
+    Q.dissent = Q.impossible_multiply(0.01, total_dissent/total_strength);
+    Q.dissent_percent = Q.impossible_percentage(Q.dissent*100);
+    
+    console.log("DISSENT CHAOS: " + Q.dissent_percent + "%");
+}
+
+
+
+
+
+
 
 if (typeof window !== "undefined" && window.generateBar) {
 }
