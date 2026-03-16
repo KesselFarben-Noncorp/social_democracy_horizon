@@ -2707,13 +2707,13 @@ if (Q.hindenburg_president || Q.president === "Hindenburg") {
     Q.hindenburg_age = 78 + (Q.year - 1925) + (Q.month / 12);
     
     // Exponential aging curve (slow at 78, rapid at 85+)
-    Q.age_factor = Math.pow((Q.hindenburg_age - 75) / 10, 2);
+    Q.age_factor = Math.pow((Q.hindenburg_age - 75) / 9, 2);
     Q.base_health_decline = 0.05 + (Q.age_factor * 0.25);
     
     // === 2. ECONOMIC STRESS (SMOOTH SCALING) ===
     
     // Unemployment stress (exponential above 8%)
-    Q.unemployment_stress = Math.pow(Math.max(0, Q.unemployed - 8) / 12, 1.8) * 0.15;
+    Q.unemployment_stress = Math.pow(Math.max(0, Q.unemployed - 8) / 12, 1.8) * 0.25;
     
     // Inflation/deflation stress (symmetric V-curve, centered at 2%)
     Q.inflation_deviation = Math.abs(Q.inflation - 2);
@@ -2829,7 +2829,7 @@ if (Q.hindenburg_president || Q.president === "Hindenburg") {
     
     // === 8. CAMARILLA STRENGTH (UNIFIED GROWTH MODEL) ===
     
-    Q.camarilla_base_growth = 0.05;
+    Q.camarilla_base_growth = 0.15;
     
     // Health/senility multiplier (weak president = strong camarilla)
     Q.weakness_multiplier = 1 + ((100 - Q.hindenburg_health) / 100) + (Q.hindenburg_senility / 100);
