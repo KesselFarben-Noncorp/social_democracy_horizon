@@ -19,9 +19,11 @@ An international treaty has been negotiated which promises an end to war. The tr
 
 @sign_treaty
 view-if: spd_in_government and foreign_minister_party = "SPD"
-on-arrival: kellogg_briand_signed = 1
+on-arrival: kellogg_briand_signed = 1; reparations_negotiation += 1 if foreign_policy_timer = "SPD"; france_relation += 1; camarilla_strength += 5 if spd_in_government; hindenburg_patience -= 3 if spd_in_government
 
 Foreign Minister Breitscheid will sign the treaty, of course. The reaction is generally muted; both pacifists and militarists are skeptical about the efficacy of the treaty.
+
+[? if foreign_minister_party = "SPD": Our presence in the negotiations as the western concilliatory force has allowed us to further accelerate the progress towards renewed negotiations attempt. ?]
 
 - @step_forward
 - @not_enough
@@ -35,5 +37,6 @@ Despite our misgivings about the treaty, it still represents a step forward for 
 @not_enough
 view-if: kellogg_briand_signed
 title: The treaty is not enough.
+on-arrival: france_relation -= 1 if spd_in_government
 
 Despite the idealism behind the treaty, it is inadequate for its goal of preventing wars. There must be some enforcement mechanism, perhaps automatic trade sanctions, or an intervention force controlled by the League of Nations. As it stands, the League of Nations and this treaty is toothless.

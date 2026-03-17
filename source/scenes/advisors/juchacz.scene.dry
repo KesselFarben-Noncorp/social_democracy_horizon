@@ -41,11 +41,11 @@ subtitle: We will make the welfare self sustaining and beneficial.
 choose-if: advisor_action_timer == 0 and workers_aid >= 5
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if workers_aid < 5 : Need established Workers' Welfare (5+ aid levels). ?]
 on-arrival: {!
-    Q.advisor_action_timer = 6 + (Q.workers_aid / 2);
+    Q.advisor_action_timer = 4 + Q.workers_aid;
     Q.solidarity_network_active = 1;
     
     // One-time resource gain
-    Q.resources += Q.workers_aid;
+    Q.resources += Math.floor(Q.workers_aid / 2)
     
     // Permanent passive income boost
     Q.bonus_dues_workers += 0.5;

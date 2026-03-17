@@ -38,10 +38,10 @@ else if (Q.dvp_relation >= 30) democratic_points += 5;
 else if (Q.dvp_relation < 30) nationalist_points += 15;
 
 // Coalition experience
-if (Q.in_grand_coalition || Q.in_weimar_coalition) {
+if (Q.in_grand_coalition || Q.dvp_in_government === 1) {
     democratic_points += 20;
-    if (Q.coalition_dissent < 2) democratic_points += 10; // Successful coalition
-    else if (Q.coalition_dissent > 4) nationalist_points += 10; // Failed coalition
+    if (Q.dvp_dissent < 2) democratic_points += 10; // Successful coalition
+    else if (Q.dvp_dissent >= 2) nationalist_points += 10; // Failed coalition
 }
 
 if (Q.spd_toleration) {
@@ -49,11 +49,11 @@ if (Q.spd_toleration) {
 }
 
 // Economic conditions
-if (Q.unemployment >= 20) nationalist_points += 20;
-else if (Q.unemployment >= 15) nationalist_points += 10;
-else if (Q.unemployment < 10) democratic_points += 10;
+if (Q.unemployment >= 12) nationalist_points += 20;
+else if (Q.unemployment >= 8) nationalist_points += 10;
+else if (Q.unemployment < 8) democratic_points += 10;
 
-if (Q.inflation >= 5) nationalist_points += 10;
+if (Q.inflation >= 5) democratic_points += 10;
 if (Q.economic_growth < -2) nationalist_points += 15;
 
 // Political climate
@@ -61,15 +61,15 @@ if (Q.nsdap_r >= 15) nationalist_points += 20;
 else if (Q.nsdap_r >= 10) nationalist_points += 10;
 else if (Q.nsdap_r < 5) democratic_points += 10;
 
-if (Q.dnvp_relation >= 60) nationalist_points += 15;
-if (Q.z_relation >= 60) democratic_points += 10;
+if (Q.dnvp_relation >= 30) nationalist_points += 15;
+if (Q.z_relation >= 40) democratic_points += 10;
 
 // Pro-republic sentiment
 if (Q.pro_republic >= 60) democratic_points += 15;
 else if (Q.pro_republic < 45) nationalist_points += 15;
 
 // If SPD has governed well
-if (Q.spd_in_government && Q.budget >= 0 && Q.unemployment < 15) {
+if (Q.spd_in_government && Q.budget >= 0 && Q.unemployment < 8) {
     democratic_points += 10;
 }
 
@@ -138,10 +138,10 @@ go-to: dvp_outcome_display
 [? if dvp_outcome = "nationalist" : The nationalist outcome was influenced by: ?]
 [? if dvp_outcome = "compromise" : The split outcome reflects: ?]
 
-[? if dvp_relation >= 60 : - Our strong working relationship with the DVP ?]
+[? if dvp_relation >= 40 : - Our strong working relationship with the DVP ?]
 [? if dvp_relation < 30 : - Our poor relationship with the DVP ?]
-[? if in_grand_coalition or in_weimar_coalition : - The current coalition experience ?]
-[? if unemployment >= 15 : - The severe economic crisis ?]
+[? if in_grand_coalition or dvp_in_government : - The current coalition experience ?]
+[? if unemployment >= 10 : - The severe economic crisis ?]
 [? if nsdap_r >= 10 : - Pressure from the Nazi electoral surge ?]
 [? if capital_strike_progress >= 3 : - Intense pressure from business interests ?]
 [? if pro_republic >= 60 : - Strong public support for the Republic ?]
@@ -157,7 +157,7 @@ go-to: dvp_outcome_display
 
 [? if dvp_right_shift = 1 and dvp_outcome = "compromise" : The DVP's ambiguous position creates uncertainty. While Curtius may be open to cooperation, the nationalist wing's influence will make any coalition difficult and unstable. ?]
 
-[? if in_grand_coalition or in_weimar_coalition : This will have immediate implications for our current government. ?]
+[? if in_grand_coalition or (dvp_in_government and spd_in_government): This will have immediate implications for our current government. ?]
 
 **Effects:**
 
