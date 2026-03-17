@@ -2653,12 +2653,12 @@ if (Q.hindenburg_president || Q.president === "Hindenburg") {
     
     // Exponential aging curve (slow at 78, rapid at 85+)
     Q.age_factor = Math.pow((Q.hindenburg_age - 75) / 9, 2);
-    Q.base_health_decline = 0.05 + (Q.age_factor * 0.25);
+    Q.base_health_decline = 0.08 + (Q.age_factor * 0.25);
     
     // === 2. ECONOMIC STRESS (SMOOTH SCALING) ===
     
     // Unemployment stress (exponential above 8%)
-    Q.unemployment_stress = Math.pow(Math.max(0, Q.unemployed - 8) / 12, 1.8) * 0.25;
+    Q.unemployment_stress = Math.pow(Math.max(0, Q.unemployed - 8) / 12, 2.1) * 0.25;
     
     // Inflation/deflation stress (symmetric V-curve, centered at 2%)
     Q.inflation_deviation = Math.abs(Q.inflation - 2);
@@ -2691,7 +2691,7 @@ if (Q.hindenburg_president || Q.president === "Hindenburg") {
         ((Q.sa_strength || 0) * (Q.sa_militancy || 0) / 500) +
         ((Q.rfb_strength || 0) * (Q.rfb_militancy || 0) / 200)
     );
-    Q.street_stress = Math.min(Q.street_violence_index * 0.06, 0.20);
+    Q.street_stress = Math.min(Q.street_violence_index * 0.09, 0.20);
     
     // Emergency powers usage (Article 48 abuse)
     Q.emergency_stress = (
@@ -2789,13 +2789,13 @@ if (Q.hindenburg_president || Q.president === "Hindenburg") {
     Q.extremism_multiplier = 1 + (Q.extremism_index * 0.8);
     
     // Year progression (gets stronger over time as Weimar fails)
-    Q.year_multiplier = 1 + Math.max(0, (Q.year - 1928) * 0.15);
+    Q.year_multiplier = 1 + Math.max(0, (Q.year - 1928) * 0.25);
     
     Q.camarilla_growth = Q.camarilla_base_growth * Q.weakness_multiplier * Q.instability_multiplier * 
                          Q.crisis_multiplier * Q.extremism_multiplier * Q.year_multiplier;
     
     // Counters
-    if (Q.hindenburg_relation >= 60) Q.camarilla_growth *= 0.7;
+    if (Q.president_relation >= 20 && Q.president === "Hindenburg") Q.camarilla_growth *= 0.7;
     if (Q.in_grand_coalition || Q.in_weimar_coalition) Q.camarilla_growth *= 0.85;
     if (Q.constitutional_reform >= 2) Q.camarilla_growth *= 0.80;
     if (Q.osthilfe_exposed) Q.camarilla_growth *= 0.60;
