@@ -1,6 +1,6 @@
 title: Chancellor [+ chancellor +] replaced by Franz von Papen
 subtitle: President Hindenburg dismisses the government.
-view-if: president == "Hindenburg" and (hindenburg_relation < 60 or hindenburg_patience < 20) and spd_in_government == 0 and presidential_powers != 1 and not papen_cabinet and not papen_appointment_prevented and papen_influence > 50 and ((year == 1932 and month >= 3) or year >= 1933) and (camarilla_strength >= 60 or (camarilla_strength >= 45 and (unemployed >= 20 or nsdap_r >= 25 or coalition_dissent >= 1)))
+view-if: president == "Hindenburg" and (president_relation < 60 or hindenburg_patience < 20) and spd_in_government == 0 and presidential_powers != 1 and not papen_cabinet and not papen_appointment_prevented and papen_influence > 50 and ((year == 1932 and month >= 3) or year >= 1933) and (camarilla_strength >= 60 or (camarilla_strength >= 45 and (unemployed >= 20 or nsdap_r >= 25 or coalition_dissent >= 1)))
 on-arrival: {!
     Q.old_chancellor = Q.chancellor;
     Q.spd_toleration = 0;
@@ -180,37 +180,29 @@ The result: **immediate violence**. The SA surges back onto the streets. Blood f
 
 **The Reichstag Responds**
 
-The first session of the Reichstag under Papen's government saw a **vote of no confidence**:
-- **SPD:** Against Papen (unanimously)
-- **KPD:** Against Papen  
-- **Z (Center):** Against Papen (furious at his betrayal)
-- **NSDAP:** Against Papen (Hitler wants Chancellorship)
-- **DNVP:** Against Papen (even they find him too weak)
+Papen's government faces the Reichstag. He has no majority — everyone knows it.
 
-**Result:** 512 votes against, 42 votes for.
+[? if papen_votes_against > papen_votes_for * 2 : The result is not a defeat. It is annihilation. ?]
+[? if papen_votes_against > papen_votes_for and papen_votes_against <= papen_votes_for * 2 : The result is a clear defeat, though not without some support. ?]
 
-The most lopsided defeat in Reichstag history.
+**Votes against Papen:** [+ papen_votes_against +]%
+**Votes for Papen:** [+ papen_votes_for +]%
 
-**═══════════════════════════════════════**
+[? if nsdap_supported_papen == 0 : Even the NSDAP voted against him — Hitler wants the Chancellorship, not a subordinate role. ?]
+[? if nsdap_supported_papen == 1 : The NSDAP backed him, for now — but Hitler is already demanding more. ?]
 
-**Papen's Response**
-
-He dissolved the Reichstag immediately.
-
-**New elections:** [+ next_election_month : month +] [+ next_election_year +]
-
-Until then, Papen governs by Article 48 emergency decree.
+[? if papen_lost_confidence_vote : Papen dissolved the Reichstag immediately rather than resign. ?]
+[? if papen_lost_confidence_vote : **New elections:** [+ next_election_month : month +] [+ next_election_year +] ?]
+[? if papen_lost_confidence_vote : Until then, Papen governs by Article 48 emergency decree. ?]
+[? if not papen_lost_confidence_vote : Papen, improbably, survives the vote. He governs on thin ice. ?]
 
 **═══════════════════════════════════════**
 
 [? if camarilla_strength >= 80 : The camarilla is in complete control. Hindenburg is their puppet. Parliamentary democracy is dead in all but name. ?]
-
 [? if camarilla_strength >= 60 and camarilla_strength < 80 : The camarilla has consolidated power. They believe they can control the situation. They are wrong. ?]
-
 [? if hindenburg_trust_reichstag <= 30 : Hindenburg has lost all faith in parliamentary democracy. He sees only "chaos" and "weakness." ?]
 
 **Camarilla strength:** [+ camarilla_strength +]/100
-
 **Hindenburg's trust in parliament:** [+ hindenburg_trust_reichstag +]/100
 
 The Republic is in mortal danger.
