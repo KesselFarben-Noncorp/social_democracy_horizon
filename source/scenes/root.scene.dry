@@ -1410,7 +1410,33 @@ Choose your challenges!
 - @democracy: Democracy simulator, extremists are banned.
 - @new: SPD is newly formed party.
 - @bauern: Agrarian Revolution
+- @camarilla: Camarillamulator
 - @start_2: Back
+
+@camarilla
+
+= Camarillamulator
+
+Camarilla is formed at the beginning of the game, mind controlling Hindenburg. Can you all somehow oust his ass?
+
+- @cmr_2: True
+- @cmr_3: False
+- @challenge: Back.
+
+@cmr_2
+view-if: cmr_challenge = 0
+on-arrival: cmr_challenge = 1
+go-to: camarilla
+
+Turned on!
+
+@cmr_3
+view-if: cmr_challenge = 1
+on-arrival: cmr_challenge = 0
+go-to: camarilla
+
+Turned off!
+
 
 @inverted
 
@@ -1611,6 +1637,14 @@ if (Q.dem_challenge === 1) {
     Q.nsdap_banned = 1;
     Q.kpd_banned = 1;
 }
+
+if (Q.cmr_challenge === 1) {
+    Q.camarilla_strength += 120;
+    Q.papen_in_camarilla = 1;
+    Q.hindenburg_health = 50;
+    Q.meissner_influence = 10;
+    Q.schleicher_influence = 15;
+    }
 
 if (Q.new_partei_challenge === 1) {
     Q.rural_spd = 1;
