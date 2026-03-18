@@ -258,7 +258,119 @@ go-to: resources_var
 - @csvd_relat: Relationship with CSVD
 - @nsdap_relat: Relationship with NSDAP
 - @kpd_relat: Relationship with KPD
+- @kvp_relat: Relationship with KVP.
+- @dhp_relat: Relationship with DHP.
+- @bb_relat: Relationship with BB.
 - @sandbox_menu: Back
+
+@kvp_relat
+
+Change kvp relation
+
+- @kvp_increase_2: By 2
+- @kvp_increase_5: By 5
+- @kvp_increase_10: By 10
+- @kvp_increase_20: By 20
+- @kvp_increase_50: By 50
+- @kvp_increase_100: By 100
+- @relaton: Back
+
+@kvp_increase_2
+on-arrival: kvp_relation += 2;
+go-to: kvp_relat
+
+@kvp_increase_5
+on-arrival: kvp_relation += 5;
+go-to: kvp_relat
+
+@kvp_increase_10
+on-arrival: kvp_relation += 10;
+go-to: kvp_relat
+
+@kvp_increase_20
+on-arrival: kvp_relation += 20;
+go-to: kvp_relat
+
+@kvp_increase_50
+on-arrival: kvp_relation += 50;
+go-to: kvp_relat
+
+@kvp_increase_100
+on-arrival: kvp_relation += 100;
+go-to: kvp_relat
+
+@dhp_relat
+
+Change dhp relation
+
+‐ @dhp_increase_2: By 2
+‐ @dhp_increase_5: By 5
+‐ @dhp_increase_10: By 10
+‐ @dhp_increase_20: By 20
+‐ @dhp_increase_50: By 50
+‐ @dhp_increase_100: By 100
+‐ @relaton: Back
+
+@dhp_increase_2
+on-arrival: dhp_relation += 2;
+go-to: dhp_relat
+
+@dhp_increase_5
+on-arrival: dhp_relation += 5;
+go-to: dhp_relat
+
+@dhp_increase_10
+on-arrival: dhp_relation += 10;
+go-to: dhp_relat
+
+@dhp_increase_20
+on-arrival: dhp_relation += 20;
+go-to: dhp_relat
+
+@dhp_increase_50
+on-arrival: dhp_relation += 50;
+go-to: dhp_relat
+
+@dhp_increase_100
+on-arrival: dhp_relation += 100;
+go-to: dhp_relat
+
+@bb_relat
+
+Change bb relation
+
+‐ @bb_increase_2: By 2
+‐ @bb_increase_5: By 5
+‐ @bb_increase_10: By 10
+‐ @bb_increase_20: By 20
+‐ @bb_increase_50: By 50
+‐ @bb_increase_100: By 100
+‐ @relaton: Back
+
+@bb_increase_2
+on-arrival: bb_relation += 2;
+go-to: bb_relat
+
+@bb_increase_5
+on-arrival: bb_relation += 5;
+go-to: bb_relat
+
+@bb_increase_10
+on-arrival: bb_relation += 10;
+go-to: bb_relat
+
+@bb_increase_20
+on-arrival: bb_relation += 20;
+go-to: bb_relat
+
+@bb_increase_50
+on-arrival: bb_relation += 50;
+go-to: bb_relat
+
+@bb_increase_100
+on-arrival: bb_relation += 100;
+go-to: bb_relat
+
 
 @ddp_relat
 
@@ -940,6 +1052,7 @@ Normalized KPD relations.
 
 - @sandbox_menu: Back
 - @set
+- @setp
 - @timers
 - @t_timers: All timers
 
@@ -1056,7 +1169,7 @@ Q.timers = ['advisor_action', 'confronting_nazis', 'crisis_program',
 go-to: technical
 
 @set
-title: Election time to default
+title: Reichstag Election time to default
 
 Set election time to default?
 
@@ -1075,6 +1188,19 @@ if (Q.next_election_month > 12) {
 Q.next_election_time = Q.time + 2;
 !}
 go-to: technical
+
+@set_p
+title: Presidential Election time to default
+
+Set p. election time to default?
+
+- @yesp: Yes.
+- @technical: No.
+
+@yesp
+on-arrival: tag = 1
+go-to: technical
+
 
 
 
