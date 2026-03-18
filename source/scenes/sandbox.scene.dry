@@ -1198,7 +1198,15 @@ Set p. election time to default?
 - @technical: No.
 
 @yesp
-on-arrival: tag = 1
+on-arrival: {!
+Q.next_presidential_election_month = Q.month + 2;
+Q.next_presidential_election_year = Q.year;
+if (Q.next_presidential_election_month > 12) {
+    Q.next_presidential_election_month -= 12;
+    Q.next_presidential_election_year += 1;
+}
+Q.next_presidential_election_time = Q.time + 2;
+!}
 go-to: technical
 
 
