@@ -2500,9 +2500,24 @@ on-departure: {!
 Q.presidential_election_active = 0;
 Q.president_term_start = Q.year;
 Q.president_term_ended = 0;
-// Set next presidential election (7 years from now)
-Q.next_presidential_election_year = Q.year + 7;
-Q.next_presidential_election_month = 3; // Always March
+
+// Set next presidential election: 7 years from current year, always in March
+var next_year = Q.year + 7;
+var next_month = Q.month;
+
+// Guard-rail: if somehow month is invalid, normalize it
+if (!next_month || next_month < 1 || next_month > 12) {
+    next_month = 3;
+}
+if (!next_year || next_year < Q.year + 1) {
+    next_year = Q.year + 7;
+}
+
+Q.next_presidential_election_year = next_year;
+Q.next_presidential_election_month = next_month;
+
+// Safety: ensure last_presidential_election is recorded
+Q.last_presidential_election = Q.year;
 
 if (!Q.has_majority) {
     Q.president_history = Q.president_history || [];
@@ -2530,7 +2545,7 @@ on-arrival: president_party = "SPD"; socialism += 5; kpd_relation *= 1.25; sapd_
 Erich Ollenhauer, supporter of the leftist - marxist orientation of our party, currently head of Saxony has won the election. 
 
 @hindenburg_victory
-on-arrival: president_party = "I"; nationalism += 10; dnvp_relation += 5
+on-arrival: president_party = "I"; nationalism += 10; dnvp_relation += 5; camarilla_strength *= 2; judiciary_reform -= 2
 
 Paul von Hindenburg, the aging field marshal, becomes President of Germany. The old military hero represents traditional conservative values.
 
