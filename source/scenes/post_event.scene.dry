@@ -1424,9 +1424,11 @@ Q.identity_modifier = {
         base: Q.nsdap_banned ? 0 : (() => {
             let nat = Q.nationalism_factor;
             let unr = Q.unrest_factor;
-            // Nationalism factor scales cap heavily
-            let crisis_cap = Math.pow(Math.max(0, unr - 0.25) / 1.5, 2.2) * 35;
-            return ((nat * 10 * 2.2) + crisis_cap) * Q.identity_modifier.nsdap;
+            // Stable floor from nationalism
+            let nat_floor = nat * 22;
+            // Crisis ceiling — exponential, starts mattering above unrest 1.5
+            let crisis_ceiling = Math.pow(Math.max(0, unr - 0.3) / 1.2, 2.0) * 85;
+            return (nat_floor + crisis_ceiling) * Q.identity_modifier.nsdap;
         })(),
         workers: (() => {
             let m = 0.70;
