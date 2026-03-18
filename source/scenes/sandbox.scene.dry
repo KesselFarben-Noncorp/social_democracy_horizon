@@ -2196,7 +2196,67 @@ Inflation penalty: [+ inflation_penalty +]
 - @hindenburg: Camarilla and Hindenburg himself.
 - @governance: Government
 - @relations: Party Relationships
+- @debug_pe
 - @sandbox_menu: Back
+
+@debug_pe
+on-arrival: {!
+
+console.log("=== PRE-DRIFT CHECK ===");
+console.log("classes:", JSON.stringify(Q.classes));
+console.log("parties:", JSON.stringify(Q.parties));
+console.log("drift_base:", Q.drift_base);
+console.log("unrest_factor:", Q.unrest_factor);
+console.log("pro_republic_factor:", Q.pro_republic_factor);
+console.log("socialism_factor:", Q.socialism_factor);
+console.log("nationalism_factor:", Q.nationalism_factor);
+console.log("identity_modifier.spd:", Q.identity_modifier ? Q.identity_modifier.spd : "UNDEFINED");
+console.log("identity_modifier.nsdap:", Q.identity_modifier ? Q.identity_modifier.nsdap : "UNDEFINED");
+console.log("sample vote var workers_spd:", Q.workers_spd);
+console.log("sample vote var unemployedc_spd:", Q.unemployedc_spd);
+console.log("sample vote var unemployed_spd:", Q.unemployed_spd);
+
+if (Q.c === Q.classes[0]) {
+    console.log("=== FIRST CLASS ITERATION ===");
+    console.log("Q.c:", Q.c);
+    console.log("class_influences[Q.c]:", Q.class_influences[Q.c]);
+    console.log("workers_spd raw:", Q[Q.c + '_spd']);
+    console.log("workers_nsdap raw:", Q[Q.c + '_nsdap']);
+}
+
+
+if (Q.party === 'spd' && Q.c === Q.classes[0]) {
+    console.log("=== SPD IDEOLOGY FACTOR CHECK ===");
+    console.log("ideology_factor:", Q.ideology_factor);
+    console.log("cap base:", Q.ideology_caps.spd ? Q.ideology_caps.spd.base : "NO CAP");
+    console.log("class multiplier:", Q.ideology_caps.spd ? Q.ideology_caps.spd[Q.c] : "NO KEY");
+    console.log("delta before softcap:", Q.drift_base * Q.ideology_factor * (Q.class_influences[Q.c] || 0) / 6);
+}
+
+if (Q.c === Q.classes[0] && Q.party === 'spd') {
+    console.log("=== SOFTCAP RESULT ===");
+    console.log("base:", Q.base);
+    console.log("delta:", Q.delta);
+    console.log("proposed:", proposed);
+    console.log("final_cap:", final_cap);
+    console.log("result:", Q[Q.c+'_'+Q.party]);
+}
+
+console.log("=== POST-DRIFT RAW VOTES ===");
+for (var _c of Q.classes) {
+    let row = _c + ": ";
+    for (var _p of Q.parties) {
+        row += _p + "=" + (Q[_c+'_'+_p] || 0).toFixed(1) + " ";
+    }
+    console.log(row);
+}
+
+
+
+console.log("NORM class:", c, "total_votes:", class_votes);
+
+!}
+go-to: all-variables
 
 @relations
 on-arrival: {!
