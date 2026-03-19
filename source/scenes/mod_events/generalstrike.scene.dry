@@ -1,0 +1,45 @@
+title: General Strike!
+subtitle: It seems we have angered the labor too much...
+view-if: (general_strike_progress >= 12 or unemployed > 25) and gsp_timer <= 0 and spd_in_government = 1
+on-arrival: workers_spd -= 9; labor_dissent *= 1.20; kpd_relation -= 10; sapd_relation -= 5; srpd_relation -= 3; kpd_workers += 3; kpd_unemployedc += 3; socialism *= 2; unemployed += 4; general_strike_progress = 0
+tags: event
+
+ = Workers are striking in fabrics!
+
+It seems our anti laborist policies have lead to labors, unions and proletariat rising up in fabrics and causing mass strikes, forcing capitalists to make us respond to the situation as fast as possible or else they take their action. What can we do here?
+
+- @seize: We stand with the workers!
+- @punish: Force workers back to the work.
+- @negotiate: We may initiate negotiations and reach compromise.
+- @nothing: There is, essentially, nothing to be done.
+
+@seize
+view-if: (socialism > 85 or (workers_spd + workers_kpd + workers_sapd > 60) or (left_strength > reformist_strength + neorevisionist_strength) or nationalization_progress > 0 or (z_relation + ddp_relation + dvp_relation + srpd_relation + wp_relation + bvp_relation < 150))
+unavailable-subtitle: Conditions for such actions were not reached.
+on-arrival; nationalization_progress += 1; capital_strike_progress = 12; workers_spd *= 1.5; dvp_relation -= 20; wp_relation -= 17; z_relation -= 12; ddp_relation -= 12; bvp_relation -= 16; csrp_relation -= 5; factory_takeovers += 1; coup_progress += 8; reformist_dissent += 20; labor_dissent += 5; neorevisionist_dissent += 15; left_dissent -= 20; center_dissent -= 10
+
+We have seized the means of the production! Only the thing left in uncertainty is ... what happens next?
+
+@punish
+title: Send in the police to break the strike.
+subtitle: Workers will not forgive this.
+choose-if: prussian_police_loyalty > 0.85 or interior_police_loyalty >= 0.99 or reichswehr_loyalty >= 0.50
+unavailable-subtitle: [? if prussian_police < 0.86 and reichswehr_loyalty < 0.50 or interior_police_loyalty < 0.99 : We lack the force to compel them. ?]
+on-arrival: workers_spd -= 15*(1-dissent); unemployed_spd -= 8*(1-dissent); kpd_workers += 6; kpd_unemployedc += 4; sapd_workers += 4; labor_dissent *= 0.7; coup_progress -= 1; pro_republic -= 4; socialism -= 10; reformist_dissent -= 5; left_dissent += 15
+
+The police have moved in. The picket lines are broken. Factories return to operation. The workers remember our actions.
+
+@negotiate
+title: Open negotiations between labor and capital.
+subtitle: A compromise may cost us on both sides.
+choose-if: (z_relation + ddp_relation + wp_relation + bvp_relation + dvp_relation + (vrp_relation / 3) + (csrp_relation / 5) + (cnbl_relation / 2)) > 270 and ( capital_strike_progress + cooperatives + socializations + economic_democracy ) > (capital_strike_progress * 1.2)
+unavailable-subtitle: Without some bourgeois goodwill, no negotiation framework is possible.
+on-arrival: workers_spd += 4*(1-dissent); unemployed_spd += 3*(1-dissent); labor_dissent *= 0.85; general_strike_progress = 0; capital_strike_progress += 4; dvp_relation -= 6; z_relation -= 4; economic_growth += 1; unemployed -= 1; reformist_dissent -= 5; left_dissent += 8
+
+A settlement is reached. Neither side is satisfied. Production resumes at reduced hours and marginally improved wages. The capitalists are already planning their next move.
+
+@nothing
+title: There is nothing we can do.
+on-arrival: workers_spd -= 10; labor_dissent *= 1.10; kpd_workers += 2; pro_republic -= 3; unemployed += 2; capital_strike_progress += 1
+
+The strike burns itself out. Workers return, hungry, to unchanged conditions. The lesson they draw from this is not one favorable to us.
