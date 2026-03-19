@@ -1413,7 +1413,36 @@ Choose your challenges!
 - @new: SPD is newly formed party.
 - @bauern: Agrarian Revolution
 - @camarilla: Camarillamulator
+- @vanilla: Vanilla-esque gamemode.
 - @start_2: Back
+
+@vanilla
+
+= Vanilla
+
+Always felt it is too much to have billion parties? How about Hindenburg's mfer? Only here you can make it NOT happen.
+
+- @vn_2: True
+- @vn_3: False
+- @challenge: Back.
+
+@vn_2
+view-if: vn_challenge = 0
+on-arrival: vn_challenge = 1
+go-to: vanilla
+
+Turned on!
+
+@vn_3
+view-if: vn_challenge = 1
+on-arrival: vn_challenge = 0
+go-to: vanilla
+
+Turned off!
+
+
+
+
 
 @camarilla
 
@@ -1620,10 +1649,12 @@ new-page: true
 go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
 on-arrival: {!
 if (Q.spartac_challenge === 1) {
-    Q.z_banned = 1;
     Q.dvp_banned = 1;
     Q.bvp_banned = 1;
     Q.dnvp_banned = 1;
+    Q.bb_banned = 1;
+    Q.dhp_banned = 1;
+    Q.kvp_banned = 1;
     Q.nsdap_banned = 1;
     Q.other_banned = 1;
     Q.csvd_banned = 1;
@@ -1633,6 +1664,19 @@ if (Q.spartac_challenge === 1) {
     Q.parties.push('srpd');
     Q.srpd_formed = 1;
     Q.sapd_formed = 1;
+}
+
+if (Q.vn_challenge === 1) {
+    Q.dhp_banned = 1;
+    Q.bb_banned = 1;
+    Q.kvp_banned = 1;
+    Q.csvd_banned = 1;
+    Q.wp_banned = 1;
+    Q.cnbl_banned = 1;
+    Q.srpd_banned = 1;
+    Q.csrp_banned = 1;
+    Q.camarilla_strength = -1000;
+    Q.general_strike_progress = -1000;
 }
 
 if (Q.dem_challenge === 1) {
@@ -1655,7 +1699,6 @@ if (Q.new_partei_challenge === 1) {
     Q.new_middle_spd = 1;
     Q.old_middle_spd = 1;
     Q.unemployed_spd = 1;
-    Q.catholics_spd = 1;
 }
 
 if (Q.gang_challenge === 1) {
