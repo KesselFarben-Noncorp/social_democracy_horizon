@@ -31,7 +31,7 @@
     // Guard against engine not being ready yet
     if (!window.dendryUI || !window.dendryUI.dendryEngine || !window.dendryUI.dendryEngine.state) return;
     var sandbox1 = window.dendryUI.dendryEngine.state.qualities.sandbox;
-    sandboxLink.style.display = (sandbox1 = 1) ? 'inline' : 'none';
+    sandboxLink.style.display = (sandbox1 === 1) ? 'inline' : 'none';
 };
 
   window.showSandbox = function() {
