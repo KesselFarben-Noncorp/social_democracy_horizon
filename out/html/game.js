@@ -29,7 +29,7 @@
     var sandboxLink = document.getElementById('sandbox-link');
     if (!sandboxLink) return;
     var sandbox = window.dendryUI.dendryEngine.state.qualities.sandbox;
-    sandboxLink.style.display = (sandbox === 1) ? 'inline' : 'none';
+    sandboxLink.style.display = (sandbox1 === 1) ? 'inline' : 'none';
   };
 
   window.showSandbox = function() {

@@ -29,7 +29,7 @@ subtitle: -1 budget or -6 resources
 view-if: full_reform_initiated = 0
 unavailable-subtitle: Maybe prussian police, ministry police or justiciary won't cooperate? [? if budget < 1: Not enough budget. ?]  [? if resources < 6: Not enough resources!  ?]  [? if judicial_reform < 4: System is too corrupted for us in order to control and reform it.  ?] [? if interior_police_loyalty < 0.7: Interior Ministry is too disloyal in order for us to reform the judiciary adequately, as they won't cooperate with us!  ?] [? if prussian_police_loyalty < 0.7: Prussian Police is not cooperative in order to assist us with reforms within Free State of Prussia!  ?]
 choose-if: judicial_reform >= 3 and interior_police_loyalty >= 0.7 and prussian_police_loyalty >= 0.7 and (budget >= 1 or resources >= 6)
-on-arrival: budget -= 1 if resources < 6; resources -= 6 if budget < 1; resources -= 6 if (budget >= 1 and resources >= 6); pro_republic += 10; full_reform_initiated += 1; bonus_mdf_reform = 0.3; hindenburg_patience -= 10; hindenburg_relation -= 15;
+on-arrival: budget -= 1 if resources < 6; resources -= 6 if budget < 1; resources -= 6 if (budget >= 1 and resources >= 6); pro_republic += 10; full_reform_initiated += 1; bonus_mdf_reform = 0.3; hindenburg_patience -= 10; president_relation -= 15;
 
 We have completely reformed the justiciary, being able now to impose our own and republican decisionship. 
 
@@ -44,10 +44,10 @@ on-arrival: budget -= 1; democratization += 2; coalition_dissent += 1 if in_gran
 We investigate jurists who have shown themselves to have biased or corrupt behavior, and try to remove them, replacing them with more democratically-oriented jurists. This obviously raises quite a great deal of ire in conservative circles, including within our coalition. 
 
 @advantage
-subtitle: +1 budget. [? if kpd_in_government: (KPD is in government, however we may think of it, it is very risky thought to do this.) ?]
+subtitle: +4 resources. [? if kpd_in_government: (KPD is in government, however we may think of it, it is very risky thought to do this.) ?]
 choose-if: judicial_reform > 0 and full_reform_initiated < 1
 unavailable-subtitle: [? if full_reform_initiated > 0: Judiciary was reformed, we may not take advantage of it. ?]
-on-arrival: budget += 1; nationalism += 4; democratization /= 2; judicial_reform -= 2; coup_progress -= 1; pro_republic -= 1; hindenburg_patience += 1; hindenburg_relation += 2; kpd_relation -= 10 if kpd_in_government; workers_spd *= 0.90 if kpd_in_government
+on-arrival: resources += 4; nationalism += 10; democratization /= 2; judicial_reform -= 2; coup_progress -= 1; pro_republic -= 1; hindenburg_patience += 1; president_relation += 2; kpd_relation -= 10 if kpd_in_government; workers_spd *= 0.90 if kpd_in_government
 
 We take advantage of the judicial system's state and sack white collar workers and civil servants in justicial ministry, replacing some with loyal and bureaucratic members, potentially letting reactionaries in.
 
