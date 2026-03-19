@@ -28,7 +28,7 @@
   window.updateSandboxLink = function() {
     var sandboxLink = document.getElementById('sandbox-link');
     if (!sandboxLink) return;
-    var sandbox = window.dendryUI.dendryEngine.state.qualities.sandbox;
+    var sandbox1 = window.dendryUI.dendryEngine.state.qualities.sandbox;
     sandboxLink.style.display = (sandbox1 === 1) ? 'inline' : 'none';
   };
 
