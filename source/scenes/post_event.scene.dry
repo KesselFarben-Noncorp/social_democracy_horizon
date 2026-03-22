@@ -2,7 +2,6 @@ title: Post Event
 new-page: true
 on-arrival: {!
 
-// ── SEEDED PRNG (mulberry32) ──────────────────────────────
 function _mkrng(seed) {
     let s = seed >>> 0;
     return function() {
@@ -13,9 +12,9 @@ function _mkrng(seed) {
     };
 }
 
-// Advances seed each tick so variance differs month-to-month
-Q.rng_seed = ((Q.rng_seed || 12345) + Q.tick * 0x9e3779b9) >>> 0;
-const _r = _mkrng(Q.rng_seed);
+// Derive a per-tick RNG from the fixed seed + tick counter
+// Same seed + same tick = identical results every time
+const _r = _mkrng((Q.rng_seed + Q.tick * 0x9e3779b9) >>> 0);
 
 Q.random_factor = function(f, variance = 0.65) {
     return f * (1 - variance / 2 + _r() * variance);
