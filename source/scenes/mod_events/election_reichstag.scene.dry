@@ -1264,6 +1264,8 @@ for (var i = 0; i < Q.party_votes.length; i++) {
 Q.first_party_votes = Q.party_votes[0].votes;
 Q.formation_round   = 1;
 Q.formation_attempts = [];
+
+Q.first_party_0 = Q.party_votes[0].party
 !}
 go-to: presidential_crisis if president_skips_coalition; begin_negotiations
 
@@ -1275,9 +1277,9 @@ go-to: presidential_crisis if president_skips_coalition; begin_negotiations
 
 [? if president_skips_coalition : President [+ president +] has declined to designate a formateur, invoking Article 48 directly. ?]
 
-[? if president_interfered and president_bypass_reason = "strong" : President [+ president +] has firmly refused to grant the mandate to [+ party_votes[0].party +], designating **[+ formateur +]** instead. ?]
+[? if president_interfered and president_bypass_reason = "strong" : President [+ president +] has firmly refused to grant the mandate to [+ first_party_0 +], designating **[+ formateur +]** instead. ?]
 
-[? if president_interfered and president_bypass_reason = "moderate" : President [+ president +] has chosen to bypass [+ party_votes[0].party +], granting the mandate to **[+ formateur +]**. ?]
+[? if president_interfered and president_bypass_reason = "moderate" : President [+ president +] has chosen to bypass [+ first_party_0 +], granting the mandate to **[+ formateur +]**. ?]
 
 [? if not president_interfered : By constitutional tradition, **[+ formateur +]** ([+ first_party_votes +]%) receives the mandate to form a government. ?]
 
