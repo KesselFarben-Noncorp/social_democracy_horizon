@@ -3,14 +3,23 @@ subtitle: A new year
 audio: clear shuffle music/1928_1933/ZurSonne_zurFreiheit.mp3 music/1928_1933/arbeiter_marseille.mp3 music/1928_1933/DERLINDENBAUM_normalized.mp3 music/1928_1933/Wann_wir_schreiten_Seit_an_Seit.mp3 music/1930_1933/Internationale-de_normalized.ogg music/1930_1933/ironfront_normalized.mp3 music/1930_1933/KommSusserTod.mp3 music/1930_1933/Warszawianka.mp3 music/1928_1933/Liebesleid_normalized.mp3 music/1928_1933/SozialistenMarsch.mp3
 on-arrival: {!
 // increase NSDAP vote share 
-Q.unemployed += 6.8; 
+Q.unemployed += 6.8;
 Q.inflation -= 4;
-if (Q.budget > 0) {
-    Q.budget -= 1;
-}
-// historical: -1.4
+if (Q.budget > 0) { Q.budget -= 1; }
 Q.economic_growth -= 1;
-// moved demographic changes to post_event
+
+Q.capital_pressure += 0.20;
+Q.trade_pressure += 0.12;
+Q.demand_impulse -= 0.15;
+Q.investment_chill += 0.25;
+Q.price_pressure -= 0.10;
+Q.supply_impulse -= 0.08;
+Q.shock_residual += 0.20;
+Q.fiscal_stance -= 0.08;        // Brüning austerity already beginning
+Q.distribution_shift += 0.06;
+if (!Q.expectations_anchored) {
+    Q.inflation_expectations -= 1.0;
+}
 !}
 tags: event
 view-if: year = 1930 and month = 1 
