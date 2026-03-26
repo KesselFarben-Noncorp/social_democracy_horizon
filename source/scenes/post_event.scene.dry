@@ -2562,6 +2562,39 @@ Q.identity_modifier = {
                 return Math.max(Math.min(cap + overshoot, breakthrough_cap), 0.5);
             }
         }
+
+        // === ENEMIES MODIFIER ===
+        // Attacking a party suppresses their drift among workers/unemployed
+        // and slightly boosts SPD's own drift against the same classes
+        const worker_classes = ['workers', 'unemployedc'];
+        const is_worker_class = worker_classes.includes(Q.c);
+
+        if (Q.enemies && is_worker_class) {
+            const target_map = {
+                'NSDAP':              ['nsdap'],
+                'KPD':                ['kpd'],
+                'far right':          ['nsdap', 'dnvp'],
+                'DNVP':               ['dnvp'],
+                'anti-democratic parties': ['nsdap', 'dnvp', 'kpd'],
+                'bourgeois parties':  ['dvp', 'wp', 'z'],
+                'DVP':                ['dvp'],
+                'Z':                  ['z'],
+                'BVP':                ['bvp'],
+                'WP':                 ['wp'],
+                'DDP':                ['ddp'],
+            };
+
+            const targets = target_map[Q.enemies] || [];
+
+            if (targets.includes(Q.party)) {
+                // Suppress drift toward enemy parties
+                Q.ideology_factor *= 0.87;
+            }
+            if (Q.party === 'spd' && targets.length > 0) {
+                // SPD benefits slightly from negative campaigning
+                Q.ideology_factor *= 1.05;
+            }
+        }
             
 
         Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
