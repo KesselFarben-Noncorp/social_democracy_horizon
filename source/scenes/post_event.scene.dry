@@ -3508,6 +3508,24 @@ if (this.ui && this.ui.show_portraits) {
     }
 }
 
+
+
+var parties = ['z','srpd','ddp','dvp','csrp','sapd','kpd','bvp','wp','cnbl','dhp','bb','vrp','kvp','csvd','dnvp','nsdap'];
+    var total = 0;
+    for (var i = 0; i < parties.length; i++) {
+        var p = parties[i];
+        if (Q[p + '_in_government']) {
+            total += Q[p + '_dissent'] || 0;
+        } else {
+            Q[p + '_dissent'] = 0;
+        }
+    }
+    Q.coalition_dissent = total;
+
+
+
+
+ 
 // === EARLY BOUNDS CHECKING (SKIP IN CHAOS MODE) ===
 if (!Q.math_broken) {
     Q.pro_republic = Math.round(Q.pro_republic * 10) / 10;
