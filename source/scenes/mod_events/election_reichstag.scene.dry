@@ -1130,7 +1130,7 @@ function president_party_score(party) {
 
     // --- President-specific trust variables ---
     if (pres === 'Hindenburg') {
-        if (party === 'SPD')  score += (Q.hindenburg_trust_spd  || 50) - 45;
+        if (party === 'SPD')  score += (Q.hindenburg_trust_spd  || 55) - 45;
         if (party === 'Z')    score += (Q.hindenburg_trust_z    || 60) - 40;
         if (party === 'DNVP') score += (Q.hindenburg_trust_dnvp || 70) - 40;
         if (party === 'DVP')  score += 10;
@@ -1143,7 +1143,7 @@ function president_party_score(party) {
             score += (nazi_tolerance * 0.3) + (weakness * 0.2) - 60;
         }
         // Reichstag trust: low trust makes president bypass largest party more readily
-        var rt = Q.hindenburg_trust_reichstag || 50;
+        var rt = Q.hindenburg_trust_reichstag || 55;
         if (party === Q.party_votes[0].party && rt < 40) {
             score -= (40 - rt) * 0.8; // erodes willingness to give mandate to largest
         }
