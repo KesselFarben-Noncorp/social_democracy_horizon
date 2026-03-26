@@ -111,10 +111,7 @@ for (var party of Q.parties) {
 for (var party of Q.parties) {
     if (!Q.math_broken) {
         // NORMAL: Display formatting
-        if (Q.use_decimals) {
-            Q[party + '_r_disp'] = (Math.ceil(Q[party + '_r'] * 10) / 10).toFixed(1);
-        } else {
-            Q[party + '_r_disp'] = Math.round(Q[party + '_r']).toString();
+        Q[party + '_r_disp'] = (Math.round(Q[party + '_r'] * 10) / 10).toFixed(1);
         }
         
         Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
@@ -1134,7 +1131,7 @@ function president_party_score(party) {
 
     // --- President-specific trust variables ---
     if (pres === 'Hindenburg') {
-        if (party === 'SPD')  score += (Q.hindenburg_trust_spd  || 30) - 50;
+        if (party === 'SPD')  score += (Q.hindenburg_trust_spd  || 50) - 45;
         if (party === 'Z')    score += (Q.hindenburg_trust_z    || 60) - 40;
         if (party === 'DNVP') score += (Q.hindenburg_trust_dnvp || 70) - 40;
         if (party === 'DVP')  score += 10;
@@ -2740,7 +2737,7 @@ function president_vetoes(name, party) {
     if (pres === 'Hindenburg') {
         // Trust-driven: hostility rises as trust falls
         if (party === 'SPD') {
-            var spd_trust = Q.hindenburg_trust_spd || 30;
+            var spd_trust = Q.hindenburg_trust_spd || 50;
             // Below 35 trust: starts refusing SPD chancellors
             // Below 20 trust: near-certain veto
             veto_score += Math.max(0, 35 - spd_trust) * 1.5;
@@ -2760,7 +2757,7 @@ function president_vetoes(name, party) {
 
     } else if (pres === 'Braun') {
         if (party === 'NSDAP' || party === 'DNVP') veto_score += 80;
-        if (party === 'DVP' && (Q.dvp_right_shift || 0) >= 2) veto_score += 30;
+        if (party === 'DVP' && (Q.dvp_right_shift || 0) >= 1) veto_score += 30;
 
     } else if (pres === 'Hitler') {
         if (party === 'SPD' || party === 'KPD' || party === 'SAPD') veto_score += 90;
