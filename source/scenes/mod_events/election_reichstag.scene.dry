@@ -3940,6 +3940,7 @@ on-arrival: {!
 
 
 
+
 // ============================================
 // MINISTRY RENEGOTIATION SCENE
 // ============================================
@@ -4001,7 +4002,7 @@ for (var i = 0; i < coalition.length; i++) {
     base += (relation - 50) / 5;
     
     if (Q.chancellor_party === party) {
-        base += 10; // Chancellor has MORE leverage in reshuffle
+        base += 10;
     }
     
     // SPD-specific bonuses
@@ -4041,7 +4042,7 @@ for (var ministry in ministry_costs) {
     }
 }
 
-// Floor at 0 (can't go negative)
+// Floor at 0
 for (var party in Q.shuffle_leverage) {
     if (!Q.shuffle_leverage.hasOwnProperty(party)) continue;
     Q.shuffle_leverage[party] = Math.max(0, Q.shuffle_leverage[party]);
@@ -4114,7 +4115,7 @@ on-arrival: {!
     Q.labor_minister_party = "SPD";
     Q.labor_minister = "Wissell";
     
-    if (Q.previous_labor_party !== 'I') {
+    if (Q.previous_labor_party && Q.previous_labor_party !== 'I') {
         var rel_var = Q.previous_labor_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 5);
     }
@@ -4134,7 +4135,7 @@ on-arrival: {!
     Q.interior_minister_party = "SPD";
     Q.interior_minister = "Severing";
     
-    if (Q.previous_interior_party !== 'I') {
+    if (Q.previous_interior_party && Q.previous_interior_party !== 'I') {
         var rel_var = Q.previous_interior_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 8);
     }
@@ -4154,7 +4155,7 @@ on-arrival: {!
     Q.justice_minister_party = "SPD";
     Q.justice_minister = "Radbruch";
     
-    if (Q.previous_justice_party !== 'I') {
+    if (Q.previous_justice_party && Q.previous_justice_party !== 'I') {
         var rel_var = Q.previous_justice_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 7);
     }
@@ -4174,7 +4175,7 @@ on-arrival: {!
     Q.finance_minister_party = "SPD";
     Q.finance_minister = "Hilferding";
     
-    if (Q.previous_finance_party !== 'I') {
+    if (Q.previous_finance_party && Q.previous_finance_party !== 'I') {
         var rel_var = Q.previous_finance_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 10);
     }
@@ -4194,7 +4195,7 @@ on-arrival: {!
     Q.economic_minister_party = "SPD";
     Q.economic_minister = "Schmidt";
     
-    if (Q.previous_economic_party !== 'I') {
+    if (Q.previous_economic_party && Q.previous_economic_party !== 'I') {
         var rel_var = Q.previous_economic_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 10);
     }
@@ -4214,7 +4215,7 @@ on-arrival: {!
     Q.foreign_minister_party = "SPD";
     Q.foreign_minister = "Breitscheid";
     
-    if (Q.previous_foreign_party !== 'I') {
+    if (Q.previous_foreign_party && Q.previous_foreign_party !== 'I') {
         var rel_var = Q.previous_foreign_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 12);
     }
@@ -4234,7 +4235,7 @@ on-arrival: {!
     Q.agriculture_minister_party = "SPD";
     Q.agriculture_minister = "Baade";
     
-    if (Q.previous_agriculture_party !== 'I') {
+    if (Q.previous_agriculture_party && Q.previous_agriculture_party !== 'I') {
         var rel_var = Q.previous_agriculture_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 6);
     }
@@ -4254,7 +4255,7 @@ on-arrival: {!
     Q.transport_minister_party = "SPD";
     Q.transport_minister = "Oeser";
     
-    if (Q.previous_transport_party !== 'I') {
+    if (Q.previous_transport_party && Q.previous_transport_party !== 'I') {
         var rel_var = Q.previous_transport_party.toLowerCase() + '_relation';
         Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 5);
     }
@@ -4287,7 +4288,10 @@ go-to: ministry_picker
 
 Julius Leber has been appointed Reichswehr Minister. The military is **furious**. The entire coalition is shaken.
 
-// === DROP MINISTRIES ===
+// ============================================
+// DROP MINISTRIES
+// Helper: find the first non-SPD coalition party
+// ============================================
 
 @drop_labor
 title: Drop Labor Ministry
@@ -4295,7 +4299,18 @@ view-if: labor_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 5;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.labor_minister_party = Q.government_parties[1] || 'Z';
+
+    // Find first non-SPD coalition partner to receive the ministry
+    var new_party = 'Z';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.labor_minister_party = new_party;
     Q.labor_minister = 'Stegerwald';
     if (Q.coalition_dissent > 0) Q.coalition_dissent -= 1;
 !}
@@ -4309,7 +4324,17 @@ view-if: interior_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 10;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.interior_minister_party = Q.government_parties[1] || 'Z';
+
+    var new_party = 'Z';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.interior_minister_party = new_party;
     Q.interior_minister = 'Wirth';
     if (Q.coalition_dissent > 0) Q.coalition_dissent -= 1;
 !}
@@ -4323,7 +4348,17 @@ view-if: justice_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 10;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.justice_minister_party = Q.government_parties[1] || 'DDP';
+
+    var new_party = 'DDP';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.justice_minister_party = new_party;
     Q.justice_minister = 'Koch-Weser';
 !}
 go-to: ministry_picker
@@ -4336,7 +4371,17 @@ view-if: finance_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 15;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.finance_minister_party = Q.government_parties[1] || 'DVP';
+
+    var new_party = 'DVP';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.finance_minister_party = new_party;
     Q.finance_minister = 'Moldenhauer';
     if (Q.coalition_dissent > 1) Q.coalition_dissent -= 2;
 !}
@@ -4350,7 +4395,17 @@ view-if: economic_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 15;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.economic_minister_party = Q.government_parties[1] || 'DVP';
+
+    var new_party = 'DVP';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.economic_minister_party = new_party;
     Q.economic_minister = 'Curtius';
     if (Q.coalition_dissent > 1) Q.coalition_dissent -= 2;
 !}
@@ -4364,7 +4419,17 @@ view-if: foreign_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 15;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.foreign_minister_party = Q.government_parties[1] || 'DVP';
+
+    var new_party = 'DVP';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.foreign_minister_party = new_party;
     Q.foreign_minister = Q.stresemann_dead ? 'Curtius' : 'Stresemann';
     if (Q.coalition_dissent > 1) Q.coalition_dissent -= 2;
 !}
@@ -4378,7 +4443,17 @@ view-if: agriculture_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 10;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.agriculture_minister_party = Q.government_parties[1] || 'Z';
+
+    var new_party = 'Z';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.agriculture_minister_party = new_party;
     Q.agriculture_minister = 'Hermes';
 !}
 go-to: ministry_picker
@@ -4391,7 +4466,17 @@ view-if: transport_minister_party = "SPD"
 on-arrival: {!
     Q.shuffle_leverage.SPD += 8;
     Q.shuffle_spd_variable = Q.shuffle_leverage.SPD;
-    Q.transport_minister_party = Q.government_parties[1] || 'Z';
+
+    var new_party = 'Z';
+    if (Q.government_parties) {
+        for (var i = 0; i < Q.government_parties.length; i++) {
+            if (Q.government_parties[i] !== 'SPD') {
+                new_party = Q.government_parties[i];
+                break;
+            }
+        }
+    }
+    Q.transport_minister_party = new_party;
     Q.transport_minister = 'Guerard';
 !}
 go-to: ministry_picker
@@ -4413,9 +4498,12 @@ go-to: ministry_picker
 
 We have relinquished the Reichswehr Ministry. The military is relieved.
 
+// ============================================
+// FINALIZE
+// ============================================
+
 @finalize_shuffle
 on-arrival: {!
-    // Helper function to assign minister names
     function assign_minister(ministry, party) {
         var minister_var = ministry + '_minister';
         
@@ -4469,7 +4557,7 @@ on-arrival: {!
         }
     }
     
-    // Check if changes were made
+    // Check how many changes were made
     var changes = 0;
     for (var ministry in Q.original_allocation) {
         if (!Q.original_allocation.hasOwnProperty(ministry)) continue;
@@ -4481,35 +4569,25 @@ on-arrival: {!
     
     Q.shuffle_changes_made = changes;
     
-    // Calculate how much each party gained/lost
+    // Calculate per-party ministry delta (positive = net loss, negative = net gain)
     var ministry_delta = {};
     for (var i = 0; i < Q.government_parties.length; i++) {
-        var party = Q.government_parties[i];
-        ministry_delta[party] = 0;
+        ministry_delta[Q.government_parties[i]] = 0;
     }
     
-    // Count original ministries
     for (var ministry in Q.original_allocation) {
         if (!Q.original_allocation.hasOwnProperty(ministry)) continue;
-        var party = Q.original_allocation[ministry];
-        if (ministry_delta[party] !== undefined) {
-            ministry_delta[party]++;
+        var orig_party = Q.original_allocation[ministry];
+        if (ministry_delta[orig_party] !== undefined) {
+            ministry_delta[orig_party]++;
+        }
+        var curr_party = Q[ministry + '_minister_party'];
+        if (ministry_delta[curr_party] !== undefined) {
+            ministry_delta[curr_party]--;
         }
     }
     
-    // Count current ministries (subtract)
-    for (var ministry in Q.original_allocation) {
-        if (!Q.original_allocation.hasOwnProperty(ministry)) continue;
-        var current_party_var = ministry + '_minister_party';
-        var party = Q[current_party_var];
-        if (ministry_delta[party] !== undefined) {
-            ministry_delta[party]--;
-        }
-    }
-    
-    // ministry_delta is now: positive = lost ministries, negative = gained ministries
-    
-    // Parties that lost ministries want compensation
+    // Identify parties that lost ministries and may demand compensation
     var compensation_needed = [];
     for (var party in ministry_delta) {
         if (!ministry_delta.hasOwnProperty(party)) continue;
@@ -4522,54 +4600,39 @@ on-arrival: {!
         }
     }
     
-    // Sort by leverage (strongest parties first)
-    compensation_needed.sort(function(a, b) {
-        return b.leverage - a.leverage;
-    });
+    compensation_needed.sort(function(a, b) { return b.leverage - a.leverage; });
     
     Q.coalition_demands = [];
     
-    // Find SPD ministries that could be taken
+    // Build list of SPD ministries that could be seized
     var ministries = ['foreign', 'interior', 'justice', 'labor', 'economic', 'finance', 'agriculture', 'transport'];
     var available_to_take = [];
-    
     for (var i = 0; i < ministries.length; i++) {
-        var ministry = ministries[i];
-        var party_var = ministry + '_minister_party';
-        if (Q[party_var] === 'SPD') {
-            available_to_take.push(ministry);
+        if (Q[ministries[i] + '_minister_party'] === 'SPD') {
+            available_to_take.push(ministries[i]);
         }
     }
     
-    // Each aggrieved party tries to claim something
+    // Compensation seizures
     for (var i = 0; i < compensation_needed.length; i++) {
         var demand = compensation_needed[i];
-        
         var rel_var = demand.party.toLowerCase() + '_relation';
         var relation = Q[rel_var] || 50;
-        
-        var takeover_chance = 0;
         var spd_leverage = Q.shuffle_leverage.SPD || 0;
         
-        if (demand.leverage > spd_leverage) {
-            takeover_chance = 0.3 + (demand.losses * 0.15);
-        } else {
-            takeover_chance = 0.1 + (demand.losses * 0.1);
-        }
+        var takeover_chance = demand.leverage > spd_leverage
+            ? 0.3 + (demand.losses * 0.15)
+            : 0.1 + (demand.losses * 0.1);
         
         if (relation < 40) takeover_chance += 0.2;
         if (relation < 30) takeover_chance += 0.2;
         
-        // Roll for each lost ministry
         for (var j = 0; j < demand.losses; j++) {
             if (Math.random() < takeover_chance && available_to_take.length > 0) {
                 var ministry_idx = Math.floor(Math.random() * available_to_take.length);
-                var taken_ministry = available_to_take[ministry_idx];
-                available_to_take.splice(ministry_idx, 1);
+                var taken_ministry = available_to_take.splice(ministry_idx, 1)[0];
                 
-                var party_var = taken_ministry + '_minister_party';
-                Q[party_var] = demand.party;
-                
+                Q[taken_ministry + '_minister_party'] = demand.party;
                 assign_minister(taken_ministry, demand.party);
                 
                 Q.coalition_demands.push({
@@ -4583,33 +4646,28 @@ on-arrival: {!
         }
     }
     
-    // Opportunistic grabs
+    // Opportunistic grabs when SPD is weak
     if ((Q.shuffle_leverage.SPD || 0) < 40 || Q.coalition_dissent > 3) {
         for (var i = 0; i < Q.government_parties.length; i++) {
             var party = Q.government_parties[i];
             if (party === 'SPD') continue;
-            if (ministry_delta[party] < 0) continue;
+            if (ministry_delta[party] < 0) continue; // already gained ministries, skip
             
             var rel_var = party.toLowerCase() + '_relation';
             var relation = Q[rel_var] || 50;
-            
-            var grab_chance = 0;
             var party_leverage = Q.shuffle_leverage[party] || 0;
             var spd_leverage = Q.shuffle_leverage.SPD || 0;
             
-            if (party_leverage > spd_leverage * 1.3) {
-                grab_chance = 0.25;
-            }
+            var grab_chance = 0;
+            if (party_leverage > spd_leverage * 1.3) grab_chance = 0.25;
             if (relation < 35) grab_chance += 0.15;
             if (Q.coalition_dissent > 4) grab_chance += 0.15;
             
             if (Math.random() < grab_chance && available_to_take.length > 0) {
                 var ministry_idx = Math.floor(Math.random() * available_to_take.length);
-                var taken_ministry = available_to_take[ministry_idx];
-                available_to_take.splice(ministry_idx, 1);
+                var taken_ministry = available_to_take.splice(ministry_idx, 1)[0];
                 
-                var party_var = taken_ministry + '_minister_party';
-                Q[party_var] = party;
+                Q[taken_ministry + '_minister_party'] = party;
                 assign_minister(taken_ministry, party);
                 
                 Q.coalition_demands.push({
@@ -4632,13 +4690,12 @@ on-arrival: {!
         Q.coalition_dissent += 1;
     }
     
-    // Build output string for demands
+    // Build response text — BUG FIX: this is now actually displayed in scene text below
     Q.coalition_response_text = "";
     if (Q.coalition_demands && Q.coalition_demands.length > 0) {
         for (var i = 0; i < Q.coalition_demands.length; i++) {
             var demand = Q.coalition_demands[i];
             var ministry_name = demand.ministry.charAt(0).toUpperCase() + demand.ministry.slice(1);
-            
             if (demand.reason === 'compensation') {
                 Q.coalition_response_text += "- The **" + demand.party + "** has seized the **" + ministry_name + " Ministry** as compensation for their losses.\n\n";
             } else {
@@ -4646,14 +4703,16 @@ on-arrival: {!
             }
         }
     }
-Q.cal = Q.coalition_demands.length
+    
+    Q.cal = Q.coalition_demands.length;
 !}
 
-[? if shuffle_changes_made > 0 : We have reshuffled the cabinet. ?]
+[? if shuffle_changes_made > 0 : The cabinet has been reshuffled. ?]
+[? if shuffle_changes_made = 0 : No changes were made to the cabinet. ?]
 
 [? if cal > 0 : **Coalition partners have responded:** ?]
 
-[? if shuffle_changes_made = 0 : No changes were made to the cabinet. ?]
+[+ coalition_response_text +]
 
 - @ministry_shuffle_complete: Continue
 
