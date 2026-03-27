@@ -13,23 +13,30 @@ Whether or not we are in an electoral campaign, the party is always trying to br
 
 [? if ideology = "left": Perhaps, switching our ideology could perhaps broaden our voter base? ?]
 
-- @workers: The urban working class, our traditional support base.
-- @new_middle: The new middle class of government employees and white-collar workers.
-- @old_middle: The old middle class of small businessmen and artisans.
-- @middle: Campaign across the dual middle classes!
-- @rural: Rural workers and small farmers, long neglected.
-- @unemployed: The unemployed.
-- @women: Women, most neglected by history.
-- @catholics: Catholics.
-- @root: We either do not want to or cannot campaign right now.
-- @finish_game: End of the game.
-- @easy_discard
-
 @workers
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: workers_spd += 7*(1-dissent); workers_spd -= 2 if unemployed >= 15; workers_spd -= 2 if unemployed >= 25; workers_spd += 4*(1-dissent) if wtb_adopted = 1; resources -= 1; workers_spd += 3*(1-dissent) if nationalization_progress >= 1; workers_spd += 1 if nazi_urgency > 2; socialism += 1; workers_spd *= 0.98 if welfare <= 0; workers_spd += workers_aid * 0.02; workers_spd -= (socialism / 70) if peoples_party = 1; workers_spd -= lower_tax_rates * 1.8; workers_spd *= pro_consumer * 1.01 if pro_consumer > 0; workers_spd *= 1.005 if trans_rights > 0
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "workers";
+    Q.workers_spd += 2 * (1 - Q.dissent);
+    
+    // Build intensity from conditions
+    let ci = 1.0;
+    if (Q.unemployed >= 25) ci -= 0.20;
+    else if (Q.unemployed >= 15) ci -= 0.10;
+    if (Q.wtb_adopted === 1) ci += 0.20;
+    if (Q.nationalization_progress >= 1) ci += 0.15;
+    if (Q.welfare <= 0) ci -= 0.15;
+    if (Q.workers_aid > 0) ci += Q.workers_aid * 0.02;
+    if (Q.peoples_party === 1) ci -= Q.socialism / 70;
+    if (Q.lower_tax_rates > 0) ci -= Q.lower_tax_rates * 0.12;
+    if (Q.pro_consumer > 0) ci += 0.08;
+    if (Q.trans_rights > 0) ci += 0.03;
+    if (Q.nazi_urgency > 2) ci += 0.05;
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 [? if year < 1940: Our campaign is aimed towards the urban working class, our usual base from whom we gather the most of the votes. Campaign mentions the issues of the social welfare, healthcare, education, wages, union activity and financial stability - our foremost issues regarding this class. ?]
 [? if year >= 1940: Our campaign is aimed towards the urban working class, our usual base from whom we gather the most of the votes. Campaign targets the problems of the social - progressive issues, including rights of the sexual minorities and non traditional gender members, on top of already saturated thematics of the social welfare, internationalist cause and economics/finances. ?]
@@ -46,7 +53,18 @@ subtitle: -1 resources
 view-if: ideology != "left"
 choose-if: resources >= 1
 unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from campaigning among the bourgeois middle class. ?]
-on-arrival: new_middle_spd += 6*(1-dissent); new_middle_spd -= 4 if socialism <= 49 and peoples_party == 0; resources -= 1; peoples_party_support += 1; new_middle_spd -= upper_tax_rates * 1.5
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "new_middle";
+    Q.new_middle_spd += 2 * (1 - Q.dissent);
+    Q.peoples_party_support += 1;
+
+    let ci = 1.0;
+    if (Q.socialism <= 49 && Q.peoples_party === 0) ci -= 0.25;
+    if (Q.peoples_party === 1) ci += 0.15;
+    if (Q.upper_tax_rates > 0) ci -= Q.upper_tax_rates * 0.10;
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 We have increased our campaigning among the new middle class, white collars and servants of the state. Campaign touches the issues of the middle class - middle class protection - targetted against higher classes, minimum wages, democratic practices, education and science funding.
 
@@ -59,7 +77,19 @@ subtitle: -1 resources
 view-if: ideology != "left" and ideology != "centrist"
 choose-if: resources >= 1
 unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from campaigning among the petit bourgeois. ?][? if ideology = "center" : Our centrist stance doesn't appeal strongly enough to the old middle class. ?]
-on-arrival: old_middle_spd += 5*(1-dissent); resources -= 1; old_middle_spd -= 3 if nationalism >= 51 and peoples_party == 0; peoples_party_support += 1; old_middle_spd -= upper_tax_rates * 1.5; old_middle_spd -= (nationalism / 60)
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "old_middle";
+    Q.old_middle_spd += 2 * (1 - Q.dissent);
+    Q.peoples_party_support += 1;
+
+    let ci = 1.0;
+    if (Q.nationalism >= 51 && Q.peoples_party === 0) ci -= 0.25;
+    if (Q.peoples_party === 1) ci += 0.15;
+    if (Q.upper_tax_rates > 0) ci -= Q.upper_tax_rates * 0.10;
+    ci -= Q.nationalism / 120;
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 We have increased our campaigning among the old middle class. While not the most friendly class, we campaigned on the protection of small owners and businessmen from the hands of reactionary past of Kaiserreich.
 
@@ -68,11 +98,23 @@ We have increased our campaigning among the old middle class. While not the most
 [? if upper_tax_rates > 0: Taxes impacting old mittlestand has decreased effectiveness of our campaign. ?]
 
 @middle
-subtitle: -1 resources
+subtitle: -2 resources
 view-if: ideology != "left" and ideology != "centrist" and peoples_party == 1
-choose-if: resources >= 1
-unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
-on-arrival: old_middle_spd += 3*(1-dissent); resources -= 1; old_middle_spd -= 2 if nationalism >= ( pro_republic / 2 ) and peoples_party == 0; old_middle_spd -= upper_tax_rates * 1.1; old_middle_spd -= (nationalism / 60); new_middle_spd += 4*(1-dissent); new_middle_spd -= 2 if (socialism * 1.5) <= nationalism and peoples_party == 0; resources -= 1; new_middle_spd -= upper_tax_rates * 1.3
+choose-if: resources >= 2
+unavailable-subtitle: [? if resources < 2 : Not enough resources. ?]
+on-arrival: {!
+    Q.resources -= 2;
+    Q.campaign_focus = "middle";
+    Q.old_middle_spd += 1 * (1 - Q.dissent);
+    Q.new_middle_spd += 1 * (1 - Q.dissent);
+
+    let ci = 1.0;
+    if (Q.nationalism >= (Q.pro_republic / 2) && Q.peoples_party === 0) ci -= 0.20;
+    if ((Q.socialism * 1.5) <= Q.nationalism && Q.peoples_party === 0) ci -= 0.15;
+    if (Q.upper_tax_rates > 0) ci -= Q.upper_tax_rates * 0.09;
+    ci -= Q.nationalism / 120;
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 We have campaigned across the two middle classes, prioritizing the issues of the shrinking middle class.
 
@@ -81,7 +123,18 @@ subtitle: -1 resources
 view-if: ideology != "left" and ideology != "labor"
 choose-if: resources >= 1
 unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from appealing to rural farmers. ?][? if ideology = "labor" : Our labor-focused ideology makes it difficult to appeal to rural landowners. ?]
-on-arrival: rural_spd += 5*(1-dissent); rural_spd -= 3*(1-dissent) if peoples_party == 0; resources -= 1; peoples_party_support += 1; rural_spd += 3*(1-dissent) if rural_policy >= 2; rural_spd *= 1.09 if state_buyer = 1
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "rural";
+    Q.rural_spd += 2 * (1 - Q.dissent);
+    Q.peoples_party_support += 1;
+
+    let ci = 1.0;
+    if (Q.peoples_party === 0) ci -= 0.20;
+    if (Q.rural_policy >= 2) ci += 0.15;
+    if (Q.state_buyer === 1) ci += 0.12;
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 We have increased our campaigning among farmers and rural workers. Our main issue will be guarantee and protection of farmers.
 
@@ -90,37 +143,73 @@ We have increased our campaigning among farmers and rural workers. Our main issu
 [? if rural_policy >= 2: Our rural policies have eased support-building efforts. ?]
 [? if state_buyer = 1: State monopoly on prices of the agricultural products benefits primarily rurals, which are satisfied with our achievements and grateful for it. Junkers are not. ?]
 
-@women
-subtitle: -1 resources
-view-if: peoples_party == 1 or womens_rights >= 6
-choose-if: resources >= 1
-unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
-on-arrival: new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); workers_spd += 3*(1-dissent); rural_spd += 1*(1-dissent); unemployed_spd += 2*(1-dissent); new_middle_spd += new_middle / (womens_rights * 1.1); old_middle_spd += old_middle / (womens_rights * 1.25); workers_spd *= 1.01 if abortion_rights > 0; new_middle_spd *= 1.01 if abortion_rights > 0; old_middle_spd *= 1.01 if abortion_rights > 0; catholics_spd *= 0.99 if abortion_rights > 0; new_middle_spd += (womens_work / 40); old_middle_spd += (womens_work / 50); workers_spd += (womens_work / 30); new_middle_spd += (family_law / 50); new_middle_ddp += (family_law / 100); workers_spd += (family_law / 40) 
-
-We have campaigned across the women of all kinds of classes, especially focusing on dismantling patriarchic past and equalizing rights between men and women in progressive society.
-
 @unemployed
 subtitle: -1 resources
 view-if: ideology != "reformist"
 choose-if: resources >= 1
 unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "reformist" : Our reformist ideology focuses on those with jobs rather than the unemployed. ?]
-on-arrival: unemployed_spd += 6*(1-dissent); resources -= 1; unemployed_spd -= 3 if welfare < 0; unemployed_spd += 5*(1-dissent) if wtb_adopted = 1; unemployed_spd += 3*(1-dissent) if welfare >= 2; unemployed_spd += 2 if nazi_urgency > 4;
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "unemployed";
+    Q.unemployedc_spd += 2 * (1 - Q.dissent);
+
+    let ci = 1.0;
+    if (Q.welfare < 0) ci -= 0.20;
+    if (Q.wtb_adopted === 1) ci += 0.25;
+    if (Q.welfare >= 2) ci += 0.15;
+    if (Q.nazi_urgency > 4) ci += 0.08;
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 We have increased our campaigning among the unemployed.
 
 [? if welfare < 0: Welfare cuts harm our credibility and hinder campaign efforts. ?]
 [? if wtb_adopted = 1: The WTB plan strengthens our appeal among the unemployed. ?]
 
+@women
+subtitle: -1 resources
+view-if: peoples_party == 1 or womens_rights >= 6
+choose-if: resources >= 1
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?]
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "women";
+    Q.new_middle_spd += 1 * (1 - Q.dissent);
+    Q.workers_spd    += 1 * (1 - Q.dissent);
+
+    let ci = 1.0;
+    if (Q.womens_rights >= 3) ci += Q.womens_rights * 0.05;
+    if (Q.abortion_rights > 0) ci += 0.08;
+    if (Q.womens_work > 0) ci += Q.womens_work / 60;
+    if (Q.family_law > 0) ci += Q.family_law / 80;
+    // Catholics penalized by abortion rights — handled in tick via identity_modifier
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
+
+We have campaigned across the women of all kinds of classes, especially focusing on dismantling patriarchic past and equalizing rights between men and women in progressive society.
+
 @catholics
 subtitle: -1 resources
 view-if: ideology != "left"
 choose-if: resources >= 1 and peoples_party == 1
-unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if ideology = "left" : Our left-wing ideology prevents us from appealing to religious Catholics. ?][? if peoples_party == 0 : We need to be a people's party to effectively campaign among Catholics. ?]
-on-arrival: new_middle_spd += 6*(1-dissent); resources -= 1; new_middle_spd *= 1.03 if reichskonkordat = 1;  new_middle_spd *= 1.01 if prussian_concordat = 1
+unavailable-subtitle: [? if resources < 1 : Not enough resources. ?][? if peoples_party == 0 : We need to be a people's party to effectively campaign among Catholics. ?]
+on-arrival: {!
+    Q.resources -= 1;
+    Q.campaign_focus = "catholics";
+    Q.new_middle_spd += 1 * (1 - Q.dissent);
+
+    let ci = 1.0;
+    ci += Q.catholics / 80;  // scales with actual catholic population share
+    if (Q.reichskonkordat === 1) ci += 0.20;
+    if (Q.prussian_concordat === 1) ci += 0.10;
+    if (Q.abortion_rights > 0) ci -= 0.25;  // hard penalty
+    Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
+!}
 
 We have increased our campaigning among Catholics.
 [? if reichskonkordat = 1: Signing the Concordat between Reich and Pope has gathered us major popularity amongst the catholics. ?]
 [? if prussian_concordat = 1: Signing the Prussian Concordate (and Pope) has gathered us major popularity amongst the catholics of the Prussia. ?]
+
 
 @finish_game
 view-if: sandbox = 1
