@@ -3493,39 +3493,6 @@ if (_pres_key === "Hindenburg") {
 
 
 
-// === PARAMILITARY BALANCE OF POWER ===
-
-var para_rb  = (Q.rb_strength  || 0) * ((Q.rb_militancy  || 1) / 5);
-var para_jd  = (Q.jungdo_strength || 0) * ((Q.jungdo_militancy || 1) / 5);
-var para_rfb = (Q.rfb_strength || 0) * ((Q.rfb_militancy || 1) / 5);
-var para_sh  = (Q.sh_strength  || 0) * ((Q.sh_militancy  || 1) / 5);
-var para_sa  = (Q.sa_strength  || 0) * ((Q.sa_militancy  || 1) / 5);
-var para_rw  = (Q.reichswehr_strength || 0) * ((Q.reichswehr_militancy || 1) / 5);
-var para_pp  = (Q.prussian_police_strength || 0) * ((Q.prussian_police_loyalty || 50) / 100);
-var para_ip  = (Q.interior_police_strength || 0) * ((Q.interior_police_loyalty || 50) / 100);
-
-var para_total = Math.max(0.001, para_rb + para_jd + para_rfb + para_sh + para_sa + para_rw + para_pp + para_ip);
-
-Q.para_share_rb  = Math.max(0.001, Math.round(para_rb  / para_total * 1000) / 10);
-Q.para_share_jd  = Math.max(0.001, Math.round(para_jd  / para_total * 1000) / 10);
-Q.para_share_rfb = Math.max(0.001, Math.round(para_rfb / para_total * 1000) / 10);
-Q.para_share_sh  = Math.max(0.001, Math.round(para_sh  / para_total * 1000) / 10);
-Q.para_share_sa  = Math.max(0.001, Math.round(para_sa  / para_total * 1000) / 10);
-Q.para_share_rw  = Math.max(0.001, Math.round(para_rw  / para_total * 1000) / 10);
-Q.para_share_pp  = Math.max(0.001, Math.round(para_pp  / para_total * 1000) / 10);
-Q.para_share_ip  = Math.max(0.001, Math.round(para_ip  / para_total * 1000) / 10);
-
-Q.para_bloc_republic = Q.para_share_rb + Q.para_share_jd + Q.para_share_pp + Q.para_share_ip;
-Q.para_bloc_left     = Q.para_share_rfb;
-Q.para_bloc_right    = Q.para_share_sh + Q.para_share_sa;
-Q.para_bloc_military = Q.para_share_rw;
-
-
-
-
-
-
-
 
 Q.has_event = 0;
 // check if there are any cards in #event, and then go to main if not.
