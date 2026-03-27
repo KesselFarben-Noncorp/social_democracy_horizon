@@ -1832,13 +1832,12 @@ if (Q.possible_coalitions.length === 0) {
     }
 
 // After all coalition evaluation is complete:
-if (Q.coalition_formed && Q.spd_is_formateur) {
-    // SPD gets to choose - don't auto-select
+if (Q.coalition_formed && Q.formateur === 'SPD') {
     Q.spd_must_decide = 1;
 } else if (Q.coalition_formed) {
-    // Other party formed coalition, check if SPD is invited
     Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
 }
+
 !}
 go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_coalition_review if coalition_formed and formateur != "SPD" and spd_in_chosen_coalition; coalition_success if coalition_formed and not spd_in_chosen_coalition; coalition_failure if not coalition_formed
 
