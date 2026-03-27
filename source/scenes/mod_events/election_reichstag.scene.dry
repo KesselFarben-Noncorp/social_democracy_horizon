@@ -2837,9 +2837,8 @@ function president_vetoes(name, party) {
         }
         if (party === 'DDP') {
             veto_score += 15;
-        }
-        // KPD/SAPD/SPD/SRPD get no penalty — all acceptable to Thälmann 
-    else {
+        } 
+        } else {
         // Generic: use camarilla hostile_chancellors list
         // Already encoded in cam_scores as negative values
         // veto_score already set from -chosen_cam_score above
@@ -3491,6 +3490,9 @@ Our party must prepare for what may be a crucial electoral test.
 
 
 
+
+
+
 @presidential_crisis
 on-arrival: {!
 // ============================================
@@ -4060,6 +4062,99 @@ if (Q.president === "Hindenburg") {
     Q.pro_republic -= 5;
     Q.workers_spd -= 2;
     Q.new_middle_spd += 2;
+
+    } else if (Q.president === "Seeckt") {
+    var candidates = [];
+
+    candidates.push({name: "Seeckt",      party: "I", score: 80});
+    candidates.push({name: "Schleicher",  party: "I",
+        score: 65 + ((Q.schleicher_influence || 0) * 0.3)});
+    candidates.push({name: "Groener",     party: "I",
+        score: Q.groener_dismissed ? 20 : 55});
+    candidates.push({name: "Hammerstein", party: "I",
+        score: 45 + ((Q.reichswehr_loyalty || 0.5) * 20)});
+
+    // civilian fallbacks only, no Papen
+    if (Q.dvp_r >= 5) {
+        candidates.push({
+            name: Q.stresemann_dead ? "Curtius" : "Stresemann",
+            party: "DVP", score: 30
+        });
+    }
+    if (Q.dnvp_r >= 5 && Q.dnvp_line !== 3) {
+        candidates.push({name: "Westarp", party: "DNVP", score: 25});
+    }
+    } else if (Q.president === "Seldte") {
+    var candidates = [];
+
+    if (Q.dnvp_r >= 5) {
+        candidates.push({
+            name: Q.dnvp_line === 3 ? "Hugenberg" : "Westarp",
+            party: "DNVP", score: 70
+        });
+    }
+    if (Q.nsdap_r >= 20) { // raised from 10
+        candidates.push({
+            name: "Hitler", party: "NSDAP",
+            score: 40 + (Q.nsdap_r * 0.8)
+        });
+    }
+    if (Q.dvp_r >= 5) {
+        candidates.push({
+            name: Q.stresemann_dead ? "Curtius" : "Stresemann",
+            party: "DVP", score: 30
+        });
+    }
+    // Papen as hard floor fallback — always available
+    candidates.push({name: "Papen", party: "I", score: 15});
+
+    } else if (Q.president === "Hugenberg") {
+    var cam_scores = Q.camarilla_chancellor_scores || {};
+    var candidates = [];
+
+    if (Q.dnvp_r >= 5) {
+        candidates.push({
+            name: "Hugenberg", party: "DNVP",
+            score: (cam_scores["Hugenberg"] || 0) + 90
+        });
+    }
+    if (Q.nsdap_r >= 10) {
+        candidates.push({
+            name: "Hitler", party: "NSDAP",
+            score: (cam_scores["Hitler"] || 0) + 50 + (Q.nsdap_r * 0.5)
+        });
+        candidates.push({
+            name: "Göring", party: "NSDAP",
+            score: (cam_scores["Göring"] || 0) + 30
+        });
+    }
+    // Hard floor — Papen as last resort compromise
+    candidates.push({name: "Papen", party: "I", score: (cam_scores["Papen"] || 0) + 10});
+
+    candidates.sort(function(a, b) {
+        return (b.score * (0.85 + Math.random() * 0.3)) -
+               (a.score * (0.85 + Math.random() * 0.3));
+    });
+
+    Q.chancellor       = candidates[0].name;
+    Q.chancellor_party = candidates[0].party;
+
+    // Papen appointment still triggers consequences
+    if (Q.chancellor === "Papen") {
+        Q.papen_cabinet     = 1;
+        Q.cabinet_of_barons = 1;
+        Q.coup_progress    += 2;
+        Q.pro_republic     -= 8;
+    }
+
+    if (Q.chancellor === "Hitler" || Q.chancellor === "Göring") {
+        Q.nazi_takeover_begins  = 1;
+        Q.vice_chancellor       = "Hugenberg";
+        Q.vice_chancellor_party = "DNVP";
+        Q.cabinet_of_barons     = 1;
+    }
+    }
+
 
 // Political consequences
 Q.pro_republic -= 8;
