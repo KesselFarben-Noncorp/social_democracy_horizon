@@ -3487,6 +3487,83 @@ if (_pres_key === "Hindenburg") {
   }
 }
 
+
+
+
+
+
+
+// === PARAMILITARY BALANCE OF POWER ===
+
+// Gather all force strengths
+const forces = {
+    prussian_police:       Q.prussian_police_strength || 0,
+    interior_police:       Q.interior_police_strength || 0,
+    reichswehr:            Q.reichswehr_strength || 0,
+    reichsbanner:          Q.rb_strength || 0,
+    jungdo:                Q.jungdo_strength || 0,
+    rfb:                   Q.rfb_strength || 0,
+    stahlhelm:             Q.sh_strength || 0,
+    sa:                    Q.sa_strength || 0,
+};
+
+// Militancy weights — raw strength alone isn't threat; multiply by militancy
+const militancy_weights = {
+    prussian_police:  (Q.prussian_police_loyalty || 50) / 100,  // loyalty replaces militancy for police
+    interior_police:  (Q.interior_police_loyalty || 50) / 100,
+    reichswehr:       (Q.reichswehr_militancy || 1) / 5,
+    reichsbanner:     (Q.rb_militancy || 1) / 5,
+    jungdo:           (Q.jungdo_militancy || 1) / 5,
+    rfb:              (Q.rfb_militancy || 1) / 5,
+    stahlhelm:        (Q.sh_militancy || 1) / 5,
+    sa:               (Q.sa_militancy || 1) / 5,
+};
+
+// Effective strength = raw * militancy weight
+let total_effective = 0;
+const effective = {};
+for (const [key, raw] of Object.entries(forces)) {
+    effective[key] = raw * (militancy_weights[key] || 1);
+    total_effective += effective[key];
+}
+
+// Normalize to percentages
+const para_share = {};
+for (const [key, eff] of Object.entries(effective)) {
+    para_share[key] = total_effective > 0
+        ? Math.round((eff / total_effective) * 1000) / 10  // one decimal
+        : 0;
+}
+
+// Write back to Q
+Q.para_share_prussian_police  = para_share.prussian_police;
+Q.para_share_interior_police  = para_share.interior_police;
+Q.para_share_reichswehr       = para_share.reichswehr;
+Q.para_share_reichsbanner     = para_share.reichsbanner;
+Q.para_share_jungdo           = para_share.jungdo;
+Q.para_share_rfb              = para_share.rfb;
+Q.para_share_stahlhelm        = para_share.stahlhelm;
+Q.para_share_sa               = para_share.sa;
+
+// Faction blocs (useful for coup/civil war checks)
+Q.para_bloc_pro_republic = 
+    para_share.prussian_police + 
+    para_share.interior_police + 
+    para_share.reichsbanner + 
+    para_share.jungdo;
+
+Q.para_bloc_left     = para_share.rfb;
+Q.para_bloc_right    = para_share.stahlhelm + para_share.sa;
+Q.para_bloc_military = para_share.reichswehr;
+
+
+
+
+
+
+
+
+
 Q.has_event = 0;
 // check if there are any cards in #event, and then go to main if not.
 var scene = this.game.scenes['post_event.events_choice'];
@@ -3796,6 +3873,8 @@ if (!Q.math_broken) {
     
     console.log("DISSENT CHAOS: " + Q.dissent_percent + "%");
 }
+
+
 
 
 if (Q.ma >= 1) {
