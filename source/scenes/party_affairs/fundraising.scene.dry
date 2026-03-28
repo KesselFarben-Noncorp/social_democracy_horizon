@@ -37,15 +37,20 @@ tags: party_affairs
 
 = Fundraising
 
-The party's financial health depends on member contributions. Our current membership demographics and their dues rates determine our income.
+The party's financial health depends on member contributions. Our current membership demographics and their dues rates determine our income. Without their funds, we may aswell not function at all.
 
-**Current Quarterly Income Projection: [+ total_projected +] resources**
+**Current Income Projection: [+ total_projected +] resources**
 
 Breakdown by demographic:
+
 - Workers ([+ workers_spd +]%): [+ workers_income +] resources (dues rate: [+ dues_workers +])
+
 - Unemployed ([+ unemployed_spd +]%): [+ unemployedc_income +] resources (dues rate: [+ dues_unemployedc +])
+
 - New Middle Class ([+ new_middle_spd +]%): [+ new_middle_income +] resources (dues rate: [+ dues_new_middle +])
+
 - Old Middle Class ([+ old_middle_spd +]%): [+ old_middle_income +] resources (dues rate: [+ dues_old_middle +])
+
 - Rural ([+ rural_spd +]%): [+ rural_income +] resources (dues rate: [+ dues_rural +])
 
 [? if labor_dissent >= 30 : **Warning:** High labor dissent is reducing collection rates among workers and unemployed. ?]
@@ -256,7 +261,7 @@ on-arrival: {!
     if (Q.unemployed >= 25) econ_modifier = 0.3; // Crisis = nobody donates
     else if (Q.unemployed >= 20) econ_modifier = 0.5;
     else if (Q.unemployed >= 15) econ_modifier = 0.7;
-    else if (Q.unemployed < 10) econ_modifier = 1.3; // Good times = generous donors
+    else if (Q.unemployed < 10) econ_modifier = 1.4; // Good times = generous donors
     
     if (Q.inflation >= 12) econ_modifier *= 0.6; // Hyperinflation crushes donations
     else if (Q.inflation >= 8) econ_modifier *= 0.8;
@@ -312,9 +317,10 @@ on-arrival: {!
 subtitle: Reduce party operating expenses
 choose-if: austerity_timer <= 0
 unavailable-subtitle: [? if austerity_timer > 0 : Cannot implement austerity again yet. Available in [+ austerity_timer +] months. ?]
-on-arrival: resources += 3; reformist_dissent += 5; center_dissent += 5; austerity_timer = 24
+on-arrival: resources += 3; reformist_dissent += 8; center_dissent += 8; austerity_timer = 24
 
 The party leadership implements austerity:
+
 - Reduce headquarters staff
 - Cut publication budgets
 - Limit travel expenses
@@ -328,7 +334,7 @@ We save 3 resources but reformists and centrists complain about reduced effectiv
 subtitle: Seek large donations from sympathetic wealthy individuals
 choose-if: donors_timer <= 0
 unavailable-subtitle: [? if donors_timer > 0 : Cannot approach wealthy donors again yet. Available in [+ donors_timer +] months. ?]
-on-arrival: resources += 5; left_dissent += 8; labor_dissent += 5; reformist_dissent -= 3; donors_timer = 24
+on-arrival: resources += 5; left_dissent += 10; labor_dissent += 8; reformist_dissent -= 2; donors_timer = 24
 
 We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 5 resources.
 
