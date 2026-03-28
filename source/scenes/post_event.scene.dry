@@ -1241,7 +1241,13 @@ Q.party_relations.VRP.SPD  = Q.vrp_relation;
 Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
 
 
+
+
 // === COALITION BLOCKS DYNAMIC PATCH (runs every tick) ===
+
+if (!Q.coalition_blocks) {
+    // Blocks not initialized yet — skip patch this tick
+} else {
 
 Q.coalition_blocks.KPD_Z     = Q.z_relation < 65 || Q.kpd_relation < 65;
 Q.coalition_blocks.KPD_DDP   = Q.kpd_relation < 65;
@@ -1288,6 +1294,8 @@ Q.coalition_blocks.KVP_DNVP  = Q.dnvp_line === 3;
 Q.coalition_blocks.DHP_NSDAP = Q.nazi_urgency >= 5;
 
 Q.coalition_blocks.BB_NSDAP  = Q.nazi_urgency >= 7;
+
+}
 
 
 
