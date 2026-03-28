@@ -1241,128 +1241,53 @@ Q.party_relations.VRP.SPD  = Q.vrp_relation;
 Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
 
 
-Q.coalition_blocks = {
-    // --- KPD ---
-    KPD_Z:     Q.z_relation    < 65 || Q.kpd_relation < 65,
-    KPD_BVP:   true,
-    KPD_DVP:   true,
-    KPD_WP:    true,
-    KPD_CNBL:  true,
-    KPD_DNVP:  true,
-    KPD_NSDAP: true,
-    KPD_VRP:   true,  // VRP is a bourgeois savers' party; anathema to KPD
-    KPD_DDP:   Q.kpd_relation < 65,
-    KPD_SPD:   Q.communist_coalition < 3,
+// === COALITION BLOCKS DYNAMIC PATCH (runs every tick) ===
 
-    // --- SAPD ---
-    SAPD_DVP:   true,
-    SAPD_WP:    true,
-    SAPD_CNBL:  true,
-    SAPD_DNVP:  true,
-    SAPD_NSDAP: true,
-    SAPD_VRP:   true, // VRP is a single-issue bourgeois grievance party; SAPD won't touch them
+Q.coalition_blocks.KPD_Z     = Q.z_relation < 65 || Q.kpd_relation < 65;
+Q.coalition_blocks.KPD_DDP   = Q.kpd_relation < 65;
+Q.coalition_blocks.KPD_SPD   = Q.communist_coalition < 3;
 
-    // --- SPD ---
-    SPD_NSDAP: true,
-    SPD_DNVP:  Q.dnvp_relation < 60 || Q.dnvp_line === 3,
-    SPD_KPD:   Q.communist_coalition < 3,
-    SPD_VRP:   Q.vrp_relation < 35, // VRP blames SPD for inflation; workable only if relations repaired
+Q.coalition_blocks.SPD_DNVP  = Q.dnvp_relation < 60 || Q.dnvp_line === 3;
+Q.coalition_blocks.SPD_KPD   = Q.communist_coalition < 3;
+Q.coalition_blocks.SPD_VRP   = Q.vrp_relation < 35;
 
-    // --- SRPD ---
-    SRPD_KPD:   Q.kpd_relation < 40,
-    SRPD_NSDAP: true,
-    SRPD_DNVP:  Q.dnvp_line === 3,
-    SRPD_VRP:   Q.vrp_relation < 30,
+Q.coalition_blocks.SRPD_KPD  = Q.kpd_relation < 40;
+Q.coalition_blocks.SRPD_DNVP = Q.dnvp_line === 3;
+Q.coalition_blocks.SRPD_VRP  = Q.vrp_relation < 30;
 
-    // --- DDP ---
-    DDP_KPD:   true,
-    DDP_NSDAP: true,
-    DDP_DNVP:  Q.dnvp_line === 3,
-    // DDP-VRP: no block — natural coalition partners
+Q.coalition_blocks.DDP_DNVP  = Q.dnvp_line === 3;
 
-    // --- Z ---
-    Z_KPD:    Q.kpd_relation < 65 || Q.z_relation < 45,
-    Z_NSDAP:  Q.nazi_urgency >= 6,
-    Z_DNVP:   Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas",
-    // Z-VRP: no hard block but coolness over revaluation issue
+Q.coalition_blocks.Z_KPD     = Q.kpd_relation < 65 || Q.z_relation < 45;
+Q.coalition_blocks.Z_NSDAP   = Q.nazi_urgency >= 6;
+Q.coalition_blocks.Z_DNVP    = Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas";
 
-    // --- BVP ---
-    BVP_KPD:   true,
-    BVP_SAPD:  true,
-    BVP_NSDAP: Q.nazi_urgency >= 6,
+Q.coalition_blocks.BVP_NSDAP = Q.nazi_urgency >= 6;
 
-    // --- DVP ---
-    DVP_KPD:   true,
-    DVP_SAPD:  true,
-    DVP_NSDAP: Q.nazi_urgency >= 7 && Q.capital_strike_progress < 4,
-    DVP_VRP:   Q.dvp_right_shift >= 2, // As DVP drifts right, VRP (its nemesis on inflation)
-                                        // becomes an impossible partner
+Q.coalition_blocks.DVP_NSDAP = Q.nazi_urgency >= 7 && Q.capital_strike_progress < 4;
+Q.coalition_blocks.DVP_VRP   = Q.dvp_right_shift >= 2;
 
-    // --- WP ---
-    WP_KPD:   true,
-    WP_SAPD:  true,
-    WP_NSDAP: Q.capital_strike_progress < 5,
-    WP_VRP:   true, // Hard block — WP and VRP are direct rivals with opposing
-                    // memories of and interests in the 1923 inflation
+Q.coalition_blocks.WP_NSDAP  = Q.capital_strike_progress < 5;
 
-    // --- CNBL ---
-    CNBL_KPD:  true,
-    CNBL_SAPD: true,
-    CNBL_SPD:  Q.cnbl_relation < 30,
+Q.coalition_blocks.CNBL_SPD  = Q.cnbl_relation < 30;
 
-    // --- CSVD ---
-    // No hard blocks with VRP — they share a base
+Q.coalition_blocks.DNVP_SPD  = Q.dnvp_line === 3 || Q.dnvp_relation < 40;
+Q.coalition_blocks.DNVP_DDP  = Q.dnvp_line === 3;
+Q.coalition_blocks.DNVP_Z    = Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas";
+Q.coalition_blocks.DNVP_VRP  = Q.dnvp_line === 3;
 
-    // --- DNVP ---
-    DNVP_KPD:  true,
-    DNVP_SAPD: true,
-    DNVP_SPD:  Q.dnvp_line === 3 || Q.dnvp_relation < 40,
-    DNVP_DDP:  Q.dnvp_line === 3,
-    DNVP_Z:    Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas",
-    DNVP_VRP:  Q.dnvp_line === 3, // Hugenberg-era DNVP too radical for rule-of-law savers
+Q.coalition_blocks.NSDAP_BVP = Q.nazi_urgency >= 6;
+Q.coalition_blocks.NSDAP_Z   = Q.nazi_urgency >= 6;
+Q.coalition_blocks.NSDAP_COALITIONS_GENERALLY = Q.nsdap_r < 35 || Q.year < 1932;
 
-    // --- NSDAP ---
-    NSDAP_KPD:  true,
-    NSDAP_SPD:  true,
-    NSDAP_SAPD: true,
-    NSDAP_SRPD: true,
-    NSDAP_DDP:  true,
-    NSDAP_CSRP: true,
-    NSDAP_VRP:  true, // NSDAP wants VRP's voters, not their parliamentary cooperation
-    NSDAP_BVP:  Q.nazi_urgency >= 6,
-    NSDAP_Z:    Q.nazi_urgency >= 6,
-    NSDAP_COALITIONS_GENERALLY: Q.nsdap_r < 35 || Q.year < 1932,
+Q.coalition_blocks.VRP_DNVP  = Q.dnvp_line === 3;
+Q.coalition_blocks.VRP_DVP   = Q.dvp_right_shift >= 1;
+Q.coalition_blocks.VRP_SPD   = Q.vrp_relation < 35;
 
-    // --- VRP ---
-    VRP_KPD:   true,
-    VRP_SAPD:  true,
-    VRP_WP:    true,  // Hard block — direct rivals, opposing inflation memories
-    VRP_NSDAP: true,
-    VRP_DNVP:  Q.dnvp_line === 3,
-    VRP_DVP:   Q.dvp_right_shift >= 1,  // DVP drift makes them intolerable to VRP
-    VRP_SPD:   Q.vrp_relation < 35,      // Only workable if SPD makes amends on revaluation
+Q.coalition_blocks.KVP_DNVP  = Q.dnvp_line === 3;
 
-    // --- KVP ---
-    KVP_KPD:   true,
-    KVP_SAPD:  true,
-    KVP_NSDAP: true,
-    KVP_DNVP:  Q.dnvp_line === 3,
-    KVP_SPD:   false,  // Workable in emergency
+Q.coalition_blocks.DHP_NSDAP = Q.nazi_urgency >= 5;
 
-    // --- DHP ---
-    DHP_KPD:   true,
-    DHP_SAPD:  true,
-    DHP_NSDAP: Q.nazi_urgency >= 5,  // Weaker resistance than most
-
-    // --- BB ---
-    BB_KPD:   true,
-    BB_SAPD:  true,
-    BB_NSDAP: Q.nazi_urgency >= 7,   // Agrarian grievance makes them soft on NSDAP longest
-    BB_WP:    false,  // No hard block — both small, both grievance parties
-    BB_DVP:   true,   // Big industry vs peasants
-    };
-}
-
+Q.coalition_blocks.BB_NSDAP  = Q.nazi_urgency >= 7;
 
 
 
