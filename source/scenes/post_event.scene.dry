@@ -77,6 +77,11 @@ if (Q.year == 1930 && Q.month == 5 && Q.weeks >= 1 && Q.young_plan_seen == 1) {
 
     Q.demand_impulse       -= 0.10;
     Q.distribution_shift   += 0.05;
+    Q.spd_trust_change -= 5;
+    Q.camarilla_strength += 5;
+    Q.z_relation -= 5;
+    Q.dvp_relation -= 5;
+    Q.bvp_relation -= 5;
 }
 
 
@@ -3262,10 +3267,11 @@ if (_pres_key === "Hindenburg") {
     // Party trusts
     Q.economy_score = (5 - Q.unemployed / 5) + (Q.economic_growth / 3) - (Math.abs(Q.inflation - 2) / 4);
 
-    Q.spd_trust_change = -0.02;
+    Q.spd_trust_change = -0.026;
     if (Q.spd_in_government) Q.spd_trust_change += Q.economy_score * 0.01;
+    if (Q.spd_in_government) Q.spd_trust_change + Q.welfare / 10;
     if (Q.hindenburg_relationship_efforts > 0) Q.spd_trust_change += 0.08;
-    Q.hindenburg_trust_spd  = Math.max(0, Math.min(100, (Q.hindenburg_trust_spd  || 30) + Q.spd_trust_change));
+    Q.hindenburg_trust_spd  = Math.max(0, Math.min(100, (Q.hindenburg_trust_spd  || 50) + Q.spd_trust_change));
 
     Q.z_trust_change = 0.01;
     if (Q.z_in_government && Q.economy_score > 3) Q.z_trust_change += 0.03;
