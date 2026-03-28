@@ -1869,6 +1869,8 @@ if (Q.possible_coalitions.length === 0) {
 // After all coalition evaluation is complete:
 if (Q.coalition_formed && Q.formateur === 'SPD') {
     Q.spd_must_decide = 1;
+    Q.spd_in_chosen_coalition = 0;
+    Q.chosen_coalition = null; // prevent auto-routing on stale value
 } else if (Q.coalition_formed) {
     Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
 }
@@ -2693,10 +2695,12 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
     var score = candidate.score; // Use pre-calculated score
     
     // Hindenburg preferences
-    if (Q.president === "Hindenburg" && Q.year >= 1930) {
-        if (candidate.party === "SPD") {
-            score -= 20;
-        }
+    if (Q.president === "Hindenburg") {
+    var spd_trust = Q.hindenburg_trust_spd || 50;
+    if (candidate.party === "SPD") score -= Math.max(0, 50 - spd_trust) * 1.2;
+    var cam = Q.camarilla_chancellor_scores || {};
+    score += (cam[candidate.name] || 0) * 0.5;
+}
         if (candidate.party === "Z") {
             score += 10;
         }
@@ -2705,11 +2709,6 @@ for (var i = 0; i < Q.chancellor_candidates.length; i++) {
         }
     }
     
-    if (Q.president === "Hindenburg" && Q.year >= 1932) {
-        if (candidate.party === "SPD") {
-            score -= 40;
-        }
-    }
     
     // Formateur bonus
     if (candidate.party === Q.formateur) {
