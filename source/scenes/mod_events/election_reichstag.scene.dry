@@ -1869,12 +1869,16 @@ if (Q.possible_coalitions.length === 0) {
 // After all coalition evaluation is complete:
 if (Q.coalition_formed && Q.formateur === 'SPD') {
     Q.spd_must_decide = 1;
-    Q.spd_in_chosen_coalition = 0;
-    Q.chosen_coalition = null; // prevent auto-routing on stale value
+    Q.spd_in_chosen_coalition = 1; // SPD is always in their own coalition
+    // DO NOT null chosen_coalition — leave possible_coalitions[0] as default
+    // Player will override it via choose_coalition_N
 } else if (Q.coalition_formed) {
+    Q.spd_must_decide = 0;
     Q.spd_in_chosen_coalition = Q.chosen_coalition.parties.indexOf('SPD') >= 0;
+} else {
+    Q.spd_must_decide = 0;
+    Q.spd_in_chosen_coalition = 0;
 }
-
 !}
 go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_coalition_review if coalition_formed and formateur != "SPD" and spd_in_chosen_coalition; coalition_success if coalition_formed and not spd_in_chosen_coalition; coalition_failure if not coalition_formed
 
