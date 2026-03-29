@@ -20,7 +20,12 @@ on-arrival: {!
         {id: 'wp', name: 'WP', color: 'green'},
         {id: 'cnbl', name: 'CNBL', color: 'brown'},
         {id: 'dnvp', name: 'DNVP', color: 'darkblue'},
-        {id: 'nsdap', name: 'NSDAP', color: 'brown'}
+        {id: 'nsdap', name: 'NSDAP', color: 'brown'},
+        {id: 'csrp', name: 'CSRP', color: 'darkgreen'},
+        {id: 'dhp', name: 'DHP',  color: 'gold'},
+        {id: 'kvp', name: 'KVP', condition: Q.kvp_flee, color: 'steelblue'},
+        {id: 'vrp', name: 'VRP',  color: 'purple'},
+        {id: 'csvd', name: 'CSVD', condition: csvd_flee, color: 'olive'}
     ];
     
     Q.dice_results = "";
@@ -726,6 +731,97 @@ on-arrival: {!
                 Q.pro_republic += 4;
                 mechanical_text = "SRPD Reichsbanner alliance strengthens!";
             }
+
+            } else if (party.id === 'csrp') {
+    var csrp_event = Math.floor(Math.random() * 5);
+    if (csrp_event === 0) {
+        Q.catholics_z -= 3; Q.csrp_r *= 1.2;
+        mechanical_text = "Catholic voters defect from Center to CSRP!";
+    } else if (csrp_event === 1) {
+        Q.pro_republic += 3;
+        mechanical_text = "Christian social republican message resonates!";
+    } else if (csrp_event === 2) {
+        Q.nationalism += 3;
+        mechanical_text = "Reich nationalism surges in CSRP base!";
+    } else if (csrp_event === 3) {
+        Q.workers_csrp += 4;
+        mechanical_text = "Christian worker outreach succeeds!";
+    } else {
+        mechanical_text = "CSRP consolidates confessional conservative base!";
+    }
+
+} else if (party.id === 'dhp') {
+    var dhp_event = Math.floor(Math.random() * 5);
+    if (dhp_event === 0) {
+        Q.rural_dhp += 6;
+        mechanical_text = "Hanoverian regionalist sentiment surges!";
+    } else if (dhp_event === 1) {
+        Q.dhp_r *= 1.15;
+        mechanical_text = "Guelph loyalists rally to DHP!";
+    } else if (dhp_event === 2) {
+        Q.pro_republic += 2;
+        mechanical_text = "DHP reaffirms parliamentary commitment!";
+    } else if (dhp_event === 3) {
+        Q.old_middle_dhp += 5;
+        mechanical_text = "Hanoverian bourgeoisie mobilizes!";
+    } else {
+        mechanical_text = "DHP holds steady in its northern strongholds!";
+    }
+
+} else if (party.id === 'kvp') {
+    var kvp_event = Math.floor(Math.random() * 5);
+    if (kvp_event === 0) {
+        Q.dnvp_r -= 3; Q.kvp_r += 3;
+        mechanical_text = "Conservative moderates flee DNVP for KVP!";
+    } else if (kvp_event === 1) {
+        Q.pro_republic += 4;
+        mechanical_text = "KVP defends constitutional conservatism!";
+    } else if (kvp_event === 2) {
+        Q.old_middle_kvp += 5;
+        mechanical_text = "Traditional conservative base consolidates!";
+    } else if (kvp_event === 3) {
+        Q.nationalism += 2;
+        mechanical_text = "Patriotic conservative message lands!";
+    } else {
+        mechanical_text = "KVP holds its ground against DNVP pressure!";
+    }
+
+} else if (party.id === 'vrp') {
+    var vrp_event = Math.floor(Math.random() * 5);
+    if (vrp_event === 0) {
+        Q.inflation += 3; Q.vrp_r *= 1.3;
+        mechanical_text = "Inflation spike drives voters to VRP!";
+    } else if (vrp_event === 1) {
+        Q.new_middle_vrp += 6;
+        mechanical_text = "Middle class savings anxiety fuels VRP!";
+    } else if (vrp_event === 2) {
+        Q.old_middle_vrp += 5;
+        mechanical_text = "Rentier class rallies against inflation!";
+    } else if (vrp_event === 3) {
+        Q.capital_strike_progress -= 0.5;
+        mechanical_text = "VRP fiscal discipline message reassures business!";
+    } else {
+        mechanical_text = "Anti-inflation protest vote holds steady!";
+    }
+
+} else if (party.id === 'csvd') {
+    var csvd_event = Math.floor(Math.random() * 5);
+    if (csvd_event === 0) {
+        Q.workers_csvd += 5;
+        mechanical_text = "Christian social workers movement grows!";
+    } else if (csvd_event === 1) {
+        Q.pro_republic += 3;
+        mechanical_text = "CSVD reaffirms democratic Christian values!";
+    } else if (csvd_event === 2) {
+        Q.catholics_z -= 2; Q.csvd_r *= 1.15;
+        mechanical_text = "Dissatisfied Catholics drift to CSVD!";
+    } else if (csvd_event === 3) {
+        Q.old_middle_csvd += 4;
+        mechanical_text = "Christian conservative middle class support!";
+    } else {
+        mechanical_text = "CSVD steady among confessional social voters!";
+    }
+}
             
         // === MAJOR SUCCESS (18-19) ===
         } else if (roll >= 18) {
