@@ -1,4 +1,4 @@
-title: Reichsbanner
+title: Paramilitaries
 new-page: true
 is-card: true
 tags: party_affairs
@@ -11,17 +11,32 @@ on-arrival: month_actions += 1; reichsbanner_timer += 6; rb_militarization_cost 
 
 The *Reichsbanner Schwarz-Rot-Gold* is a mass organization for the defense of the Republic against the extremists who threaten it. Some would call it a paramilitary, although currently it is hardly any sort of military. It is officially associated with the pro-democratic parties -the SPD, Center, and [+ ddp_name +], but by far the largest component is with the SPD.
 
-[? if workers_spd < 46 or workers_spd < workers_nsdap or workers_spd < workers_kpd : The Reichsbanner is having a more difficult time recruiting, as the SPD is no longer the dominant party among the workers. Many of its members have left. ?]
+[? if labor_dissent > 60 : The Reichsbanner is having a more difficult time recruiting, as the SPD is no longer the dominant party among the workers. Many of its members have left. ?]
+
+= [? if merger_happened: Jungdo ?]
+
+[? if merger_happened: The *Jungdo* - national - liberal organization of the VNR and now of DStP. Compared to the other paramilitaries, it's more of semi paramilitary organization with no fireguns or weaponry whatsover. Despite it's non militant nature, Jungdo is quite anti semitic when it comes down to the German Question and membership of Jungdo. ?]
 
 - @militant: Fund more military-style training and equipment for the Reichsbanner.
 - @militant_2: Use our existing resources to support more training for the Reichsbanner.
 - @same: Keep the Reichsbanner as it is.
 - @cut_rb: Cut funding for the Reichsbanner.
 - @women_rb
+- @jungdo: Fund the Jungdo organization with equipment
 - @easy_discard
 - @cancel_advisor_action
 
 #- Orient reichsbanner towards anti-fascism (only available if we have prioritized anti fascism)
+
+@jungdo
+subtitle: Perhaps, it worth the cost. - 1 resources
+view-if: merger_happened
+choose-if: ddp_relation > 30 and (merger_happened)
+unavailable-subtitle: [? if ddp_relation <= 30: Our relations are too low. ?]
+on-arrival: resources -= 1; jungdo_strength += 20; jungdo_militancy += 0.2; ddp_relation += 5; jungdo_training += 1
+
+We have decided to fund Jungdo, our counterpart from the nationalists. Arthur Mahraun is personally thanking us, though this strengthtens nationalists in our allied Democratic / Liberal party.
+
 
 @militant
 choose-if: resources >= rb_militarization_cost
