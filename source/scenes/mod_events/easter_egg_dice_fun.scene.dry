@@ -39,7 +39,7 @@ on-arrival: {!
         var roll = Math.floor(Math.random() * 20) + 1;
         all_rolls.push({party: party, roll: roll});
         
-        Q.dice_results += "**" + party.name + "** rolled **" + roll + "**\n";
+        Q.dice_results += "**" + party.name + "** rolled **" + roll + "**<br>";
     }
     
     // === CHECK FOR SPECIAL COMBINATIONS ===
@@ -54,7 +54,7 @@ on-arrival: {!
         }
     }
     
-    Q.dice_results += "\n---\n\n";
+    Q.dice_results += "<br>---<br><br>";
     
     // LEGENDARY EVENTS
     if (nat20_count >= 3) {
@@ -746,9 +746,9 @@ on-arrival: {!
         }
         
         // Compile detailed effects
-        Q.dice_effects_detailed += "**" + party.name + "** (rolled " + roll + "):\n";
-        Q.dice_effects_detailed += effect_text + "\n";
-        Q.dice_effects_detailed += mechanical_text + "\n\n";
+        Q.dice_effects_detailed += "**" + party.name + "** (rolled " + roll + "):<br>";
+        Q.dice_effects_detailed += effect_text + "<br>";
+        Q.dice_effects_detailed += "&nbsp;&nbsp;&nbsp;&nbsp;" + mechanical_text + "<br><br>";
         
         console.log(party.name + " [" + roll + "]: " + mechanical_text);
     }
