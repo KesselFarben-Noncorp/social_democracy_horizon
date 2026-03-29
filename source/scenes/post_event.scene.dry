@@ -89,7 +89,9 @@ if (Q.year == 1930 && Q.month == 5 && Q.weeks >= 1 && Q.young_plan_seen == 1) {
 
 
 
+// ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
 
+Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
 
 
 
@@ -595,6 +597,80 @@ Q.fiscal_stance     = (Q.fiscal_stance     || 0) * Math.exp(-decay_fiscal  * Q.d
 Q.distribution_shift= (Q.distribution_shift|| 0) * Math.exp(-decay_distrib * Q.dt);
 
 // ============================================================
+// EMERGENCY ECONOMIC GUARDS
+// Extreme inflation or unemployment — hard push back to center
+// ============================================================
+
+// --- INFLATION GUARDS (30%+) ---
+if (Q.inflation >= 30) {
+
+    // How far into danger zone are we? 0 at 30%, 1 at 99%
+    const inf_severity = Math.min(1, (Q.inflation - 30) / 69);
+
+    // Kill demand and price spirals
+    Q.demand_impulse     -= 0.15 + inf_severity * 0.35;
+    Q.price_pressure     -= 0.20 + inf_severity * 0.50;
+    Q.fiscal_stance      -= 0.10 + inf_severity * 0.20;
+
+    // Crush trade and capital flight
+    Q.trade_pressure     += 0.10 + inf_severity * 0.25;  // imports collapse
+    Q.capital_pressure   += 0.05 + inf_severity * 0.15;  // flight pressure
+
+    // Direct inflation brake — harder the worse it gets
+    Q.dInflation         -= 0.30 + inf_severity * 1.20;
+
+    // Expectations unanchor — spiral accelerates expectations
+    Q.inflation_expectations += 0.08 + inf_severity * 0.25;
+    Q.expectations_anchored   = false;
+
+    // Growth collapses under hyperinflation
+    Q.dGrowth            -= 0.15 + inf_severity * 0.60;
+
+    // Unemployment spikes — firms shut down
+    Q.dUnemployment      += 0.10 + inf_severity * 0.40;
+}
+
+// --- UNEMPLOYMENT GUARDS (30%+) ---
+if (Q.unemployed >= 30) {
+
+    const unemp_severity = Math.min(1, (Q.unemployed - 30) / 69);
+
+    // Demand destruction — mass poverty crushes consumption
+    Q.demand_impulse     -= 0.20 + unemp_severity * 0.40;
+    Q.fiscal_demand      -= 0.10 + unemp_severity * 0.20;
+
+    // Supply side seizes — investment flees
+    Q.supply_impulse     -= 0.15 + unemp_severity * 0.30;
+    Q.capital_pressure   += 0.08 + unemp_severity * 0.20;
+
+    // Growth accelerates downward
+    Q.dGrowth            -= 0.25 + unemp_severity * 0.80;
+
+    // Unemployment self-corrects slightly — floor effect
+    // (people leave labor force, emigrate, subsistence farming etc.)
+    Q.dUnemployment      -= 0.12 + unemp_severity * 0.35;
+
+    // Deflation deepens — no demand means falling prices
+    Q.dInflation         -= 0.08 + unemp_severity * 0.20;
+
+    // NAIRU drifts up — structural unemployment sets in
+    Q.NAIRU              += 0.05 + unemp_severity * 0.15;
+}
+
+// --- COMBINED CRISIS (both simultaneously) ---
+if (Q.inflation >= 30 && Q.unemployed >= 30) {
+
+    // Stagflation death spiral — compound the damage
+    Q.dGrowth            -= 0.20;
+    Q.capital_pressure   += 0.10;
+    Q.trade_pressure     += 0.10;
+
+    // Hard brake on both
+    Q.dInflation         -= 0.15;
+    Q.dUnemployment      -= 0.10;
+}
+
+// ============================================================
 // SECTION 15 — CONSTRAINTS
 // ============================================================
 
@@ -614,6 +690,12 @@ if (!Q.math_broken) {
     Q.budget          = Q.impossible_multiply(Q.budget, 1);
     Q.capital_pressure= Q.impossible_add(Q.capital_pressure, 0);
 }
+
+Q.capital_strike_progress = Math.max(0, Math.min(15, Q.capital_strike_progress || 0));
+Q.coup_progress           = Math.max(0, Math.min(15, Q.coup_progress           || 0));
+Q.general_strike_progress = Math.max(0, Math.min(15, Q.general_strike_progress || 0));
+
+//               HOME TO ALL CONSTRAINTS OF THE VALUES HERE, OKAY.
 
 
 
@@ -733,6 +815,24 @@ for (var rel of relations) {
     // Hard cap just in case
     Q[rel + '_relation'] = Math.max(-100, Math.min(100, Q[rel + '_relation']));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1123,6 +1223,125 @@ Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 1
 
 
 
+
+
+
+
+
+
+
+// =========================== CABINET ECONOMICAL EFFECTS ====================
+
+
+
+
+// ============================================================
+// BRÜNING AUSTERITY / LAUTENBACH PLAN — mutually exclusive
+// ============================================================
+
+if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active !== 1 && Q.lautenbach_plan_rejected === 1) {
+
+    // Budget improves modestly — spending cuts and tax enforcement
+    Q.budget += 0.18;
+
+    // Deflation pressure — wage cuts, price controls, tight money
+    Q.dInflation        -= 0.12;
+    Q.price_pressure    -= 0.06;
+
+    // Demand collapses — less public spending, lower wages
+    Q.demand_impulse    -= 0.09;
+    Q.fiscal_stance     -= 0.07;
+
+    // Unemployment creeps up — layoffs from public sector cuts
+    Q.dUnemployment     += 0.08;
+
+    // Capital pressure eases slightly — creditor confidence
+    Q.capital_pressure  -= 0.04;
+
+    // Trade pressure eases — deflation makes exports cheaper
+    Q.trade_pressure    -= 0.03;
+
+} else if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active === 1 && !Q.return_to_normalcy) {
+
+    // --------------------------------------------------------
+    // LAUTENBACH PLAN — credit-financed public investment
+    // Semi-WTB, pre-Keynesian demand stimulus
+    // Overrides austerity but carries inflation/debt risk
+    // --------------------------------------------------------
+
+    // Budget takes a hit — deficit spending is the mechanism
+    Q.budget            -= 0.20;
+
+    // Demand recovers — public works and credit expansion
+    Q.demand_impulse    += 0.12;
+    Q.fiscal_stance     += 0.10;
+
+    // Supply side benefits — infrastructure investment
+    Q.supply_impulse    += 0.06;
+
+    // Unemployment falls slightly — job creation programs
+    Q.dUnemployment     -= 0.07;
+
+    // Growth gets a nudge upward
+    Q.dGrowth           += 0.08;
+
+    // Inflation creeps back up — more money chasing goods
+    Q.dInflation        += 0.07;
+    Q.price_pressure    += 0.04;
+
+    // Capital pressure rises — creditors nervous about deficit
+    Q.capital_pressure  += 0.05;
+
+    // Trade pressure ticks up slightly — imports rise with demand
+    Q.trade_pressure    += 0.03;
+}
+
+
+if (Q.wagemann_plan_active === 1 && Q.year >= 1932 && Q.year < 1933) {
+    Q.lautenbach_plan_active = 0;
+    Q.lautenbach_plan_rejected = 0;
+    
+
+    // Money supply expansion — core of the Wagemann mechanism
+    // Directly pressures inflation expectations
+    Q.dInflation                += 0.14;
+    Q.price_pressure            += 0.08;
+    Q.inflation_expectations    += 0.06;
+
+    // If expectations already unanchored, spiral risk kicks in
+    // Wagemann's plan was terrifying to anyone who remembered 1923
+    if (!Q.expectations_anchored) {
+        Q.dInflation            += 0.10;
+        Q.price_pressure        += 0.06;
+        Q.inflation_expectations+= 0.08;
+    }
+
+    // Demand recovers — reflation puts money into circulation
+    Q.demand_impulse            += 0.10;
+    Q.credit_expansion          += 0.06;
+
+    // Unemployment nudges down — but slower than Lautenbach
+    // Monetary stimulus is less targeted than direct job creation
+    Q.dUnemployment             -= 0.05;
+
+    // Growth benefits modestly
+    Q.dGrowth                   += 0.06;
+
+    // Budget is largely neutral — this is monetary not fiscal
+    // Slight improvement from tax base recovery
+    Q.budget                    += 0.05;
+
+    // Capital flight risk — foreign creditors panic at money printing
+    Q.capital_pressure          += 0.08;
+    Q.trade_pressure            += 0.05;
+
+    // If inflation already above 4, compounding risk
+    // The 1923 memory makes markets overreact
+    if (Q.inflation > 4) {
+        Q.capital_pressure      += 0.06;
+        Q.dInflation            += 0.05;
+    }
+}
 
 
 
