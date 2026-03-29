@@ -1020,6 +1020,12 @@ The parties are preparing their candidates:
 
 [? if srpd_formed = 1: SRPD: To be determined ?]
 
+BB: [+ bb_candidate +]
+
+DHP: [+ dhp_candidate +]
+
+[? if kvp_votes > 0: KVP: [+ kvp_candidate ]+ ?]
+
 **SPD:**
 We must choose our candidate and strategy.
 
@@ -1063,8 +1069,8 @@ We will support Field Marshal von Hindenburg, who has broad support across democ
 @drewitz_r1
 subtitle: Support the middle-class economic candidate - unusual coalition.
 view-if: wp_candidate and (wp_candidate = "Drewitz" or wp_default_candidate = "Drewitz")
-choose-if: (reformist_strength >= 40 or neorevisionist_strength >= 35) and wp_relation >= 45
-unavailable-subtitle: [? if reformist_strength < 40 and neorevisionist_strength < 35 : The party left wing blocks this. ?][? if wp_relation < 45 : WP relations not good enough. ?]
+choose-if: (reformist_strength >= 35 or neorevisionist_strength >= 35) and wp_relation >= 45
+unavailable-subtitle: [? if reformist_strength < 35 and neorevisionist_strength < 35 : The party left wing blocks this. ?][? if wp_relation < 45 : WP relations not good enough. ?]
 on-arrival: spd_candidate = "Drewitz"; wp_relation += 8; ddp_relation += 4; dvp_relation += 3; left_dissent += 12; labor_dissent += 8; workers_spd -= 3; old_middle_spd += 3; new_middle_spd += 2; is_unity_candidate = 1;
 go-to: finalize_candidates
 
