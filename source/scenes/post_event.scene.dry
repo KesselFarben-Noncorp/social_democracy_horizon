@@ -93,6 +93,17 @@ if (Q.year == 1930 && Q.month == 5 && Q.weeks >= 1 && Q.young_plan_seen == 1) {
 
 Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
 
+// === CABINET TYPE FLAGS ===
+Q.papen_cabinet     = (Q.chancellor === "Papen")      ? 1 : 0;
+Q.schleicher_cabinet = (Q.chancellor === "Schleicher") ? 1 : 0;
+
+// Generic x_cabinet check for any chancellor with that flag pattern
+const CABINET_CHANCELLORS = ["Papen", "Schleicher", "Brüning", "Luther", "Marx", "Stegerwald"];
+for (const name of CABINET_CHANCELLORS) {
+    const key = name.toLowerCase().replace("ü", "u") + "_cabinet";
+    Q[key] = (Q.chancellor === name) ? 1 : 0;
+}
+
 
 
 
