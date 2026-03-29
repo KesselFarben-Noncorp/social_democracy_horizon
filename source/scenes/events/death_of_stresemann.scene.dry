@@ -3,7 +3,7 @@ view-if: year = 1929 and month >= 9
 frequency: 1000
 max-visits: 1
 tags: event
-on-arrival: stresemann_dead = 1
+on-arrival: stresemann_dead = 1; stresemann_dead = 0 if foreign_ministry_party != "DVP" and secret_mode = 1
 face-image: img/portraits/StresemannGustav.jpg
 new-page: true
 
@@ -165,5 +165,7 @@ go-to: dvp_outcome_display
 [? if dvp_right_shift = 1 : - DVP shifts toward business-nationalism ?]
 [? if dvp_right_shift = 1 : - Relations with DNVP improve ?]
 [? if dvp_right_shift = 1 : - Coalition stability threatened ?]
+
+[? if stresemann_dead = 0: It all has been false news. Stresemann has survived. How?...?]
 
 - @root: Continue...
