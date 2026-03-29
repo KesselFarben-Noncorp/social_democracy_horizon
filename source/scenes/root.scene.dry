@@ -1424,7 +1424,32 @@ Choose your challenges!
 - @bauern: Agrarian Revolution
 - @camarilla: Camarillamulator
 - @vanilla: Vanilla-esque gamemode.
+- @dice: Dice Gamemode.
 - @start_2: Back
+
+@dice
+
+= Dice
+
+You wanna touch the dice? You wanna touch the dice. You wanna roll me down, up. Roll me baby. Dice me 0 to 20.
+
+- @dc_2: True
+- @dc_3: False
+- @challenge: Back.
+
+@dc_2
+view-if: dice_challenge = 0
+on-arrival: dice_challenge = 1
+go-to: dice
+
+Turned on!
+
+@dc_3
+view-if: dice_challenge = 1
+on-arrival: dice_challenge = 0
+go-to: dice
+
+Turned off!
 
 @vanilla
 
@@ -1676,6 +1701,12 @@ if (Q.spartac_challenge === 1) {
     Q.srpd_formed = 1;
     Q.sapd_formed = 1;
 }
+
+if (Q.dice_challenge === 1) {
+    Q.dice_mode = 1;
+    Q.resources += 2;
+    Q.budget += 1;
+    }
 
 if (Q.vn_challenge === 1) {
     Q.dhp_banned = 1;
