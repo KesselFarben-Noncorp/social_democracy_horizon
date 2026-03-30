@@ -346,6 +346,425 @@ Q.government_integrity_check = function() {
 
 
 
+// ========================================
+// MINISTRY SYSTEM
+// ========================================
+
+// === MASTER MINISTRY LIST ===
+const ALL_MINISTRIES = [
+    'foreign', 'interior', 'justice', 'labor', 
+    'economic', 'finance', 'agriculture', 'transport'
+];
+
+// Reichswehr always independent — never allocated
+const INDEPENDENT_MINISTRIES = ['reichswehr'];
+
+// === MINISTER NAME LOOKUP TABLE ===
+// Single source of truth — no more repeated if/else chains
+const MINISTER_NAMES = {
+    foreign: {
+        KPD:  'Pieck',
+        SAPD: 'Rosenfeld',
+        SPD:  'Müller',
+        SRPD: 'Breitscheid',
+        DDP:  'Koch-Weser',
+        Z:    'Curtius',
+        BVP:  'Held',
+        DVP:  () => Q.stresemann_dead ? 'Curtius' : 'Stresemann',
+        WP:   'Lambach',
+        CNBL: 'Hepp',
+        DNVP: 'Westarp',
+        NSDAP:'Neurath',
+    },
+    interior: {
+        KPD:  'Ulbricht',
+        SAPD: 'Seydewitz',
+        SPD:  'Severing',
+        SRPD: 'Braun',
+        DDP:  'Koch-Weser',
+        Z:    'Wirth',
+        BVP:  'Schätzel',
+        DVP:  'Scholz',
+        WP:   'Petersen',
+        CNBL: 'Behrens',
+        DNVP: 'Hergt',
+        NSDAP:'Frick',
+    },
+    justice: {
+        KPD:  'Heckert',
+        SAPD: 'Ledebour',
+        SPD:  'Radbruch',
+        SRPD: 'Heilmann',
+        DDP:  'Koch-Weser',
+        Z:    'Bredt',
+        BVP:  'Gürtner',
+        DVP:  'Heinze',
+        WP:   'Drewitz',
+        CNBL: 'von Rohr',
+        DNVP: 'Schiele',
+        NSDAP:'Gürtner',
+    },
+    labor: {
+        KPD:  'Münzenberg',
+        SAPD: 'Seydewitz',
+        SPD:  'Wissell',
+        SRPD: 'Aufhäuser',
+        DDP:  'Dietrich',
+        Z:    'Stegerwald',
+        BVP:  'Stützel',
+        DVP:  'Brauns',
+        WP:   'Petersen',
+        CNBL: 'Lohse',
+        DNVP: 'Schiele',
+        NSDAP:'Seldte',
+    },
+    economic: {
+        KPD:  'Remmele',
+        SAPD: 'Rosenfeld',
+        SPD:  'Hilferding',
+        SRPD: 'Schmidt',
+        DDP:  'Dietrich',
+        Z:    'Bredt',
+        BVP:  'Held',
+        DVP:  'Curtius',
+        WP:   'Lambach',
+        CNBL: 'Heim',
+        DNVP: 'Hugenberg',
+        NSDAP:'Hugenberg',
+    },
+    finance: {
+        KPD:  'Neumann',
+        SAPD: 'Rosenfeld',
+        SPD:  'Hilferding',
+        SRPD: 'Hilferding',
+        DDP:  'Dietrich',
+        Z:    'Köhler',
+        BVP:  'Krausneck',
+        DVP:  'Moldenhauer',
+        WP:   'Drewitz',
+        CNBL: 'Hepp',
+        DNVP: 'Schiele',
+        NSDAP:'Schwerin-Krosigk',
+    },
+    agriculture: {
+        KPD:  'Hoernle',
+        SAPD: 'Baade',
+        SPD:  'Baade',
+        SRPD: 'Baade',
+        DDP:  'Dietrich',
+        Z:    'Hermes',
+        BVP:  'Wutzlhofer',
+        DVP:  'Schiele',
+        WP:   'Bredt',
+        CNBL: 'Hamkens',
+        DNVP: 'Schiele',
+        NSDAP:'Hugenberg',
+    },
+    transport: {
+        KPD:  'Hoernle',
+        SAPD: 'Baade',
+        SPD:  'Baade',
+        SRPD: 'Baade',
+        DDP:  'Dietrich',
+        Z:    'Guerard',
+        BVP:  'Wutzlhofer',
+        DVP:  'Schiele',
+        WP:   'Bredt',
+        CNBL: 'Hamkens',
+        DNVP: 'Schiele',
+        NSDAP:'Eltz-Rübenach',
+    },
+    reichswehr: {
+        // Always independent — single entry
+        I: 'Groener',
+    },
+};
+
+// === MINISTRY PRIORITIES BY PARTY ===
+const MINISTRY_PRIORITIES = {
+    KPD:  ['labor', 'interior', 'economic', 'finance', 'justice', 'foreign', 'agriculture', 'transport'],
+    SAPD: ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
+    SPD:  ['labor', 'interior', 'justice', 'finance', 'economic', 'foreign', 'agriculture', 'transport'],
+    SRPD: ['labor', 'justice', 'interior', 'finance', 'economic', 'foreign', 'agriculture', 'transport'],
+    DDP:  ['justice', 'economic', 'finance', 'interior', 'foreign', 'labor', 'agriculture', 'transport'],
+    Z:    ['interior', 'foreign', 'finance', 'labor', 'agriculture', 'justice', 'economic', 'transport'],
+    BVP:  ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor', 'transport'],
+    DVP:  ['economic', 'finance', 'foreign', 'justice', 'interior', 'labor', 'agriculture', 'transport'],
+    WP:   ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor', 'transport'],
+    CNBL: ['agriculture', 'finance', 'economic', 'justice', 'interior', 'foreign', 'labor', 'transport'],
+    CSVD: ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor', 'transport'],
+    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
+    NSDAP:['interior', 'economic', 'foreign', 'finance', 'agriculture', 'justice', 'labor', 'transport'],
+    CSRP: ['labor', 'justice', 'interior', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
+};
+
+// ========================================
+// CORE FUNCTIONS
+// ========================================
+
+// --- Resolve minister name ---
+// Handles both string values and function values (for conditional names)
+Q._resolve_minister = function(ministry, party) {
+    const ministry_table = MINISTER_NAMES[ministry];
+    if (!ministry_table) return 'Unbesetzt';
+    
+    const entry = ministry_table[party];
+    if (!entry) return 'Unbesetzt';
+    
+    // If it's a function (like DVP foreign minister), call it
+    return typeof entry === 'function' ? entry() : entry;
+};
+
+// --- Clear all ministry assignments ---
+Q.clear_ministries = function() {
+    for (const ministry of ALL_MINISTRIES) {
+        Q[ministry + '_minister']       = 'Unbesetzt';
+        Q[ministry + '_minister_party'] = 'I';
+    }
+    // Reichswehr always stays independent
+    Q.reichswehr_minister       = Q._resolve_minister('reichswehr', 'I');
+    Q.reichswehr_minister_party = 'I';
+};
+
+// --- Appoint a single minister directly ---
+// Use this for player-chosen appointments or special events
+// e.g. Q.appoint_minister('interior', 'SPD')
+// or   Q.appoint_minister('interior', 'SPD', 'Severing') to override name
+Q.appoint_minister = function(ministry, party, override_name) {
+    if (!ALL_MINISTRIES.includes(ministry) && !INDEPENDENT_MINISTRIES.includes(ministry)) {
+        console.warn("appoint_minister: unknown ministry: " + ministry);
+        return;
+    }
+    Q[ministry + '_minister_party'] = party || 'I';
+    Q[ministry + '_minister']       = override_name || Q._resolve_minister(ministry, party) || 'Unbesetzt';
+};
+
+// ========================================
+// LEVERAGE CALCULATION
+// ========================================
+
+Q._calculate_leverage = function(coalition) {
+    let total_votes = 0;
+    for (const party of coalition) {
+        total_votes += Q[party.toLowerCase() + '_r'] || 0;
+    }
+    if (total_votes === 0) total_votes = 1; // Prevent divide-by-zero
+
+    const leverage = {};
+
+    for (const party of coalition) {
+        let base = ((Q[party.toLowerCase() + '_r'] || 0) / total_votes) * 100;
+
+        // Relation modifier
+        const relation = Q[party.toLowerCase() + '_relation'] || 50;
+        base += (relation - 50) / 5;
+
+        // Chancellor party gets slight penalty — they already have the top job
+        if (Q.chancellor_party === party) base -= 10;
+
+        // President bonus
+        if (Q.president === "Braun" && party === "SPD") base += 5;
+
+        // Party leader bonuses
+        if (party === "Z"   && Q.z_party_leader === "Brüning")    base += 5;
+        if (party === "DVP" && !Q.stresemann_dead)                 base += 3;
+        if (party === "KPD" && Q.kpd_party_leader === "Conciliators") base += 5;
+
+        // Special conditions
+        if (Q.in_grand_coalition && party === "DVP" && 
+            Q.capital_strike_progress >= 3) base += 5;
+        if (Q.in_left_front && party === "KPD") base -= 5;
+
+        // Hugenberg DNVP demands more
+        if (party === "DNVP" && Q.dnvp_line === 3) base += 8;
+
+        // Floor — every coalition partner gets at least something
+        leverage[party] = Math.max(base, 10);
+    }
+
+    return leverage;
+};
+
+// ========================================
+// ALLOCATION CALCULATION
+// ========================================
+
+Q._calculate_allocation = function(coalition, leverage) {
+    const count = ALL_MINISTRIES.length;
+    let total_leverage = 0;
+    for (const party of coalition) total_leverage += leverage[party];
+    if (total_leverage === 0) total_leverage = 1;
+
+    const allocation = {};
+    for (const party of coalition) {
+        allocation[party] = Math.round((leverage[party] / total_leverage) * count);
+    }
+
+    // Fix rounding errors
+    let assigned = 0;
+    for (const party of coalition) assigned += allocation[party];
+
+    // Over-allocated: trim from largest non-chancellor party
+    while (assigned > count) {
+        let target = null, max = 0;
+        for (const party of coalition) {
+            if (allocation[party] > max && party !== Q.chancellor_party) {
+                target = party;
+                max = allocation[party];
+            }
+        }
+        if (!target) break;
+        allocation[target]--;
+        assigned--;
+    }
+
+    // Under-allocated: add to highest leverage party
+    const leverage_copy = Object.assign({}, leverage);
+    while (assigned < count) {
+        let target = null, max = 0;
+        for (const party of coalition) {
+            if (leverage_copy[party] > max) {
+                target = party;
+                max = leverage_copy[party];
+            }
+        }
+        if (!target) break;
+        allocation[target]++;
+        assigned++;
+        leverage_copy[target] -= 10;
+    }
+
+    // Guarantee chancellor party has at least 1
+    if (Q.chancellor_party && coalition.includes(Q.chancellor_party)) {
+        if ((allocation[Q.chancellor_party] || 0) < 1) {
+            allocation[Q.chancellor_party] = 1;
+        }
+    }
+
+    return allocation;
+};
+
+// ========================================
+// FULL COALITION MINISTRY ALLOCATION
+// ========================================
+
+Q.allocate_ministries = function(coalition) {
+    if (!coalition || coalition.length === 0) {
+        console.warn("allocate_ministries: empty coalition");
+        Q.clear_ministries();
+        return;
+    }
+
+    // Clear first
+    Q.clear_ministries();
+
+    // Calculate leverage and allocation counts
+    const leverage   = Q._calculate_leverage(coalition);
+    const allocation = Q._calculate_allocation(coalition, leverage);
+
+    // Track how many each party has claimed
+    const claimed = {};
+    for (const party of coalition) claimed[party] = 0;
+
+    // Track which ministries are filled
+    const assignments = {};
+    for (const m of ALL_MINISTRIES) assignments[m] = null;
+
+    // Sort coalition by leverage descending — higher leverage picks first
+    const sorted = coalition.slice().sort((a, b) => leverage[b] - leverage[a]);
+
+    // Assign in rounds until all ministries filled
+    for (let round = 0; round < ALL_MINISTRIES.length; round++) {
+        for (const party of sorted) {
+            if (claimed[party] >= allocation[party]) continue;
+
+            const priorities = MINISTRY_PRIORITIES[party] || ALL_MINISTRIES;
+
+            for (const ministry of priorities) {
+                if (assignments[ministry] === null) {
+                    assignments[ministry] = party;
+                    claimed[party]++;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Apply assignments
+    for (const ministry of ALL_MINISTRIES) {
+        const party = assignments[ministry] || 'I';
+        Q.appoint_minister(ministry, party);
+    }
+
+    // Reichswehr always independent
+    Q.appoint_minister('reichswehr', 'I');
+
+    // Build display string
+    Q.ministry_display_list = "";
+    for (const party of coalition) {
+        const votes   = Math.round((Q[party.toLowerCase() + '_r'] || 0) * 10) / 10;
+        const lev     = Math.round(leverage[party] * 10) / 10;
+        const count   = allocation[party] || 0;
+        Q.ministry_display_list += 
+            `- **${party}**: ${count} ministr${count === 1 ? 'y' : 'ies'} `+
+            `(${votes}% votes, leverage: ${lev})\n`;
+    }
+
+    // Store for reference
+    Q.ministry_allocation = allocation;
+    Q.ministry_leverage   = leverage;
+
+    // Hindenburg reacts to government formation
+    Q.hindenburg_patience += 10;
+};
+
+// ========================================
+// INTEGRITY CHECK
+// ========================================
+
+Q.ministry_integrity_check = function() {
+    const issues = [];
+
+    for (const ministry of ALL_MINISTRIES) {
+        const party = Q[ministry + '_minister_party'];
+        const name  = Q[ministry + '_minister'];
+
+        // Minister set but no party
+        if (name && name !== 'Unbesetzt' && (!party || party === 'I')) {
+            issues.push(`WARN: ${ministry} has minister ${name} but party is Independent`);
+        }
+
+        // Party set but no minister name
+        if (party && party !== 'I' && (!name || name === 'Unbesetzt')) {
+            issues.push(`WARN: ${ministry} party is ${party} but minister name is empty — fixing`);
+            Q[ministry + '_minister'] = Q._resolve_minister(ministry, party);
+        }
+
+        // Party in ministry but not in government
+        if (party && party !== 'I' && !Q[party.toLowerCase() + '_in_government']) {
+            issues.push(`WARN: ${ministry} held by ${party} but they are not in government — clearing`);
+            Q.appoint_minister(ministry, 'I');
+        }
+    }
+
+    if (issues.length > 0) {
+        console.warn("=== MINISTRY INTEGRITY CHECK ===");
+        for (const issue of issues) console.warn(issue);
+        console.warn("================================");
+    }
+
+    return issues.length;
+};
+
+
+
+
+
+
+
+
+
+
 
 
 
