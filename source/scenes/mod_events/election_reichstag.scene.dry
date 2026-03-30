@@ -2301,7 +2301,7 @@ function get_chancellor_candidates_for_party(party) {
         if (Q.ddp_votes < 3) { // If party not too weakened
             candidates.push({name: "Dietrich", weight: 80});
         }
-        if (Q.ddp_name = "DStP") {
+        if (Q.ddp_name === "DStP") {
             candidates.push({name: "Arthur Mahraun", weight: 99});
         } 
         }
@@ -2322,7 +2322,7 @@ function get_chancellor_candidates_for_party(party) {
         }
     } 
     else if (party === 'CSRP') {
-        candidates.push({name: "Vitus Heller", weight: 50});
+        candidates.push({name: "Heller", weight: 50});
     } 
     else if (party === 'BVP') {
         candidates.push({name: "Held", weight: 100});
@@ -2331,7 +2331,7 @@ function get_chancellor_candidates_for_party(party) {
     else if (party === 'DVP') {
         if (!Q.stresemann_dead) {
             candidates.push({name: "Stresemann", weight: 100});
-            candidates.push({name: "Curtius", weight: 70});
+            candidates.push({name: "Scholz", weight: 70});
         } else {
             candidates.push({name: "Curtius", weight: 100});
             candidates.push({name: "Dingeldey", weight: 85});
@@ -2349,8 +2349,9 @@ function get_chancellor_candidates_for_party(party) {
     else if (party === 'DNVP') {
         if (Q.dnvp_line === 3) {
             candidates.push({name: "Hugenberg", weight: 100});
-        } else {
+        } else if (Q.dnvp_line === 2) {
             candidates.push({name: "Westarp", weight: 100});
+        } else {
             candidates.push({name: "Treviranus", weight: 75});
         }
     }
