@@ -6,6 +6,7 @@ tags: event, economics
 max-visits: 1
 on-arrival: schacht_resigned = 1
 face-image: img/portraits/SchachtHjalmar.jpg
+go-to: hilferding_outcome
 
 = Schacht's Resignation
 
@@ -80,7 +81,7 @@ Most importantly, we've placed someone at the Reichsbank who might actually help
 [? if lautenbach_supported = 1 : Blessing has quietly indicated he finds Lautenbach's analysis compelling. This could be the monetary policy shift Germany needs. ?]
 
 @propose_hilferding
-choose-if: (left_strength >= 40 or neorevisionist_strength >= 35) and spd_in_government = 1 and (finance_minister = "Hilferding" or wtb_adopted = 1)
+choose-if: ((left_strength >= 40 or neorevisionist_strength >= 35) and spd_in_government = 1 and (finance_minister = "Hilferding" or wtb_adopted != 1)) or (chud = 1)
 unavailable-subtitle: [? if left_strength < 40 and neorevisionist_strength < 35 : The party lacks conviction for such a radical move. Need stronger left or neorevisionist faction. ?] [? if spd_in_government != 1 : We must be in government to propose this. ?] [? if finance_minister != "Hilferding" and wtb_adopted != 1 : Need Hilferding as Finance Minister or WTB plan adopted to make this credible. ?]
 on-arrival: reichsbank_proposal = "hilferding";
 go-to: hilferding_outcome
@@ -89,9 +90,11 @@ go-to: hilferding_outcome
 on-arrival: {!
     // Check if we have enough support
     var support_threshold = 0;
-    if (Q.spd_r >= 35 && Q.left_strength >= 45 && Q.kpd_relation >= 35) {
-        support_threshold = 1; // Possible with left unity
+    if (Q.spd_r >= 28 && Q.left_strength >= 45 && Q.kpd_relation >= 35) {
+        Q.support_threshold = 1; // Possible with left unity
     }
+
+    if (Q.chud === 1) Q.support_threshold = 1
     
     if (support_threshold === 0) {
         Q.hilferding_rejected = 1;
@@ -120,6 +123,7 @@ on-arrival: {!
         Q.reichsbank_independent = -2;
         Q.credit_expansion_possible = 1;
         Q.socialist_monetary_policy = 1;
+        if (Q.chud === 1) budget += 3;
     }
 !}
 go-to: hilferding_rejected_text if hilferding_rejected; hilferding_accepted_text if hilferding_accepted
@@ -150,6 +154,8 @@ The bourgeois parties are in shock. Business interests are alarmed. Internationa
 With socialist control of both fiscal and monetary policy, Germany can attempt genuine economic planning. Credit expansion, directed investment, coordination with fiscal stimulus—all become possible.
 
 This is either the beginning of a democratic socialist economy, or the moment we overreached and triggered capital flight. History will judge.
+
+[? if chud: And certainly, world is known for nothing happenista. If something happened, refer to the graph. Hilferding Chudhimir said so. ?]
 
 @accept_voegler
 view-if: (spd_in_government = 0 and spd_toleration = 0) or (reichsbank_independent >= 4 and schacht_relation < 40)
