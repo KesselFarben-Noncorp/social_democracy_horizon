@@ -2271,11 +2271,17 @@ on-arrival: {!
             }
         }
     
-        // Fallback: pick closest by distance
-        var dist0 = getIdeologicalDistance(current_candidate, finalists[0]);
-        var dist1 = getIdeologicalDistance(current_candidate, finalists[1]);
-    
-        return dist0 <= dist1 ? finalists[0] : finalists[1];
+        // Fallback: pick closest by distance across all finalists
+var bestFinalist = finalists[0];
+var bestDist = getIdeologicalDistance(current_candidate, finalists[0]);
+for (var f = 1; f < finalists.length; f++) {
+    var d = getIdeologicalDistance(current_candidate, finalists[f]);
+    if (d < bestDist) {
+        bestDist = d;
+        bestFinalist = finalists[f];
+    }
+}
+return bestFinalist;
     }
     
     // === Z (CENTER) ===
