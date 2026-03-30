@@ -50,6 +50,9 @@ Q.socialism_disp = Q.socialism;
 Q.pacifism_disp = Q.pacifism;
 
 (function() {
+// ── Guard: only inject once ──────────────────────────────────────
+    if (document.getElementById("spd-relation-chart")) return;
+
     // ── Data ────────────────────────────────────────────────────────
     var parties = [
         { label: "KPD",   rel: Q.kpd_relation   || 0, votes: Q.kpd_votes   || 0 },
@@ -73,7 +76,7 @@ Q.pacifism_disp = Q.pacifism;
     ];
 
     // Filter to active parties only
-    var active = parties.filter(function(p) { return p.votes > 1; });
+    var active = parties.filter(function(p) { return p.votes > 0; });
     // Sort by relation descending
     active.sort(function(a, b) { return b.rel - a.rel; });
 
@@ -204,6 +207,7 @@ Q.pacifism_disp = Q.pacifism;
         body.appendChild(row);
     });
 
+    section.id = "spd-relation-chart";   // ← add this one line
     section.appendChild(header);
     section.appendChild(body);
 
