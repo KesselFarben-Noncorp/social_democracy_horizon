@@ -1983,6 +1983,53 @@ on-arrival: {!
     Q.round1_runner_up = candidates_array.length > 1 ? candidates_array[1].name : null;
     Q.round1_winner_votes = candidates_array[0].pct;
     Q.round1_runner_up_votes = candidates_array.length > 1 ? candidates_array[1].pct : 0;
+
+    // Third candidate — always the next in line
+Q.round1_third = candidates_array.length > 2 ? candidates_array[2].name : null;
+Q.round1_third_votes = candidates_array.length > 2 ? candidates_array[2].pct : 0;
+Q.round1_third_votes_disp = Q.round1_third_votes.toFixed(1);
+
+// Decide if third candidate stays in automatically
+// Logic: they stay unless they're a minor splinter with no independent will
+Q.third_stays = 0;
+if (Q.round1_third && Q.round1_third_votes > 0) {
+    var third = Q.round1_third;
+    
+    // KPD always stays in if they can — strategic spoiler value
+    if (third === "Thalmann" || third === "Munzenberg") {
+        Q.third_stays = Q.kpd_relation < 55 ? 1 : 0;
+    }
+    // NSDAP always stays in
+    else if (third === "Hitler" || third === "Goring" || third === "Goebbels") {
+        Q.third_stays = 1;
+    }
+    // Hugenberg stays if DNVP line 3
+    else if (third === "Hugenberg") {
+        Q.third_stays = Q.dnvp_line === 3 ? 1 : 0;
+    }
+    // Everyone else: stays if they got meaningful votes and
+    // neither finalist is close enough ideologically to make dropping out worthwhile
+    else {
+        var dist1 = Math.abs(
+            ["Thalmann","Munzenberg","Braun","Schumacher","Juchacz","Rosenfeld","Ollenhauer",
+             "Eckener","Gessler","Stresemann","Horsing","Schmid","Hindenburg",
+             "Adenauer","Kaas","Bruning","Schaffer",
+             "Westarp","Treviranus","Lambach","Lindeiner","Drewitz","Hamkens","Lambach2",
+             "Hitler","Goring","Goebbels","Seldte","Hugenberg"].indexOf(third)
+        );
+        // Simpler: if winner is ideologically adjacent, they drop; else they stay
+        var winner_far = (Q.round1_winner === "Hitler" || Q.round1_winner === "Thalmann" 
+                         || Q.round1_winner === "Munzenberg" || Q.round1_winner === "Goring"
+                         || Q.round1_winner === "Goebbels");
+        var runner_far = (Q.round1_runner_up === "Hitler" || Q.round1_runner_up === "Thalmann"
+                         || Q.round1_runner_up === "Munzenberg" || Q.round1_runner_up === "Goring"
+                         || Q.round1_runner_up === "Goebbels");
+        // If both finalists are on opposite extremes, moderate third stays
+        Q.third_stays = (winner_far && runner_far) ? 1 :
+                        (winner_far || runner_far) ? 1 : 0;
+    }
+}
+Q.round2_has_third = Q.third_stays;
     
     // Check for majority
     Q.has_majority = Q.round1_winner_votes >= 50;
@@ -2129,6 +2176,7 @@ on-arrival: {!
     // === ROUND 2 CONSOLIDATION ===
 
     var finalists = [Q.round1_winner, Q.round1_runner_up];
+    if (Q.round2_has_third && Q.round1_third) finalists.push(Q.round1_third);
 
     // Ideological blocks for consolidation logic
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
@@ -2306,6 +2354,41 @@ on-arrival: {!
     // === OTHER ===
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
 
+
+// === THIRD CANDIDATE PARTY SUPPORT ===
+// Parties that were supporting the third candidate need to re-decide
+// Only if third is NOT staying — if they stay, parties keep supporting them
+
+if (!Q.round2_has_third) {
+    // Third dropped out — redistribute their party support
+    var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+    for (var i = 0; i < parties_r2.length; i++) {
+        var p = parties_r2[i];
+        var cand = Q[p + '_candidate'];
+        if (!cand) continue;
+        var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (candNorm === Q.round1_third) {
+            // This party's candidate dropped — pick closest finalist
+            Q[p + '_candidate'] = pickClosestFinalist(cand, 
+                [center_left, center, center_right, left, far_left, far_right]);
+        }
+    }
+}
+
+// Store third candidate's display name for use in passages
+var candidate_descs_r2 = {
+    Hindenburg:"Paul von Hindenburg", Hitler:"Adolf Hitler", Goring:"Hermann Göring",
+    Goebbels:"Joseph Goebbels", Westarp:"Kuno von Westarp", Thalmann:"Ernst Thälmann",
+    Munzenberg:"Willi Münzenberg", Adenauer:"Konrad Adenauer", Kaas:"Ludwig Kaas",
+    Bruning:"Heinrich Brüning", Gessler:"Otto Gessler", Stresemann:"Gustav Stresemann",
+    Eckener:"Hugo Eckener", Braun:"Otto Braun", Schumacher:"Kurt Schumacher",
+    Schmid:"Carlo Schmid", Ollenhauer:"Erich Ollenhauer", Juchacz:"Marie Juchacz",
+    Schaffer:"Franz Schäffer", Drewitz:"Max Drewitz", Horsing:"Otto Hörsing",
+    Hamkens:"Wilhelm Hamkens", Rosenfeld:"Kurt Rosenfeld", Hugenberg:"Alfred Hugenberg",
+    Seldte:"Franz Seldte",
+};
+Q.round1_third_desc = candidate_descs_r2[Q.round1_third] || Q.round1_third;
 !}
 
 **Second Round Runoff**
@@ -2320,40 +2403,142 @@ No candidate achieved a majority in the first round. The top two candidates adva
 
 @r2_menu
 
-We can try to shift support before the final vote.
+[? if round2_has_third : Three candidates remain in the runoff: **[+ round1_winner +]** ([+ round1_winner_votes +]%), **[+ round1_runner_up +]** ([+ round1_runner_up_votes +]%), and **[+ round1_third +]** ([+ round1_third_votes_disp +]%). ?]
+[? if not round2_has_third : Two candidates remain: **[+ round1_winner +]** ([+ round1_winner_votes +]%) and **[+ round1_runner_up +]** ([+ round1_runner_up_votes +]%). ?]
 
-- @r2_switch_spd: Change our own support (if possible).
+- @r2_push_out_third: Try to push out the third candidate. 
+- @r2_switch_spd: Change our own support.
 - @r2_convince: Try to convince other parties.
 - @r2_vote: Proceed to the final vote.
 
-@r2_switch_spd
-view-if: spd_candidate != round1_winner and spd_candidate != round1_runner_up
+@r2_push_out_third
+view-if: round2_has_third = 1
+max-visits: 1
 
-Our candidate was eliminated. We are currently supporting [+ spd_candidate +]. Should we switch?
+[+ round1_third_desc +] is still in the race with [+ round1_third_votes_disp +]%. We could try to convince them to withdraw.
 
-- @switch_to_finalist: Switch to the other finalist.
-- @r2_menu: Keep our current support.
+- @push_third_resources: Spend resources to negotiate withdrawal (-2 resources).
+- @push_third_relations: Use our political relationships (if relations are good enough).
+- @r2_menu: Leave them in.
 
-@switch_to_finalist
+@push_third_resources
+choose-if: resources >= 2
+unavailable-subtitle: Not enough resources.
 on-arrival: {!
-    // Switch SPD support to the other finalist
-    if (Q.spd_candidate === Q.round1_winner) {
-        Q.spd_candidate = Q.round1_runner_up;
-    } else {
-        Q.spd_candidate = Q.round1_winner;
+    resources -= 2;
+    Q.round2_has_third = 0;
+    Q.third_stays = 0;
+    // Redistribute their party support
+    var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+    var far_left  = ["Thalmann","Munzenberg"];
+    var left      = ["Braun","Schumacher","Juchacz","Rosenfeld","Ollenhauer"];
+    var center_left  = ["Eckener","Gessler","Stresemann","Horsing","Schmid","Hindenburg"];
+    var center       = ["Adenauer","Kaas","Bruning","Hindenburg"];
+    var center_right = ["Schaffer","Westarp","Treviranus","Lambach","Lindeiner","Drewitz","Hamkens","Lambach2"];
+    var far_right    = ["Hitler","Goring","Goebbels","Seldte","Hugenberg"];
+    var finalists = [Q.round1_winner, Q.round1_runner_up];
+    function isInBlock(c, b) { return b.indexOf(c) !== -1; }
+    function pickClosest(cand, priority) {
+        if (finalists.indexOf(cand) !== -1) return cand;
+        for (var i = 0; i < priority.length; i++) {
+            for (var j = 0; j < finalists.length; j++) {
+                if (isInBlock(finalists[j], priority[i])) return finalists[j];
+            }
+        }
+        return finalists[0];
     }
-    
-    // Check if other parties follow
-    if (Q.z_candidate === Q.spd_candidate && Q.z_relation < 40) {
-        Q.z_relation -= 10; // Alienate Z
-    }
-    if (Q.ddp_candidate === Q.spd_candidate && Q.ddp_relation < 35) {
-        Q.ddp_relation -= 8;
+    for (var i = 0; i < parties_r2.length; i++) {
+        var p = parties_r2[i];
+        var cand = Q[p + '_candidate'];
+        if (!cand) continue;
+        var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (candNorm === Q.round1_third) {
+            Q[p + '_candidate'] = pickClosest(cand, [center_left,center,center_right,left,far_left,far_right]);
+        }
     }
 !}
 go-to: r2_menu
 
-We have switched our support to [+ spd_candidate +].
+[+ round1_third_desc +] has agreed to withdraw. Their supporters will redistribute.
+
+@push_third_relations
+view-if: (z_relation >= 60 and round1_third != "Thalmann" and round1_third != "Munzenberg" and round1_third != "Hitler" and round1_third != "Goring" and round1_third != "Goebbels") or (kpd_relation >= 65 and (round1_third = "Thalmann" or round1_third = "Munzenberg"))
+unavailable-subtitle: Relations not strong enough to pressure a withdrawal.
+on-arrival: {!
+    Q.round2_has_third = 0;
+    Q.third_stays = 0;
+    var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+    var far_left  = ["Thalmann","Munzenberg"];
+    var left      = ["Braun","Schumacher","Juchacz","Rosenfeld","Ollenhauer"];
+    var center_left  = ["Eckener","Gessler","Stresemann","Horsing","Schmid","Hindenburg"];
+    var center       = ["Adenauer","Kaas","Bruning","Hindenburg"];
+    var center_right = ["Schaffer","Westarp","Treviranus","Lambach","Lindeiner","Drewitz","Hamkens","Lambach2"];
+    var far_right    = ["Hitler","Goring","Goebbels","Seldte","Hugenberg"];
+    var finalists = [Q.round1_winner, Q.round1_runner_up];
+    function isInBlock(c, b) { return b.indexOf(c) !== -1; }
+    function pickClosest(cand, priority) {
+        if (finalists.indexOf(cand) !== -1) return cand;
+        for (var i = 0; i < priority.length; i++) {
+            for (var j = 0; j < finalists.length; j++) {
+                if (isInBlock(finalists[j], priority[i])) return finalists[j];
+            }
+        }
+        return finalists[0];
+    }
+    for (var i = 0; i < parties_r2.length; i++) {
+        var p = parties_r2[i];
+        var cand = Q[p + '_candidate'];
+        if (!cand) continue;
+        var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (candNorm === Q.round1_third) {
+            Q[p + '_candidate'] = pickClosest(cand, [center_left,center,center_right,left,far_left,far_right]);
+        }
+    }
+!}
+go-to: r2_menu
+
+[+ round1_third_desc +] has agreed to stand down through political pressure.
+
+@r2_switch_spd
+
+We are currently supporting **[+ spd_candidate +]**.
+
+[? if round2_has_third : Three candidates remain. We can support any of them. ?]
+[? if not round2_has_third : Two candidates remain. ?]
+
+- @switch_to_finalist1: Support [+ round1_winner +] ([+ round1_winner_votes +]%)
+- @switch_to_finalist2: Support [+ round1_runner_up +] ([+ round1_runner_up_votes +]%)
+- @switch_to_third: Support [+ round1_third +] ([+ round1_third_votes_disp +]%)
+- @r2_menu: Keep current support.
+
+@switch_to_finalist1
+view-if: spd_candidate != round1_winner
+choose-if: (round1_winner != "Hitler" and round1_winner != "Goring" and round1_winner != "Goebbels" and round1_winner != "Hugenberg" and round1_winner != "Seldte") or (kpd_relation >= 65 and (round1_winner = "Thalmann" or round1_winner = "Munzenberg"))
+unavailable-subtitle: We cannot support this candidate.
+on-arrival: spd_candidate = round1_winner; is_unity_candidate = 1 if round1_winner != "Thalmann" and round1_winner != "Munzenberg";
+go-to: r2_menu
+
+We now support [+ round1_winner +].
+
+@switch_to_finalist2
+view-if: spd_candidate != round1_runner_up
+choose-if: (round1_runner_up != "Hitler" and round1_runner_up != "Goring" and round1_runner_up != "Goebbels" and round1_runner_up != "Hugenberg" and round1_runner_up != "Seldte") or (kpd_relation >= 65 and (round1_runner_up = "Thalmann" or round1_runner_up = "Munzenberg"))
+unavailable-subtitle: We cannot support this candidate.
+on-arrival: spd_candidate = round1_runner_up; is_unity_candidate = 1 if round1_runner_up != "Thalmann" and round1_runner_up != "Munzenberg";
+go-to: r2_menu
+
+We now support [+ round1_runner_up +].
+
+@switch_to_third
+view-if: round2_has_third = 1 and spd_candidate != round1_third
+choose-if: (round1_third != "Hitler" and round1_third != "Goring" and round1_third != "Goebbels" and round1_third != "Hugenberg" and round1_third != "Seldte") or (kpd_relation >= 65 and (round1_third = "Thalmann" or round1_third = "Munzenberg"))
+unavailable-subtitle: We cannot support this candidate.
+on-arrival: spd_candidate = round1_third;
+go-to: r2_menu
+
+We now support [+ round1_third +].
 
 @r2_convince
 
@@ -2618,6 +2803,18 @@ cols.forEach(function(k, idx) {
 });
 container.appendChild(headerRow);
 
+cols.forEach(function(k, idx) {
+    var h = headerRow.children[idx];
+    var isFinalist = (k === finalist1 || k === finalist2);
+    var isThirdIn  = (Q.round2_has_third && k === Q.round1_third);
+    if (isThirdIn) {
+        h.style.color = "#555";
+        h.style.fontStyle = "italic";
+        h.style.fontSize = "11px";
+        h.textContent = dname(k) + " — " + colPcts[idx].toFixed(1) + "% (stayed in)";
+    }
+});
+
 // Stacked bar columns side by side
 var barRow = document.createElement('div');
 barRow.style.cssText = "display:flex; gap:4px; height:140px; align-items:flex-end;";
@@ -2626,6 +2823,10 @@ cols.forEach(function(k, colIdx) {
     var colWrap = document.createElement('div');
     colWrap.style.cssText = "flex:" + colPcts[colIdx] + "; display:flex; flex-direction:column; height:100%; border-radius:3px; overflow:hidden;";
 
+    if (Q.round2_has_third && k === Q.round1_third) {
+    colWrap.style.outline = "2px dashed #aaa";
+    colWrap.style.opacity = "0.85";
+    }
     var parties = buckets[k];
     // Sort largest first so biggest party is at bottom (more stable visually)
     parties.sort(function(a, b) { return b.votes - a.votes; });
