@@ -48,6 +48,139 @@ Q.pro_republic_disp = Q.pro_republic;
 Q.nationalism_disp = Q.nationalism;
 Q.socialism_disp = Q.socialism;
 Q.pacifism_disp = Q.pacifism;
+
+// === RELATION BAR CHART ===
+
+// 1. Define parties with their Q variable names and display labels
+var relationData = [
+    { label: "KPD",   value: Q.kpd_relation   || 0 },
+    { label: "SAPD",  value: Q.sapd_relation  || 0 },
+    { label: "SRPD",  value: Q.srpd_relation  || 0 },
+    { label: "CSRP",  value: Q.csrp_relation  || 0 },
+    { label: "DDP",   value: Q.ddp_relation   || 0 },
+    { label: "Z",     value: Q.z_relation     || 0 },
+    { label: "BVP",   value: Q.bvp_relation   || 0 },
+    { label: "BB",    value: Q.bb_relation    || 0 },
+    { label: "DHP",   value: Q.dhp_relation   || 0 },
+    { label: "VRP",   value: Q.vrp_relation   || 0 },
+    { label: "DVP",   value: Q.dvp_relation   || 0 },
+    { label: "WP",    value: Q.wp_relation    || 0 },
+    { label: "CNBL",  value: Q.cnbl_relation  || 0 },
+    { label: "CSVD",  value: Q.csvd_relation  || 0 },
+    { label: "KVP",   value: Q.kvp_relation   || 0 },
+    { label: "DNVP",  value: Q.dnvp_relation  || 0 },
+    { label: "NSDAP", value: Q.nsdap_relation || 0 }
+];
+
+// 2. Filter only parties with votes > 1 (mirrors your [? if x_votes > 1 ?] pattern)
+relationData = relationData.filter(function(p) {
+    var votesKey = p.label.toLowerCase() + "_votes";
+    return (Q[votesKey] || 0) > 1;
+});
+
+// 3. Sort descending
+relationData.sort(function(a, b) { return b.value - a.value; });
+
+// 4. Build the container
+var wrapper = document.createElement("div");
+wrapper.style.cssText = "width:100%; margin: 16px 0 90px 0;";
+
+var chartTitle = document.createElement("div");
+chartTitle.style.cssText = "font-weight:bold; margin-bottom:8px;";
+chartTitle.textContent = "Inter-Party Relations";
+wrapper.appendChild(chartTitle);
+
+// Chart area (bars sit inside this)
+var chartArea = document.createElement("div");
+chartArea.style.cssText = [
+    "display:flex",
+    "align-items:flex-end",
+    "justify-content:flex-start",
+    "width:100%",
+    "height:180px",
+    "background:#111",
+    "border-bottom:2px solid #555",
+    "padding:8px 4px 0 4px",
+    "box-sizing:border-box",
+    "gap:2px"
+].join(";");
+
+// 5. Render each bar
+var maxVal = 100; // relations are presumably 0-100
+
+relationData.forEach(function(item) {
+    var barWrap = document.createElement("div");
+    barWrap.style.cssText = [
+        "flex:1",
+        "display:flex",
+        "flex-direction:column",
+        "align-items:center",
+        "justify-content:flex-end",
+        "height:100%",
+        "position:relative",
+        "min-width:14px"
+    ].join(";");
+
+    // Dynamic hue: 0 = red (hostile), 120 = green (friendly)
+    var hue = Math.round((item.value / maxVal) * 120);
+    var color = "hsl(" + hue + ",100%,45%)";
+
+    var bar = document.createElement("div");
+    var heightPct = Math.max(2, (item.value / maxVal) * 100); // min 2% so 0 is still visible
+    bar.style.cssText = [
+        "width:100%",
+        "height:" + heightPct + "%",
+        "background-color:" + color,
+        "border-radius:2px 2px 0 0",
+        "box-sizing:border-box",
+        "position:relative"
+    ].join(";");
+    bar.title = item.label + ": " + item.value;
+
+    // Value label on top of bar
+    var valLabel = document.createElement("span");
+    valLabel.style.cssText = [
+        "position:absolute",
+        "top:-16px",
+        "width:100%",
+        "text-align:center",
+        "font-size:8px",
+        "font-weight:bold",
+        "color:#eee"
+    ].join(";");
+    valLabel.textContent = item.value;
+    bar.appendChild(valLabel);
+
+    // Party name below chart (rotated)
+    var nameLabel = document.createElement("span");
+    nameLabel.style.cssText = [
+        "position:absolute",
+        "bottom:-52px",
+        "left:50%",
+        "transform:translateX(-50%) rotate(45deg)",
+        "font-size:8px",
+        "white-space:nowrap",
+        "color:#ccc",
+        "pointer-events:none"
+    ].join(";");
+    nameLabel.textContent = item.label;
+
+    barWrap.appendChild(bar);
+    barWrap.appendChild(nameLabel);
+    chartArea.appendChild(barWrap);
+});
+
+wrapper.appendChild(chartArea);
+
+// 6. Inject into the page — same pattern as your working example
+// Place a div with id="relation-chart" in your scene text above this block,
+// OR append to document.body as a fallback:
+var target = document.getElementById("relation-chart");
+if (target) {
+    target.appendChild(wrapper);
+} else {
+    document.body.appendChild(wrapper);
+}
 !}
 
 = Parties
@@ -163,37 +296,7 @@ NSDAP Dissent: [+ nsdap_dissent +]
 
 = Inter-party Relations
 
-{!<span class="tooltip-text" title="Center Party">Z</span>!}: [+ z_relation : relationships +] [+ z_relation +]
-
-[? if sapd_formed = 1: {!<span class="tooltip-text" title="SAPD">SAPD</span>!}: [+ sapd_relation : relationships +] [+ sapd_relation +] ?]
-
-[? if srpd_formed = 1: {!<span class="tooltip-text" title="SRPD">SRPD</span>!}: [+ srpd_relation : relationships +] [+ srpd_relation +] ?]
-
-{!<span class="tooltip-text" title="Bavarian People's Party">BVP</span>!}: [+ bvp_relation : relationships +] [+ bvp_relation +]
-
-{!<span class="tooltip-text" title="Bavarian Peasants' Party">BB</span>!}: [+ bb_relation : relationships +] [+ bb_relation +]
-
-{!<span class="tooltip-text" title="Christian Social German Party">CSRP</span>!}: [+ csrp_relation : relationships +] [+ csrp_relation +]
-
-{!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [+ ddp_relation +]
-
-{!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [+ dhp_relation +]
-
-{!<span class="tooltip-text" title="German People's Party">DVP</span>!}: [+ dvp_relation : relationships +] [+ dvp_relation +]
-
-{!<span class="tooltip-text" title="Economic Party">WP </span>!}: [+ wp_relation : relationships +] [+ wp_relation +]
-
-{!<span class="tooltip-text" title="Chrisliche National bauern land">CNBL </span>!}: [+ cnbl_relation : relationships +] [+ cnbl_relation +]
-
-[? if kvp_flee = 1: {!<span class="tooltip-text" title="Konservative Volkspartei"> KVP </span>!}: [+ kvp_relation : relationships +] [+ kvp_relation +] ?]
-
-{!<span class="tooltip-text" title="KPD">KPD</span>!}: [+ kpd_relation : relationships +] [+ kpd_relation +]
-
-[? if csvd_flee = 1: {!<span class="tooltip-text" title="CSVD">CSVD</span>!}: [+ csvd_relation : relationships +] [+ csvd_relation +] ?]
-
-{!<span class="tooltip-text" title="German National People's Party">DNVP</span>!}: [+ dnvp_relation : relationships +] [+ dnvp_relation +]
-
-{!<span class="tooltip-text" title="National-Socialist German Worker's Party (Nazis)">NSDAP</span>!}: [+ nsdap_relation : relationships +] [+ nsdap_relation +]
+{!</div><div id="relation-chart"></div><div>!}
 
 = Internal Factions of the SPD
 
