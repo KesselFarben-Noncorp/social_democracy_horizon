@@ -48,177 +48,6 @@ Q.pro_republic_disp = Q.pro_republic;
 Q.nationalism_disp = Q.nationalism;
 Q.socialism_disp = Q.socialism;
 Q.pacifism_disp = Q.pacifism;
-
-(function() {
-// ── Guard: only inject once ──────────────────────────────────────
-    if (document.getElementById("spd-relation-chart")) return;
-
-    // ── Data ────────────────────────────────────────────────────────
-    var parties = [
-        { label: "KPD",   rel: Q.kpd_relation   || 0, votes: Q.kpd_votes   || 0 },
-        { label: "SAPD",  rel: Q.sapd_relation  || 0, votes: Q.sapd_votes  || 0 },
-        { label: "SRPD",  rel: Q.srpd_relation  || 0, votes: Q.srpd_votes  || 0 },
-        { label: "CSRP",  rel: Q.csrp_relation  || 0, votes: Q.csrp_votes  || 0 },
-        { label: "DDP",   rel: Q.ddp_relation   || 0, votes: Q.ddp_votes   || 0 },
-        { label: "Z",     rel: Q.z_relation     || 0, votes: Q.z_votes     || 0 },
-        { label: "BVP",   rel: Q.bvp_relation   || 0, votes: Q.bvp_votes   || 0 },
-        { label: "BB",    rel: Q.bb_relation    || 0, votes: Q.bb_votes    || 0 },
-        { label: "DHP",   rel: Q.dhp_relation   || 0, votes: Q.dhp_votes   || 0 },
-        { label: "VRP",   rel: Q.vrp_relation   || 0, votes: Q.vrp_votes   || 0 },
-        { label: "DVP",   rel: Q.dvp_relation   || 0, votes: Q.dvp_votes   || 0 },
-        { label: "WP",    rel: Q.wp_relation    || 0, votes: Q.wp_votes    || 0 },
-        { label: "CNBL",  rel: Q.cnbl_relation  || 0, votes: Q.cnbl_votes  || 0 },
-        { label: "CSVD",  rel: Q.csvd_relation  || 0, votes: Q.csvd_votes  || 0 },
-        { label: "KVP",   rel: Q.kvp_relation   || 0, votes: Q.kvp_votes   || 0 },
-        { label: "DNVP",  rel: Q.dnvp_relation  || 0, votes: Q.dnvp_votes  || 0 },
-        { label: "NSDAP", rel: Q.nsdap_relation || 0, votes: Q.nsdap_votes || 0 },
-        { label: "SPD",   rel: 100,                   votes: Q.spd_votes   || 0 }
-    ];
-
-    // Filter to active parties only
-    var active = parties.filter(function(p) { return p.votes > 0; });
-    // Sort by relation descending
-    active.sort(function(a, b) { return b.rel - a.rel; });
-
-    // ── Helpers ─────────────────────────────────────────────────────
-    function relColor(val) {
-        // 0 = deep red, 50 = amber, 100 = green
-        var hue = Math.round((val / 100) * 120);
-        return "hsl(" + hue + ",90%,42%)";
-    }
-
-    function css(el, styles) {
-        Object.keys(styles).forEach(function(k) { el.style[k] = styles[k]; });
-    }
-
-    // ── Wrapper injected into sidebar ────────────────────────────────
-    var section = document.createElement("div");
-    css(section, {
-        borderTop: "1px solid var(--border-color)",
-        fontFamily: '"Crimson Text", Georgia, serif',
-        fontSize: "12px"
-    });
-
-    // ── Toggle Header ────────────────────────────────────────────────
-    var header = document.createElement("div");
-    css(header, {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "7px 10px",
-        cursor: "pointer",
-        userSelect: "none",
-        background: "var(--tab-bg-color)",
-        borderBottom: "1px solid var(--border-color)"
-    });
-
-    var title = document.createElement("span");
-    title.textContent = "Party Relations";
-    css(title, { fontWeight: "bold", letterSpacing: "0.04em", fontSize: "11px", textTransform: "uppercase", opacity: "0.75" });
-
-    var arrow = document.createElement("span");
-    arrow.textContent = "▾";
-    css(arrow, { fontSize: "12px", transition: "transform 0.2s", display: "inline-block" });
-
-    header.appendChild(title);
-    header.appendChild(arrow);
-
-    // ── Collapsible Body ─────────────────────────────────────────────
-    var body = document.createElement("div");
-    css(body, {
-        padding: "6px 10px 8px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "4px",
-        overflow: "hidden",
-        maxHeight: "600px",           // open state
-        transition: "max-height 0.3s ease, padding 0.2s ease"
-    });
-
-    var collapsed = false;
-    header.addEventListener("click", function() {
-        collapsed = !collapsed;
-        if (collapsed) {
-            body.style.maxHeight = "0";
-            body.style.padding = "0 10px";
-            arrow.style.transform = "rotate(-90deg)";
-        } else {
-            body.style.maxHeight = "600px";
-            body.style.padding = "6px 10px 8px";
-            arrow.style.transform = "rotate(0deg)";
-        }
-    });
-
-    // ── Row per party ────────────────────────────────────────────────
-    active.forEach(function(p) {
-        var row = document.createElement("div");
-        css(row, { display: "flex", alignItems: "center", gap: "5px" });
-
-        // Label
-        var lbl = document.createElement("span");
-        lbl.textContent = p.label;
-        css(lbl, { width: "36px", minWidth: "36px", fontSize: "10px", opacity: "0.85", textAlign: "right" });
-
-        // Bar track
-        var track = document.createElement("div");
-        css(track, {
-            flex: "1",
-            height: "10px",
-            background: "var(--tab-bg-color, #222)",
-            borderRadius: "3px",
-            overflow: "hidden",
-            position: "relative"
-        });
-
-        // Bar fill — relation
-        var fill = document.createElement("div");
-        var relPct = Math.max(1, p.rel);
-        css(fill, {
-            height: "100%",
-            width: relPct + "%",
-            background: relColor(p.rel),
-            borderRadius: "3px",
-            position: "relative"
-        });
-
-        // Vote % overlay line
-        var voteLine = document.createElement("div");
-        css(voteLine, {
-            position: "absolute",
-            top: "0",
-            left: p.votes + "%",
-            width: "2px",
-            height: "100%",
-            background: "rgba(255,255,255,0.6)",
-            borderRadius: "1px"
-        });
-
-        track.appendChild(fill);
-        track.appendChild(voteLine);
-
-        // Numeric labels
-        var nums = document.createElement("span");
-        nums.textContent = p.rel + " | " + p.votes + "%";
-        css(nums, { fontSize: "9px", opacity: "0.6", minWidth: "52px", textAlign: "right", whiteSpace: "nowrap" });
-
-        row.appendChild(lbl);
-        row.appendChild(track);
-        row.appendChild(nums);
-        body.appendChild(row);
-    });
-
-    section.id = "spd-relation-chart";   // ← add this one line
-    section.appendChild(header);
-    section.appendChild(body);
-
-    // ── Mount into sidebar ───────────────────────────────────────────
-    var sidebar = document.querySelector(".tools.left") ||
-                  document.querySelector("#stats_sidebar") ||
-                  document.querySelector(".tools");
-    if (sidebar) {
-        sidebar.appendChild(section);
-    }
-})();
 !}
 
 = Parties
@@ -334,7 +163,37 @@ NSDAP Dissent: [+ nsdap_dissent +]
 
 = Inter-party Relations
 
-{!</div><div id="relation-chart"></div><div>!}
+{!<span class="tooltip-text" title="Center Party">Z</span>!}: [+ z_relation : relationships +] [+ z_relation +]
+
+[? if sapd_formed = 1: {!<span class="tooltip-text" title="SAPD">SAPD</span>!}: [+ sapd_relation : relationships +] [+ sapd_relation +] ?]
+
+[? if srpd_formed = 1: {!<span class="tooltip-text" title="SRPD">SRPD</span>!}: [+ srpd_relation : relationships +] [+ srpd_relation +] ?]
+
+{!<span class="tooltip-text" title="Bavarian People's Party">BVP</span>!}: [+ bvp_relation : relationships +] [+ bvp_relation +]
+
+{!<span class="tooltip-text" title="Bavarian Peasants' Party">BB</span>!}: [+ bb_relation : relationships +] [+ bb_relation +]
+
+{!<span class="tooltip-text" title="Christian Social German Party">CSRP</span>!}: [+ csrp_relation : relationships +] [+ csrp_relation +]
+
+{!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [+ ddp_relation +]
+
+{!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [+ dhp_relation +]
+
+{!<span class="tooltip-text" title="German People's Party">DVP</span>!}: [+ dvp_relation : relationships +] [+ dvp_relation +]
+
+{!<span class="tooltip-text" title="Economic Party">WP </span>!}: [+ wp_relation : relationships +] [+ wp_relation +]
+
+{!<span class="tooltip-text" title="Chrisliche National bauern land">CNBL </span>!}: [+ cnbl_relation : relationships +] [+ cnbl_relation +]
+
+[? if kvp_flee = 1: {!<span class="tooltip-text" title="Konservative Volkspartei"> KVP </span>!}: [+ kvp_relation : relationships +] [+ kvp_relation +] ?]
+
+{!<span class="tooltip-text" title="KPD">KPD</span>!}: [+ kpd_relation : relationships +] [+ kpd_relation +]
+
+[? if csvd_flee = 1: {!<span class="tooltip-text" title="CSVD">CSVD</span>!}: [+ csvd_relation : relationships +] [+ csvd_relation +] ?]
+
+{!<span class="tooltip-text" title="German National People's Party">DNVP</span>!}: [+ dnvp_relation : relationships +] [+ dnvp_relation +]
+
+{!<span class="tooltip-text" title="National-Socialist German Worker's Party (Nazis)">NSDAP</span>!}: [+ nsdap_relation : relationships +] [+ nsdap_relation +]
 
 = Internal Factions of the SPD
 
