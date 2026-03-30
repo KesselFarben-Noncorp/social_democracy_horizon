@@ -1984,52 +1984,13 @@ on-arrival: {!
     Q.round1_winner_votes = candidates_array[0].pct;
     Q.round1_runner_up_votes = candidates_array.length > 1 ? candidates_array[1].pct : 0;
 
-    // Third candidate — always the next in line
+    // Third candidate — always stays in
 Q.round1_third = candidates_array.length > 2 ? candidates_array[2].name : null;
 Q.round1_third_votes = candidates_array.length > 2 ? candidates_array[2].pct : 0;
-Q.round1_third_votes_disp = Q.round1_third_votes.toFixed(1);
-
-// Decide if third candidate stays in automatically
-// Logic: they stay unless they're a minor splinter with no independent will
-Q.third_stays = 0;
-if (Q.round1_third && Q.round1_third_votes > 0) {
-    var third = Q.round1_third;
-    
-    // KPD always stays in if they can — strategic spoiler value
-    if (third === "Thalmann" || third === "Munzenberg") {
-        Q.third_stays = Q.kpd_relation < 55 ? 1 : 0;
-    }
-    // NSDAP always stays in
-    else if (third === "Hitler" || third === "Goring" || third === "Goebbels") {
-        Q.third_stays = 1;
-    }
-    // Hugenberg stays if DNVP line 3
-    else if (third === "Hugenberg") {
-        Q.third_stays = Q.dnvp_line === 3 ? 1 : 0;
-    }
-    // Everyone else: stays if they got meaningful votes and
-    // neither finalist is close enough ideologically to make dropping out worthwhile
-    else {
-        var dist1 = Math.abs(
-            ["Thalmann","Munzenberg","Braun","Schumacher","Juchacz","Rosenfeld","Ollenhauer",
-             "Eckener","Gessler","Stresemann","Horsing","Schmid","Hindenburg",
-             "Adenauer","Kaas","Bruning","Schaffer",
-             "Westarp","Treviranus","Lambach","Lindeiner","Drewitz","Hamkens","Lambach2",
-             "Hitler","Goring","Goebbels","Seldte","Hugenberg"].indexOf(third)
-        );
-        // Simpler: if winner is ideologically adjacent, they drop; else they stay
-        var winner_far = (Q.round1_winner === "Hitler" || Q.round1_winner === "Thalmann" 
-                         || Q.round1_winner === "Munzenberg" || Q.round1_winner === "Goring"
-                         || Q.round1_winner === "Goebbels");
-        var runner_far = (Q.round1_runner_up === "Hitler" || Q.round1_runner_up === "Thalmann"
-                         || Q.round1_runner_up === "Munzenberg" || Q.round1_runner_up === "Goring"
-                         || Q.round1_runner_up === "Goebbels");
-        // If both finalists are on opposite extremes, moderate third stays
-        Q.third_stays = (winner_far && runner_far) ? 1 :
-                        (winner_far || runner_far) ? 1 : 0;
-    }
-}
+Q.round1_third_votes_disp = Q.round1_third_votes > 0 ? Q.round1_third_votes.toFixed(1) : "0.0";
+Q.third_stays = Q.round1_third ? 1 : 0;
 Q.round2_has_third = Q.third_stays;
+Q.round1_third_desc = candidate_descs[Q.round1_third] || Q.round1_third || "";
     
     // Check for majority
     Q.has_majority = Q.round1_winner_votes >= 50;
