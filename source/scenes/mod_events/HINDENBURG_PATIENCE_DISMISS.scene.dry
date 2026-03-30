@@ -1,0 +1,132 @@
+title: Hindenburg has dismissed the government of [+ chancellor +]
+subtitle: The President's patience has run out.
+tags: event
+new-page: true
+view-if: hindenburg_ready_to_dismiss = 1
+on-arrival: {!
+
+// === RESET PATIENCE & DISMISS FLAG ===
+Q.hindenburg_ready_to_dismiss = 0;
+Q.hindenburg_patience = 30;
+Q.hindenburg_patience_low = 0;
+Q.hindenburg_patience_critical = 0;
+
+// === RECORD DISMISSED CHANCELLOR ===
+Q.last_dismissed_chancellor = Q.chancellor;
+Q.last_dismissed_chancellor_party = Q.chancellor_party;
+Q.dismissals = (Q.dismissals || 0) + 1;
+
+// === CLEAR GOVERNMENT ===
+Q.chancellor = null;
+Q.chancellor_party = null;
+
+// Clear all cabinet flags
+Q.bruning_cabinet = 0;
+Q.schleicher_cabinet = 0;
+Q.papen_cabinet = 0;
+Q.muller_cabinet = 0;
+Q.wels_cabinet = 0;
+Q.braun_cabinet = 0;
+Q.breitscheid_cabinet = 0;
+Q.hilferding_cabinet = 0;
+Q.wirth_cabinet = 0;
+Q.kaas_cabinet = 0;
+Q.stresemann_cabinet = 0;
+Q.curtius_cabinet = 0;
+Q.hugenberg_cabinet = 0;
+Q.westarp_cabinet = 0;
+
+// Clear coalition membership flags
+Q.spd_in_government = 0;
+Q.kpd_in_government = 0;
+Q.sapd_in_government = 0;
+Q.srpd_in_government = 0;
+Q.ddp_in_government = 0;
+Q.z_in_government = 0;
+Q.bvp_in_government = 0;
+Q.dvp_in_government = 0;
+Q.wp_in_government = 0;
+Q.cnbl_in_government = 0;
+Q.csvd_in_government = 0;
+Q.dnvp_in_government = 0;
+Q.nsdap_in_government = 0;
+
+// Clear toleration
+Q.spd_toleration = 0;
+Q.kpd_toleration = 0;
+
+// Clear coalition type flags
+Q.in_grand_coalition = 0;
+Q.in_weimar_coalition = 0;
+Q.minority_government = 0;
+Q.presidential_cabinet = 0;
+
+// Reset minority tick counter
+Q.chancellor_minority_ticks = 0;
+Q.article_48_uses = 0;
+
+// === CAMARILLA REACTS ===
+// Dismissal is a victory for the inner circle — they grow bolder
+Q.camarilla_strength = Math.min(Q.camarilla_ceiling, (Q.camarilla_strength || 0) + 8);
+
+// Specific member reactions
+if (Q.camarilla_member_influences) {
+    // Papen gains most — this is often his move
+    if (Q.camarilla_member_influences.papen !== undefined)
+        Q.camarilla_member_influences.papen = Math.min(100, Q.camarilla_member_influences.papen + 12);
+    // Oskar satisfied
+    if (Q.camarilla_member_influences.oskar !== undefined)
+        Q.camarilla_member_influences.oskar = Math.min(100, Q.camarilla_member_influences.oskar + 6);
+    // Schleicher may now position himself
+    if (Q.camarilla_member_influences.schleicher !== undefined)
+        Q.camarilla_member_influences.schleicher = Math.min(100, Q.camarilla_member_influences.schleicher + 8);
+}
+
+// === POLITICAL FALLOUT ===
+// Republic takes a hit — presidential dismissal of elected government is a blow
+Q.pro_republic -= 3;
+
+// Street reaction
+Q.sa_militancy  = Math.min(5, (Q.sa_militancy  || 1) + 0.2);
+Q.rfb_militancy = Math.min(5, (Q.rfb_militancy || 1) + 0.15);
+
+// Party relation fallout — depends on who was dismissed
+if (Q.last_dismissed_chancellor_party === 'SPD') {
+    Q.kpd_relation   -= 3;  // KPD sees SPD as failures
+    Q.z_relation     -= 2;
+    Q.dvp_relation   -= 2;
+} else if (Q.last_dismissed_chancellor_party === 'Z') {
+    Q.z_relation     -= 4;
+    Q.dvp_relation   -= 2;
+    Q.bvp_relation   -= 3;
+} else if (Q.last_dismissed_chancellor_party === 'DVP') {
+    Q.dvp_relation   -= 3;
+    Q.z_relation     -= 2;
+}
+
+// === ELECTION TIMER ===
+Q.next_election_month = Q.month + 4;
+Q.next_election_time  = Q.time  + 8;
+if (Q.next_election_month > 12) {
+    Q.next_election_month -= 12;
+    Q.next_election_year = Q.year + 1;
+} else {
+    Q.next_election_year = Q.year;
+}
+
+Q.election_called = 1;
+Q.snap_election = 1;
+
+// === DISPOSITION FLAGS FOR NEXT COALITION ===
+// Hindenburg will push his preferred successor
+Q.hindenburg_pushing_successor = 1;
+Q.hindenburg_successor_pressure = (Q.camarilla_strength || 0) > 70 ? "strong" : "mild";
+
+!}
+= The presidential letter arrived without warning. [+ last_dismissed_chancellor +]'s government has been dissolved by order of Hindenburg.
+
+== The Dismissal
+
+*[+ Q.month_name +] [+ year +]*
+
+Hindenburg has exercised his constitutional authority to dismiss the government of [+ last_dismissed_chancellor +]. Whether the republic survives what comes next is another question entirely.
