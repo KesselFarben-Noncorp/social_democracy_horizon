@@ -820,7 +820,7 @@ Q.relation_gravity = function(value) {
     }
 };
 
-var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'ddp', 'vrp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
+var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'dhp', 'bb', 'kvp', 'ddp', 'vrp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
 for (var rel of relations) {
     Q[rel + '_relation'] = Q.relation_gravity(Q[rel + '_relation']);
     // Hard cap just in case
@@ -3068,6 +3068,15 @@ if (!Q.prussian_police_training) Q.rb_militancy = Math.min(Q.rb_militancy, 0.20)
 
 
 
+
+
+
+
+
+
+
+
+
 // ========================================
 // PRESIDENTIAL INNER CIRCLE SYSTEM
 // ========================================
@@ -3821,6 +3830,209 @@ if (_pres_key === "Hindenburg") {
     Q.hindenburg_president = 0;
   }
 }
+
+
+
+
+
+if (Q.president === "Hindenburg") {
+
+// === SHARED HINDENBURG PATIENCE SYSTEM ===
+
+if (Q.bruning_cabinet || Q.schleicher_cabinet || Q.papen_cabinet || Q.chancellor) {
+
+    const PATIENCE_START = {
+        "Müller": 55, "Wels": 40, "Braun": 45, "Breitscheid": 30,
+        "Hilferding": 35, "Thälmann": 10, "Neumann": 15, "Rosenfeld": 20,
+        "Koch-Weser": 60, "Dietrich": 62, "Mahraun": 58, "Wirth": 55,
+        "Joos": 60, "Horsing": 58, "Held": 65, "Schäffer": 68,
+        "Drewitz": 65, "Hepp": 68, "Heller": 52, "Brüning": 100,
+        "Kaas": 85, "Stresemann": 75, "Curtius": 80, "Dingeldey": 82,
+        "Westarp": 90, "Treviranus": 88, "Hugenberg": 85, "Lambach": 80,
+    };
+
+    // Initialize on chancellor change
+    if (Q._last_chancellor !== Q.chancellor) {
+        Q.hindenburg_patience = PATIENCE_START[Q.chancellor] ?? 70;
+        Q._last_chancellor = Q.chancellor;
+        Q.chancellor_minority_ticks = 0;
+    }
+
+    let patience_delta = 0;
+
+    // === UNIVERSAL DRAINS (apply to everyone) ===
+
+    // Unemployment
+    if (Q.unemployed >= 25)      patience_delta -= 0.8 + (Q.unemployed - 25) * 0.06;
+    else if (Q.unemployed >= 20) patience_delta -= 0.45;
+    else if (Q.unemployed >= 15) patience_delta -= 0.20;
+    else if (Q.unemployed >= 12) patience_delta -= 0.08;
+
+    // Deflation
+    if (Q.inflation < -2) patience_delta -= 0.15 * Math.abs(Q.inflation + 2);
+
+    // Negative growth
+    if (Q.economic_growth < -2)  patience_delta -= 0.12 * Math.abs(Q.economic_growth + 2);
+    else if (Q.economic_growth < 0) patience_delta -= 0.06;
+
+    // Budget
+    if (Q.budget < -10)      patience_delta -= 0.10;
+    else if (Q.budget < -5)  patience_delta -= 0.05;
+
+    // NSDAP surge
+    if (Q.nsdap_r >= 35)      patience_delta -= 0.35 + (Q.nsdap_r - 35) * 0.02;
+    else if (Q.nsdap_r >= 25) patience_delta -= 0.18;
+    else if (Q.nsdap_r >= 15) patience_delta -= 0.08;
+
+    // DNVP > Z gap
+    const dnvp_z_gap = (Q.dnvp_r || 0) - (Q.z_r || 0);
+    if (dnvp_z_gap > 10)     patience_delta -= 0.12 + (dnvp_z_gap - 10) * 0.01;
+    else if (dnvp_z_gap > 5) patience_delta -= 0.06;
+    if (Q.dnvp_line === 3)   patience_delta -= 0.15;
+
+    // Camarilla
+    if (Q.camarilla_strength >= 90)      patience_delta -= 0.40;
+    else if (Q.camarilla_strength >= 75) patience_delta -= 0.25;
+    else if (Q.camarilla_strength >= 60) patience_delta -= 0.12;
+
+    if ((Q.oskar_influence   || 0) >= 60) patience_delta -= 0.15;
+    if ((Q.papen_influence   || 0) >= 40) patience_delta -= 0.20;
+    if ((Q.oldenburg_influence||0) >= 50) patience_delta -= 0.10;
+
+    if ((Q.camarilla_goal_protect_junkers || 0) >= 75) patience_delta -= 0.20;
+    if (Q.land_reform >= 1) patience_delta -= 1.50;
+
+    // Street violence
+    const street_chaos = (
+        (Q.sa_strength  * (Q.sa_militancy  || 1)) +
+        (Q.rfb_strength * (Q.rfb_militancy || 1)) +
+        (Q.sh_strength  * (Q.sh_militancy  || 1))
+    ) / 1000;
+    if (street_chaos >= 6)      patience_delta -= 0.25 + (street_chaos - 6) * 0.05;
+    else if (street_chaos >= 3) patience_delta -= 0.12;
+    else if (street_chaos >= 1.5) patience_delta -= 0.05;
+
+    // Minority government fatigue
+    if (Q.minority_government) {
+        Q.chancellor_minority_ticks = (Q.chancellor_minority_ticks || 0) + 1;
+        if (Q.chancellor_minority_ticks >= 6)
+            patience_delta -= 0.10 + (Q.chancellor_minority_ticks - 6) * 0.02;
+    } else {
+        Q.chancellor_minority_ticks = 0;
+    }
+
+    // Article 48 overuse
+    if (Q.article_48_uses >= 10)     patience_delta -= 0.12;
+    else if (Q.article_48_uses >= 5) patience_delta -= 0.06;
+
+    // === CHANCELLOR-SPECIFIC MODIFIERS ===
+
+    const ch = Q.chancellor;
+
+    // SPD chancellors — ideological hostility baseline
+    if (["Müller","Wels","Braun","Breitscheid","Hilferding"].includes(ch)) {
+        patience_delta -= 0.40; // Constant ideological drain
+        if (Q.socialism >= 45)   patience_delta -= 0.15;
+        if (Q.spd_r >= 30)       patience_delta -= 0.10;
+        // SPD in government IS the government — camarilla goes into overdrive
+        patience_delta -= (Q.camarilla_strength || 0) * 0.004;
+        // Small recovery if economy genuinely good — even Hindenburg notices
+        if (Q.unemployed < 10 && Q.economic_growth > 2) patience_delta += 0.10;
+    }
+
+    // Hard left — countdown mode
+    if (["Thälmann","Neumann","Rosenfeld"].includes(ch)) {
+        patience_delta -= 1.20; // Flat countdown regardless of conditions
+        if (Q.camarilla_strength >= 50) patience_delta -= 0.50;
+    }
+
+    // Brüning-specific (SPD toleration friction)
+    if (ch === "Brüning") {
+        if (Q.spd_toleration && !Q.spd_in_government) {
+            patience_delta -= 0.30;
+            if (Q.spd_r >= 25) patience_delta -= 0.10;
+            if (Q.spd_r >= 30) patience_delta -= 0.10;
+        }
+        if (Q.spd_in_government) patience_delta -= 0.55;
+        // Honeymoon buffer
+        if (Q.hindenburg_patience > 60) patience_delta += 0.04;
+        if (Q.sa_banned && Q.nsdap_r >= 20) patience_delta -= 0.30;
+    }
+
+    // Wirth — Hindenburg genuinely disliked him
+    if (ch === "Wirth") {
+        patience_delta -= 0.20;
+        if (Q.spd_toleration) patience_delta -= 0.20;
+        if (Q.z_left_wing >= 1) patience_delta -= 0.10;
+    }
+
+    // Kaas — comfortable but still some drain from Nazi surge
+    if (ch === "Kaas") {
+        patience_delta += 0.05; // Slight positive baseline
+        if (Q.nsdap_r >= 30) patience_delta -= 0.10; // Looks weak against Nazis
+    }
+
+    // Stresemann — respected foreign policy, distrusted republicanism
+    if (ch === "Stresemann") {
+        if (Q.reparations <= 0) patience_delta += 0.08; // Foreign policy wins buy goodwill
+        if (Q.pro_republic >= 60) patience_delta -= 0.08;
+    }
+
+    // Hugenberg — liked ideologically, doubted as governor
+    if (ch === "Hugenberg") {
+        if (Q.economic_growth < 0) patience_delta -= 0.15; // Incompetence showing
+        if (Q.nsdap_r >= 30)       patience_delta -= 0.12; // Can't contain Nazis
+    }
+
+    // Westarp/Treviranus — most comfortable
+    if (["Westarp","Treviranus"].includes(ch)) {
+        patience_delta += 0.04;
+        // Only drain if things go badly wrong
+        if (Q.unemployed >= 20) patience_delta -= 0.10;
+    }
+
+    // === SENILITY AMPLIFIER ===
+    if ((Q.hindenburg_senility || 0) >= 50) {
+        const senility_amp = 1 + ((Q.hindenburg_senility - 50) / 50) * 0.6;
+        patience_delta *= senility_amp;
+    }
+
+    // === UNIVERSAL RECOVERY ===
+    // Right-wing coalition without socialist dependency
+    if (!Q.spd_in_government && !Q.spd_toleration &&
+        (Q.z_in_government || Q.dvp_in_government || Q.dnvp_in_government)) {
+        patience_delta += 0.10;
+    }
+
+    // === APPLY & CLAMP ===
+    Q.hindenburg_patience = Math.max(0, Math.min(100,
+        Q.hindenburg_patience + patience_delta
+    ));
+
+    // === FLAGS FOR EVENT SYSTEM ===
+    Q.hindenburg_patience_low      = Q.hindenburg_patience <= 25 ? 1 : 0;
+    Q.hindenburg_patience_critical = Q.hindenburg_patience <= 10 ? 1 : 0;
+    Q.hindenburg_ready_to_dismiss  = Q.hindenburg_patience <= 0  ? 1 : 0;
+
+} else {
+    Q.chancellor_minority_ticks = 0;
+    Q.hindenburg_patience_low   = 0;
+    Q.hindenburg_patience_critical = 0;
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
