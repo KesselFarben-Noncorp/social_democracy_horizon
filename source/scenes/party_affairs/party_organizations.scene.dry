@@ -31,7 +31,7 @@ go-to: media
 @welfare
 choose-if: resources > 0
 unavailable-subtitle: Not enough resources.
-subtitle: -1 resources (- 3 if in government)
+subtitle: [? if not spd_in_government and labor_minister_party != "SPD": -1 resources ?] [? if spd_in_government and labor_minister_party = "SPD": -3 resources ?]
 on-arrival: resources -= 1; resources -= 2 if spd_in_government and labor_minister_party = "SPD"; workers_aid += 1; unemployedc_spd += 5*(1 - dissent); welfare += 1 if spd_in_government and labor_minister_party = "SPD"; workers_spd += 3 if welfare > 0; unemployedc_spd += 3 if welfare > 0
 
 We have increased funding to Workers' Welfare. [? if black_thursday_seen > 0 : In an age of economic crisis, this will be helpful for improving our standing among the unemployed. ?]
