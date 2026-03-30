@@ -2855,21 +2855,21 @@ Q.identity_modifier = {
             // CAMPAIGN BONUS TO BASE CAP
              let campaign_boost = 1.0;
              if (Q.campaign_focus === 'workers' && ci > 0)
-                 campaign_boost += ci * 0.18;
+                 campaign_boost += ci * 0.54;
              if (Q.campaign_focus === 'new_middle' && ci > 0)
-                 campaign_boost += ci * 0.14;
+                 campaign_boost += ci * 0.42;
              if (Q.campaign_focus === 'old_middle' && ci > 0)
-                 campaign_boost += ci * 0.12;
+                 campaign_boost += ci * 0.36;
              if (Q.campaign_focus === 'rural' && ci > 0)
-                 campaign_boost += ci * 0.13;
+                 campaign_boost += ci * 0.39;
              if (Q.campaign_focus === 'unemployed' && ci > 0)
-                 campaign_boost += ci * 0.15;
+                 campaign_boost += ci * 0.45;
              if (Q.campaign_focus === 'women' && ci > 0)
-                 campaign_boost += ci * 0.10; // spread across classes
+                 campaign_boost += ci * 0.30; // spread across classes
              if (Q.campaign_focus === 'middle' && ci > 0)
-                 campaign_boost += ci * 0.11;
+                 campaign_boost += ci * 0.33;
 
-             return (rep * 110 + soc * 49) * Q.identity_modifier.spd * campaign_boost;
+             return (rep * 105 + soc * 54) * Q.identity_modifier.spd * campaign_boost;
          })(),
         workers: (() => {
             let m = 1.20;
@@ -2933,7 +2933,7 @@ Q.identity_modifier = {
             if (!Q.ddp_name || Q.ddp_name === "DDP") {
                 let sec_bonus = (100 - Q.catholics) / 100 * 0.10;
                 let nat_pen = (Q.nationalism / 100) * 0.15;
-                return (rep * 59 * (1 + sec_bonus - nat_pen + edu_bonus)) * Q.identity_modifier.ddp;
+                return (rep * 53 * (1.1 + sec_bonus - nat_pen + edu_bonus)) * Q.identity_modifier.ddp;
             } else {
                 // DStP
                 let jungdo = (Q.jungdo_strength || 0) * 0.0003;
@@ -2941,7 +2941,7 @@ Q.identity_modifier = {
                             + (Q.secularized || 0) * 0.05
                             + (Q.science || 0) * 0.10
                             + (Q.womens_rights || 0) * 0.05;
-                return (rep * 0.42 + nat * 0.25 + jungdo - edu_pen) * 59 * Q.identity_modifier.ddp;
+                return (rep * 0.39 + nat * 0.29 + jungdo - edu_pen) * 59 * Q.identity_modifier.ddp;
             }
         })(),
         workers: (() => {
@@ -3089,11 +3089,11 @@ Q.identity_modifier = {
         base: Q.other_banned ? 0 : (() => {
             return (Q.nationalism_factor + Q.pro_republic_factor) * 6 * Q.identity_modifier.other;
         })(),
-        workers: 1.00,
+        workers: 0.30,
         old_middle: 1.00,
         new_middle: 1.00,
         rural: 1.00,
-        unemployedc: 1.00,
+        unemployedc: 0.30,
     },
 
     kvp: {
@@ -3116,7 +3116,7 @@ Q.identity_modifier = {
             let rep = Q.pro_republic_factor;
             let nat = Q.nationalism_factor;
             // Hard national ceiling — regional party
-            return Math.min(3.5, (rep * 40 + nat * 10) * 0.8 * Q.identity_modifier.dhp);
+            return Math.min(3.5, (rep * 30 + nat * 10) * 0.8 * Q.identity_modifier.dhp);
         })(),
         workers:    0.20,
         old_middle: 1.35,
@@ -3129,7 +3129,7 @@ Q.identity_modifier = {
     base: Q.bb_banned ? 0 : (() => {
         let rep = Q.pro_republic_factor;
         let nat = Q.nationalism_factor;
-        let rural_weight = Q.rural / 50;
+        let rural_weight = Q.rural / 60;
         // Deflation bonus — agrarian debt crisis
         let deflation_bonus = Q.inflation < 0 ? 
             (1 + Math.abs(Q.inflation) * 0.08) : 1.0;
@@ -3140,7 +3140,18 @@ Q.identity_modifier = {
     new_middle: 0.20,
     rural:      2.10,  // Highest rural cap of any party
     unemployedc: 0.35,  // Catholic but not clericalist
-    }
+    },
+
+    default: {
+        base: Q.other_banned ? 0 : (() => {
+            return (Q.nationalism_factor + Q.pro_republic_factor) * 6 * Q.identity_modifier.other;
+        })(),
+        workers: 0.30,
+        old_middle: 1.00,
+        new_middle: 1.00,
+        rural: 1.00,
+        unemployedc: 0.30,
+    },
 
 };
 
@@ -3414,7 +3425,7 @@ Q.identity_modifier = {
                     Q.ideology_factor = Q.random_factor(Q.socialism_factor * Q.pro_republic_factor * (Q.spd_in_government ? 1.15 : 0.90) * 1.03, 0.2);
                     // BASE preference.
                     if (Q.c === 'workers' && Q.sandbox === 1) {
-                            Q.ideology_factor *= 1.50;
+                            Q.ideology_factor *= 1.15;
                     }
                     // State Buyer assist preference.
                     if (Q.c === 'rural' && Q.state_buyer === 1) {
