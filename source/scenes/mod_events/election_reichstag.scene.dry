@@ -758,169 +758,100 @@ for (var party of Q.parties) {
 Q.election_records.push(election_result);
 !}
 on-display: {!
-data = [
-    {
-        "id": "kpd",
-        "legend": "KPD",
-        "name": "KPD",
-        "seats": Math.round(Q.kpd_r*6),
-    }
+var partyData = [
+    { id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: true },
+    { id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
+    { id: "spd",  name: "SPD",        color: "#E3000F", seats: Q.spd_seats,  show: true },
+    { id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
+    { id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: true },
+    { id: "z",    name: "Center",     color: "#000000", seats: Q.z_seats,    show: true },
+    { id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: true },
+    { id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: true },
+    { id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: true },
+    { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r && Q.dhp_r > 0) },
+    { id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: true },
+    { id: "vrp",  name: "VRP",        color: "#8B7355", seats: Q.vrp_seats,  show: !!(Q.vrp_r && Q.vrp_r > 0) },
+    { id: "wp",   name: "WP",         color: "#424242", seats: Q.wp_seats,   show: !!(Q.wp_r && Q.wp_r > 0) },
+    { id: "cnbl", name: "CNBL",       color: "#5D4E37", seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
+    { id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!Q.csvd_flee },
+    { id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!Q.kvp_flee },
+    { id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: true },
+    { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: true },
+    { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: true },
 ];
-if (Q.sapd_formed && Q.sapd_r) {
-    data.push({
-        "id": "sapd",
-        "legend": "SAPD",
-        "name": "SAPD",
-        "seats": Math.round(Q.sapd_r*6),
-    });
-}
-data = data.concat([
-    {
-        "id": "spd",
-        "legend": "SPD",
-        "name": "SPD",
-        "seats": Math.round(Q.spd_r*6),
-    }
-]);
-if (Q.srpd_formed && Q.srpd_r) {
-    data.push({
-        "id": "srpd",
-        "legend": "SRPD",
-        "name": "SRPD",
-        "seats": Math.round(Q.srpd_r*6),
-    });
-}
-data = data.concat([
-    {
-        "id": "ddp",
-        "legend": Q.ddp_name,
-        "name": Q.ddp_name,
-        "seats": Math.round(Q.ddp_r*6),
-    },
-    {
-        "id": "z",
-        "legend": "Center",
-        "name": "Center",
-        "seats": Math.round(Q.z_r*6),
-    },
-    {
-        "id": "bb",
-        "legend": "BB",
-        "name": "BB",
-        "seats": Math.round(Q.bb_r*6),
-    },
-    {
-        "id": "bvp",
-        "legend": "BVP",
-        "name": "BVP",
-        "seats": Math.round(Q.bvp_r*6),
-    },
-    {
-        "id": "csrp",
-        "legend": "CSRP",
-        "name": "CSRP",
-        "seats": Math.round(Q.csrp_r*6),
-    },
-    {
-        "id": "dvp",
-        "legend": "DVP",
-        "name": "DVP",
-        "seats": Math.round(Q.dvp_r*6),
-    },
-    {
-        "id": "other",
-        "legend": "Other",
-        "name": "Other",
-        "seats": Math.round(Q.other_r*6),
-    },
-]);
-if (Q.dhp_r && Q.dhp_r > 0) {
-    data.push({
-        "id": "dhp",
-        "legend": "DHP",
-        "name": "DHP",
-        "seats": Math.round(Q.dhp_r*6),
-    });
-}
-if (Q.vrp_r && Q.vrp_r > 0) {
-    data.push({
-        "id": "vrp",
-        "legend": "vrp",
-        "name": "VRP",
-        "seats": Math.round(Q.vrp_r*6),
-    });
-}
-if (Q.wp_r && Q.wp_r > 0) {
-    data.push({
-        "id": "wp",
-        "legend": "WP",
-        "name": "WP",
-        "seats": Math.round(Q.wp_r*6),
-    });
-}
-if (Q.csvd_flee && Q.csvd_r) {
-    data.push({
-        "id": "csvd",
-        "legend": "CSVD",
-        "name": "CSVD",
-        "seats": Math.round(Q.csvd_r*6),
-    });
-}
-if (Q.kvp_flee && Q.kvp_r) {
-    data.push({
-        "id": "kvp",
-        "legend": "KVP",
-        "name": "KVP",
-        "seats": Math.round(Q.kvp_r*6),
-    });
-}
-data = data.concat([
-    {
-        "id": "dnvp",
-        "legend": "DNVP",
-        "name": "DNVP",
-        "seats": Math.round(Q.dnvp_r*6),
-    }
-]);
-if (Q.cnbl_r && Q.cnbl_r > 0) {
-    data.push({
-        "id": "cnbl",
-        "legend": "CNBL",
-        "name": "CNBL",
-        "seats": Math.round(Q.cnbl_r*6),
-    });
-}
-data = data.concat([
-    {
-        "id": "nsdap",
-        "legend": "NSDAP",
-        "name": "NSDAP",
-        "seats": Math.round(Q.nsdap_r*6),
-    }
-]);
+
+var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
+
+// Parliament diagram data
+var data = visibleParties.map(function(p) {
+    return { id: p.id, legend: p.name, name: p.name, seats: p.seats };
+});
 
 if (window && d3) {
-    var width = 500; 
-    var height = 500;
+    var width = 600;
+    var height = 300;
     var screenWidth = document.getElementById('content').offsetWidth;
     if (screenWidth < width - 50) {
-        width = screenWidth - 50; 
-        height = width;
-        document.getElementById("reichstag").style.height = screenWidth/2 + "px";
-    } 
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+        document.getElementById("reichstag").style.height = height + "px";
+    }
+    document.getElementById("reichstag").style.width = width + "px";
+    document.getElementById("reichstag").style.height = height + "px";
 
     var parliament = d3.parliament();
     parliament.width(width).height(height).innerRadiusCoef(0.4);
     parliament.enter.fromCenter(true).smallToBig(true);
     parliament.exit.toCenter(false).bigToSmall(true);
     d3.select("#reichstag").datum(data).call(parliament);
+
+    // Color bar
+    var totalSeats = visibleParties.reduce(function(sum, p) { return sum + p.seats; }, 0);
+    var bar = document.getElementById("party-color-bar");
+    bar.innerHTML = "";
+    bar.style.display = "flex";
+    bar.style.width = width + "px";
+    bar.style.height = "28px";
+    bar.style.marginTop = "8px";
+    bar.style.overflow = "hidden";
+    bar.style.borderRadius = "3px";
+
+    visibleParties.forEach(function(p) {
+        var pct = p.seats / totalSeats;
+        var seg = document.createElement("div");
+        seg.style.width = (pct * 100) + "%";
+        seg.style.height = "100%";
+        seg.style.backgroundColor = p.color;
+        seg.style.display = "flex";
+        seg.style.alignItems = "center";
+        seg.style.justifyContent = "center";
+        seg.style.overflow = "hidden";
+        seg.style.boxSizing = "border-box";
+        seg.title = p.name + ": " + p.seats + " seats";
+
+        // Label if segment wide enough (roughly >3.5% of total)
+        if (pct > 0.035) {
+            var label = document.createElement("span");
+            label.style.fontSize = "10px";
+            label.style.fontWeight = "bold";
+            label.style.color = "#fff";
+            label.style.textShadow = "0 0 2px #000, 0 0 2px #000";
+            label.style.whiteSpace = "nowrap";
+            label.style.pointerEvents = "none";
+            label.textContent = p.name + " " + Math.round(pct * 100) + "%";
+            seg.appendChild(label);
+        }
+
+        bar.appendChild(seg);
+    });
 }
 !}
 go-to: coalition_formation_start
 
 = Election results
 
-{!<svg id="reichstag" style="width: 1500px; height: 400px;"> </svg>!}
+{!<svg id="reichstag" style="width: 600px; height: 300px;"> </svg>
+<div id="party-color-bar"></div>!}
 
 {!<table style="width:100%; border-collapse: collapse;">!}
 <tr style="border-bottom: 2px solid #333;">
@@ -1058,7 +989,6 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_nsdap_r > 0 : color: green; ?][? if change_nsdap_r < 0 : color: red; ?]">[+ str_change_nsdap +]</td>
 </tr>
 {!</table>!}
-
 
 
 
