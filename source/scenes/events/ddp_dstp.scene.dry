@@ -11,6 +11,8 @@ Leaders of the German Democratic Party are holding urgent meetings to discuss th
 
 The proposal is controversial. Progressives within the DDP are horrified at the prospect of working with conservative nationalists, while pragmatists argue this is necessary for survival.
 
+If this merger to fail, the options for the DDP will shrink further and further, forcing them to throw their force behind us or go the same way DVP did.
+
 [? if ddp_relation >= 60 : We have received word from sympathetic contacts within the DDP about the internal debate. ?]
 [? if ddp_relation < 40 : The DDP has not consulted us, but word of the turmoil has reached our party leadership. ?]
 
@@ -21,42 +23,17 @@ The proposal is controversial. Progressives within the DDP are horrified at the 
 [? if jungdo_strength >= 150 and jungdo_militancy >= 0.5 : The Young German Order's strength makes them an attractive partner for the struggling DDP. ?]
 [? if jungdo_strength < 100 : The Young German Order's weakness makes the merger less appealing to DDP pragmatists. ?]
 
-- @merger_happens: The merger will likely proceed...
 - @observe: We can only observe from the sidelines.
 
-@merger_happens
-view-if: (ddp_relation < 50) or (jungdo_strength >= 200)
-on-arrival: {!
-// Merger happens - DDP becomes DStP
-Q.ddp_name = "DStP";
-Q.ddp_dstp_seen = 1;
-Q.merger_happened = 1;
-
-// Base effects
-Q.new_middle_ddp -= 5;
-Q.old_middle_ddp -= 3;
-Q.rural_ddp -= 3;
-Q.ddp_relation -= 5;
-
-// Jungdo integration
-if (Q.jungdo_strength >= 150) {
-    Q.new_middle_ddp += 2; // Some Jungdo support transfers
-    Q.rural_ddp += 1;
-    Q.nationalism += 2;
-}
-!}
-go-to: merger_response
-
 @observe
-view-if: ddp_relation >= 50 and jungdo_strength < 200
 on-arrival: {!
 // Merger debate happens but outcome is uncertain
 var merger_chance = 50;
 
 // Factors favoring merger
-if (Q.jungdo_strength >= 100) merger_chance += 15;
+if (Q.jungdo_strength >= 100) merger_chance += 10;
 if (Q.ddp_r < 5) merger_chance += 20; // Desperation
-if (Q.dvp_relation >= 60) merger_chance += 10; // Right-liberal alliance
+if (Q.dvp_relation <= 30) merger_chance += 10; // Right-liberal alliance
 
 // Factors opposing merger
 if (Q.ddp_relation >= 70) merger_chance -= 15; // SPD influence
@@ -64,7 +41,7 @@ if (Q.z_relation >= 60 && Q.ddp_relation >= 60) merger_chance -= 20; // Progress
 if (Q.pro_republic >= 60) merger_chance -= 10; // Strong republican climate
 
 // Roll the dice
-var roll = Math.random() * 100;
+var roll = _r || 1 * 100;
 
 if (roll < merger_chance) {
     // Merger happens
@@ -76,8 +53,8 @@ if (roll < merger_chance) {
     Q.rural_ddp -= 3;
     Q.ddp_relation -= 5;
     
-    if (Q.jungdo_strength >= 100) {
-        Q.new_middle_ddp += 2;
+    if (Q.jungdo_strength >= 200) {
+        Q.old_middle_ddp += 2;
         Q.rural_ddp += 1;
     }
 } else {
