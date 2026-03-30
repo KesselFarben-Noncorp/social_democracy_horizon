@@ -2020,65 +2020,111 @@ if (Q.has_majority) {
 go-to: r1_results
 
 @r1_results
+on-arrival: {!
+on-display: {!
+var candidateColors = {
+    // Far left
+    Thalmann:    "#8B0000", Munzenberg:  "#C40000",
+    // Left
+    Braun:       "#E3000F", Schumacher:  "#E3000F", Juchacz: "#E3000F",
+    Ollenhauer:  "#E3000F", Schmid:      "#E3000F", Rosenfeld: "#C40000",
+    Horsing:     "#FF6B6B",
+    // Center-left / liberal
+    Eckener:     "#4A90D9", Gessler:     "#4A90D9", Stresemann: "#D5AC27",
+    Hindenburg:  "#888888",
+    // Center
+    Adenauer:    "#000000", Kaas: "#000000", Bruning: "#000000",
+    Schaffer:    "#69A2BE",
+    // Center-right
+    Westarp:     "#3f7bc1", Treviranus:  "#3f7bc1", Lambach: "#3f7bc1",
+    Lindeiner:   "#3f7bc1", Drewitz:     "#424242", Hamkens: "#5D4E37",
+    Behrens:     "#5D4E37", Lambach2:    "#3f7bc1",
+    // Cultural / independent
+    Einstein:    "#9B59B6", Mann: "#9B59B6", Ossietzky: "#9B59B6",
+    // DDP/DStP
+    Heuss:       "#DCCA4A", Dietrich: "#DCCA4A", Luders: "#DCCA4A",
+    Lemmer:      "#DCCA4A", Mahraun:  "#DCCA4A", KochWeser: "#DCCA4A",
+    Maier:       "#DCCA4A",
+    // DVP
+    Scholz:      "#D5AC27", Dingeldey: "#D5AC27", Curtius: "#D5AC27",
+    Reinhold:    "#D5AC27",
+    // Far right
+    Hitler:      "#954B00", Goring: "#954B00", Goebbels: "#954B00",
+    Seldte:      "#954B00", Hugenberg: "#3f7bc1",
+};
+
+// Build candidate list from running flags + vote shares
+var candidates = [];
+var allNames = Object.keys(candidateColors);
+for (var i = 0; i < allNames.length; i++) {
+    var k = allNames[i];
+    if (Q[k + '_running'] && Q[k + '_votes'] > 0) {
+        candidates.push({ name: k, votes: Q[k + '_votes'] || 0 });
+    }
+}
+candidates.sort(function(a, b) { return b.votes - a.votes; });
+
+var displayNames = {
+    Thalmann: "Thälmann", Munzenberg: "Münzenberg", Bruning: "Brüning",
+    Schaffer: "Schäffer", Luders: "Lüders", Goring: "Göring",
+    KochWeser: "Koch-Weser", Lambach2: "Lambach (CSVD)",
+};
+
+var container = document.getElementById('pres_r1_chart');
+if (!container) return;
+container.innerHTML = "";
+container.style.cssText = "width:100%; max-width:600px; font-family:sans-serif;";
+
+var maxVotes = candidates.length > 0 ? candidates[0].votes : 1;
+
+for (var i = 0; i < candidates.length; i++) {
+    var c = candidates[i];
+    var color = candidateColors[c.name] || "#aaaaaa";
+    var label = displayNames[c.name] || c.name;
+    var pct = c.votes;
+    var barWidth = Math.round((pct / Math.max(maxVotes, 1)) * 100);
+
+    var row = document.createElement('div');
+    row.style.cssText = "display:flex; align-items:center; margin-bottom:5px; gap:6px;";
+
+    var nameEl = document.createElement('div');
+    nameEl.style.cssText = "width:110px; text-align:right; font-size:12px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+    nameEl.textContent = label;
+
+    var barWrap = document.createElement('div');
+    barWrap.style.cssText = "flex:1; background:#e0e0e0; height:18px; border-radius:2px; position:relative;";
+
+    var bar = document.createElement('div');
+    bar.style.cssText = "height:100%; border-radius:2px; background:" + color + "; width:" + barWidth + "%; transition:width 0.3s;";
+
+    // 50% threshold line
+    var threshold = document.createElement('div');
+    threshold.style.cssText = "position:absolute; top:0; left:50%; width:2px; height:100%; background:rgba(0,0,0,0.35); z-index:2;";
+
+    var pctEl = document.createElement('div');
+    pctEl.style.cssText = "width:42px; text-align:left; font-size:12px; flex-shrink:0;";
+    pctEl.textContent = pct.toFixed(1) + "%";
+
+    barWrap.appendChild(bar);
+    barWrap.appendChild(threshold);
+    row.appendChild(nameEl);
+    row.appendChild(barWrap);
+    row.appendChild(pctEl);
+    container.appendChild(row);
+}
+
+// Legend: 50% line
+var legend = document.createElement('div');
+legend.style.cssText = "font-size:11px; color:#666; margin-top:4px; padding-left:116px;";
+legend.textContent = "▲ 50% majority threshold";
+container.appendChild(legend);
+!}
+!}
 go-to: election_end if has_majority; r2_start if not has_majority
 
 **First Round Results:**
 
-[? if hindenburg_running: Hindenburg - [+ Hindenburg_votes_disp +]% ?]
-
-[? if Hitler_running : Hitler - [+ Hitler_votes_disp +]% ?]
-
-[? if Goring_running : Göring - [+ Goring_votes_disp +]% ?]
-
-[? if Goebbels_running : Goebbels - [+ Goebbels_votes_disp +]% ?]
-
-[? if Seldte_running : Seldte - [+ Seldte_votes_disp +]% ?]
-
-[? if Westarp_running : Westarp - [+ Westarp_votes_disp +]% ?]
-
-[? if Thalmann_running : Thälmann - [+ Thalmann_votes_disp +]% ?]
-
-[? if Munzenberg_running : Münzenberg - [+ Munzenberg_votes_disp +]% ?]
-
-[? if Adenauer_running : Adenauer - [+ Adenauer_votes_disp +]% ?]
-
-[? if Kaas_running : Kaas - [+ Kaas_votes_disp +]% ?]
-
-[? if Bruning_running : Brüning - [+ Bruning_votes_disp +]% ?]
-
-[? if Gessler_running : Gessler - [+ Gessler_votes_disp +]% ?]
-
-[? if Stresemann_running : Stresemann - [+ Stresemann_votes_disp +]% ?]
-
-[? if Eckener_running : Eckener - [+ Eckener_votes_disp +]% ?]
-
-[? if Braun_running : Braun - [+ Braun_votes_disp +]% ?]
-
-[? if Schmid_running: Schmid - [+ Schmid_votes_disp +]% ?]
-
-[? if Ollenhauer_running: Ollenhauer - [+ Ollenhauer_votes_disp +]% ?]
-
-[? if Schumacher_running : Schumacher - [+ Schumacher_votes_disp +]% ?]
-
-[? if Juchacz_running : Juchacz - [+ Juchacz_votes_disp +]% ?]
-
-[? if Einstein_running : Einstein - [+ Einstein_votes_disp +]% ?]
-
-[? if Ossietzky_running : Ossietzky - [+ Ossietzky_votes_disp +]% ?]
-
-[? if Mann_running : Mann - [+ Mann_votes_disp +]% ?]
-
-[? if Rosenfeld_running : Rosenfeld - [+ Rosenfeld_votes_disp +]% ?]
-
-[? if Schaffer_running : Schäffer - [+ Schaffer_votes_disp +]% ?]
-
-[? if Drewitz_running: Max Drewitz - [+ Drewitz_votes_disp +]% ?]
-
-[? if Horsing_running: Otto Hörsing - [+ Horsing_votes_disp +]% ?]
-
-[? if Hamkens_running: Hamkens - [+ Hamkens_votes_disp +]% ?]
-
-[? if Behrens_running: Behrens - [+ Behrens_votes_disp +]% ?]
+{!<div id="pres_r1_chart"></div>!}
 
 @r2_start
 on-arrival: {!
@@ -2488,10 +2534,138 @@ on-arrival: {!
 };
     
     Q.winner_desc = candidate_descs[Q.winner];
+
+    on-display: {!
+var partyColors = {
+    spd: "#E3000F", kpd: "#8B0000", sapd: "#C40000", srpd: "#FF6B6B",
+    z: "#000000",   bvp: "#69A2BE", csrp: "#FFCCFF", ddp: "#DCCA4A",
+    dvp: "#D5AC27", wp:  "#424242", cnbl: "#5D4E37", csvd: "#3f7bc1",
+    dnvp: "#3f7bc1",nsdap:"#954B00",kvp:  "#3f7bc1", dhp: "#5D4E37",
+    bb:  "#69A2BE", vrp: "#8B7355", other:"#a0a0a0",
+};
+
+var partyLabels = {
+    spd:"SPD", kpd:"KPD", sapd:"SAPD", srpd:"SRPD", z:"Z", bvp:"BVP",
+    csrp:"CSRP", ddp: Q.ddp_name || "DDP", dvp:"DVP", wp:"WP",
+    cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
+    dhp:"DHP", bb:"BB", vrp:"VRP", other:"Other",
+};
+
+var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+
+var finalist1 = Q.round1_winner;
+var finalist2 = Q.round1_runner_up;
+
+// Buckets: finalist1, finalist2, third (rare SPD holdout)
+var buckets = {};
+buckets[finalist1] = [];
+buckets[finalist2] = [];
+var thirdKey = null;
+
+for (var i = 0; i < allParties.length; i++) {
+    var p = allParties[i];
+    var cand = Q[p + '_candidate'];
+    if (!cand) continue;
+    // Normalize diacritics to match finalist keys
+    var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    var votes = Q[p + '_r'] || Q[p + '_votes'] || 0;
+    if (votes <= 0) continue;
+
+    var bucket = candNorm === finalist1 ? finalist1
+               : candNorm === finalist2 ? finalist2
+               : candNorm; // third candidate
+
+    if (!buckets[bucket]) {
+        buckets[bucket] = [];
+        thirdKey = bucket;
+    }
+    buckets[bucket].push({ party: p, votes: votes });
+}
+
+function sumBucket(b) {
+    return b.reduce(function(s, x) { return s + x.votes; }, 0);
+}
+
+var total = sumBucket(buckets[finalist1])
+          + sumBucket(buckets[finalist2])
+          + (thirdKey ? sumBucket(buckets[thirdKey]) : 0);
+
+var displayNames = {
+    Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
+    Schaffer:"Schäffer", Goring:"Göring", KochWeser:"Koch-Weser",
+};
+function dname(k) { return displayNames[k] || k; }
+
+var container = document.getElementById('pres_r2_chart');
+if (!container) return;
+container.innerHTML = "";
+container.style.cssText = "width:100%; max-width:600px; font-family:sans-serif;";
+
+// Column widths proportional to vote totals
+var cols = [finalist1, finalist2];
+if (thirdKey) cols.push(thirdKey);
+
+var colTotals = cols.map(function(k) { return sumBucket(buckets[k]); });
+var colPcts   = colTotals.map(function(v) { return total > 0 ? v / total * 100 : 0; });
+
+// Candidate name headers
+var headerRow = document.createElement('div');
+headerRow.style.cssText = "display:flex; gap:4px; margin-bottom:4px;";
+cols.forEach(function(k, idx) {
+    var h = document.createElement('div');
+    h.style.cssText = "flex:" + colPcts[idx] + "; text-align:center; font-weight:bold; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+    h.textContent = dname(k) + " — " + colPcts[idx].toFixed(1) + "%";
+    headerRow.appendChild(h);
+});
+container.appendChild(headerRow);
+
+// Stacked bar columns side by side
+var barRow = document.createElement('div');
+barRow.style.cssText = "display:flex; gap:4px; height:140px; align-items:flex-end;";
+
+cols.forEach(function(k, colIdx) {
+    var colWrap = document.createElement('div');
+    colWrap.style.cssText = "flex:" + colPcts[colIdx] + "; display:flex; flex-direction:column; height:100%; border-radius:3px; overflow:hidden;";
+
+    var parties = buckets[k];
+    // Sort largest first so biggest party is at bottom (more stable visually)
+    parties.sort(function(a, b) { return b.votes - a.votes; });
+
+    var colTotal = colTotals[colIdx];
+    for (var i = 0; i < parties.length; i++) {
+        var p = parties[i];
+        var segPct = colTotal > 0 ? p.votes / colTotal * 100 : 0;
+        var seg = document.createElement('div');
+        seg.style.cssText = "flex:" + segPct + "; background:" + (partyColors[p.party] || "#aaa")
+            + "; display:flex; align-items:center; justify-content:center; overflow:hidden; min-height:0;";
+        seg.title = (partyLabels[p.party] || p.party) + ": " + p.votes.toFixed(1) + "%";
+
+        // Label if segment tall enough (>5% of column)
+        if (segPct > 5) {
+            var lbl = document.createElement('span');
+            lbl.style.cssText = "font-size:10px; font-weight:bold; color:#fff; text-shadow:0 0 2px #000,0 0 2px #000; white-space:nowrap; pointer-events:none;";
+            lbl.textContent = (partyLabels[p.party] || p.party) + " " + p.votes.toFixed(1) + "%";
+            seg.appendChild(lbl);
+        }
+        colWrap.appendChild(seg);
+    }
+    barRow.appendChild(colWrap);
+});
+container.appendChild(barRow);
+
+// Winner indicator
+var winLine = document.createElement('div');
+winLine.style.cssText = "margin-top:6px; font-size:12px; color:#333; text-align:center;";
+winLine.textContent = dname(Q.winner) + " wins with " + (Q.winner_votes_disp || "—") + "%";
+container.appendChild(winLine);
+!}
 !}
 go-to: election_end
 
 **Final Results:**
+
+{!<div id="pres_r2_chart"></div>!}
 
 [+ winner_desc +] has won the presidency with [+ winner_votes_disp +]% of the vote!
 
