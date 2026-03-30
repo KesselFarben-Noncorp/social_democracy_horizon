@@ -2222,7 +2222,53 @@ Normalized KPD relations.
 - @set
 - @set_p
 - @timers
+- @gov: Governments
 - @t_timers: All timers
+
+@gov
+subtitle: Set your governments!
+
+Anything?
+
+- @weimar: Weimar
+- @technical: Back.
+
+@weimar
+on-arrival: {! 
+// 1. CLEAR EVERYTHING FIRST
+Q.clear_government();
+
+// 2. SET CHANCELLOR
+// SPD leads Weimar coalition — but could be Z depending on negotiation
+Q.set_chancellor("Müller", "SPD");
+
+// 3. SET COALITION PARTIES
+// set_coalition will auto-flag in_weimar_coalition = 1
+// since SPD + Z + DDP are all present
+Q.set_coalition(["SPD", "Z", "DDP"]);
+
+// 4. TOLERATION — none needed, all three are full members
+// But if KPD is tolerating from outside:
+// Q.kpd_toleration = 1;
+
+// 5. ALLOCATE MINISTRIES
+// SPD will claim labor + interior + justice
+// Z will claim foreign + finance + agriculture  
+// DDP will claim economic + transport
+Q.allocate_ministries(["SPD", "Z", "DDP"]);
+
+// 6. INTEGRITY CHECKS
+Q.government_integrity_check();
+Q.ministry_integrity_check();
+!}
+go-to: technical
+
+Weimar is set. See it.
+
+
+
+
+
 
 @t_timers
 go-to: technical
