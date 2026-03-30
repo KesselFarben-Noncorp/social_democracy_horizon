@@ -49,138 +49,172 @@ Q.nationalism_disp = Q.nationalism;
 Q.socialism_disp = Q.socialism;
 Q.pacifism_disp = Q.pacifism;
 
-// === RELATION BAR CHART ===
+(function() {
+    // ── Data ────────────────────────────────────────────────────────
+    var parties = [
+        { label: "KPD",   rel: Q.kpd_relation   || 0, votes: Q.kpd_votes   || 0 },
+        { label: "SAPD",  rel: Q.sapd_relation  || 0, votes: Q.sapd_votes  || 0 },
+        { label: "SRPD",  rel: Q.srpd_relation  || 0, votes: Q.srpd_votes  || 0 },
+        { label: "CSRP",  rel: Q.csrp_relation  || 0, votes: Q.csrp_votes  || 0 },
+        { label: "DDP",   rel: Q.ddp_relation   || 0, votes: Q.ddp_votes   || 0 },
+        { label: "Z",     rel: Q.z_relation     || 0, votes: Q.z_votes     || 0 },
+        { label: "BVP",   rel: Q.bvp_relation   || 0, votes: Q.bvp_votes   || 0 },
+        { label: "BB",    rel: Q.bb_relation    || 0, votes: Q.bb_votes    || 0 },
+        { label: "DHP",   rel: Q.dhp_relation   || 0, votes: Q.dhp_votes   || 0 },
+        { label: "VRP",   rel: Q.vrp_relation   || 0, votes: Q.vrp_votes   || 0 },
+        { label: "DVP",   rel: Q.dvp_relation   || 0, votes: Q.dvp_votes   || 0 },
+        { label: "WP",    rel: Q.wp_relation    || 0, votes: Q.wp_votes    || 0 },
+        { label: "CNBL",  rel: Q.cnbl_relation  || 0, votes: Q.cnbl_votes  || 0 },
+        { label: "CSVD",  rel: Q.csvd_relation  || 0, votes: Q.csvd_votes  || 0 },
+        { label: "KVP",   rel: Q.kvp_relation   || 0, votes: Q.kvp_votes   || 0 },
+        { label: "DNVP",  rel: Q.dnvp_relation  || 0, votes: Q.dnvp_votes  || 0 },
+        { label: "NSDAP", rel: Q.nsdap_relation || 0, votes: Q.nsdap_votes || 0 },
+        { label: "SPD",   rel: 100,                   votes: Q.spd_votes   || 0 }
+    ];
 
-// 1. Define parties with their Q variable names and display labels
-var relationData = [
-    { label: "KPD",   value: Q.kpd_relation   || 0 },
-    { label: "SAPD",  value: Q.sapd_relation  || 0 },
-    { label: "SRPD",  value: Q.srpd_relation  || 0 },
-    { label: "CSRP",  value: Q.csrp_relation  || 0 },
-    { label: "DDP",   value: Q.ddp_relation   || 0 },
-    { label: "Z",     value: Q.z_relation     || 0 },
-    { label: "BVP",   value: Q.bvp_relation   || 0 },
-    { label: "BB",    value: Q.bb_relation    || 0 },
-    { label: "DHP",   value: Q.dhp_relation   || 0 },
-    { label: "VRP",   value: Q.vrp_relation   || 0 },
-    { label: "DVP",   value: Q.dvp_relation   || 0 },
-    { label: "WP",    value: Q.wp_relation    || 0 },
-    { label: "CNBL",  value: Q.cnbl_relation  || 0 },
-    { label: "CSVD",  value: Q.csvd_relation  || 0 },
-    { label: "KVP",   value: Q.kvp_relation   || 0 },
-    { label: "DNVP",  value: Q.dnvp_relation  || 0 },
-    { label: "NSDAP", value: Q.nsdap_relation || 0 }
-];
+    // Filter to active parties only
+    var active = parties.filter(function(p) { return p.votes > 1; });
+    // Sort by relation descending
+    active.sort(function(a, b) { return b.rel - a.rel; });
 
-// 2. Filter only parties with votes > 1 (mirrors your [? if x_votes > 1 ?] pattern)
-relationData = relationData.filter(function(p) {
-    var votesKey = p.label.toLowerCase() + "_votes";
-    return (Q[votesKey] || 0) > 1;
-});
+    // ── Helpers ─────────────────────────────────────────────────────
+    function relColor(val) {
+        // 0 = deep red, 50 = amber, 100 = green
+        var hue = Math.round((val / 100) * 120);
+        return "hsl(" + hue + ",90%,42%)";
+    }
 
-// 3. Sort descending
-relationData.sort(function(a, b) { return b.value - a.value; });
+    function css(el, styles) {
+        Object.keys(styles).forEach(function(k) { el.style[k] = styles[k]; });
+    }
 
-// 4. Build the container
-var wrapper = document.createElement("div");
-wrapper.style.cssText = "width:100%; margin: 16px 0 90px 0;";
+    // ── Wrapper injected into sidebar ────────────────────────────────
+    var section = document.createElement("div");
+    css(section, {
+        borderTop: "1px solid var(--border-color)",
+        fontFamily: '"Crimson Text", Georgia, serif',
+        fontSize: "12px"
+    });
 
-var chartTitle = document.createElement("div");
-chartTitle.style.cssText = "font-weight:bold; margin-bottom:8px;";
-chartTitle.textContent = "Inter-Party Relations";
-wrapper.appendChild(chartTitle);
+    // ── Toggle Header ────────────────────────────────────────────────
+    var header = document.createElement("div");
+    css(header, {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "7px 10px",
+        cursor: "pointer",
+        userSelect: "none",
+        background: "var(--tab-bg-color)",
+        borderBottom: "1px solid var(--border-color)"
+    });
 
-// Chart area (bars sit inside this)
-var chartArea = document.createElement("div");
-chartArea.style.cssText = [
-    "display:flex",
-    "align-items:flex-end",
-    "justify-content:flex-start",
-    "width:100%",
-    "height:180px",
-    "background:#111",
-    "border-bottom:2px solid #555",
-    "padding:8px 4px 0 4px",
-    "box-sizing:border-box",
-    "gap:2px"
-].join(";");
+    var title = document.createElement("span");
+    title.textContent = "Party Relations";
+    css(title, { fontWeight: "bold", letterSpacing: "0.04em", fontSize: "11px", textTransform: "uppercase", opacity: "0.75" });
 
-// 5. Render each bar
-var maxVal = 100; // relations are presumably 0-100
+    var arrow = document.createElement("span");
+    arrow.textContent = "▾";
+    css(arrow, { fontSize: "12px", transition: "transform 0.2s", display: "inline-block" });
 
-relationData.forEach(function(item) {
-    var barWrap = document.createElement("div");
-    barWrap.style.cssText = [
-        "flex:1",
-        "display:flex",
-        "flex-direction:column",
-        "align-items:center",
-        "justify-content:flex-end",
-        "height:100%",
-        "position:relative",
-        "min-width:14px"
-    ].join(";");
+    header.appendChild(title);
+    header.appendChild(arrow);
 
-    // Dynamic hue: 0 = red (hostile), 120 = green (friendly)
-    var hue = Math.round((item.value / maxVal) * 120);
-    var color = "hsl(" + hue + ",100%,45%)";
+    // ── Collapsible Body ─────────────────────────────────────────────
+    var body = document.createElement("div");
+    css(body, {
+        padding: "6px 10px 8px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        overflow: "hidden",
+        maxHeight: "600px",           // open state
+        transition: "max-height 0.3s ease, padding 0.2s ease"
+    });
 
-    var bar = document.createElement("div");
-    var heightPct = Math.max(2, (item.value / maxVal) * 100); // min 2% so 0 is still visible
-    bar.style.cssText = [
-        "width:100%",
-        "height:" + heightPct + "%",
-        "background-color:" + color,
-        "border-radius:2px 2px 0 0",
-        "box-sizing:border-box",
-        "position:relative"
-    ].join(";");
-    bar.title = item.label + ": " + item.value;
+    var collapsed = false;
+    header.addEventListener("click", function() {
+        collapsed = !collapsed;
+        if (collapsed) {
+            body.style.maxHeight = "0";
+            body.style.padding = "0 10px";
+            arrow.style.transform = "rotate(-90deg)";
+        } else {
+            body.style.maxHeight = "600px";
+            body.style.padding = "6px 10px 8px";
+            arrow.style.transform = "rotate(0deg)";
+        }
+    });
 
-    // Value label on top of bar
-    var valLabel = document.createElement("span");
-    valLabel.style.cssText = [
-        "position:absolute",
-        "top:-16px",
-        "width:100%",
-        "text-align:center",
-        "font-size:8px",
-        "font-weight:bold",
-        "color:#eee"
-    ].join(";");
-    valLabel.textContent = item.value;
-    bar.appendChild(valLabel);
+    // ── Row per party ────────────────────────────────────────────────
+    active.forEach(function(p) {
+        var row = document.createElement("div");
+        css(row, { display: "flex", alignItems: "center", gap: "5px" });
 
-    // Party name below chart (rotated)
-    var nameLabel = document.createElement("span");
-    nameLabel.style.cssText = [
-        "position:absolute",
-        "bottom:-52px",
-        "left:50%",
-        "transform:translateX(-50%) rotate(45deg)",
-        "font-size:8px",
-        "white-space:nowrap",
-        "color:#ccc",
-        "pointer-events:none"
-    ].join(";");
-    nameLabel.textContent = item.label;
+        // Label
+        var lbl = document.createElement("span");
+        lbl.textContent = p.label;
+        css(lbl, { width: "36px", minWidth: "36px", fontSize: "10px", opacity: "0.85", textAlign: "right" });
 
-    barWrap.appendChild(bar);
-    barWrap.appendChild(nameLabel);
-    chartArea.appendChild(barWrap);
-});
+        // Bar track
+        var track = document.createElement("div");
+        css(track, {
+            flex: "1",
+            height: "10px",
+            background: "var(--tab-bg-color, #222)",
+            borderRadius: "3px",
+            overflow: "hidden",
+            position: "relative"
+        });
 
-wrapper.appendChild(chartArea);
+        // Bar fill — relation
+        var fill = document.createElement("div");
+        var relPct = Math.max(1, p.rel);
+        css(fill, {
+            height: "100%",
+            width: relPct + "%",
+            background: relColor(p.rel),
+            borderRadius: "3px",
+            position: "relative"
+        });
 
-// 6. Inject into the page — same pattern as your working example
-// Place a div with id="relation-chart" in your scene text above this block,
-// OR append to document.body as a fallback:
-var target = document.getElementById("relation-chart");
-if (target) {
-    target.appendChild(wrapper);
-} else {
-    document.body.appendChild(wrapper);
-}
+        // Vote % overlay line
+        var voteLine = document.createElement("div");
+        css(voteLine, {
+            position: "absolute",
+            top: "0",
+            left: p.votes + "%",
+            width: "2px",
+            height: "100%",
+            background: "rgba(255,255,255,0.6)",
+            borderRadius: "1px"
+        });
+
+        track.appendChild(fill);
+        track.appendChild(voteLine);
+
+        // Numeric labels
+        var nums = document.createElement("span");
+        nums.textContent = p.rel + " | " + p.votes + "%";
+        css(nums, { fontSize: "9px", opacity: "0.6", minWidth: "52px", textAlign: "right", whiteSpace: "nowrap" });
+
+        row.appendChild(lbl);
+        row.appendChild(track);
+        row.appendChild(nums);
+        body.appendChild(row);
+    });
+
+    section.appendChild(header);
+    section.appendChild(body);
+
+    // ── Mount into sidebar ───────────────────────────────────────────
+    var sidebar = document.querySelector(".tools.left") ||
+                  document.querySelector("#stats_sidebar") ||
+                  document.querySelector(".tools");
+    if (sidebar) {
+        sidebar.appendChild(section);
+    }
+})();
 !}
 
 = Parties
