@@ -20,6 +20,9 @@ Q.random_factor = function(f, variance = 0.65) {
     return f * (1 - variance / 2 + _r() * variance);
 };
 
+const seeded_factor = (val, variance) => val * (1 - variance / 2 + _r() * variance);
+const _rf = (val, variance = 0.3) => val * (1 - variance / 2 + _r() * variance);
+
 // ========================================
 // GOVERNMENT STATE UTILITY FUNCTIONS
 // ========================================
@@ -784,7 +787,10 @@ for (const name of CABINET_CHANCELLORS) {
     Q[key] = (Q.chancellor === name) ? 1 : 0;
 }
 
+/// SMALL SETTINGS
 
+Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
+Q.liberal_coalition = Q.ddp + Q.dvp + Q.wp;
 
 
 
@@ -1539,9 +1545,7 @@ if (!Q.math_broken) {
 
 
 
-/// SMALL SETTINGS
 
-Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
 
 
 
@@ -2474,20 +2478,25 @@ Q.identity_modifier = {
 
 
     // FACTORS
-    Q.pro_republic_factor = Q.random_factor(
-        Math.min(Math.max(Q.pro_republic / 33, 0.5), 1.5), 
-        0.15
-    );
-    Q.nationalism_factor = Q.random_factor(
-        Math.min(Math.max(Q.nationalism / 33, 0.5), 1.5), 
-        0.20
-    );
-    Q.socialism_factor = Q.random_factor(
-        Math.min(Math.max(Q.socialism / 33, 0.5), 1.5), 
-        0.20
-    );
-    Q.street_pressure_factor = Q.random_factor(Math.min(Math.max((Q.sa_strength * Q.sa_militancy + Q.rfb_strength * Q.rfb_militancy + Q.sh_strength * Q.sh_militancy) / 3500,  0.7 ), 1.8 ), 0.25);
+    Q.pro_republic_factor = seeded_factor(
+    Math.min(Math.max(Q.pro_republic / 33, 0.5), 1.5), 
+    0.15
+);
 
+Q.nationalism_factor = seeded_factor(
+    Math.min(Math.max(Q.nationalism / 33, 0.5), 1.5), 
+    0.20
+);
+
+Q.socialism_factor = seeded_factor(
+    Math.min(Math.max(Q.socialism / 33, 0.5), 1.5), 
+    0.20
+);
+
+Q.street_pressure_factor = seeded_factor(
+    Math.min(Math.max((Q.sa_strength * Q.sa_militancy + Q.rfb_strength * Q.rfb_militancy + Q.sh_strength * Q.sh_militancy) / 3500, 0.7), 1.8), 
+    0.25
+);
         // Paramilitary influence (randomized)
         // SA is banned if NSDAP is banned
     Q.sa_influence  = Q.nsdap_banned ? 0 : Q.random_factor((Q.sa_strength/100 + Q.sa_militancy) * 0.25, 0.3);
@@ -2511,7 +2520,7 @@ Q.identity_modifier = {
      // === CAMPAIGN FOCUS MODIFIER ===
      // Decays each tick so player must re-campaign to maintain
      if (Q.campaign_intensity > 0) {
-         Q.campaign_intensity -= 0.08; // ~12 ticks to fade
+         Q.campaign_intensity -= 0.05; // ~20 ticks to fade
      }
      Q.campaign_intensity = Math.max(0, Q.campaign_intensity);
 
@@ -3737,31 +3746,51 @@ Q.identity_modifier = {
         }
     }
 
-// === PARAMILITARY STRENGTH UPDATES ===
-
+// --- SA (NSDAP) ---
 if (Q.nsdap_banned) {
     Q.sa_strength *= 0.70;
     Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
 } else {
-    Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
+    Q.sa_strength += _rf(Q.unrest_factor / 3);
+    Q.sa_militancy = Math.min(1.5, Q.sa_militancy + 0.05); // Natural growth
 }
 
+// --- Stahlhelm (DNVP/Right) ---
 if (Q.dnvp_banned || Q.sh_banned) {
     Q.sh_strength *= 0.75;
     Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
 } else {
-    Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
+    Q.sh_strength += _rf(Q.unrest_factor / 6);
+    Q.sh_militancy = Math.min(1.2, Q.sh_militancy + 0.03); 
 }
 
-if (Q.kpd_banned) {
+// --- RFB (KPD) ---
+if (Q.kpd_banned || Q.rfb_banned) {
     Q.rfb_strength *= 0.65;
     Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
 } else {
-    Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
+    Q.rfb_strength += _rf(Q.unrest_factor / 5);
+    Q.rfb_militancy = Math.min(1.5, Q.rfb_militancy + 0.04);
 }
 
-Q.rb_strength     += Q.random_factor(Q.unrest_factor / 20, 0.3);
-Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
+// --- Reichsbanner (SPD/Z/DDP) ---
+if (Q.rb_banned || Q.spd_banned) {
+    Q.rb_strength *= 0.80;
+    Q.rb_militancy = Math.max(0, Q.rb_militancy - 0.2);
+} else {
+    Q.rb_strength += _rf(Q.unrest_factor / 20);
+    Q.rb_militancy = Math.min(1.0, Q.rb_militancy + 0.01);
+}
+
+// --- Jungdo (DDP/Center-Right) ---
+if (Q.jungdo_banned || Q.ddp_banned) {
+    Q.jungdo_strength *= 0.85;
+    Q.jungdo_militancy = Math.max(0, Q.jungdo_militancy - 0.2);
+} else {
+    const jungdo_growth = (Q.new_middle / 50) + (Q.old_middle / 100) + (Q.nationalism / 100);
+    Q.jungdo_strength += _rf(jungdo_growth);
+    Q.jungdo_militancy = Math.min(0.8, Q.jungdo_militancy + 0.01);
+}
 
 // Decay factors — FIXED
 // stability_decay: only applies when things are genuinely calm (low unrest)
