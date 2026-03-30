@@ -20,6 +20,357 @@ Q.random_factor = function(f, variance = 0.65) {
     return f * (1 - variance / 2 + _r() * variance);
 };
 
+// ========================================
+// GOVERNMENT STATE UTILITY FUNCTIONS
+// ========================================
+
+// === MASTER PARTY LIST ===
+// Single source of truth — add new parties here only
+const ALL_PARTIES = [
+    'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
+    'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
+    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other'
+];
+
+// === MASTER CHANCELLOR LIST ===
+const ALL_CHANCELLORS = [
+    'bruning', 'schleicher', 'papen', 'muller', 'wels',
+    'braun', 'breitscheid', 'hilferding', 'wirth', 'kaas',
+    'stresemann', 'curtius', 'dingeldey', 'hugenberg',
+    'westarp', 'treviranus', 'marx', 'luther', 'held',
+    'schaffer', 'koch_weser', 'dietrich', 'mahraun',
+    'joos', 'rosenfeld', 'thalmann', 'neumann', 'horsing',
+    'drewitz', 'lambach', 'hepp', 'heller'
+];
+
+// Name normalization map — Q.chancellor string → cabinet key
+const CHANCELLOR_KEY_MAP = {
+    "Brüning":      "bruning",
+    "Schleicher":   "schleicher",
+    "Papen":        "papen",
+    "Müller":       "muller",
+    "Wels":         "wels",
+    "Braun":        "braun",
+    "Breitscheid":  "breitscheid",
+    "Hilferding":   "hilferding",
+    "Wirth":        "wirth",
+    "Kaas":         "kaas",
+    "Stresemann":   "stresemann",
+    "Curtius":      "curtius",
+    "Dingeldey":    "dingeldey",
+    "Hugenberg":    "hugenberg",
+    "Westarp":      "westarp",
+    "Treviranus":   "treviranus",
+    "Marx":         "marx",
+    "Luther":       "luther",
+    "Held":         "held",
+    "Schäffer":     "schaffer",
+    "Koch-Weser":   "koch_weser",
+    "Dietrich":     "dietrich",
+    "Mahraun":      "mahraun",
+    "Joos":         "joos",
+    "Rosenfeld":    "rosenfeld",
+    "Thälmann":     "thalmann",
+    "Neumann":      "neumann",
+    "Horsing":      "horsing",
+    "Drewitz":      "drewitz",
+    "Lambach":      "lambach",
+    "Hepp":         "hepp",
+    "Heller":       "heller",
+};
+
+// ========================================
+// CORE FUNCTIONS
+// ========================================
+
+// --- Clear ALL government state ---
+// Call this before forming any new government
+// or on dismissal/collapse
+Q.clear_government = function() {
+
+    // Clear all party membership flags
+    for (const party of ALL_PARTIES) {
+        Q[party + '_in_government'] = 0;
+    }
+
+    // Clear all cabinet flags
+    for (const ch of ALL_CHANCELLORS) {
+        Q[ch + '_cabinet'] = 0;
+    }
+
+    // Clear toleration
+    Q.spd_toleration  = 0;
+    Q.kpd_toleration  = 0;
+    Q.dnvp_toleration = 0;
+
+    // Clear coalition type flags
+    Q.in_grand_coalition   = 0;
+    Q.in_weimar_coalition  = 0;
+    Q.in_left_coalition    = 0;
+    Q.minority_government  = 0;
+    Q.presidential_cabinet = 0;
+    Q.caretaker_government = 0;
+
+    // Clear chancellor
+    Q.last_dismissed_chancellor       = Q.chancellor || null;
+    Q.last_dismissed_chancellor_party = Q.chancellor_party || null;
+    Q.chancellor       = null;
+    Q.chancellor_party = null;
+
+    // Reset minority tick counter
+    Q.chancellor_minority_ticks = 0;
+    Q.article_48_uses = 0;
+};
+
+// --- Set chancellor safely ---
+// Always use this instead of setting Q.chancellor directly
+// Clears all other cabinet flags first, sets exactly one
+Q.set_chancellor = function(name, party) {
+
+    // Clear all cabinet flags first
+    for (const ch of ALL_CHANCELLORS) {
+        Q[ch + '_cabinet'] = 0;
+    }
+
+    // Set new chancellor
+    Q.chancellor       = name;
+    Q.chancellor_party = party || null;
+
+    // Set the correct cabinet flag
+    const key = CHANCELLOR_KEY_MAP[name];
+    if (key) {
+        Q[key + '_cabinet'] = 1;
+    } else {
+        console.warn("set_chancellor: no key found for chancellor name: " + name);
+    }
+
+    // Reset patience for new chancellor
+    const PATIENCE_START = {
+        "Müller": 55, "Wels": 40, "Braun": 45, "Breitscheid": 30,
+        "Hilferding": 35, "Thälmann": 10, "Neumann": 15, "Rosenfeld": 20,
+        "Koch-Weser": 60, "Dietrich": 62, "Mahraun": 58, "Wirth": 55,
+        "Joos": 60, "Horsing": 58, "Held": 65, "Schäffer": 68,
+        "Drewitz": 65, "Hepp": 68, "Heller": 52, "Brüning": 100,
+        "Kaas": 85, "Stresemann": 75, "Curtius": 80, "Dingeldey": 82,
+        "Westarp": 90, "Treviranus": 88, "Hugenberg": 85, "Lambach": 80,
+        "Luther": 80, "Marx": 78, "Schleicher": 72, "Papen": 68,
+    };
+    Q.hindenburg_patience      = PATIENCE_START[name] ?? 70;
+    Q._last_chancellor         = name;
+    Q.chancellor_minority_ticks = 0;
+};
+
+// --- Set coalition parties safely ---
+// Pass an array of party strings
+// Clears all first, then sets exactly the ones provided
+Q.set_coalition = function(parties) {
+
+    // Clear all first
+    for (const party of ALL_PARTIES) {
+        Q[party + '_in_government'] = 0;
+    }
+
+    // Set provided parties
+    for (const party of parties) {
+        const key = party.toLowerCase();
+        if (ALL_PARTIES.includes(key)) {
+            Q[key + '_in_government'] = 1;
+        } else {
+            console.warn("set_coalition: unknown party: " + party);
+        }
+    }
+
+    // Derive coalition type flags automatically
+    Q._derive_coalition_flags();
+};
+
+// --- Add a single party to coalition ---
+// For mid-term coalition expansions
+Q.add_to_coalition = function(party) {
+    const key = party.toLowerCase();
+    if (ALL_PARTIES.includes(key)) {
+        Q[key + '_in_government'] = 1;
+        Q._derive_coalition_flags();
+    } else {
+        console.warn("add_to_coalition: unknown party: " + party);
+    }
+};
+
+// --- Remove a single party from coalition ---
+// For mid-term coalition collapses where chancellor stays
+Q.remove_from_coalition = function(party) {
+    const key = party.toLowerCase();
+    Q[key + '_in_government'] = 0;
+    Q._derive_coalition_flags();
+};
+
+// --- Derive coalition type flags from current membership ---
+// Called automatically by set/add/remove — not usually called directly
+Q._derive_coalition_flags = function() {
+
+    // Count governing parties
+    let party_count = 0;
+    let has_left    = Q.spd_in_government || Q.kpd_in_government || 
+                      Q.sapd_in_government || Q.srpd_in_government;
+    let has_right   = Q.dnvp_in_government || Q.nsdap_in_government;
+    let has_centre  = Q.z_in_government || Q.ddp_in_government || 
+                      Q.dvp_in_government || Q.bvp_in_government;
+
+    for (const party of ALL_PARTIES) {
+        if (Q[party + '_in_government']) party_count++;
+    }
+
+    // Grand coalition: SPD + Z + DVP at minimum
+    Q.in_grand_coalition = (
+        Q.spd_in_government && Q.z_in_government && Q.dvp_in_government
+    ) ? 1 : 0;
+
+    // Weimar coalition: SPD + Z + DDP
+    Q.in_weimar_coalition = (
+        Q.spd_in_government && Q.z_in_government && Q.ddp_in_government
+    ) ? 1 : 0;
+
+    // Left coalition: SPD-led without right parties
+    Q.in_left_coalition = (
+        Q.spd_in_government && has_left && !has_right
+    ) ? 1 : 0;
+
+    // Presidential cabinet: no SPD, no left, typically minority
+    Q.presidential_cabinet = (
+        !Q.spd_in_government && !Q.kpd_in_government && 
+        !Q.sapd_in_government && !Q.srpd_in_government &&
+        Q.camarilla_strength >= 60
+    ) ? 1 : 0;
+
+    // Minority: single party or very small coalition
+    // This is approximate — override manually if needed
+    Q.minority_government = (party_count <= 2) ? 1 : 0;
+};
+
+// ========================================
+// INTEGRITY CHECK
+// ========================================
+// Run every tick to catch and fix inconsistencies
+// Logs warnings so you can trace the source
+
+Q.government_integrity_check = function() {
+
+    let issues = [];
+
+    // --- Check: cabinet flags match Q.chancellor ---
+    let active_cabinets = [];
+    for (const ch of ALL_CHANCELLORS) {
+        if (Q[ch + '_cabinet']) active_cabinets.push(ch);
+    }
+
+    if (active_cabinets.length === 0 && Q.chancellor) {
+        issues.push("WARN: chancellor set but no cabinet flag active — fixing");
+        const key = CHANCELLOR_KEY_MAP[Q.chancellor];
+        if (key) Q[key + '_cabinet'] = 1;
+    }
+
+    if (active_cabinets.length > 1) {
+        issues.push("WARN: multiple cabinet flags active: " + active_cabinets.join(", ") + " — clearing all but current");
+        for (const ch of ALL_CHANCELLORS) Q[ch + '_cabinet'] = 0;
+        const key = CHANCELLOR_KEY_MAP[Q.chancellor];
+        if (key) Q[key + '_cabinet'] = 1;
+    }
+
+    if (active_cabinets.length === 1) {
+        const expected_key = CHANCELLOR_KEY_MAP[Q.chancellor];
+        if (expected_key && active_cabinets[0] !== expected_key) {
+            issues.push("WARN: cabinet flag " + active_cabinets[0] + " doesn't match chancellor " + Q.chancellor + " — fixing");
+            for (const ch of ALL_CHANCELLORS) Q[ch + '_cabinet'] = 0;
+            Q[expected_key + '_cabinet'] = 1;
+        }
+    }
+
+    // --- Check: no chancellor but parties still in government ---
+    if (!Q.chancellor) {
+        let orphaned = [];
+        for (const party of ALL_PARTIES) {
+            if (Q[party + '_in_government']) orphaned.push(party);
+        }
+        if (orphaned.length > 0) {
+            issues.push("WARN: no chancellor but parties still in government: " + orphaned.join(", ") + " — clearing");
+            for (const party of ALL_PARTIES) Q[party + '_in_government'] = 0;
+        }
+    }
+
+    // --- Check: chancellor party not in government ---
+    if (Q.chancellor && Q.chancellor_party) {
+        const key = Q.chancellor_party.toLowerCase();
+        if (ALL_PARTIES.includes(key) && !Q[key + '_in_government']) {
+            issues.push("WARN: chancellor party " + key + " not marked in_government — fixing");
+            Q[key + '_in_government'] = 1;
+        }
+    }
+
+    // --- Check: conflicting coalition type flags ---
+    if (Q.in_grand_coalition && Q.in_weimar_coalition) {
+        issues.push("WARN: both grand_coalition and weimar_coalition active — clearing weimar");
+        Q.in_weimar_coalition = 0;
+    }
+
+    if (Q.presidential_cabinet && Q.spd_in_government) {
+        issues.push("WARN: presidential_cabinet with SPD in government — clearing presidential flag");
+        Q.presidential_cabinet = 0;
+    }
+
+    // Log all issues
+    if (issues.length > 0) {
+        console.warn("=== GOVERNMENT INTEGRITY CHECK ===");
+        for (const issue of issues) console.warn(issue);
+        console.warn("==================================");
+    }
+
+    return issues.length;
+};
+
+// ========================================
+// TICK-LEVEL CABINET FLAG SYNC
+// ========================================
+// Runs every tick — lightweight, just keeps flags in sync
+// Does NOT call the full integrity check unless something is wrong
+
+{
+    // Keep x_cabinet flags synced to Q.chancellor
+    for (const [name, key] of Object.entries(CHANCELLOR_KEY_MAP)) {
+        Q[key + '_cabinet'] = (Q.chancellor === name) ? 1 : 0;
+    }
+
+    // Run integrity check — returns issue count
+    // Only logs if there's actually something wrong
+    Q.government_integrity_check();
+}
+
+
+
+
+
+
+
+// ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
+
+Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
+
+// === CABINET TYPE FLAGS ===
+Q.papen_cabinet     = (Q.chancellor === "Papen")      ? 1 : 0;
+Q.schleicher_cabinet = (Q.chancellor === "Schleicher") ? 1 : 0;
+
+// Generic x_cabinet check for any chancellor with that flag pattern
+const CABINET_CHANCELLORS = ["Papen", "Schleicher", "Brüning", "Luther", "Marx", "Stegerwald"];
+for (const name of CABINET_CHANCELLORS) {
+    const key = name.toLowerCase().replace("ü", "u") + "_cabinet";
+    Q[key] = (Q.chancellor === name) ? 1 : 0;
+}
+
+
+
+
+
+
+
 
 
 
@@ -66,6 +417,10 @@ if (Q.month_actions >= 1) {
 
 // EVENTS
 
+if (Q.inflation > 10) {
+        Q.inflation_crisis_event = 0;
+        }
+
 
 if (Q.year == 1930 && Q.month == 5 && Q.weeks >= 1 && Q.young_plan_seen == 1) {
     Q.economic_growth += 0.5; // already have this
@@ -89,20 +444,6 @@ if (Q.year == 1930 && Q.month == 5 && Q.weeks >= 1 && Q.young_plan_seen == 1) {
 
 
 
-// ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
-
-Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
-
-// === CABINET TYPE FLAGS ===
-Q.papen_cabinet     = (Q.chancellor === "Papen")      ? 1 : 0;
-Q.schleicher_cabinet = (Q.chancellor === "Schleicher") ? 1 : 0;
-
-// Generic x_cabinet check for any chancellor with that flag pattern
-const CABINET_CHANCELLORS = ["Papen", "Schleicher", "Brüning", "Luther", "Marx", "Stegerwald"];
-for (const name of CABINET_CHANCELLORS) {
-    const key = name.toLowerCase().replace("ü", "u") + "_cabinet";
-    Q[key] = (Q.chancellor === name) ? 1 : 0;
-}
 
 
 
@@ -113,10 +454,6 @@ for (const name of CABINET_CHANCELLORS) {
 
 
 
-
-    if (Q.inflation > 10) {
-        Q.inflation_crisis_event = 0;
-        }
     
     // ============================================================
 // ECONOMIC SIMULATION — PHASE-CYCLING MODEL
@@ -701,12 +1038,6 @@ if (!Q.math_broken) {
     Q.budget          = Q.impossible_multiply(Q.budget, 1);
     Q.capital_pressure= Q.impossible_add(Q.capital_pressure, 0);
 }
-
-Q.capital_strike_progress = Math.max(0, Math.min(15, Q.capital_strike_progress || 0));
-Q.coup_progress           = Math.max(0, Math.min(15, Q.coup_progress           || 0));
-Q.general_strike_progress = Math.max(0, Math.min(15, Q.general_strike_progress || 0));
-
-//               HOME TO ALL CONSTRAINTS OF THE VALUES HERE, OKAY.
 
 
 
@@ -4438,6 +4769,12 @@ if (Q.ma >= 1) {
                              'unemployment': Q.unemployed});
 }
 
+
+Q.capital_strike_progress = Math.max(0, Math.min(15, Q.capital_strike_progress || 0));
+Q.coup_progress           = Math.max(0, Math.min(15, Q.coup_progress           || 0));
+Q.general_strike_progress = Math.max(0, Math.min(15, Q.general_strike_progress || 0));
+
+//               HOME TO ALL CONSTRAINTS OF THE VALUES HERE, OKAY.
 
 
 
