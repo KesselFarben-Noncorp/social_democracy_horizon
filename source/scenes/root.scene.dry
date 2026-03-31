@@ -1418,6 +1418,18 @@ This is a game of alternate history. Despite being the modification of the semi 
 
 Choose your challenges!
 
+> *Spartacist Victory: [? if spartac_challenge = 1: ON ?][? if spartac_challenge != 1: OFF ?]*
+> *Inverted World: [? if inverted_challenge = 1: ON ?][? if inverted_challenge != 1: OFF ?]*
+> *Gang: [? if gang_challenge = 1: ON ?][? if gang_challenge != 1: OFF ?]*
+> *Modern Democracy: [? if dem_challenge = 1: ON ?][? if dem_challenge != 1: OFF ?]*
+> *New Party: [? if new_partei_challenge = 1: ON ?][? if new_partei_challenge != 1: OFF ?]*
+> *Agrarian Revolution: [? if peasant_revolution = 1: ON ?][? if peasant_revolution != 1: OFF ?]*
+> *Camarillamulator: [? if cmr_challenge = 1: ON ?][? if cmr_challenge != 1: OFF ?]*
+> *Vanilla: [? if vn_challenge = 1: ON ?][? if vn_challenge != 1: OFF ?]*
+> *Dice: [? if dice_challenge = 1: ON ?][? if dice_challenge != 1: OFF ?]*
+> *Duel: [? if duel_challenge = 1: ON ?][? if duel_challenge != 1: OFF ?]*
+> *Hindenburg: [? if hindenburg_challenge = 1: ON ?][? if hindenburg_challenge != 1: OFF ?]*
+
 - @spartacus: Spartacist Victory!
 - @inverted: Randomize relationships!
 - @gang: All of the gang is here! 
@@ -1425,9 +1437,59 @@ Choose your challenges!
 - @new: SPD is newly formed party.
 - @bauern: Agrarian Revolution
 - @camarilla: Camarillamulator
+- @hindenburg: Hindenburg is not.
+- @duel: Duel gamemode.
 - @vanilla: Vanilla-esque gamemode.
 - @dice: Dice Gamemode.
 - @start_2: Back
+
+@duel
+
+= Duel
+
+You and DNVP. Ready?
+
+- @d_2: True
+- @d_3: False
+- @challenge: Back.
+
+@d_2
+view-if: duel_challenge = 0
+on-arrival: duel_challenge = 1
+go-to: duel
+
+Turned on!
+
+@d_3
+view-if: duel_challenge = 1
+on-arrival: duel_challenge = 0
+go-to: duel
+
+Turned off!
+
+@hindenburg
+
+= Hindenburg has lost
+
+Hindenburg is not present anymore since he lost 1925. Enjoy.
+
+- @hn_2: True
+- @hn_3: False
+- @challenge: Back.
+
+@hn_2
+view-if: hindenburg_challenge = 0
+on-arrival: hindenburg_challenge = 1
+go-to: hindenburg
+
+Turned on!
+
+@hn_3
+view-if: hindenburg_challenge = 1
+on-arrival: hindenburg_challenge = 0
+go-to: hindenburg
+
+Turned off!
 
 @dice
 
@@ -1685,6 +1747,34 @@ audio: shuffle music/1928_1930/FruhlingsliedMendelssohn.mp3 music/1928_1930/AUF_
 new-page: true
 go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
 on-arrival: {!
+if (Q.hindenburg_challenge === 1) {
+    Q.hindenburg_dead = 1;
+    Q.president = "Gessler";
+    Q.president_party = "DDP";
+}
+
+if (Q.duel_challenge === 1) {
+    Q.dvp_banned = 1;
+    Q.bvp_banned = 1;
+    Q.kpd_banned = 1;
+    Q.bb_banned = 1;
+    Q.dhp_banned = 1;
+    Q.kvp_banned = 1;
+    Q.nsdap_banned = 1;
+    Q.other_banned = 1;
+    Q.csvd_banned = 1;
+    Q.wp_banned = 1;
+    Q.cnbl_banned = 1;
+    Q.vrp_banned = 1;
+    Q.srpd_banned = 1;
+    Q.sapd_banned = 1;
+    Q.z_banned = 1;
+    Q.ddp_banned = 1;
+    Q.spd_banned = 0;
+    Q.dnvp_banned = 0;
+    Q.dvfp_banned = 1;
+}
+
 if (Q.spartac_challenge === 1) {
     Q.dvp_banned = 1;
     Q.bvp_banned = 1;
