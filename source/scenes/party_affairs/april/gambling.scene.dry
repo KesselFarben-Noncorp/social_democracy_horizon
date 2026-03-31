@@ -43,27 +43,27 @@ Current bet: [+ current_bid +]
 - @room: Changed my mind.
 
 @set_bet_1
-choose-if: resources > 0
+choose-if: resources > 0 and current_bid < resources
 on-arrival: current_bid += 1
 go-to: put
 
 @set_bet_2
-choose-if: resources > 1
+choose-if: resources > 1 and current_bid < resources
 on-arrival: current_bid += 2
 go-to: put
 
 @set_bet_5
-choose-if: resources > 4
+choose-if: resources > 4 and current_bid < resources
 on-arrival: current_bid += 5
 go-to: put
 
 @set_bet_10
-choose-if: resources > 9
+choose-if: resources > 9 and current_bid < resources
 on-arrival: current_bid += 10
 go-to: put
 
 @set_bet_all
-choose-if: resources > 0
+choose-if: resources > 0 and current_bid < resources
 on-arrival: current_bid += resources
 go-to: put
 
@@ -77,6 +77,10 @@ You are betting **[+ current_bid +]** resources. The lights flicker in sync with
 
 @start
 on-arrival: {!
+if (Q.current_bid > Q.resources) {
+    Q.current_bid = Q.resources;
+}
+
 // 1. Get the random roll using the engine's built-in factor
 // This replaces the broken _mkrng and bitwise logic
 const roll = Q.random_factor; 
