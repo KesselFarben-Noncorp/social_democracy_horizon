@@ -1384,6 +1384,21 @@ Carl von Ossietzky, the pacifist journalist, will be our candidate.
 
 @finalize_candidates
 on-arrival: {!
+
+// Hard kill: if Hindenburg is dead, zero out any stale candidate assignments
+if (Q.hindenburg_dead) {
+    Q.hindenburg_running = 0;
+    var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                       'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+    for (var i = 0; i < all_parties.length; i++) {
+        if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
+            Q[all_parties[i] + '_candidate'] = null;
+        }
+        if (Q[all_parties[i] + '_default_candidate'] === 'Hindenburg') {
+            Q[all_parties[i] + '_default_candidate'] = null;
+        }
+    }
+}
     // ========================================
     // FINALIZE BASED ON SPD CHOICE
     // ========================================
