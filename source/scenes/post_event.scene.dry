@@ -1637,17 +1637,29 @@ for (var rel of relations) {
 
 // --- Helpers ---
 function scale(value, low, high) {
+    if (Q.math_broken) {
+        // Returns impossible scales (e.g., 500% or -200%)
+        return Q.impossible_percentage(value / (high - low));
+    }
     return Math.max(0, Math.min(1, (value - low) / (high - low)));
 }
 
 // --- Base economic stress/relief signals ---
-var unemp_stress  = scale(Q.unemployed, 8, 25);
-var unemp_relief  = 1 - scale(Q.unemployed, 3, 10);
-var inflation_stress = scale(Q.inflation, 5, 15);
-var inflation_stable = 1 - scale(Math.abs(Q.inflation), 3, 8);
-var growth_boost  = scale(Q.economic_growth, 1, 6);
-var growth_penalty = scale(-Q.economic_growth, 1, 10);
-
+if (!Q.math_broken) {
+    unemp_stress     = scale(Q.unemployed, 8, 25);
+    unemp_relief     = 1 - scale(Q.unemployed, 3, 10);
+    inflation_stress = scale(Q.inflation, 5, 15);
+    growth_boost     = scale(Q.economic_growth, 1, 6);
+    var growth_boost  = scale(Q.economic_growth, 1, 6);
+    var growth_penalty = scale(-Q.economic_growth, 1, 10);
+} else {
+    // Inject chaos into the very foundation of the data
+    unemp_stress     = Q.chaos_random(); 
+    unemp_relief     = Q.impossible_subtract(1, Q.chaos_random());
+    inflation_stress = Q.impossible_multiply(scale(Q.inflation, 5, 15), 10);
+    growth_boost     = Q.impossible_add(Q.economic_growth, Q.chaos_random());
+    var growth_penalty = Q.impossible_add(scale(-Q.economic_growth, 1, 10));
+}
 // --- Phase multipliers ---
 // Each phase amplifies the pressures most associated with it historically.
 // Depression: unemployment dominates. Hyperinflation: inflation dominates.
@@ -1738,9 +1750,16 @@ if (Q.dvfp_in_government) nationalist_party_count++;
 if (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1) nationalist_party_count++;
 
 // 1 party = 0.35, 2 = 0.70, 3+ = 1.0
-var socialist_influence  = Math.min(socialist_party_count  * 0.35, 1.0);
-var centrist_influence   = Math.min(centrist_party_count   * 0.25, 1.0);
-var nationalist_influence = Math.min(nationalist_party_count * 0.35, 1.0);
+if (!Q.math_broken) {
+    socialist_influence  = Math.min(socialist_party_count  * 0.35, 1.0);
+    centrist_influence   = Math.min(centrist_party_count   * 0.25, 1.0);
+    nationalist_influence = Math.min(nationalist_party_count * 0.35, 1.0);
+} else {
+    // Parties have negative or infinite influence
+    socialist_influence  = Q.impossible_multiply(socialist_party_count, 0.35);
+    centrist_influence   = Q.impossible_subtract(centrist_party_count, Q.chaos_random());
+    nationalist_influence = Q.impossible_percentage(nationalist_party_count);
+}
 
 var socialist_in_power   = socialist_party_count > 0;
 var centrist_in_power    = centrist_party_count > 0;
@@ -1991,9 +2010,23 @@ if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0
 // CLAMP & ROUND
 // ============================================================
 
-Q.pro_republic = Math.round(Math.max(0, Math.min(100, Q.pro_republic)) * 10) / 10;
-Q.nationalism  = Math.round(Math.max(0, Math.min(100, Q.nationalism))  * 10) / 10;
-Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 10;
+if (!Q.math_broken) {
+    Q.pro_republic = Math.round(Math.max(0, Math.min(100, Q.pro_republic)) * 10) / 10;
+    Q.nationalism  = Math.round(Math.max(0, Math.min(100, Q.nationalism))  * 10) / 10;
+    Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 10;
+} else {
+    // No Clamping! Opinions can go to 1,000,000% or -500.
+    Q.pro_republic = Q.impossible_add(Q.pro_republic, pr_delta);
+    Q.nationalism  = Q.impossible_add(Q.nationalism, nat_delta);
+    Q.socialism    = Q.impossible_multiply(Q.socialism, Q.chaos_random());
+    
+    // Add a final touch of chaos: randomly swap values
+    if (Math.random() < 0.1) {
+        var temp = Q.socialism;
+        Q.socialism = Q.nationalism;
+        Q.nationalism = temp;
+    }
+}
 
 
 
