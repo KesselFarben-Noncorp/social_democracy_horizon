@@ -1,0 +1,270 @@
+title: Self bombanator
+subtitle: Of the future? By the future.
+view-if: april_challenge = 1 and chaosnator_timer = 0
+tags: party_affairs
+is-card: true
+card-image: img/flags.jpg
+new-page: true
+on-arrival: month_actions += 1; chaosnator_timer = 12
+go-to: start
+
+@start
+
+Do you feel like breaking the stuff?
+
+Go ahead.
+
+- @mathbroken: Broken Math. Prepare your phone.
+- @gamble: GAMBLE MY FUCKING GAME LMAO
+- @easy_discard
+- @root: Leave
+
+@gamble
+
+Sure?...
+
+- @randomize_start: Lmao
+- @start: Back down.
+
+@randomize_start
+on-arrival: {!
+
+// --- Helper ---
+function rRange(base, spread) {
+    return Math.round(base * (1 + (Math.random() - 0.5) * spread));
+}
+function rFloat(base, spread) {
+    return parseFloat((base * (1 + (Math.random() - 0.5) * spread)).toFixed(2));
+}
+function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+}
+function rC(base, spread, min, max) {
+    return clamp(rRange(base, spread), min, max);
+}
+function rCF(base, spread, min, max) {
+    return clamp(rFloat(base, spread), min, max);
+}
+
+const s = 1.0; // spread = 100% of ±50%
+
+// --- Core State ---
+Q.started = 1;
+Q.time = 0;
+Q.year = 1927;
+Q.month = 12;
+Q.month_actions = 0;
+Q.rng_seed = Date.now();
+
+// --- Hindenburg ---
+Q.hindenburg_president = 0;
+Q.hindenburg_health        = rC(90,  s, 30, 100);
+Q.hindenburg_age           = 80; // fixed
+Q.hindenburg_senility      = rC(10,  s, 0,  40);
+Q.hindenburg_stubbornness  = rC(75,  s, 30, 100);
+Q.hindenburg_trust_reichstag = rC(50, s, 10, 90);
+Q.hindenburg_trust_military  = rC(85, s, 40, 100);
+Q.hindenburg_trust_spd       = rC(50, s, 5,  90);
+Q.hindenburg_trust_z         = rC(60, s, 10, 95);
+Q.hindenburg_trust_dnvp      = rC(70, s, 10, 100);
+Q.hindenburg_monarchist_sentiment = rC(65, s, 10, 100);
+
+// --- Camarilla ---
+Q.camarilla_exists    = 0;
+Q.camarilla_strength  = rC(35, s, 5,  80);
+Q.camarilla_unified   = 0;
+Q.meissner_influence  = rC(55, s, 10, 90);
+Q.schleicher_influence = rC(40, s, 5, 80);
+Q.oskar_influence     = rC(60, s, 10, 95);
+Q.oldenburg_influence = rC(45, s, 5,  85);
+Q.papen_influence     = 0;
+Q.hugenberg_influence = 0;
+
+// --- Camarilla Goals ---
+Q.camarilla_goal_destroy_parliament    = rC(15, s, 0,  60);
+Q.camarilla_goal_install_papen         = 0;
+Q.camarilla_goal_military_dictatorship = 0;
+Q.camarilla_goal_restore_monarchy      = 0;
+Q.camarilla_goal_crush_left            = rC(50, s, 10, 90);
+Q.camarilla_goal_protect_junkers       = rC(70, s, 20, 100);
+Q.camarilla_goal_install_hitler        = 0;
+
+// --- Hindenburg Thresholds / Counters ---
+Q.hindenburg_crisis_threshold       = 0;
+Q.hindenburg_interventions          = 0;
+Q.hindenburg_reichstag_dissolutions = 0;
+Q.hindenburg_government_dismissals  = 0;
+Q.hindenburg_patience               = rC(50, s, 10, 90);
+Q.hindenburg_relation               = rC(25, s, 5,  70);
+Q.hindenburg_enabled                = 0;
+
+// --- Economic Core ---
+Q.inflation         = rCF(2.9,  s, 0.5, 20.0);
+Q.unemployed        = rCF(7.9,  s, 3.0, 30.0);
+Q.economic_growth   = rCF(5.4,  s, -3.0, 12.0);
+Q.budget            = rC(3,     s, -3,   10);
+Q.income            = rC(1600,  s, 700, 3000);
+Q.workers_qol       = rC(100,   s, 40, 160);
+Q.rural_qol         = rC(100,   s, 40, 160);
+Q.unemployed_qol    = rC(100,   s, 30, 160);
+Q.old_middle_qol    = rC(100,   s, 40, 160);
+Q.new_middle_qol    = rC(100,   s, 40, 160);
+
+// --- Economic Impulses / Pressures ---
+Q.fiscal_stance        = rCF(0.0,  s, -1.0, 1.0);
+Q.demand_impulse       = rCF(0.0,  s, -0.5, 0.5);
+Q.supply_impulse       = rCF(0.0,  s, -0.5, 0.5);
+Q.distribution_shift   = rCF(0.0,  s, -0.5, 0.5);
+Q.capital_pressure     = rCF(0.0,  s, -0.5, 0.5);
+Q.price_pressure       = rCF(0.0,  s, -0.5, 0.5);
+Q.trade_pressure       = rCF(0.0,  s, -0.5, 0.5);
+Q.policy_momentum      = rCF(0.0,  s, -0.5, 0.5);
+Q.shock_residual       = rCF(0.0,  s, -0.3, 0.3);
+Q.economic_expansion   = 0;
+Q.credit_expansion     = rCF(0.0,  s, -0.3, 0.3);
+Q.supply_cost_drag     = rCF(0.0,  s, -0.2, 0.2);
+Q.inflation_momentum   = rCF(0.0,  s, -0.3, 0.3);
+Q.inflation_expectations = rCF(2.9, s, 0.5, 15.0);
+Q.productivity_trend   = rCF(0.0,  s, -0.3, 0.5);
+Q.labor_churn          = rCF(0.0,  s, 0.0,  0.5);
+Q.tax_drag             = rCF(0.0,  s, 0.0,  0.5);
+Q.investment_chill     = rCF(0.0,  s, 0.0,  0.5);
+Q.NAIRU                = rCF(5.0,  s, 2.0, 12.0);
+Q.high_inflation_streak = 0;
+Q.low_inflation_streak  = 0;
+Q.tick                  = 0;
+Q.phase_duration        = rC(3,    s, 1,  12);
+Q.cycle_phase           = 0;
+Q.fiscal_demand         = rCF(0.0, s, -0.5, 0.5);
+
+// --- Demographics ---
+Q.workers    = rC(50,  s, 30, 65);
+Q.old_middle = rC(11,  s, 5,  20);
+Q.new_middle = rC(14,  s, 7,  25);
+Q.rural      = rC(23,  s, 12, 40);
+Q.catholics  = rC(28,  s, 15, 45);
+Q.protestants = rC(62, s, 40, 78);
+Q.seculars   = rC(6,   s, 2,  15);
+Q.youth      = rC(18,  s, 8,  30);
+
+// --- Party Relations ---
+Q.z_relation    = rC(50, s, 10, 90);
+Q.kpd_relation  = rC(25, s, 5,  60);
+Q.ddp_relation  = rC(60, s, 15, 90);
+Q.bvp_relation  = rC(38, s, 5,  75);
+Q.dvp_relation  = rC(35, s, 5,  75);
+Q.wp_relation   = rC(25, s, 5,  65);
+Q.dnvp_relation = rC(10, s, 0,  50);
+Q.nsdap_relation = 0;
+Q.sapd_relation = rC(45, s, 10, 80);
+Q.srpd_relation = rC(40, s, 10, 75);
+Q.president_relation = rC(50, s, 10, 90);
+Q.schacht_relation   = rC(5,  s, 0,  30);
+
+// --- Public Opinion ---
+Q.pro_republic  = rC(42, s, 10, 75);
+Q.nationalism   = rC(15, s, 5,  50);
+Q.socialism     = rC(12, s, 3,  40);
+Q.pacifism      = rC(2,  s, 0,  20);
+Q.radicalization = 0;
+Q.unrest_factor  = rCF(0.0, s, 0.0, 1.0);
+
+// --- SPD Factions ---
+Q.left_strength          = rC(12, s, 3,  35);
+Q.left_dissent           = rC(20, s, 0,  60);
+Q.center_strength        = rC(33, s, 10, 55);
+Q.center_dissent         = rC(0,  s, 0,  20);
+Q.labor_strength         = rC(25, s, 8,  50);
+Q.labor_dissent          = rC(5,  s, 0,  30);
+Q.reformist_strength     = rC(25, s, 8,  50);
+Q.reformist_dissent      = rC(5,  s, 0,  30);
+Q.neorevisionist_strength = rC(5, s, 0,  20);
+Q.neorevisionist_dissent  = rC(10,s, 0,  40);
+Q.dissent         = rCF(0.05, s, 0.01, 0.25);
+Q.dissent_percent = Math.round(Q.dissent * 100);
+Q.coalition_dissent = 0;
+
+// --- Paramilitary Strengths ---
+Q.rb_strength   = rC(2000, s, 500,  5000);
+Q.rb_militancy  = rCF(0.01, s, 0.005, 0.05);
+Q.sh_strength   = rC(600,  s, 100,  1800);
+Q.sh_militancy  = rCF(0.1,  s, 0.02, 0.4);
+Q.sa_strength   = rC(80,   s, 20,   400);
+Q.sa_militancy  = rCF(0.5,  s, 0.1,  1.0);
+Q.rfb_strength  = rC(130,  s, 30,   400);
+Q.rfb_militancy = rCF(0.5,  s, 0.1,  1.0);
+Q.jungdo_strength = rC(330, s, 80,  800);
+Q.jungdo_militancy = rCF(0.01, s, 0.005, 0.05);
+
+// --- Police / Military ---
+Q.interior_police_strength  = rC(50,  s, 20,  120);
+Q.interior_police_militancy = 1;
+Q.interior_police_loyalty   = rCF(0.45, s, 0.1, 0.9);
+Q.prussian_police_strength  = rC(90,  s, 30,  200);
+Q.prussian_police_militancy = 1;
+Q.prussian_police_loyalty   = rCF(0.5, s, 0.1, 0.9);
+Q.reichswehr_strength       = rC(100, s, 60,  160);
+Q.reichswehr_militancy      = 5;
+Q.reichswehr_loyalty        = rCF(0.2, s, 0.05, 0.6);
+
+// --- Reichstag Seats ---
+Q.spd_r   = rC(26, s, 10, 45);
+Q.kpd_r   = rC(9,  s, 3,  22);
+Q.z_r     = rC(15, s, 6,  28);
+Q.bvp_r   = rC(3,  s, 1,  8);
+Q.ddp_r   = rC(6,  s, 1,  15);
+Q.wp_r    = rC(3,  s, 1,  10);
+Q.cnbl_r  = rC(2,  s, 0,  8);
+Q.dvp_r   = rC(10, s, 2,  22);
+Q.dnvp_r  = rC(18, s, 5,  35);
+Q.nsdap_r = rC(3,  s, 1,  10);
+Q.other_r = rC(8,  s, 2,  20);
+Q.csrp_r  = 0;
+Q.sapd_r  = 0;
+Q.srpd_r  = 0;
+
+// --- Resources / Party ---
+Q.resources     = rC(2,  s, 0,  8);
+Q.dues          = rC(2,  s, 1,  6);
+Q.budget        = rC(3,  s, -2, 10);
+Q.welfare       = 0;
+Q.reparations   = 0;
+Q.science_bonus = 0;
+Q.coup_progress          = 0;
+Q.capital_strike_progress = 0;
+Q.general_strike_progress = 0;
+Q.campaign_intensity     = rCF(0.0, s, 0.0, 1.0);
+
+// --- Coup / Security ---
+Q.coup_progress           = 0;
+Q.capital_strike_progress = 0;
+Q.general_strike_progress = 0;
+
+!}
+
+Lmao you are cooked.
+
+- @root: Oopsie?
+- @sandbox.rngizer: I WANNA TRY ANOTHER RNGIZER LMAOOOOOOO
+
+@mathbroken
+
+You sure?
+
+- @start: Nah
+- @true: Yeah Boy.
+
+@yeah
+on-arrival: math_broken = 1
+
+Jeffrey Einstein touched me, same way numbers touched this phone with 100000 seats in reichstag.
+
+- @sandbox.math_broken_mode: Are we cooked?
+- @revert: Revert pls.
+
+@revert
+on-arrival: math_broken = 0
+
+Ok.
+
+- @root: Thanks.
