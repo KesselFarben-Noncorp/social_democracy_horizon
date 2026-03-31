@@ -1584,7 +1584,7 @@ Q.relation_gravity = function(value) {
     }
 };
 
-var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'dhp', 'bb', 'kvp', 'ddp', 'vrp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap'];
+var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'dhp', 'bb', 'kvp', 'ddp', 'vrp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap', 'dvfp'];
 for (var rel of relations) {
     Q[rel + '_relation'] = Q.relation_gravity(Q[rel + '_relation']);
     // Hard cap just in case
@@ -1733,6 +1733,7 @@ if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
 if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
 if (Q.cnbl_in_government)  nationalist_party_count++;
 if (Q.nsdap_in_government) nationalist_party_count++;
+if (Q.dvfp_in_government) nationalist_party_count++;
 if (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1) nationalist_party_count++;
 
 // 1 party = 0.35, 2 = 0.70, 3+ = 1.0
@@ -2017,21 +2018,21 @@ Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 1
 if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active !== 1 && Q.lautenbach_plan_rejected === 1) {
 
     // Budget improves modestly — spending cuts and tax enforcement
-    Q.budget += 0.18;
+    Q.budget += 0.07;
 
     // Deflation pressure — wage cuts, price controls, tight money
-    Q.dInflation        -= 0.12;
-    Q.price_pressure    -= 0.06;
+    Q.dInflation        -= 0.03;
+    Q.price_pressure    -= 0.03;
 
     // Demand collapses — less public spending, lower wages
-    Q.demand_impulse    -= 0.09;
-    Q.fiscal_stance     -= 0.07;
+    Q.demand_impulse    -= 0.07;
+    Q.fiscal_stance     -= 0.06;
 
     // Unemployment creeps up — layoffs from public sector cuts
-    Q.dUnemployment     += 0.08;
+    Q.dUnemployment     += 0.07;
 
     // Capital pressure eases slightly — creditor confidence
-    Q.capital_pressure  -= 0.04;
+    Q.capital_pressure  -= 0.03;
 
     // Trade pressure eases — deflation makes exports cheaper
     Q.trade_pressure    -= 0.03;
@@ -2045,27 +2046,27 @@ if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active !== 1 && Q.lautenbach_pl
     // --------------------------------------------------------
 
     // Budget takes a hit — deficit spending is the mechanism
-    Q.budget            -= 0.20;
+    Q.budget            -= 0.16;
 
     // Demand recovers — public works and credit expansion
-    Q.demand_impulse    += 0.12;
-    Q.fiscal_stance     += 0.10;
+    Q.demand_impulse    += 0.10;
+    Q.fiscal_stance     += 0.04;
 
     // Supply side benefits — infrastructure investment
-    Q.supply_impulse    += 0.06;
+    Q.supply_impulse    += 0.05;
 
     // Unemployment falls slightly — job creation programs
-    Q.dUnemployment     -= 0.07;
+    Q.dUnemployment     -= 0.05;
 
     // Growth gets a nudge upward
-    Q.dGrowth           += 0.08;
+    Q.dGrowth           += 0.05;
 
     // Inflation creeps back up — more money chasing goods
-    Q.dInflation        += 0.07;
+    Q.dInflation        += 0.04;
     Q.price_pressure    += 0.04;
 
     // Capital pressure rises — creditors nervous about deficit
-    Q.capital_pressure  += 0.05;
+    Q.capital_pressure  += 0.04;
 
     // Trade pressure ticks up slightly — imports rise with demand
     Q.trade_pressure    += 0.03;
@@ -2593,6 +2594,48 @@ Q.identity_modifier = {
         unemployedc: (() => {
             let m = 1.40;
             m += Math.min(Q.unemployed / 20, 0.60);  // up to 2.00 at 12%+ unemployment
+            if (Q.peoples_party === 1) m *= 1.03;
+            return m;
+        })(),
+    },
+
+    dvfp: {
+        base: Q.dvfp_banned ? 0 : (() => {
+        let nat_floor = Q.nationalism_factor * 25;
+
+        let u = Math.max(0, Q.unrest_factor - 0.6);
+        let crisis_ramp = 100 / (1 + Math.exp(-1.4 * (u - 1.8)));
+
+        // Hard ceiling on the combined base before identity modifier
+        let raw = nat_floor + crisis_ramp
+        return raw * Q.identity_modifier.dnvp;
+        })(),
+        workers: (() => {
+            let m = 0.20;
+            if (Q.peoples_party === 1) m *= 1.02;
+            return m;
+        })(),
+        old_middle: (() => {
+            let m = 1.74;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.25);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        new_middle: (() => {
+            let m = 0.67;
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        rural: (() => {
+            let m = 1.69;
+            let nat = Math.min(Q.nationalism / 100, 1);
+            m *= (1 + nat * 0.22);
+            if (Q.peoples_party === 1) m *= 0.95;
+            return m;
+        })(),
+        unemployedc: (() => {
+            let m = 0.77;
             if (Q.peoples_party === 1) m *= 1.03;
             return m;
         })(),
@@ -3347,6 +3390,31 @@ Q.identity_modifier = {
                     else if (Q.c === 'rural' && Q.unemployed > 10) Q.ideology_factor *= (1.10 + Math.min((Q.unemployed - 10) * 0.02, 0.25));
                     else if (Q.c === 'unemployedc') Q.ideology_factor *= (1.15 + Math.min(Q.unemployed / 22, 0.80));
                 break;
+
+                case 'dvfp':
+                    // DVFP is driven more by pure nationalism than specific economic 'shocks'
+                    // It doesn't use a sigmoid 'panic' curve, but a steadier ideological pull
+                    let nat_drive = Q.nationalism_factor * 0.8;
+    
+                    // Minor crisis bonus, but much less reactive than the NSDAP
+                    let minor_crisis = Math.max(0, Q.unrest_factor * 0.15);
+
+                    // Street presence is less effective for them than the NSDAP
+                    let org_amp = 1 + (Q.street_pressure_factor * 0.15);
+
+                    Q.ideology_factor = Q.random_factor(
+                        (nat_drive + minor_crisis) * org_amp,
+                         0.15 // Lower variance than NSDAP; they are a more stable 'niche'
+                    );
+
+                    // Class modifiers: They struggle with workers and the unemployed 
+                    // but excel with the established rural/middle class.
+                    if (Q.c === 'workers')          Q.ideology_factor *= 0.50;
+                    else if (Q.c === 'unemployedc') Q.ideology_factor *= 0.70;
+                    else if (Q.c === 'rural')       Q.ideology_factor *= 1.30;
+                    else if (Q.c === 'old_middle')  Q.ideology_factor *= 1.20;
+                break;
+
                 case 'csvd':
                     if (Q.csvd_flee === 1) {
                         // === DNVP SPLIT FACTOR ===
@@ -3701,7 +3769,7 @@ Q.identity_modifier = {
             const target_map = {
                 'NSDAP':              ['nsdap'],
                 'KPD':                ['kpd'],
-                'far right':          ['nsdap', 'dnvp'],
+                'far right':          ['nsdap', 'dnvp', 'dvfp'],
                 'DNVP':               ['dnvp'],
                 'anti-democratic parties': ['nsdap', 'dnvp', 'kpd'],
                 'bourgeois parties':  ['dvp', 'wp', 'z'],
@@ -3889,7 +3957,7 @@ const PRESIDENT_PROFILES = {
     "Hindenburg": {
         health_model: "aging",         // full aging + senility curve
         camarilla_ceiling: 120,
-        comfort_parties: ["DNVP", "DVP", "Z", "BVP"],
+        comfort_parties: ["DVFP", "DNVP", "DVP", "Z", "BVP"],
         hostile_parties: ["KPD", "SAPD", "SPD"],
         tolerated_parties: ["SPD"],    // tolerated but disliked
         members: {
