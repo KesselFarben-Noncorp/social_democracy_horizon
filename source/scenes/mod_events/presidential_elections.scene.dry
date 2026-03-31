@@ -69,7 +69,7 @@ on-arrival: {!
     "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
     "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
     "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
-    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg", "Ollenhauer"
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg", "Ollenhauer", "Graefe", "Ludendorff"
 ];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
@@ -984,6 +984,38 @@ on-arrival: {!
     } else {
         Q.other_candidate = "Gessler";
     }
+
+    // ========================================
+    // DVFP (VÖLKISCH FREEDOM PARTY)
+    // ========================================
+    if (Q.dvfp_banned) {
+        Q.dvfp_candidate = null;
+    } else if (!Q.nsdap_banned && !Q.hitler_dead && Q.nsdap_r >= 15) {
+        // If Nazis are strong and Hitler is available, DVFP supports the 'Führer'
+        // This represents the 1924-1925 NSFP era alignment.
+        Q.dvfp_candidate = "Hitler";
+        Q.dvfp_default_candidate = "Hitler";
+    } else if (Q.dnvp_line === 3 && !Q.dnvp_banned) {
+        // If DNVP is in its radical Hugenberg phase, DVFP aligns with them
+        // against the "system" parties.
+        Q.dvfp_candidate = "Hugenberg";
+        Q.dvfp_default_candidate = "Hugenberg";
+    } else if (Q.hitler_dead && !Q.nsdap_banned) {
+        // Hitler is dead; DVFP tries to lead the völkisch movement or backs Göring
+        Q.dvfp_candidate = "Ludendorff";
+        Q.dvfp_default_candidate = "Ludendorff";
+    } else {
+        // Independent völkisch run
+        // Graefe is the political leader, Ludendorff is the 'prestige' choice
+        if (Q.unrest_factor >= 2.0 || Q.nationalism >= 60) {
+            Q.dvfp_candidate = "Ludendorff";
+            Q.dvfp_default_candidate = "Ludendorff";
+        } else {
+            Q.dvfp_candidate = "Graefe";
+            Q.dvfp_default_candidate = "Graefe";
+        }
+    }
+
 !}
 
 The parties are preparing their candidates:
@@ -994,6 +1026,8 @@ The parties are preparing their candidates:
 [? if dnvp_candidate and dnvp_candidate != nsdap_candidate and not dnvp_banned: - DNVP: [+ dnvp_candidate +] ?]
 
 [? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
+
+[? if not dvfp_banned and dvfp_formed: - DVFP: [+ dvfp_candidate +] ?]
 
 **Left:**
 [? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
@@ -1389,7 +1423,7 @@ on-arrival: {!
 if (Q.hindenburg_dead) {
     Q.hindenburg_running = 0;
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                       'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+                       'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp' ,'other'];
     for (var i = 0; i < all_parties.length; i++) {
         if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
             Q[all_parties[i] + '_candidate'] = null;
@@ -1687,6 +1721,37 @@ if (Q.hindenburg_dead) {
     }
 
     // ========================================
+    // DVFP (VÖLKISCH FREEDOM PARTY) - Finalize
+    // ========================================
+    if (Q.dvfp_banned) {
+        Q.dvfp_candidate = null;
+    } else if (Q.spd_candidate === Q.kpd_candidate) {
+        // SPD went Communist - DVFP doubles down on radical right
+        // They will never follow a Red Front.
+        Q.dvfp_candidate = Q.dvfp_default_candidate || "Ludendorff";
+        
+    } else if (Q.is_unity_candidate) {
+        // SPD proposing a "Unity" candidate (e.g., a moderate liberal)
+        // DVFP views "Unity" as a betrayal of the national cause.
+        if (Q.dnvp_line === 3 && Q.dnvp_candidate === Q.nsdap_candidate) {
+            // Far-right is united - DVFP stays with the radical bloc
+            Q.dvfp_candidate = Q.nsdap_candidate;
+        } else if (Q.dnvp_candidate === Q.spd_candidate && Q.dnvp_line !== 3) {
+            // DNVP went moderate and joined SPD unity - DVFP BREAKS with DNVP
+            // They run Ludendorff as the 'true' nationalist protest.
+            Q.dvfp_candidate = "Ludendorff";
+        } else {
+            // Otherwise, keep their pre-decided radical choice
+            Q.dvfp_candidate = Q.dvfp_default_candidate;
+        }
+        
+    } else {
+        // Default: keep the choice from the arrival logic (Hitler, Hugenberg, or Ludendorff)
+        Q.dvfp_candidate = Q.dvfp_default_candidate;
+    }
+
+
+    // ========================================
     // HINDENBURG (INDEPENDENT) - 1932 only
     // ========================================
     if (!Q.hindenburg_dead && Q.year >= 1932) {
@@ -1739,6 +1804,27 @@ if (Q.hindenburg_dead) {
     // VRP - savers are broadly pro-Hindenburg as a stable constitutional figure.
     Q.vrp_candidate = "Hindenburg";
     Q.vrp_default_candidate = "Hindenburg";
+
+    // DVFP - 1932 Hindenburg Logic
+    if (Q.dvfp_r && Q.dvfp_r > 0) {
+        if (Q.dnvp_line === 3 && Q.dnvp_candidate !== "Hindenburg") {
+            // If Hugenberg and Hitler are opposing Hindenburg, DVFP joins them.
+            // This reflects the Harzburg Front alignment.
+            Q.dvfp_candidate = Q.dnvp_candidate;
+            Q.dvfp_default_candidate = Q.dnvp_candidate;
+        } else if (Q.nationalism >= 60 && Q.unrest_factor >= 2.5) {
+            // In high-tension nationalist scenarios, they run Ludendorff
+            // as the radical alternative to the 'Constitutional' Hindenburg.
+            Q.dvfp_candidate = "Ludendorff";
+            Q.dvfp_default_candidate = "Ludendorff";
+        } else {
+            // If the right is fragmented or Hindenburg seems like the only 
+            // "National" winner, they reluctantly support the Field Marshal.
+            Q.dvfp_candidate = "Hindenburg";
+            Q.dvfp_default_candidate = "Hindenburg";
+        }
+    }
+
 }
 !}
 go-to: r1_finalized
@@ -1749,6 +1835,9 @@ The candidates have been finalized:
 
 **Far Right:**
 [? if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
+
+[? if not dvfp_banned and dvfp_formed : - DVFP: [+ dvfp_candidate +] ?]
+
 [? if dnvp_candidate and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate and not dnvp_banned : - DNVP: [+ dnvp_candidate +] ?]
 [? if dnvp_candidate == nsdap_candidate and not dnvp_banned : - DNVP: Supporting [+ nsdap_candidate +] ?]
 
@@ -1926,6 +2015,9 @@ on-arrival: {!
     Curtius: "Julius Curtius (DVP)",
     Reinhold: "Peter Reinhold (DVP)",
     Lambach2: "Walther Lambach (CSVD)",
+    // DVFP candidates
+    Graefe: "Albrecht von Graefe (DVFP)",
+    Ludendorff: "Erich Ludendorff (DVFP/Völkisch)",
 };
     
     // Mark running candidates
@@ -1936,7 +2028,7 @@ on-arrival: {!
     // Aggregate votes
     var candidate_votes = {};
     var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 
-                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhp', 'bb', 'other'];
+                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhp', 'bb', 'dvfp', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2073,6 +2165,9 @@ var candidateColors = {
     // Far right
     Hitler:      "#954B00", Goring: "#954B00", Goebbels: "#954B00",
     Seldte:      "#954B00", Hugenberg: "#3f7bc1",
+    // Far right / Völkisch
+    Graefe:      "#7A5C12", 
+    Ludendorff:  "#7A5C12",
 };
 
 // Build candidate list from running flags + vote shares
@@ -2159,8 +2254,8 @@ on-arrival: {!
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
     var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
-    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach_2"];
-    var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte"];
+    var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach2"];
+    var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
 
     // Only add Hindenburg to blocks if he's alive
@@ -2333,6 +2428,14 @@ return bestFinalist;
             [center_right, center, far_right, center_left, left, far_left]);
     }
 
+    // === DVFP ===
+    if (Q.dvfp_candidate) {
+        // DVFP will collapse into the Nazis or Hugenberg DNVP before anyone else
+        Q.dvfp_candidate = pickClosestFinalist(Q.dvfp_candidate, 
+            [far_right, center_right, center]);
+    }
+
+
     // === OTHER ===
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
 
@@ -2344,7 +2447,7 @@ return bestFinalist;
 if (!Q.round2_has_third) {
     // Third dropped out — redistribute their party support
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp' ,'other'];
     for (var i = 0; i < parties_r2.length; i++) {
         var p = parties_r2[i];
         var cand = Q[p + '_candidate'];
@@ -2369,17 +2472,23 @@ var candidate_descs_r2 = {
     Schaffer:"Franz Schäffer", Drewitz:"Max Drewitz", Horsing:"Otto Hörsing",
     Hamkens:"Wilhelm Hamkens", Rosenfeld:"Kurt Rosenfeld", Hugenberg:"Alfred Hugenberg",
     Seldte:"Franz Seldte",
+    Graefe: "Albrecht von Graefe",       // Added
+    Ludendorff: "Erich Ludendorff",     // Added
 };
+
+// Use the description mapping specifically for the third candidate
 Q.round1_third_desc = candidate_descs_r2[Q.round1_third] || Q.round1_third;
 !}
 
 **Second Round Runoff**
 
-No candidate achieved a majority in the first round. The top two candidates advance to a runoff:
+No candidate achieved a majority in the first round. The candidates advance to a runoff:
 
-1. **[+ round1_winner +]** - [+ round1_winner_votes +]%
+1. **[+ round1_winner_desc +]** - [+ round1_winner_votes +]%
 
-2. **[+ round1_runner_up +]** - [+ round1_runner_up_votes +]%
+2. **[+ round1_runner_up_desc +]** - [+ round1_runner_up_votes.toFixed(1) +]%
+
+[? if round2_has_third : 3. **[+ round1_third_desc +]** - [+ round1_third_votes_disp +]% ?]
 
 - @r2_menu: What should we do?
 
@@ -2412,13 +2521,15 @@ on-arrival: {!
     Q.third_stays = 0;
     // Redistribute their party support
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
-    var far_left  = ["Thalmann","Munzenberg"];
-    var left      = ["Braun","Schumacher","Juchacz","Rosenfeld","Ollenhauer"];
-    var center_left  = ["Eckener","Gessler","Stresemann","Horsing","Schmid","Hindenburg"];
-    var center       = ["Adenauer","Kaas","Bruning","Hindenburg"];
-    var center_right = ["Schaffer","Westarp","Treviranus","Lambach","Lindeiner","Drewitz","Hamkens","Lambach2"];
-    var far_right    = ["Hitler","Goring","Goebbels","Seldte","Hugenberg"];
+                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp', 'other'];
+    var far_left     = ["Thalmann", "Munzenberg"];
+    var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
+    var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
+    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg"];
+    var center_right = ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Lambach2"];
+    // Added Graefe and Ludendorff to far_right
+    var far_right    = ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
+
     var finalists = [Q.round1_winner, Q.round1_runner_up];
     function isInBlock(c, b) { return b.indexOf(c) !== -1; }
     function pickClosest(cand, priority) {
@@ -2451,14 +2562,15 @@ on-arrival: {!
     Q.round2_has_third = 0;
     Q.third_stays = 0;
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
-    var far_left  = ["Thalmann","Munzenberg"];
-    var left      = ["Braun","Schumacher","Juchacz","Rosenfeld","Ollenhauer"];
-    var center_left  = ["Eckener","Gessler","Stresemann","Horsing","Schmid","Hindenburg"];
-    var center       = ["Adenauer","Kaas","Bruning","Hindenburg"];
-    var center_right = ["Schaffer","Westarp","Treviranus","Lambach","Lindeiner","Drewitz","Hamkens","Lambach2"];
-    var far_right    = ["Hitler","Goring","Goebbels","Seldte","Hugenberg"];
-    var finalists = [Q.round1_winner, Q.round1_runner_up];
+                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp', 'other'];
+    var far_left     = ["Thalmann", "Munzenberg"];
+    var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
+    var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
+    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg"];
+    var center_right = ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Lambach2"];
+    // Added Graefe and Ludendorff to far_right
+    var far_right    = ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
+
     function isInBlock(c, b) { return b.indexOf(c) !== -1; }
     function pickClosest(cand, priority) {
         if (finalists.indexOf(cand) !== -1) return cand;
@@ -2591,7 +2703,7 @@ on-arrival: {!
     
     var candidate_votes = {};
     var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 
-                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhp', 'bb', 'other'];
+                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhp', 'bb', 'dvfp', 'vrp', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2695,6 +2807,8 @@ on-arrival: {!
     Curtius: "Julius Curtius (DVP)",
     Reinhold: "Peter Reinhold (DVP)",
     Lambach2: "Walther Lambach (CSVD)",
+    Graefe: "Albrecht von Graefe (DVFP)",
+    Ludendorff: "Erich Ludendorff (DVFP/Völkisch)",
     
 };
     
@@ -2706,18 +2820,22 @@ var partyColors = {
     z: "#000000",   bvp: "#69A2BE", csrp: "#FFCCFF", ddp: "#DCCA4A",
     dvp: "#D5AC27", wp:  "#424242", cnbl: "#5D4E37", csvd: "#3f7bc1",
     dnvp: "#3f7bc1",nsdap:"#954B00",kvp:  "#3f7bc1", dhp: "#5D4E37",
-    bb:  "#69A2BE", vrp: "#8B7355", other:"#a0a0a0",
+    bb:  "#69A2BE", vrp: "#8B7355", dvfp: "#7A5C12", other:"#a0a0a0", // Added dvfp
 };
+
 
 var partyLabels = {
     spd:"SPD", kpd:"KPD", sapd:"SAPD", srpd:"SRPD", z:"Z", bvp:"BVP",
     csrp:"CSRP", ddp: Q.ddp_name || "DDP", dvp:"DVP", wp:"WP",
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
-    dhp:"DHP", bb:"BB", vrp:"VRP", other:"Other",
+    dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other", // Added dvfp
 };
 
-var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','other'];
+
+var allParties = ['spd','z','bvp','ddp','dvp', 'kpd', 'nsdap', 'dnvp',
+                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+                  'bb','vrp','dvfp','other']; // Added dvfp
+
 
 var finalist1 = Q.round1_winner;
 var finalist2 = Q.round1_runner_up;
@@ -2858,6 +2976,8 @@ go-to: election_end
 
 – NSDAP: [+ nsdap_r2_votes +]% → [+ nsdap_candidate +]
 
+[? if dvfp_formed and not dvfp_banned: - DVFP: [+ dvfp_r2_votes +]% → [+ dvfp_candidatd +] ?]
+
 – DNVP: [+ dnvp_r2_votes +]% → [+ dnvp_candidate +]
 
 – DVP: [+ dvp_r2_votes +]% → [+ dvp_candidate +]
@@ -2957,6 +3077,8 @@ var bvp_winners   = ['Schäffer','Schaffer'];
 var dvp_winners   = ['Stresemann','Gessler','Scholz','Dingeldey','Curtius','Reinhold'];
 var ddp_winners   = ['Heuss','Dietrich','Lüders','Lemmer','Mahraun','Koch-Weser','Maier'];
 var ind_winners   = ['Hindenburg','Eckener','Einstein','Mann','Ossietzky'];
+var dvfp_winners  = ['Graefe','Ludendorff']; // Added DVFP winners
+
 
 var w = Q.winner;
 if      (spd_winners.indexOf(w)   >= 0) Q.president_party = 'SPD';
@@ -2967,18 +3089,37 @@ else if (z_winners.indexOf(w)     >= 0) Q.president_party = 'Z';
 else if (bvp_winners.indexOf(w)   >= 0) Q.president_party = 'BVP';
 else if (dvp_winners.indexOf(w)   >= 0) Q.president_party = 'DVP';
 else if (ddp_winners.indexOf(w)   >= 0) Q.president_party = 'DDP';
+else if (dvfp_winners.indexOf(w)  >= 0) Q.president_party = 'DVFP'; // Added check
 else if (w === 'Rosenfeld')              Q.president_party = 'SAPD';
-else if (w === 'Otto Horsing')           Q.president_party = 'SRPD';
+else if (w === 'Horsing')           Q.president_party = 'SRPD';
 else if (w === 'Drewitz')               Q.president_party = 'WP';
 else if (w === 'Hamkens' || w === 'Behrens') Q.president_party = 'CNBL';
-else if (w === 'Lambach_2')             Q.president_party = 'CSVD';
+else if (w === 'Lambach2')             Q.president_party = 'CSVD';
 else if (ind_winners.indexOf(w)   >= 0) Q.president_party = 'I';
+
+
 
 !}
 on-arrival: president_term_start = year; presidential_election_active = 0;
-go-to: ollenhauer_victory if winner = "Ollenhauer"; hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"           
+go-to: ollenhauer_victory if winner = "Ollenhauer"; dvfp_victory if winner = "Graefe" or winner = "Ludendorff";  hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"           
 
 [+ winner_desc +] is now President of Germany.
+
+@dvfp_victory
+on-arrival: president_party = "DVFP"; nationalism += 25; nsdap_relation -= 10; dnvp_relation -= 10; democratization -= 3
+
+[? if winner = "Ludendorff" : General Erich Ludendorff, the hero of the Great War and champion of the völkisch movement, has achieved the victory he was denied in 1925. ?]
+[? if winner = "Graefe" : Albrecht von Graefe and the Völkisch Freedom Party have stunned the republic, bringing the radical racial-nationalist movement to the highest office. ?]
+
+The "System" has been dealt a mortal blow. The new President speaks of a national spiritual renewal and the purging of "un-German" influences. 
+
+[? if nsdap_banned = 0 : The Nazis are jubilant, seeing this as the final precursor to their own total power, though Ludendorff has no intention of being Hitler's subordinate. ?]
+
+[? if presidential_powers == 0 : With full presidential powers, the völkisch regime begins a rapid dismantling of the Weimar Constitution. ?]
+[? if presidential_powers >= 1 : Our previous constitutional reforms act as a final barrier, forcing the new President to contend with a hostile Reichstag. ?]
+
+- @game_over
+
 
 @ollenhauer_victory
 on-arrival: president_party = "SPD"; socialism += 5; kpd_relation *= 1.25; sapd_relation *= 1.50; workers_spd += 5
