@@ -231,6 +231,7 @@ if (!Q.party_relations_check) {
         KVP:  0,
         DHP:  0,
         BB:   2,
+        DVFP: 0,
     },
 
     // === SAPD ===
@@ -252,6 +253,7 @@ if (!Q.party_relations_check) {
         KVP:  5,
         DHP:  8,
         BB:   10,
+        DVFP: 0,
     },
 
     // === SPD ===
@@ -273,6 +275,7 @@ if (!Q.party_relations_check) {
         KVP:  Q.kvp_relation,
         DHP:  Q.dhp_relation,
         BB:   Q.bb_relation,
+        DVFP: Q.dvfp_relation,
     },
 
     // === SRPD ===
@@ -294,6 +297,7 @@ if (!Q.party_relations_check) {
         KVP:  30,
         DHP:  25,
         BB:   25,
+        DVFP: 0,
     },
 
     // === DDP ===
@@ -316,6 +320,7 @@ if (!Q.party_relations_check) {
         KVP:  55,
         DHP:  40,
         BB:   30,
+        DVFP: 0,
     },
 
     // === Z ===
@@ -338,6 +343,7 @@ if (!Q.party_relations_check) {
         KVP:  45,
         DHP:  30,
         BB:   45,
+        DVFP: 5,
     },
 
     // === CSRP ===
@@ -360,6 +366,7 @@ if (!Q.party_relations_check) {
         KVP:  35,
         DHP:  25,
         BB:   30,
+        DVFP: 0,
     },
 
     // === BVP ===
@@ -382,6 +389,7 @@ if (!Q.party_relations_check) {
         KVP:  40,
         DHP:  25,
         BB:   60,
+        DVFP: 10,
     },
 
     // === DVP ===
@@ -406,6 +414,7 @@ if (!Q.party_relations_check) {
         KVP:  55,
         DHP:  40,
         BB:   25,
+        DVFP: 5,
     },
 
     // === WP ===
@@ -431,6 +440,7 @@ if (!Q.party_relations_check) {
         KVP:  40,
         DHP:  35,
         BB:   30,
+        DVFP: 8,
     },
 
     // === CNBL ===
@@ -453,6 +463,7 @@ if (!Q.party_relations_check) {
         KVP:  45,
         DHP:  55,
         BB:   55,
+        DVFP: 30,
     },
 
     // === CSVD ===
@@ -475,6 +486,7 @@ if (!Q.party_relations_check) {
         KVP:  65,
         DHP:  45,
         BB:   30,
+        DVFP: 20,
     },
 
     // === DNVP ===
@@ -497,6 +509,7 @@ if (!Q.party_relations_check) {
         KVP:  Q.dnvp_line === 3 ? 5 : 60,
         DHP:  Q.dnvp_line === 3 ? 15 : 55,
         BB:   35,
+        DVFP: 30,
     },
 
     // === NSDAP ===
@@ -521,6 +534,29 @@ if (!Q.party_relations_check) {
         KVP:  5,
         DHP:  15,
         BB:   20,
+        DVFP: 25,
+    },
+
+    // === DVFP ===
+    DVFP: {
+        KPD: 0,
+        SAPD: 0,
+        SPD:   Q.dvfp_relation,
+        SRPD:  4
+        DDP:   8,
+        Z:     5,
+        BVP:   3,
+        CSRP:  8,
+        DVP:   3,
+        WP:    3,
+        CNBL:  37,
+        CSVD:  23,
+        DNVP:  35,
+        VRP:   20,   // Savers' party = petty bourgeois class enemies, but negligible
+        NSDAP: 30,
+        KVP:  30,
+        DHP:  20,
+        BB:   15,
     },
 
     // === VRP (Volksrechtpartei / People's Justice Party) ===
@@ -551,6 +587,7 @@ if (!Q.party_relations_check) {
         KVP:  35,
         DHP:  30,
         BB:   25,
+        DVFP: 10,
     },
     // === KVP ===
     KVP: {
@@ -571,6 +608,7 @@ if (!Q.party_relations_check) {
         NSDAP: 5,
         DHP:   50,
         BB:    35,
+        DVFP: 23,
     },
 
     // === DHP (German Hannover Party) ===
@@ -592,6 +630,7 @@ if (!Q.party_relations_check) {
         NSDAP: 15,
         KVP:   50,
         BB:    40,
+        DVFP: 18,
     },
 
     // === BB (Bavarian Peasants Party) ===
@@ -613,6 +652,7 @@ if (!Q.party_relations_check) {
         NSDAP: 20,  // Agrarian grievance overlap — danger zone
         KVP:   35,
         DHP:   40,
+        DVFP: 11,
     },
 };
 
@@ -629,6 +669,7 @@ Q.coalition_blocks = {
     KPD_CNBL:  true,
     KPD_DNVP:  true,
     KPD_NSDAP: true,
+    KPD_DVFP: true,
     KPD_VRP:   true,  // VRP is a bourgeois savers' party; anathema to KPD
     KPD_DDP:   Q.kpd_relation < 65,
     KPD_SPD:   Q.communist_coalition < 3,
@@ -779,6 +820,7 @@ var partyData = [
     { id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: true },
     { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: true },
     { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: true },
+    { id: "dvfp",name: "DVFP",      color: "#1A0F00", seats: Q.dvfp_seats,show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
 ];
 
 var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
@@ -989,6 +1031,13 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ nsdap_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_nsdap_r > 0 : color: green; ?][? if change_nsdap_r < 0 : color: red; ?]">[+ str_change_nsdap +]</td>
 </tr>
+<tr class="row-far-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#1B1B1B; display:inline-block; margin-right:8px;'> </div>DVFP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvfp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ dvfp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dvfp_r > 0 : color: green; ?][? if change_dvfp_r < 0 : color: red; ?]">[+ str_change_dvfp +]</td>
+</tr>
+
 {!</table>!}
 
 
@@ -1023,6 +1072,7 @@ if (Q.csvd_flee && Q.csvd_r && Q.csvd_r > 0) Q.party_votes.push({party: 'CSVD', 
 if (Q.kvp_flee  && Q.kvp_r  && Q.kvp_r  > 0) Q.party_votes.push({party: 'KVP',  votes: Q.kvp_r});
 if (Q.bb_r  && Q.bb_r  > 0) Q.party_votes.push({party: 'BB',  votes: Q.bb_r});
 if (Q.dhp_r && Q.dhp_r > 0) Q.party_votes.push({party: 'DHP', votes: Q.dhp_r});
+if (Q.dvfp_r > 0) Q.party_votes.push({party: 'DVFP', votes: Q.dvfp_r});
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 
@@ -1054,7 +1104,7 @@ function president_party_score(party) {
         CNBL: 'Hepp',      CSVD: 'Lambach',    DNVP: Q.dnvp_line === 3 ? 'Hugenberg' : 'Westarp',
         NSDAP:'Hitler',    VRP:  'Drewitz',    CSRP: 'Vitus Heller',
         KVP:  'Westarp',   DHP:  'Hamkens',    BB:   'Hamkens',
-        SRPD: 'Horsing'
+        SRPD: 'Horsing', DVFP: 'Graefe'
     };
     var proxy = party_chancellor_proxy[party] || '';
     if (cam[proxy] !== undefined) score += cam[proxy] * 0.4;
@@ -1074,6 +1124,7 @@ function president_party_score(party) {
     }
     if (party === 'Z')   score += (Q.hindenburg_trust_z    || 60) - 40;
     if (party === 'DNVP') score += (Q.hindenburg_trust_dnvp || 70) - 40;
+    if (party === 'DVFP') score += 15;
     if (party === 'DVP')  score += 10;
 
     // Reichstag trust bypass — only kicks in meaningfully late game
@@ -1091,7 +1142,7 @@ function president_party_score(party) {
         if (party === 'DDP')  score += 15;
         if (party === 'Z')    score += 10;
         if (party === 'KPD')  score -= 20;
-        if (party === 'NSDAP' || party === 'DNVP') score -= 80;
+        if (party === 'NSDAP' || party === 'DNVP' || party === 'DVFP') score -= 80;
 
     } else if (pres === 'Westarp') {
         if (party === 'DNVP') score += 60;
@@ -1109,7 +1160,7 @@ function president_party_score(party) {
         if (party === 'SAPD') score += 50;
         if (party === 'SPD')  score += 30;
         if (party === 'SRPD') score += 25;
-        if (party === 'NSDAP' || party === 'DNVP') score -= 80;
+        if (party === 'NSDAP' || party === 'DNVP' || party === 'DVFP') score -= 80;
         if (party === 'DVP' || party === 'WP')     score -= 30;
         if (party === 'Z')    score -= 10; 
     } else if (pres === 'Hitler') {
@@ -1125,7 +1176,7 @@ function president_party_score(party) {
         }[pres] || '_default';
 
         var PROFILES = {
-            Westarp:  { comfort: ['DNVP','DVP','Z','CSVD'], hostile: ['KPD','SAPD','SPD'] },
+            Westarp:  { comfort: ['DNVP','DVP','Z','CSVD', 'DVFP'], hostile: ['KPD','SAPD','SPD'] },
             Thalmann: { comfort: ['KPD','SAPD'],            hostile: ['NSDAP','DNVP','DVP'] },
             Seeckt:   { comfort: ['DVP','DNVP','CSVD'],     hostile: ['KPD','SPD','NSDAP'] },
             Marx:     { comfort: ['Z','BVP','DVP','DDP'],   hostile: ['KPD','NSDAP'] },
@@ -1739,6 +1790,7 @@ function classify_coalition(parties) {
     var has_kvp = parties.indexOf('KVP') >= 0;
     var has_bb = parties.indexOf('BB') >= 0;
     var has_dhp = parties.indexOf('DHP') >= 0;
+    var has_dvfp = parties.indexOf('DVFP') >= 0;
     
     // Left coalitions
     if (has_spd && has_kpd && !has_z) return 'left_front';
@@ -2355,7 +2407,17 @@ function get_chancellor_candidates_for_party(party) {
         } else {
             candidates.push({name: "Treviranus", weight: 75});
         }
+    } else if (party === 'DVFP') {
+    // Graefe is the primary political leader
+    candidates.push({name: "Graefe", weight: 60});
+    
+    // Ludendorff is the 'prestige' candidate (The General)
+    candidates.push({name: "Ludendorff", weight: 30});
+    
+    // Reventlow represents the radical 'social' wing of the völkisch movement
+    candidates.push({name: "Reventlow", weight: 10});
     }
+ 
     
     return candidates;
 }
@@ -2447,6 +2509,7 @@ Q.dhp_in_government = coalition.indexOf('DHP') >= 0 ? 1 : 0;
 Q.bb_in_government = coalition.indexOf('BB') >= 0 ? 1 : 0;
 Q.kvp_in_government = coalition.indexOf('KVP') >= 0 ? 1 : 0;
 Q.vrp_in_government = coalition.indexOf('VRP') >= 0 ? 1 : 0;
+Q.dvfp_in_government = coalition.indexOf('DVFP') >= 0 ? 1 : 0;
 
 !}
 go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
