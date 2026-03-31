@@ -512,11 +512,10 @@ function score_vote(party, seats, in_gov) {
 
     // All other opposition: pick highest-scoring option with a margin threshold
     if (!counter_nomination_happens) {
-        // Only two choices: for or abstain/against
-        if (score_for >= 15)  return 'for';
-        if (score_for >= -10) return 'abstain';
-        return 'against';
-    }
+    if (score_for >= 15)  return 'for';
+    if (score_for >= -10) return 'abstain';
+    return 'abstain'; // no candidate to vote FOR, so they stay home
+}
 
     // Three or more candidates: pick best with a decisiveness margin
     var best        = 'abstain';
