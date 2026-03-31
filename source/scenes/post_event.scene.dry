@@ -2405,7 +2405,7 @@ Q.identity_modifier = {
 
     // NSDAP: Protestant and youth are its hunting ground
     // Catholics resist strongly, seculars partially resist
-    nsdap: 1 + (prot_share * 0.25) + (youth_share * 0.35) 
+    nsdap: 1 + (prot_share * 0.34) + (youth_share * 0.45) 
              - (cath_share * 0.40) - (sec_share * 0.10),
 
     // DNVP: Protestant conservative base, loses youth
@@ -3331,14 +3331,14 @@ Q.identity_modifier = {
                     let crisis_signal = 1 / (1 + Math.exp(-1.2 * (u - 1.8)));
     
                     // Nationalism provides baseline activity even in calm conditions
-                    let nat_base = Q.nationalism_factor * 0.10;
+                    let nat_base = Q.nationalism_factor * 0.25;
     
                     // Street presence amplifies but with diminishing returns
                     let street_amp = 1 + Math.log1p(Q.street_pressure_factor * 0.5) * 0.3;
     
                     Q.ideology_factor = Q.random_factor(
-                        (nat_base + crisis_signal * 0.9) * street_amp,
-                        0.25  // tighter variance than before
+                    (nat_base + crisis_signal * 2.0) * street_amp,
+                    0.25
                     );
 
                     // Class modifiers unchanged from your current version
