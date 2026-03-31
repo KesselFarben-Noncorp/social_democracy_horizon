@@ -88,7 +88,12 @@ subtitle: <span style="color:#FF6699;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: resources -= 1; z_relation += 2 if z_party_leader == "Joos"
-go-to: center_op if z_in_government = 1 and spd_in_government = 0 and chancellor != "Brüning"; center_coalition if spd_in_government = 1 and z_in_government = 1; center_bruning if chancellor = "Brüning"
+go-to: center_op if z_in_government = 1 and spd_in_government = 0 and chancellor != "Brüning"; center_coalition if spd_in_government = 1 and z_in_government = 1; center_bruning if chancellor = "Brüning"; center_bothif spd_in_government = 0 and z_in_government = 0
+
+@center_both
+on-arrival: z_relation += 6*(1 - dissent); bvp_relation += 6 * (1- dissent)
+
+As we are in both opposition, relations improve naturally.
 
 @center_op
 on-arrival: z_relation += 4*(1 - dissent); bvp_relation += 6 * dissent
