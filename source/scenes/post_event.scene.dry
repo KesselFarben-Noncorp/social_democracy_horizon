@@ -3873,8 +3873,20 @@ if (Q.kpd_banned) {
     Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
 }
 
-Q.rb_strength     += Q.random_factor(Q.unrest_factor / 20, 0.3);
-Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
+if (Q.rb_banned) {
+    Q.rb_strength *= 0.65;
+    Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else {
+    Q.rb_strength += Q.random_factor(Q.unrest_factor / 20, 0.3);
+}
+
+if (Q.jungdo_banned) {
+    Q.jungdo_strength *= 0.65;
+    Q.jungdo_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else {
+    Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
+}
+
 
 // Decay factors — FIXED
 // stability_decay: only applies when things are genuinely calm (low unrest)
