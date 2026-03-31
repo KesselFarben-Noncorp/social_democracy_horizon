@@ -475,22 +475,23 @@ function score_vote(party, seats, in_gov) {
     // Relations matter, ideology distance matters
     var score_for = (rel_to_nom - 50) * 0.8 - Math.abs(p_pos - nom_pos) * 6;
 
-    // Score for primary opp nominee (ideological proximity only — no personal relations factor)
-    var score_opp = counter_nomination_happens
-        ? (-Math.abs(p_pos - opp_pos) * 6)
-        : -999;
+var rel_to_opp    = Q[opp_nominee_party.toLowerCase()    + '_relation'] || 50;
+var rel_to_second = second_opp_party ? (Q[second_opp_party.toLowerCase() + '_relation'] || 50) : 50;
 
-    // Score for second opp nominee
-    var score_second = (counter_nomination_happens && second_opp_party)
-        ? (-Math.abs(p_pos - second_opp_pos) * 6)
-        : -999;
+var score_opp = counter_nomination_happens
+    ? ((rel_to_opp - 50) * 0.3 - Math.abs(p_pos - opp_pos) * 6)
+    : -999;
+
+var score_second = (counter_nomination_happens && second_opp_party)
+    ? ((rel_to_second - 50) * 0.3 - Math.abs(p_pos - second_opp_pos) * 6)
+    : -999;
 
     // Government parties: vote for coalition nominee unless high dissent or poor relations
     if (in_gov) {
         var dissent       = Q.coalition_dissent || 0;
         var defect_chance = 0;
-        if (dissent >= 3) defect_chance = 0.15;
-        if (dissent >= 5) defect_chance = 0.30;
+        if (dissent >= 1) defect_chance = 0.15;
+        if (dissent >= 3) defect_chance = 0.30;
         if (party !== nominated_party && rel_to_nom < 40) defect_chance += 0.15;
         if (Math.random() < defect_chance) return 'abstain';
         return 'for';
