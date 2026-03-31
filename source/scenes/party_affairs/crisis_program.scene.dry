@@ -1,7 +1,7 @@
 title: The Economic Crisis
 new-page: true
 is-card: true
-view-if: crisis_urgency >= 1 and crisis_program_timer = 0 and (unemployed > 10 or inflation > 8 or economic_plan = 0)
+view-if: crisis_urgency >= 1 and crisis_program_timer = 0 and (unemployed > 10 or inflation > 8 or economic_plan = 0) and not (moderate_plan_adopted = 1 and left_adopted = 1 and wtb_adopted = 1 and centrist_adopted = 1)
 frequency: 200
 on-arrival: crisis_program_timer = 4
 card-image: img/bankrun.jpg
@@ -26,7 +26,8 @@ Meanwhile, moderates and reformists draw up proposals for a limited plan of job 
 - @defer: Defer making a decision until we have more information.
 
 @support_centrist
-subtitle: Let the depression play itself out through austerity.
+subtitle: Let the depression play itself out. [? if austerity_support > 0: Or perhaps, we could adopt model of austerity despite being social democratic party? ?]
+view-if: centrist_adopted = 0
 on-arrival: center_strength += 5; center_dissent -= 5; labor_dissent += 10; left_dissent += 10; austerity_support += 1;
 go-to: austerity_progress if austerity_support < 2; adopt_austerity if austerity_support >= 2
 
@@ -39,7 +40,7 @@ The centrists argue that deficit spending risks hyperinflation, and that market 
 We have not yet formally adopted the austerity position. More work needs to be done.
 
 @adopt_austerity
-on-arrival: center_strength += 10; center_dissent -= 15; labor_dissent += 20; left_dissent += 15; reformist_dissent += 8; economic_plan = 5; z_relation += 8; ddp_relation += 5; dvp_relation += 3; budget += 1; coalition_dissent -= 2
+on-arrival: center_strength += 10; center_dissent -= 15; labor_dissent += 20; left_dissent += 15; reformist_dissent += 8; economic_plan = 5; z_relation += 8; ddp_relation += 5; dvp_relation += 3; budget += 1; coalition_dissent -= 2; centrist_adopted = 1
 
 The party has formally adopted the centrist position of fiscal restraint and austerity. We argue that sound money and balanced budgets are the only path forward, even if it means temporary suffering. Perhaps we could go round-way for the revolution?
 
@@ -48,6 +49,7 @@ The party has formally adopted the centrist position of fiscal restraint and aus
 @support_labor
 subtitle: Call for increased public works and fiscal stimulus.
 unavailable-subtitle: The Labor faction is not strong enough.
+view-if: wtb_adopted = 0
 choose-if: historical_mode == 0 or (labor_strength >= left_strength and labor_strength >= center_strength and labor_strength >= reformist_strength)
 on-arrival: center_dissent += 10; left_dissent += 5; labor_strength += 5; wtb_support += 1;
 go-to: plan_adopted if wtb_support >= 4 and year > 1930; plan_support if wtb_support < 4 and year > 1930; plan_adopted if wtb_support >= 6 and year < 1931; plan_support if wtb_support < 6 and year < 1931
@@ -68,6 +70,7 @@ We have adopted the WTB economical plan! Hopefully we can get to initiating it.
 @support_left
 subtitle: Call for mass nationalizations and the transformation of the economy.
 unavailable-subtitle: The Left faction is not strong enough.
+view-if: left_adopted = 0
 choose-if: historical_mode == 0 or (left_strength >= labor_strength and left_strength >= center_strength and left_strength >= reformist_strength)
 on-arrival: left_strength += 10; reformist_dissent += 5; labor_dissent += 5; nationalization_support += 1; nationalization_support += 1 if aufhauser_advisor = 1
 go-to: support_left_progress if nationalization_support < 5; adopt_left if nationalization_support >= 5
@@ -81,13 +84,14 @@ We have not yet formally adopted the plan. More work needs to be done.
 [? if aufhauser_advisor = 1: Aufhauser's agitation for economical policy adoption helps us boost the progress! ?]
 
 @adopt_left
-on-arrival: left_strength += 15; left_dissent -= 10; reformist_dissent += 10; neorevisionist_dissent += 8; labor_dissent += 6; nationalization_adopted = 1; coup_progress += 1; economic_plan = 3; kpd_relation += 5*(1-dissent)
+on-arrival: left_strength += 15; left_dissent -= 10; reformist_dissent += 10; neorevisionist_dissent += 8; labor_dissent += 6; nationalization_adopted = 1; coup_progress += 1; economic_plan = 3; kpd_relation += 5*(1-dissent); left_adopted = 1
 
 With our hard work, we have convinced the majority of the party to adopt the socialist economic plan! [? if spd_in_government == 1 : We can begin implementing the plan as soon as possible, as long as we have the Economic or Finance ministries. ?] Bourgeois opposition is likely to be fierce. [? if spd_in_government == 0 : It might be difficult to enact the plan, given present conditions. ?]
 
 @support_moderate
 subtitle: Call for a limited program of job creation without deficit spending.
 unavailable-subtitle: The Reformist faction is not strong enough.
+view-if: moderate_plan_adopted = 0
 choose-if: historical_mode == 0 or (reformist_strength >= left_strength and reformist_strength >= center_strength and reformist_strength >= labor_strength)
 on-arrival: moderate_plan_support += 1; moderate_plan_support += 1 if aufhauser_advisor = 1; reformist_strength += 8; reformist_dissent -= 5; left_dissent += 6; labor_dissent += 5
 go-to: adopt_moderate if moderate_plan_support >= 4; support_moderate_progress if moderate_plan_support < 4
