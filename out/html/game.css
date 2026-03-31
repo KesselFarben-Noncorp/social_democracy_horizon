@@ -161,6 +161,110 @@ body.crt-mode::after {
   z-index: 9998;
 }
 
+/* ========================= SOCIAL FASCIST APRIL FOOLS GAMEMODE
+
+/* =====================================================================
+   APRIL FOOLS: DADAIST / SURREALIST UI
+   Triggered when body has class .april-fools-mode
+   ===================================================================== */
+
+body.april-fools-mode {
+    /* Subtle tilt to the entire world */
+    transform: rotate(0.1deg);
+    filter: sepia(0.2) contrast(1.1);
+    cursor: help; /* Everything is a question */
+}
+
+/* 1. The "Floating Reichstag" - Randomly tilting elements */
+body.april-fools-mode #content, 
+body.april-fools-mode .tools, 
+body.april-fools-mode #bottom_panel {
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+body.april-fools-mode #content:hover {
+    transform: scale(1.01) rotate(-0.5deg);
+}
+
+/* 2. Nonsense Typography */
+body.april-fools-mode h1, 
+body.april-fools-mode h2 {
+    font-family: 'VT323', monospace !important;
+    text-transform: lowercase !important;
+    letter-spacing: -2px !important;
+    color: #f00 !important; /* Aggressive Dada Red */
+}
+
+/* 3. The "Cabbage" Buttons - Dadaist text replacement via CSS */
+/* Note: This visually replaces button text without breaking the code logic */
+body.april-fools-mode ul.choices li::first-letter {
+    font-size: 200%;
+    color: #900;
+    font-family: serif;
+}
+
+body.april-fools-mode button {
+    position: relative;
+    overflow: visible;
+}
+
+/* 4. Moving Sidebar - The sidebar doesn't want to be caught */
+body.april-fools-mode .tools:hover {
+    transform: translateX(-10px) rotate(1deg);
+}
+
+/* 5. Glitchy Links */
+body.april-fools-mode a {
+    animation: dada-jitter 3s infinite;
+    display: inline-block;
+}
+
+@keyframes dada-jitter {
+    0% { transform: skew(0deg); }
+    5% { transform: skew(20deg); color: #00f; }
+    10% { transform: skew(-20deg); color: #f00; }
+    15% { transform: skew(0deg); }
+}
+
+/* 6. The "Collage" Effect - Random images floating */
+body.april-fools-mode::before {
+    content: "DADA";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    font-size: 20vw;
+    font-weight: 900;
+    color: rgba(0,0,0,0.03);
+    pointer-events: none;
+    z-index: 1000;
+    transform: translate(-50%, -50%) rotate(-15deg);
+}
+
+/* 7. Upside down party colors (Political Confusion) */
+body.april-fools-mode .seat.kpd { fill: #000; }   /* KPD is now Black */
+body.april-fools-mode .seat.z   { fill: #8B0000; } /* Zentrum is now Red */
+body.april-fools-mode .seat.nsdap { fill: #E3000F; } /* NSDAP is SPD Red */
+
+/* 8. Hide the Truth */
+body.april-fools-mode .stats-box p {
+    filter: blur(0.5px);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* =====================================================================
    PAGE LAYOUT — CSS Grid (from first CSS)
    Older HTML: #page → [#mid_panel (main)] [#stats_sidebar (sidebar)]
