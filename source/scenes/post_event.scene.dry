@@ -2106,7 +2106,7 @@ if (Q.wagemann_plan_active === 1 && Q.year >= 1932 && Q.year < 1933) {
     // Slight improvement from tax base recovery
     Q.budget                    += 0.05;
 
-    // Capital flight risk — foreign creditors panic at money printing
+    // Capital flight risk — foreign creditors panic at moneyprinting
     Q.capital_pressure          += 0.08;
     Q.trade_pressure            += 0.05;
 
@@ -2116,6 +2116,21 @@ if (Q.wagemann_plan_active === 1 && Q.year >= 1932 && Q.year < 1933) {
         Q.capital_pressure      += 0.06;
         Q.dInflation            += 0.05;
     }
+}
+
+// ============================================================
+// WTB TIMER EFFECTS
+// ============================================================
+
+if ((Q.wtb_timer || 0) > 0) {
+
+    const diminish = Q.wtb_implemented >= 4 ? 0.70 : 1.0;
+
+    Q.demand_impulse  = (Q.demand_impulse  || 0) + 0.04  * diminish;
+    Q.fiscal_stance   = (Q.fiscal_stance   || 0) - 0.03  * diminish;
+    Q.price_pressure  = (Q.price_pressure  || 0) + 0.02  * diminish;
+    Q.supply_impulse  = (Q.supply_impulse  || 0) + 0.02  * diminish;
+    Q.capital_pressure = Math.max(0, (Q.capital_pressure || 0) - 0.01 * diminish);
 }
 
 
@@ -2893,6 +2908,7 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'workers' && ci > 0) m += ci * 0.20;
             if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.08;
             if (Q.dues_workers > 0) m -= Q.dues_workers * 0.086;
+            if (Q.wtb_timer > 0) m += (Q.workers / 100) * 0.75;
             return m;
         })(),
         old_middle: (() => {
@@ -2919,6 +2935,7 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'middle' && ci > 0) m += ci * 0.12;
             if (Q.campaign_focus === 'catholics' && ci > 0) m += ci * 0.07 * (Q.catholics / 35);
             if (Q.dues_new_middle > 0) m -= Q.dues_new_middle * 0.094;
+            if (Q.wtb_timer > 0) m += (Q.new_middle / 100) * 0.27;
             return m;
         })(),
         rural: (() => {
@@ -2937,6 +2954,7 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'workers' && ci > 0) m += ci * 0.08;
             if (Q.dues_unemployedc > 0) m -= Q.dues_unemployedc * 0.086;
             if (Q.dues_unemployedc == 0) m *= 1.17;
+            if (Q.wtb_timer > 0) m += (Q.unemployedc / 100) * 1.03;
             return m;
         })(),
     },
