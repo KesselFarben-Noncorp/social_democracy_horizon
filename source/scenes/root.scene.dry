@@ -1429,6 +1429,7 @@ Choose your challenges!
 > *Dice: [? if dice_challenge = 1: ON ?][? if dice_challenge != 1: OFF ?]*
 > *Duel: [? if duel_challenge = 1: ON ?][? if duel_challenge != 1: OFF ?]*
 > *Hindenburg: [? if hindenburg_challenge = 1: ON ?][? if hindenburg_challenge != 1: OFF ?]*
+> *Base Gamemode Trust Me: [? if april_challenge = 1: ON ?][? if april_challenge != 1: OFF ?]*
 
 - @spartacus: Spartacist Victory!
 - @inverted: Randomize relationships!
@@ -1445,9 +1446,28 @@ Choose your challenges!
 - @start_2: Back
 
 @april
-go-to: challenge
 
-Work in Progress
+= Average Gamemode
+
+Do you sometimes question yourself on why you are doing this?
+
+- @a_2: True
+- @a_3: False
+- @challenge: Back.
+
+@a_2
+view-if: april_challenge = 0
+on-arrival: april_challenge = 1
+go-to: april
+
+Turned on!
+
+@a_3
+view-if: april_challenge = 1
+on-arrival: april_challenge = 0
+go-to: april
+
+Turned off!
 
 @duel
 
@@ -1762,6 +1782,10 @@ if (Q.hindenburg_challenge === 1) {
 if (Q.april_challenge === 1) {
     Q.parties.push('dvfp');
     Q.dvfp_formed = 1;
+    Q.nsdap_banned = 1;
+    Q.sa_banned = 1;
+    Q.sa_strength *= 0.00000000001;
+    Q.inflation += 10;
 }
 
 if (Q.duel_challenge === 1) {
