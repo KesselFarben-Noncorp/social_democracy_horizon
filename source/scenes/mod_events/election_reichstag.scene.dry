@@ -2759,7 +2759,7 @@ function president_vetoes(name, party) {
             veto_score += (Q.dnvp_line === 3 ? -20 : 30); // tolerates Nazis if Hugenberg-aligned
         }
 
-    } else if (pres === 'Thälmann' || pres === 'Thalmann' || Q.president_party === 'KPD') {
+    } else if (pres === 'Thälmann' || pres === 'Thalmann'|| Q.president_party === 'KPD') {
         if (party === 'NSDAP' || party === 'DNVP') {
             veto_score += 90;
         }
@@ -3832,7 +3832,7 @@ if (Q.president === "Hindenburg") {
     Q.coup_progress += 1;
     if (Q.dnvp_line === 3) Q.coup_progress += 2;
 
-} else if (Q.president === "Thälmann" || Q.president === "Thalmann" || Q.president_party === "KPD") {
+} else if (Q.president === "Thälmann" || Q.president === "Thalmann"|| Q.president_party === 'KPD') {
     var thal_candidates = [];
 
     // Back the left — KPD first, then SAPD, then SPD
@@ -3865,7 +3865,7 @@ if (Q.president === "Hindenburg") {
                (a.score * (0.85 + Math.random() * 0.3));
     });
 
-    Q.chancellor       = thal_candidates.length > 0 ? thal_candidates[0].name  : "Neumann";
+    Q.chancellor       = thal_candidates.length > 0 ? thal_candidates[0].name  : "Thälmann";
     Q.chancellor_party = thal_candidates.length > 0 ? thal_candidates[0].party : "KPD";
     Q.kpd_in_government = (Q.chancellor_party === 'KPD') ? 1 : 0;
     Q.spd_in_government = (Q.chancellor_party === 'SPD' || Q.chancellor_party === 'SRPD') ? 1 : 0;
