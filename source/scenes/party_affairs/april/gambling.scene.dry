@@ -77,40 +77,47 @@ You are betting **[+ current_bid +]** resources. The lights flicker in sync with
 
 @start
 on-arrival: {!
-// 1. Setup local RNG and multipliers
-const r = _mkrng((Q.rng_seed + Q.tick * 0x7b3d) >>> 0);
-const roll = r(); 
+// 1. Get the random roll using the engine's built-in factor
+// This replaces the broken _mkrng and bitwise logic
+const roll = Q.random_factor; 
 
 // 2. Determine Economic Luck Factor
+// Note: Ensure Q.cycle_phase matches the variable name used in your RNGizer
 let luck_modifier = 1.0;
-if (Q.phase === "growth") luck_modifier = 1.1;
-if (Q.phase === "overheating") luck_modifier = 1.25;
-if (Q.phase === "correction") luck_modifier = 0.85;
-if (Q.phase === "depression") luck_modifier = 0.60;
-if (Q.phase === "stagflation") luck_modifier = 0.70;
+if (Q.cycle_phase === "growth") luck_modifier = 1.1;
+else if (Q.cycle_phase === "overheating") luck_modifier = 1.25;
+else if (Q.cycle_phase === "correction") luck_modifier = 0.85;
+else if (Q.cycle_phase === "depression") luck_modifier = 0.60;
+else if (Q.cycle_phase === "stagflation") luck_modifier = 0.70;
 
-// 3. Calculate Result
+// 3. Calculate Score and Payout Multiplier
 const final_score = roll * luck_modifier;
 let payout_mult = 0;
 
 if (final_score > 0.95) {
-    payout_mult = 3.0;
+    payout_mult = 3.0; // 3x return
     Q.gambling_result = "JACKPOT";
 } else if (final_score > 0.55) {
-    payout_mult = 1.5;
+    payout_mult = 1.5; // 1.5x return
     Q.gambling_result = "WIN";
 } else if (final_score > 0.2) {
-    payout_mult = 0;
+    payout_mult = 0;   // Lose the bet
     Q.gambling_result = "LOSS";
 } else {
-    payout_mult = -0.5;
+    payout_mult = -0.5; // Lose bet + penalty
     Q.gambling_result = "CRITICAL_LOSS";
 }
 
-// 4. Update Resources
+// 4. Update Resources 
+// Formula: current_bid * multiplier. 
+// If multiplier is 0, net_change is -bid. 
+// If multiplier is 3.0, net_change is +2x bid.
 const net_change = Math.floor(Q.current_bid * (payout_mult - 1));
 Q.resources += net_change;
 Q.last_payout = net_change;
+
+// Reset bid after the round so they don't bet money they no longer have
+Q.current_bid = 0;
 
 // 5. Macroeconomic Side Effects
 Q.demand_impulse += 0.05;
@@ -126,16 +133,19 @@ if (Q.inflation > 8) {
 [? if gambling_result = "LOSS" : **Loss.** The screen turns red. ?]
 [? if gambling_result = "CRITICAL_LOSS" : **Disaster.** Not only did you lose, the house charged you "maintenance fees." ?]
 
-You [? if last_payout >= 0 : gained [+ last_payout +] ?] [? if last_payout <= 0 : lost [+ last_payout +] ?] resources.
+[? if last_payout > 0 : You gained [+ last_payout +] resources. ?][? if last_payout < 0 : You lost [+ last_payout +] resources. ?][? if last_payout = 0 : You broke even. ?]
 
 Current Resources: [+ resources +]
 
+...
+
+
 === Tuff 
 
-Told my bro day trading is the day,
-He done lost the money the very next day.
-Right after that I lost my 5k on poker play
-Then my crush turned down me.
+Told my bro day trading is the day, <br>
+He done lost the money the very next day. <br>
+Right after that I lost my 5k on poker play <br>
+Then my crush turned down me. <br>
 
 - @put: Play again?
 - @root: Leave the floor.
