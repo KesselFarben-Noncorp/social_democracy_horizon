@@ -43,7 +43,7 @@ Q.random_factor = function(f, variance = 0.65) {
 const ALL_PARTIES = [
     'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
     'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
-    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other'
+    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp'
 ];
 
 // === MASTER CHANCELLOR LIST ===
@@ -507,6 +507,7 @@ const MINISTRY_PRIORITIES = {
     WP:   ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor', 'transport'],
     CNBL: ['agriculture', 'finance', 'economic', 'justice', 'interior', 'foreign', 'labor', 'transport'],
     CSVD: ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor', 'transport'],
+    DVFP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
     DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
     NSDAP:['interior', 'economic', 'foreign', 'finance', 'agriculture', 'justice', 'labor', 'transport'],
     CSRP: ['labor', 'justice', 'interior', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
@@ -2180,6 +2181,7 @@ Q.party_relations.SPD.NSDAP= Q.nsdap_relation;
 Q.party_relations.SPD.KVP  = Q.kvp_relation;
 Q.party_relations.SPD.DHP  = Q.dhp_relation;
 Q.party_relations.SPD.BB   = Q.bb_relation;
+Q.party_relations.SPD.DVFP = Q.dvfp_relation;
 
 // SRPD
 Q.party_relations.SRPD.KPD  = Q.kpd_relation - 10;
@@ -2412,6 +2414,9 @@ Q.identity_modifier = {
     // DNVP: Protestant conservative base, loses youth
     dnvp:  1 + (prot_share * 0.20) - (youth_share * 0.15) - (cath_share * 0.10),
 
+    //DVFP
+    dvfp:  1 + (prot_share * 0.25) - (youth_share * 0.25) - (cath_share * 0.10),
+
     // DVP: secular liberal business, loses catholics and youth extremes
     dvp:   1 + (sec_share * 0.15) + (prot_share * 0.10) - (youth_share * 0.12),
 
@@ -2608,7 +2613,7 @@ Q.identity_modifier = {
 
         // Hard ceiling on the combined base before identity modifier
         let raw = nat_floor + crisis_ramp
-        return raw * Q.identity_modifier.dnvp;
+        return raw * Q.identity_modifier.dvfp;
         })(),
         workers: (() => {
             let m = 0.20;
@@ -3392,6 +3397,7 @@ Q.identity_modifier = {
                 break;
 
                 case 'dvfp':
+                    if(Q.dvfp_formed) {
                     // DVFP is driven more by pure nationalism than specific economic 'shocks'
                     // It doesn't use a sigmoid 'panic' curve, but a steadier ideological pull
                     let nat_drive = Q.nationalism_factor * 0.8;
@@ -3413,6 +3419,7 @@ Q.identity_modifier = {
                     else if (Q.c === 'unemployedc') Q.ideology_factor *= 0.70;
                     else if (Q.c === 'rural')       Q.ideology_factor *= 1.30;
                     else if (Q.c === 'old_middle')  Q.ideology_factor *= 1.20;
+                    }
                 break;
 
                 case 'csvd':
