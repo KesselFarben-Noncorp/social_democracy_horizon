@@ -333,3 +333,5 @@
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per 6 months.";
     window.updateSandboxLink();
   };
+
+ }());
