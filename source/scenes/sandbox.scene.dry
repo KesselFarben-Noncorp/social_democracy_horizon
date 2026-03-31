@@ -2700,10 +2700,7 @@ on-arrival: {!
     Q.unemployed = Q.impossible_percentage(Q.unemployed);
     Q.economic_growth = Q.impossible_subtract(Q.economic_growth, 5);
     Q.budget = Q.impossible_multiply(Q.budget, 0.7);
-    
-    // Party support becomes impossible
-    var parties = ['spd', 'kpd', 'sapd', 'srpd', 'z', 'bvp', 'ddp', 'dvp', 'wp', 'cnbl', 'dnvp', 'nsdap', 'other'];
-    
+
     // Don't normalize - let chaos reign
     for (var p of parties) {
         Q[p + '_r'] = Q.impossible_percentage(Q[p + '_r']);
@@ -2843,7 +2840,6 @@ on-arrival: {!
     
     // ===== PARTY SUPPORT (REICHSTAG) =====
     var total = 0;
-    var parties = ['spd', 'kpd', 'sapd', 'srpd', 'z', 'bvp', 'ddp', 'dvp', 'wp', 'cnbl', 'dnvp', 'nsdap', 'other'];
     for (var p of parties) {
         Q[p + '_r'] = Math.random() * 30;
         total += Q[p + '_r'];
@@ -2854,7 +2850,6 @@ on-arrival: {!
     }
     
     // ===== CLASS SUPPORT FOR PARTIES =====
-    var classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed', 'catholics'];
     for (var c of classes) {
         var class_total = 0;
         for (var p of parties) {
@@ -2866,13 +2861,14 @@ on-arrival: {!
             Q[c + '_' + p] = (Q[c + '_' + p] / class_total) * 100;
         }
     }
+
     
     // ===== CLASS PROPORTIONS =====
     Q.workers = 30 + Math.random() * 40; // 30-70%
     Q.old_middle = 5 + Math.random() * 20; // 5-25%
     Q.new_middle = 5 + Math.random() * 20; // 5-25%
     Q.rural = 10 + Math.random() * 30; // 10-40%
-    Q.unemployed = Math.random() * 40; // 0-40%
+    Q.unemployedc = Math.random() * 40; // 0-40%
     Q.catholics = 15 + Math.random() * 40; // 15-55%
     // Normalize (except catholics which overlaps)
     var class_total = Q.workers + Q.old_middle + Q.new_middle + Q.rural + Q.unemployed;
@@ -2880,7 +2876,7 @@ on-arrival: {!
     Q.old_middle = (Q.old_middle / class_total) * 100;
     Q.new_middle = (Q.new_middle / class_total) * 100;
     Q.rural = (Q.rural / class_total) * 100;
-    Q.unemployed = (Q.unemployed / class_total) * 100;
+    Q.unemployedc = (Q.unemployedc / class_total) * 100;
     
     // ===== PARTY RELATIONS =====
     Q.z_relation = Math.random() * 100;
@@ -2894,30 +2890,9 @@ on-arrival: {!
     Q.dnvp_relation = Math.random() * 100;
     Q.nsdap_relation = Math.random() * 100;
 
-    // Add this section anywhere in your @rngizer code block, 
-    // perhaps after the "PARTY RELATIONS" section:
-
-    // ===== PARTY RELATIONS MATRIX =====
-    Q.party_relations = {
-        KPD: {},
-        SAPD: {},
-        SPD: {},
-        SRPD: {},
-        DDP: {},
-        Z: {},
-        BVP: {},
-        DVP: {},
-        WP: {},
-        CNBL: {},
-        DNVP: {},
-        NSDAP: {}
-    };
-
-    var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'DVP', 'WP', 'CNBL', 'DNVP', 'NSDAP'];
-
     // Randomize all party-to-party relations
-    for (var party1 of all_parties) {
-        for (var party2 of all_parties) {
+    for (var party1 of parties) {
+        for (var party2 of parties) {
             if (party1 !== party2) {
                 // Random value between 0-100
                 Q.party_relations[party1][party2] = Math.floor(Math.random() * 101);
@@ -2989,6 +2964,8 @@ on-arrival: {!
     
     // ===== INTERNATIONAL =====
     Q.west_relation = Math.floor(Math.random() * 20) - 10;
+    Q.britain_relation = Math.floor(Math.random() * 20) - 10;
+    Q.france_relation = Math.floor(Math.random() * 20) - 10;
     Q.italy_relation = Math.floor(Math.random() * 20) - 10;
     Q.hungary_relation = Math.floor(Math.random() * 20) - 10;
     Q.poland_relation = Math.floor(Math.random() * 20) - 10;
@@ -3041,17 +3018,6 @@ on-arrival: {!
     Q.kellogg_briand_signed = Math.floor(Math.random() * 2);
     
     // ===== GOVERNMENT COMPOSITION =====
-    var chancellors = ['Marx', 'Müller', 'Brüning', 'Papen', 'Schleicher', 'Hitler', 'Braun', 'Wels'];
-    Q.chancellor = chancellors[Math.floor(Math.random() * chancellors.length)];
-    
-    var govts = ['SPD', 'Z', 'DVP', 'DNVP', 'NSDAP', 'KPD', 'Coalition', 'Minority'];
-    Q.prussian_government = govts[Math.floor(Math.random() * govts.length)];
-    
-    Q.spd_in_government = Math.floor(Math.random() * 2);
-    Q.in_weimar_coalition = Math.floor(Math.random() * 2);
-    Q.in_grand_coalition = Math.floor(Math.random() * 2);
-    Q.in_popular_front = Math.floor(Math.random() * 2);
-    Q.in_left_front = Math.floor(Math.random() * 2);
 
 // ===== HINDENBURG & CAMARILLA =====
 
