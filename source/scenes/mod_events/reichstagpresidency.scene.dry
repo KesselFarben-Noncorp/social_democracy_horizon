@@ -31,6 +31,8 @@ var all_display_parties = [
     {id: 'dnvp', color: '#3f7bc1'},
     {id: 'other',color: '#a0a0a0'},
     {id: 'nsdap',color: '#954B00'},
+    {id: 'dvfp', color: '#7A5C12',  cond: Q.dvfp_r > 0}, // Add this line
+
 ];
 
 for (var i = 0; i < all_display_parties.length; i++) {
@@ -72,7 +74,10 @@ var nationalist_seats =
     Math.round((Q.cnbl_r || 0) * 6) +
     Math.round((Q.bb_r   || 0) * 6);
 
-var far_right_seats = Math.round((Q.nsdap_r || 0) * 6);
+var far_right_seats = 
+    Math.round((Q.nsdap_r || 0) * 6) + 
+    Math.round((Q.dvfp_r  || 0) * 6); // Include DVFP here
+
 var other_seats     = Math.round((Q.other_r || 0) * 6);
 
 var faction_total = left_seats + center_seats + lib_right_seats +
@@ -137,8 +142,11 @@ function get_rt_president_name(party) {
     if (party === 'DHP')   return 'Otto Hamkens';
     if (party === 'BB')    return 'Georg Eisenberger';
     if (party === 'CNBL')  return 'Karl Hepp';
-    if (party === 'DNVP')  return (Q.dnvp_line === 3) ? 'Alfred Hugenberg' : 'Kuno von Westarp';
-    if (party === 'NSDAP') return 'Hermann Göring';
+    if (p === 'DNVP')  return (Q.dnvp_line === 3) ? 'Alfred Hugenberg' : 'Kuno von Westarp';
+    if (p === 'NSDAP') return 'Hermann Göring';
+    if (p === 'DVFP')  return 'Albrecht von Graefe'; // Add this line
+    return party + ' representative';
+
     return party + ' representative';
 }
 
@@ -150,12 +158,13 @@ var ideology_pos = {
     KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
     DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
     DVP: 7, WP: 7, VRP: 7, DHP: 7,
-    BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10
+    BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10
 };
 
 var all_parties_with_seats = [];
 var party_list = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','CSVD','KVP',
-                  'DVP','WP','VRP','DHP','BB','CNBL','DNVP','NSDAP'];
+                  'DVP','WP','VRP','DHP','BB','CNBL','DNVP','NSDAP', 'DVFP'];
+
 
 for (var i = 0; i < party_list.length; i++) {
     var p = party_list[i];
@@ -681,13 +690,15 @@ var left_parties = ['KPD','SAPD','SPD','SRPD'];
 Q.reichstag_president_stance =
     (left_parties.indexOf(winner_party) >= 0 && gov_parties.indexOf(winner_party) >= 0) ? 'friendly' :
     (gov_parties.indexOf(winner_party) >= 0)                                             ? 'neutral'  :
-    (['NSDAP','DNVP'].indexOf(winner_party) >= 0)                                        ? 'hostile'  : 'neutral';
+    (['NSDAP','DNVP', 'DVFP'].indexOf(winner_party) >= 0)                                        ? 'hostile'  : 'neutral';
 
 Q.loebe_president     = (winner_name  === 'Paul Löbe')                         ? 1 : 0;
 Q.goering_president   = (winner_party === 'NSDAP')                             ? 1 : 0;
+Q.dvfp_president      = (winner_party === 'DVFP')                              ? 1 : 0; // Add this
 Q.hugenberg_president = (winner_party === 'DNVP' && Q.dnvp_line === 3)        ? 1 : 0;
 
 if (Q.goering_president)   { Q.pro_republic -= 10; Q.coup_progress += 2; }
+if (Q.dvfp_president)      { Q.pro_republic -= 8;  Q.coup_progress += 1.5; }
 if (Q.hugenberg_president) { Q.pro_republic -= 5;  Q.coup_progress += 1; }
 
 // ============================================
@@ -739,6 +750,7 @@ Q.rt_round_desc =
 
 [? if loebe_president : Löbe's firm procedural hand will protect the government's legislative agenda. ?]
 [? if goering_president : Göring in the chair is not a procedural inconvenience — it is a weapon against the Republic. ?]
+[? if dvfp_president : With the DVFP in the chair, the völkisch movement has gained a powerful pulpit to assault the "System" from within. ?]
 [? if hugenberg_president : Hugenberg will use the Presidency to obstruct and delegitimize the government. ?]
 
 - @parliament_formation_complete: Continue
@@ -755,7 +767,7 @@ for (var i = 0; i < gov_parties.length; i++) {
     else if (['DDP','Z','BVP','CSRP','CSVD','KVP'].indexOf(p) >= 0) gov_council += Q.council_center      || 0;
     else if (['DVP','WP','VRP','DHP'].indexOf(p) >= 0)              gov_council += Q.council_lib_right   || 0;
     else if (['DNVP','CNBL','BB'].indexOf(p) >= 0)                  gov_council += Q.council_nationalist || 0;
-    else if (p === 'NSDAP')                                          gov_council += Q.council_far_right   || 0;
+    else if (p === 'NSDAP' || p === 'DVFP')                                          gov_council += Q.council_far_right   || 0;
 }
 Q.council_gov_influence = gov_council;
 Q.council_opp_influence = 21 - gov_council;
@@ -783,5 +795,9 @@ Council of Elders: [+ council_display +]
 [? if reichstag_president_stance = "friendly" : With a friendly Reichstag President, the government's legislative agenda should proceed smoothly. ?]
 [? if reichstag_president_stance = "neutral" : The President will apply procedural rules impartially. ?]
 [? if reichstag_president_stance = "hostile" : The hostile Reichstag President is a serious obstacle to the government's agenda. ?]
+
+[? if goering_president : **Göring's** presence in the chair is an omen of the Republic's end; he will use every procedural trick to facilitate a Nazi takeover. ?]
+[? if dvfp_president : **Albrecht von Graefe** will use the President's chair as a völkisch pulpit, obstructing "un-German" legislation at every turn. ?]
+[? if hugenberg_president : **Hugenberg** intends to lead a "National Opposition" from the chair, delegitimizing the parliamentary system itself. ?]
 
 The Reichstag is now in session.
