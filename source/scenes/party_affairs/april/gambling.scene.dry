@@ -1,8 +1,13 @@
-title: Visit the Las Vegas
+Title: Visit the Las Vegas
 subtitle: Of the future? By the future.
 view-if: april_challenge = 1 and gambling_timer = 0
 tags: party_affairs
+is-card: true
+card-image: img/flags.jpg
+new-page: true
 on-arrival: month_actions += 1; gambling_timer = 12
+
+@room
 
 = Las Vegas
 
@@ -16,5 +21,120 @@ Anyways, use your resources.
 
 Currently you have: [+ resources +] resources.
 
+- @put: Bid.
 - @easy_discard
 - @root: Go back.
+
+@put
+
+= Time to gamble.
+
+How much will you put in?
+
+Current bet: [+ current_bid +]
+
+- @set_bet_1: 1 resource
+- @set_bet_2: 2 Resources
+- @set_bet_5: 5 Resources 
+- @set_bet_10: 10 Resources 
+- @set_bet_all: ALL IN ([+ resources +])
+- @start_menu: LETS BALL IN.
+- @room: Changed my mind.
+
+@set_bet_1
+choose-if: resources > 0
+on-arrival: current_bid += 1
+go-to: put
+
+@set_bet_2
+choose-if: resources > 1
+on-arrival: current_bid += 2
+go-to: put
+
+@set_bet_5
+choose-if: resources > 4
+on-arrival: current_bid += 5
+go-to: put
+
+@set_bet_10
+choose-if: resources > 9
+on-arrival: current_bid += 10
+go-to: put
+
+@set_bet_all
+choose-if: resources > 0
+on-arrival: current_bid += resources
+go-to: put
+
+@start_menu
+on-arrival: gambling_result = ""; last_payout = 0
+
+You are betting **[+ current_bid +]** resources. The lights flicker in sync with the national ticker.
+
+- @start: Pull the lever.
+- @put: Change bet.
+
+@start
+on-arrival: {!
+// 1. Setup local RNG and multipliers
+const r = _mkrng((Q.rng_seed + Q.tick * 0x7b3d) >>> 0);
+const roll = r(); 
+
+// 2. Determine Economic Luck Factor
+let luck_modifier = 1.0;
+if (Q.phase === "growth") luck_modifier = 1.1;
+if (Q.phase === "overheating") luck_modifier = 1.25;
+if (Q.phase === "correction") luck_modifier = 0.85;
+if (Q.phase === "depression") luck_modifier = 0.60;
+if (Q.phase === "stagflation") luck_modifier = 0.70;
+
+// 3. Calculate Result
+const final_score = roll * luck_modifier;
+let payout_mult = 0;
+
+if (final_score > 0.95) {
+    payout_mult = 3.0;
+    Q.gambling_result = "JACKPOT";
+} else if (final_score > 0.55) {
+    payout_mult = 1.5;
+    Q.gambling_result = "WIN";
+} else if (final_score > 0.2) {
+    payout_mult = 0;
+    Q.gambling_result = "LOSS";
+} else {
+    payout_mult = -0.5;
+    Q.gambling_result = "CRITICAL_LOSS";
+}
+
+// 4. Update Resources
+const net_change = Math.floor(Q.current_bid * (payout_mult - 1));
+Q.resources += net_change;
+Q.last_payout = net_change;
+
+// 5. Macroeconomic Side Effects
+Q.demand_impulse += 0.05;
+Q.capital_pressure += 0.02;
+
+if (Q.inflation > 8) {
+    Q.price_pressure += 0.03;
+}
+!}
+
+[? if gambling_result = "JACKPOT" : **JACKPOT!** The machine screams in digital delight. ?]
+[? if gambling_result = "WIN" : **A Win!** You collect your shares. ?]
+[? if gambling_result = "LOSS" : **Loss.** The screen turns red. ?]
+[? if gambling_result = "CRITICAL_LOSS" : **Disaster.** Not only did you lose, the house charged you "maintenance fees." ?]
+
+You [? if last_payout >= 0 : gained [+ last_payout +] ?] [? if last_payout <= 0 : lost [+ last_payout +] ?] resources.
+
+Current Resources: [+ resources +]
+
+=== Tuff 
+
+Told my bro day trading is the day,
+He done lost the money the very next day.
+Right after that I lost my 5k on poker play
+Then my crush turned down me.
+
+- @put: Play again?
+- @root: Leave the floor.
