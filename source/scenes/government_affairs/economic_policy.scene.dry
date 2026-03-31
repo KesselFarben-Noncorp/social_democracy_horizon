@@ -40,7 +40,7 @@ We have already formulated an economic plan. Now we have to implement it.
 title: Implement the Centrist policy of fiscal restraint and austerity.
 subtitle: +1 budget. Accept economic pain to restore fiscal soundness.
 unavailable-subtitle: [? if unemployed < 8 : The crisis is not severe enough to justify harsh austerity. ?] [? if austerity_adopted != 1 : We have not adopted an austerity plan. ?]
-view-if: economic_plan == 5 and austerity_progress < 3
+view-if: centrist_adopted = 1 and austerity_progress < 3
 choose-if: unemployed >= 8
 on-arrival: budget += 1; austerity_progress += 1; unemployed += 1.5; inflation -= 0.3; workers_spd -= 4; unemployed_spd -= 6; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); rural_spd += 1*(1-dissent); z_relation += 4; ddp_relation += 5; dvp_relation += 4; dnvp_relation += 3 if dnvp_line == 1; center_strength += 5; labor_dissent += 8; left_dissent += 8; coalition_dissent -= 1; capital_strike_progress -= 1 if capital_strike_progress > 0; workers_nsdap += 3; unemployed_nsdap += 4; workers_kpd += 2; economic_growth -= 0.08; fiscal_stance += 0.08; demand_impulse -= 0.08; tax_drag += 0.15; investment_chill += 0.10; coup_progress += 1 if (sa_strength + sh_strength) > 1500
 
@@ -60,7 +60,7 @@ But workers suffer. Unemployment insurance is cut. Public works are cancelled. L
 title: Implement harsh austerity measures.
 subtitle: +2 budget. Severe cuts to restore fiscal balance quickly.
 unavailable-subtitle: [? if unemployed < 12 : The crisis must be more severe to justify such harsh measures. ?] [? if austerity_adopted != 1 : We have not adopted an austerity plan. ?] [? if center_strength < 40 : The Center faction is not strong enough to impose this. ?]
-view-if: economic_plan == 5 and center_strength >= 40
+view-if: centrist_adopted = 1 and center_strength >= 40
 choose-if: unemployed >= 12
 on-arrival: budget += 2; austerity_progress += 2; unemployed += 3; inflation -= 0.5; workers_spd -= 8; unemployed_spd -= 10; old_middle_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); z_relation += 6; ddp_relation += 7; dvp_relation += 6; center_strength += 8; labor_dissent += 15; left_dissent += 15; reformist_dissent += 8; coalition_dissent -= 2; capital_strike_progress -= 2 if capital_strike_progress > 0; workers_nsdap += 5; unemployed_nsdap += 6; workers_kpd += 4; economic_growth -= 0.15; pro_republic -= 2; fiscal_stance += 0.15; demand_impulse -= 0.15; tax_drag += 0.25; investment_chill += 0.18; coup_progress += 2 if (sa_strength + sh_strength) > 1500
 achievement: wirtschaftspolitik
@@ -79,7 +79,7 @@ But the human cost is staggering. Unemployment surges. Soup kitchens overflow. D
 title: Implement modest austerity measures.
 subtitle: Balanced budget without severe cuts.
 unavailable-subtitle: [? if unemployed < 6 : There is no crisis requiring austerity. ?] [? if austerity_adopted != 1 : We have not adopted an austerity plan. ?]
-view-if: economic_plan == 5 and budget <= 0
+view-if: centrist_adopted = 1 and budget <= 0
 choose-if: unemployed >= 6
 on-arrival: budget += 0.5; austerity_progress += 1; unemployed += 0.5; inflation -= 0.15; workers_spd -= 2; unemployed_spd -= 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 1*(1-dissent); z_relation += 2; ddp_relation += 3; center_strength += 3; labor_dissent += 4; left_dissent += 4; coalition_dissent -= 1 if coalition_dissent > 0; workers_nsdap += 1; workers_kpd += 1; economic_growth -= 0.04; fiscal_stance += 0.04; demand_impulse -= 0.04; tax_drag += 0.08; coup_progress += 1 if (sa_strength + sh_strength) > 1500
 
@@ -220,7 +220,7 @@ achievement: wirtschaftspolitik
 @nationalize_1
 title: Implement the Left plan for the transformation of the economy.
 subtitle: -[+ nationalize_budget +] budget. [? if works_councils >= 3 : Our works councils have reduced the budget necessary for this program. ?] [? if socializations >= 2: Our existing socialization policies have reduced the budget necessary for this program. ?]
-view-if: nationalization_adopted == 1 and nationalization_progress == 0
+view-if: left_adopted = 1 == 1 and nationalization_progress == 0
 go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_deficit if budget >= nationalize_budget
 
 
@@ -290,7 +290,7 @@ achievement: wirtschaftspolitik
 @nationalize_2
 title: Continue the Left plan for the transformation of the economy.
 subtitle: -[+ nationalize_budget +] budget. [? if works_councils >= 3 : Our works councils have reduced the budget necessary for this program. ?] [? if socializations + nationalization_progress >= 2: Our existing socialization policies have reduced the budget necessary for this program. ?]
-view-if: nationalization_adopted == 1 and nationalization_progress >= 1
+view-if: left_adopted = 1 == 1 and nationalization_progress >= 1
 go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_deficit if budget >= nationalize_budget
 
 #######################################
