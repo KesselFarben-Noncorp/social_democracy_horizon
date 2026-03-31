@@ -381,7 +381,7 @@ Q.moderate_plan_adopted = 0;
 
 Q.party_relations = {
 
-    // === KPD ===
+        // === KPD ===
     KPD: {
         SAPD:  40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
         SPD:   Q.kpd_relation,
@@ -400,6 +400,7 @@ Q.party_relations = {
         KVP:  0,
         DHP:  0,
         BB:   2,
+        DVFP: 0,
     },
 
     // === SAPD ===
@@ -421,6 +422,7 @@ Q.party_relations = {
         KVP:  5,
         DHP:  8,
         BB:   10,
+        DVFP: 0,
     },
 
     // === SPD ===
@@ -442,6 +444,7 @@ Q.party_relations = {
         KVP:  Q.kvp_relation,
         DHP:  Q.dhp_relation,
         BB:   Q.bb_relation,
+        DVFP: Q.dvfp_relation,
     },
 
     // === SRPD ===
@@ -463,6 +466,7 @@ Q.party_relations = {
         KVP:  30,
         DHP:  25,
         BB:   25,
+        DVFP: 0,
     },
 
     // === DDP ===
@@ -485,6 +489,7 @@ Q.party_relations = {
         KVP:  55,
         DHP:  40,
         BB:   30,
+        DVFP: 0,
     },
 
     // === Z ===
@@ -507,6 +512,7 @@ Q.party_relations = {
         KVP:  45,
         DHP:  30,
         BB:   45,
+        DVFP: 5,
     },
 
     // === CSRP ===
@@ -529,6 +535,7 @@ Q.party_relations = {
         KVP:  35,
         DHP:  25,
         BB:   30,
+        DVFP: 0,
     },
 
     // === BVP ===
@@ -551,6 +558,7 @@ Q.party_relations = {
         KVP:  40,
         DHP:  25,
         BB:   60,
+        DVFP: 10,
     },
 
     // === DVP ===
@@ -575,6 +583,7 @@ Q.party_relations = {
         KVP:  55,
         DHP:  40,
         BB:   25,
+        DVFP: 5,
     },
 
     // === WP ===
@@ -600,6 +609,7 @@ Q.party_relations = {
         KVP:  40,
         DHP:  35,
         BB:   30,
+        DVFP: 8,
     },
 
     // === CNBL ===
@@ -622,6 +632,7 @@ Q.party_relations = {
         KVP:  45,
         DHP:  55,
         BB:   55,
+        DVFP: 30,
     },
 
     // === CSVD ===
@@ -644,6 +655,7 @@ Q.party_relations = {
         KVP:  65,
         DHP:  45,
         BB:   30,
+        DVFP: 20,
     },
 
     // === DNVP ===
@@ -666,6 +678,7 @@ Q.party_relations = {
         KVP:  Q.dnvp_line === 3 ? 5 : 60,
         DHP:  Q.dnvp_line === 3 ? 15 : 55,
         BB:   35,
+        DVFP: 30,
     },
 
     // === NSDAP ===
@@ -690,6 +703,29 @@ Q.party_relations = {
         KVP:  5,
         DHP:  15,
         BB:   20,
+        DVFP: 25,
+    },
+
+    // === DVFP ===
+    DVFP: {
+        KPD: 0,
+        SAPD: 0,
+        SPD:   Q.dvfp_relation,
+        SRPD:  4,
+        DDP:   8,
+        Z:     5,
+        BVP:   3,
+        CSRP:  8,
+        DVP:   3,
+        WP:    3,
+        CNBL:  37,
+        CSVD:  23,
+        DNVP:  35,
+        VRP:   20,   // Savers' party = petty bourgeois class enemies, but negligible
+        NSDAP: 30,
+        KVP:  30,
+        DHP:  20,
+        BB:   15,
     },
 
     // === VRP (Volksrechtpartei / People's Justice Party) ===
@@ -720,6 +756,7 @@ Q.party_relations = {
         KVP:  35,
         DHP:  30,
         BB:   25,
+        DVFP: 10,
     },
     // === KVP ===
     KVP: {
@@ -740,6 +777,7 @@ Q.party_relations = {
         NSDAP: 5,
         DHP:   50,
         BB:    35,
+        DVFP: 23,
     },
 
     // === DHP (German Hannover Party) ===
@@ -761,6 +799,7 @@ Q.party_relations = {
         NSDAP: 15,
         KVP:   50,
         BB:    40,
+        DVFP: 18,
     },
 
     // === BB (Bavarian Peasants Party) ===
@@ -782,7 +821,131 @@ Q.party_relations = {
         NSDAP: 20,  // Agrarian grievance overlap — danger zone
         KVP:   35,
         DHP:   40,
+        DVFP: 11,
     },
+};
+
+Q.coalition_blocks = {
+    // --- KPD ---
+    KPD_Z:     Q.z_relation    < 65 || Q.kpd_relation < 65,
+    KPD_BVP:   true,
+    KPD_DVP:   true,
+    KPD_WP:    true,
+    KPD_CNBL:  true,
+    KPD_DNVP:  true,
+    KPD_NSDAP: true,
+    KPD_DVFP: true,
+    KPD_VRP:   true,  // VRP is a bourgeois savers' party; anathema to KPD
+    KPD_DDP:   Q.kpd_relation < 65,
+    KPD_SPD:   Q.communist_coalition < 3,
+
+    // --- SAPD ---
+    SAPD_DVP:   true,
+    SAPD_WP:    true,
+    SAPD_CNBL:  true,
+    SAPD_DNVP:  true,
+    SAPD_NSDAP: true,
+    SAPD_VRP:   true, // VRP is a single-issue bourgeois grievance party; SAPD won't touch them
+
+    // --- SPD ---
+    SPD_NSDAP: true,
+    SPD_DNVP:  Q.dnvp_relation < 60 || Q.dnvp_line === 3,
+    SPD_KPD:   Q.communist_coalition < 3,
+    SPD_VRP:   Q.vrp_relation < 35, // VRP blames SPD for inflation; workable only if relations repaired
+
+    // --- SRPD ---
+    SRPD_KPD:   Q.kpd_relation < 40,
+    SRPD_NSDAP: true,
+    SRPD_DNVP:  Q.dnvp_line === 3,
+    SRPD_VRP:   Q.vrp_relation < 30,
+
+    // --- DDP ---
+    DDP_KPD:   true,
+    DDP_NSDAP: true,
+    DDP_DNVP:  Q.dnvp_line === 3,
+    // DDP-VRP: no block — natural coalition partners
+
+    // --- Z ---
+    Z_KPD:    Q.kpd_relation < 65 || Q.z_relation < 45,
+    Z_NSDAP:  Q.nazi_urgency >= 6,
+    Z_DNVP:   Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas",
+    // Z-VRP: no hard block but coolness over revaluation issue
+
+    // --- BVP ---
+    BVP_KPD:   true,
+    BVP_SAPD:  true,
+    BVP_NSDAP: Q.nazi_urgency >= 6,
+
+    // --- DVP ---
+    DVP_KPD:   true,
+    DVP_SAPD:  true,
+    DVP_NSDAP: Q.nazi_urgency >= 7 && Q.capital_strike_progress < 4,
+    DVP_VRP:   Q.dvp_right_shift >= 2, // As DVP drifts right, VRP (its nemesis on inflation)
+                                        // becomes an impossible partner
+
+    // --- WP ---
+    WP_KPD:   true,
+    WP_SAPD:  true,
+    WP_NSDAP: Q.capital_strike_progress < 5,
+    WP_VRP:   true, // Hard block — WP and VRP are direct rivals with opposing
+                    // memories of and interests in the 1923 inflation
+
+    // --- CNBL ---
+    CNBL_KPD:  true,
+    CNBL_SAPD: true,
+    CNBL_SPD:  Q.cnbl_relation < 30,
+
+    // --- CSVD ---
+    // No hard blocks with VRP — they share a base
+
+    // --- DNVP ---
+    DNVP_KPD:  true,
+    DNVP_SAPD: true,
+    DNVP_SPD:  Q.dnvp_line === 3 || Q.dnvp_relation < 40,
+    DNVP_DDP:  Q.dnvp_line === 3,
+    DNVP_Z:    Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas",
+    DNVP_VRP:  Q.dnvp_line === 3, // Hugenberg-era DNVP too radical for rule-of-law savers
+
+    // --- NSDAP ---
+    NSDAP_KPD:  true,
+    NSDAP_SPD:  true,
+    NSDAP_SAPD: true,
+    NSDAP_SRPD: true,
+    NSDAP_DDP:  true,
+    NSDAP_CSRP: true,
+    NSDAP_VRP:  true, // NSDAP wants VRP's voters, not their parliamentary cooperation
+    NSDAP_BVP:  Q.nazi_urgency >= 6,
+    NSDAP_Z:    Q.nazi_urgency >= 6,
+    NSDAP_COALITIONS_GENERALLY: Q.nsdap_r < 35 || Q.year < 1932,
+
+    // --- VRP ---
+    VRP_KPD:   true,
+    VRP_SAPD:  true,
+    VRP_WP:    true,  // Hard block — direct rivals, opposing inflation memories
+    VRP_NSDAP: true,
+    VRP_DNVP:  Q.dnvp_line === 3,
+    VRP_DVP:   Q.dvp_right_shift >= 1,  // DVP drift makes them intolerable to VRP
+    VRP_SPD:   Q.vrp_relation < 35,      // Only workable if SPD makes amends on revaluation
+
+    // --- KVP ---
+    KVP_KPD:   true,
+    KVP_SAPD:  true,
+    KVP_NSDAP: true,
+    KVP_DNVP:  Q.dnvp_line === 3,
+    KVP_SPD:   false,  // Workable in emergency
+
+    // --- DHP ---
+    DHP_KPD:   true,
+    DHP_SAPD:  true,
+    DHP_NSDAP: Q.nazi_urgency >= 5,  // Weaker resistance than most
+
+    // --- BB ---
+    BB_KPD:   true,
+    BB_SAPD:  true,
+    BB_NSDAP: Q.nazi_urgency >= 7,   // Agrarian grievance makes them soft on NSDAP longest
+    BB_WP:    false,  // No hard block — both small, both grievance parties
+    BB_DVP:   true,   // Big industry vs peasants
+    };
 };
 
 
@@ -806,6 +969,7 @@ Q.vrp_relation = 40;
 Q.kvp_relation = 35;
 Q.bb_relation = 40;
 Q.dhp_relation = 35;
+Q.dvfp_relation = 5;
 
 // alternative is the Conciliators as party leader
 // party leader - can be Ludwig Kaas, Joseph Joos, or Adam Stegerwald after the 1928 December conference. Joos will be most friendly to the SPD.
