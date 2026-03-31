@@ -177,6 +177,22 @@
     window.dendryUI.saveSettings();
   };
 
+  if (Q.april_challenge === 1) {
+    document.body.classList.add('april-fools-mode');
+    
+    // Optional: Randomly change button text via JS for maximum Dadaism
+    const buttons = document.querySelectorAll('button, .choices li');
+    const dadaWords = ["Cabbage", "Bicycle", "Fish", "Irony", "Void", "Skibidi Communist", "Impressed Stahlhelm", "Ebert's Ego Aura Farming", "Hindenburg's Hat"];
+    
+    buttons.forEach(btn => {
+        if (Math.random() > 0.7) {
+            btn.setAttribute('data-original-text', btn.innerText);
+            btn.innerText = dadaWords[Math.floor(Math.random() * dadaWords.length)];
+        }
+    });
+}
+
+
   // Populates the checkboxes in the options view.
   window.populateOptions = function() {
     var disable_bg = window.dendryUI.disable_bg;
