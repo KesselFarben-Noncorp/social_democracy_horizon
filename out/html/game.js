@@ -177,20 +177,40 @@
     window.dendryUI.saveSettings();
   };
 
-  if (Q.april_challenge === 1) {
-    document.body.classList.add('april-fools-mode');
-    
-    // Optional: Randomly change button text via JS for maximum Dadaism
-    const buttons = document.querySelectorAll('button, .choices li');
-    const dadaWords = ["Cabbage", "Bicycle", "Fish", "Irony", "Void", "Skibidi Communist", "Impressed Stahlhelm", "Ebert's Ego Aura Farming", "Hindenburg's Hat"];
-    
-    buttons.forEach(btn => {
-        if (Math.random() > 0.7) {
-            btn.setAttribute('data-original-text', btn.innerText);
-            btn.innerText = dadaWords[Math.floor(Math.random() * dadaWords.length)];
-        }
-    });
+  function spawnWeimarBullshit() {
+    const junk = [
+        "SOZIALFASCHISMUS", "MONOCLE!", "REVALUATION NOW", "1914 VIBES", 
+        "HINDENBURG IS SLEEPING", "CABBAGE", "DADA", "THE KAISER?", 
+        "STRESEMANN'S GHOST", "POTATO PRICES ↑", "PUTSCH!", "VOID", "ERROR 1923"
+    ];
+
+    setInterval(() => {
+        if (Q.april_challenge !== 1) return;
+
+        const el = document.createElement('div');
+        el.className = 'debris';
+        el.innerText = junk[Math.floor(Math.random() * junk.length)];
+        
+        // Random positioning
+        el.style.left = Math.random() * 90 + "vw";
+        el.style.fontSize = (Math.random() * 20 + 10) + "px";
+        el.style.color = Math.random() > 0.5 ? "#900" : "#000";
+        
+        // Random speed
+        const duration = Math.random() * 10 + 5;
+        el.style.animationDuration = duration + "s";
+
+        document.body.appendChild(el);
+
+        // Cleanup
+        setTimeout(() => el.remove(), duration * 1000);
+    }, 800); // Spawns a new piece of junk every 0.8 seconds
 }
+
+if (Q.april_challenge === 1) {
+    spawnWeimarBullshit();
+}
+
 
 
   // Populates the checkboxes in the options view.
