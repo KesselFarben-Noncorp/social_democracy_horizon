@@ -26,6 +26,12 @@ if (Q.president == 'Braun' && Q.chancellor == 'Braun' && Q.spd_prussia) {
 if (Q.long_war) {
     this.achieve('civil_war');
 }
+
+if (Q.president === "Gustav Noske" && Q.historical_mode === 1 && Q.civil_war_end === "republic") {
+    this.achieve('noske_leader_historical');
+}
+
+
 // Sieg für die Republik - victory for the republic
 if (Q.republic_victory) {
     this.achieve('victory_for_the_republic');
@@ -1623,6 +1629,19 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 {!</div>!}
 ?]
 
+[? if achievement_noske_leader:
+{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
+  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
+  <strong>Gustav Noske's Comeback</strong> - Elect the Ebert Noske in the presidential election.
+{!</div>!}
+?]
+
+[? if achievement_noske_leader_historical:
+{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
+  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
+  <strong>True ending - Social Fascism</strong> - Narrator must say it, but, by bringing reformism to capitalism, capitalism brings reformism to your socialism. Be aware.
+{!</div>!}
+?]
 
 
 
