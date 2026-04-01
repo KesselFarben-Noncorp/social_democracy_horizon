@@ -69,7 +69,7 @@ on-arrival: {!
     "Thälmann", "Thalmann", "Münzenberg", "Munzenberg", "Braun", "Schumacher", 
     "Juchacz", "Einstein", "Mann", "Ossietzky", "Rosenfeld", "Schäffer", "Schaffer", 
     "Drewitz", "Horsing", "Hamkens", "Behrens", "Lemmer", "Heuss", "Dietrich", 
-    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg", "Ollenhauer", "Graefe", "Ludendorff"
+    "Lüders", "Mahraun", "Koch-Weser", "Maier" , "Schmid", "Lambach_2", "Hindenburg", "Ollenhauer", "Graefe", "Ludendorff", "Noske"
 ];
     for (var i = 0; i < all_candidates.length; i++) {
         Q[all_candidates[i] + '_bonus'] = 0;
@@ -1082,6 +1082,7 @@ Who should represent the SPD in this election?
 - @horsing_r1: Support Otto Hörsing (SRPD - if formed).
 - @thalmann_r1: Support the KPD candidate (if relations are good).
 - @munzenberg_r1: Support the KPD candidate (if relations are good).
+- @noske_r1: Support the Gustav Noske, crusher of communist revolution.
 - @braun_r1: Nominate Otto Braun.
 - @schumacher_r1: Nominate Kurt Schumacher.
 - @schmid_r1: Nominate Carlo Schmid.
@@ -1089,6 +1090,16 @@ Who should represent the SPD in this election?
 - @juchacz_r1: Nominate Marie Juchacz.
 - @cultural_figure: Nominate a nonpartisan cultural figure.
 - @abstain_r1: Don't field a candidate, see who emerges.
+
+@noske_r1
+subtitle: Your way.
+view-if: april_challenge = 1
+choose-if: left_strength < reformist_strength + center_strength + labor_strength + neorevisionist_strength
+unavailable-subtitle: Your party is leftist. No?
+on-arrival: spd_candidate = "Noske"; is_unity_candidate = 1
+go-to: finalize_candidates
+
+We have put forward Gustav Noske, the exterminator of communists. He is unexpectedly appealing for right wingers. Not for leftists?
 
 @hindenburg_r1
 title: Support Paul von Hindenburg - the field marshal as unity candidate
@@ -1988,6 +1999,7 @@ on-arrival: {!
     Einstein: "Albert Einstein (Independent)",
     Mann: "Heinrich Mann (Independent)",
     Ossietzky: "Carl von Ossietzky (Independent)",
+    Noske: "Gustav Noske (SPD - SC)",
     Rosenfeld: "Kurt Rosenfeld (SAPD)",
     Schäffer: "Franz Schäffer (BVP)",
     Schaffer: "Franz Schäffer (BVP)",
@@ -2142,7 +2154,7 @@ var candidateColors = {
     // Left
     Braun:       "#E3000F", Schumacher:  "#E3000F", Juchacz: "#E3000F",
     Ollenhauer:  "#E3000F", Schmid:      "#E3000F", Rosenfeld: "#C40000",
-    Horsing:     "#FF6B6B",
+    Horsing:     "#FF6B6B", Noske: '#C82909',
     // Center-left / liberal
     Eckener:     "#4A90D9", Gessler:     "#4A90D9", Stresemann: "#D5AC27",
     Hindenburg:  "#888888",
@@ -2253,7 +2265,7 @@ on-arrival: {!
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
-    var center = ["Adenauer", "Kaas", "Brüning", "Bruning"];
+    var center = ["Adenauer", "Kaas", "Brüning", "Bruning", "Noske"];
     var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach2"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
@@ -2473,7 +2485,7 @@ var candidate_descs_r2 = {
     Hamkens:"Wilhelm Hamkens", Rosenfeld:"Kurt Rosenfeld", Hugenberg:"Alfred Hugenberg",
     Seldte:"Franz Seldte",
     Graefe: "Albrecht von Graefe",       // Added
-    Ludendorff: "Erich Ludendorff",     // Added
+    Ludendorff: "Erich Ludendorff", Noske: "Gustav Noske"     // Added
 };
 
 // Use the description mapping specifically for the third candidate
@@ -2525,7 +2537,7 @@ on-arrival: {!
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
-    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg"];
+    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg", "Noske"];
     var center_right = ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Lambach2"];
     // Added Graefe and Ludendorff to far_right
     var far_right    = ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
@@ -2566,7 +2578,7 @@ on-arrival: {!
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
-    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg"];
+    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg", "Noske"];
     var center_right = ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Lambach2"];
     // Added Graefe and Ludendorff to far_right
     var far_right    = ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
@@ -2809,6 +2821,7 @@ on-arrival: {!
     Lambach2: "Walther Lambach (CSVD)",
     Graefe: "Albrecht von Graefe (DVFP)",
     Ludendorff: "Erich Ludendorff (DVFP/Völkisch)",
+    Noske: "Gustav Noske (SPD - SC)",
     
 };
     
@@ -3068,7 +3081,7 @@ Q.presidential_election_active = 0;
 Q.president_term_ended = 0;
 
 // Set president_party
-var spd_winners   = ['Braun','Schumacher','Juchacz','Schmid','Ollenhauer'];
+var spd_winners   = ['Braun','Schumacher','Juchacz','Schmid','Ollenhauer', 'Noske'];
 var kpd_winners   = ['Thälmann','Thalmann','Münzenberg','Munzenberg'];
 var nsdap_winners = ['Hitler','Göring','Goring','Goebbels'];
 var dnvp_winners  = ['Seldte','Westarp','Treviranus','Lambach','Lindeiner','Hugenberg'];
@@ -3101,9 +3114,15 @@ else if (ind_winners.indexOf(w)   >= 0) Q.president_party = 'I';
 
 !}
 on-arrival: president_term_start = year; presidential_election_active = 0;
-go-to: ollenhauer_victory if winner = "Ollenhauer"; dvfp_victory if winner = "Graefe" or winner = "Ludendorff";  hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"           
+go-to: ollenhauer_victory if winner = "Ollenhauer"; dvfp_victory if winner = "Graefe" or winner = "Ludendorff";  hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach_2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"; noske_win if winner = "Noske"        
 
 [+ winner_desc +] is now President of Germany.
+
+@noske_win
+on-arrival: social_fascism_accepted = 1; dnvp_relation += 20; reichswehr_loyalth += 0.10; kpd_relation -= 30; left_dissent += 10; rfb_strength *= 1.20
+achievement: noske_leader
+
+Gustav Noske, formerly the Reichswehr_minister, has won the presidency. Let's see what he can do. Be aware of communists. They always lurk.
 
 @dvfp_victory
 on-arrival: president_party = "DVFP"; nationalism += 25; nsdap_relation -= 10; dnvp_relation -= 10; democratization -= 3
