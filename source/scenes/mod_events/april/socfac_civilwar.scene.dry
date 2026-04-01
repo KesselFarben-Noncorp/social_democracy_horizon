@@ -318,8 +318,6 @@ We spread disinformation among the right's ranks — SA and Stahlhelm have alway
 view-if: war_choices_three >= 2
 go-to: defeat_three if right_victory = 1; communist_win_three if communist_victory = 1; republic_win_three if republic_victory = 1; long_war_three if long_war = 1; exhaustion_three if mutual_exhaustion = 1
 
----
-
 @defeat_three
 on-arrival: sandbox = 1; civil_war_end = "national"; reichswehr_coup_civil_war = 0
 
@@ -335,7 +333,6 @@ Germany passes into darkness.
 - @game_over: Game over.
 - @root: Perhaps...?
 
----
 
 @communist_win_three
 on-arrival: sandbox = 1; civil_war_end = "communist"; reichswehr_coup_civil_war = 0; spd_banned = 1; nsdap_banned = 1; dnvp_banned = 1; dvp_banned = 1; z_banned = 1; ddp_banned = 1; chancellor = "Thälmann"; chancellor_party = "KPD"; president = "Thälmann"
@@ -356,8 +353,6 @@ Whether this is liberation or new tyranny, history has not yet decided.
 - @game_over: Game over.
 - @root: Perhaps something can still be done.
 
----
-
 @republic_win_three
 on-arrival: sandbox = 1; civil_war_end = "republic"; reichswehr_coup_civil_war = 0
 
@@ -373,8 +368,6 @@ The costs are immense. The wounds of three-sided civil war will not heal quickly
 
 - @game_over: Game over.
 - @root: You may continue.
-
----
 
 @long_war_three
 go-to: exhaustion_three if long_war_likely_winner = ""; go-to: long_war_republic if long_war_likely_winner = "republic"; go-to: long_war_communist if long_war_likely_winner = "communist"; go-to: long_war_right if long_war_likely_winner = "right"
@@ -399,8 +392,6 @@ The SA and Reichswehr push forward, but the workers fight street by street. This
 
 - @game_over: The war of attrition drains Germany. Game over.
 - @root: Perhaps aid will come.
-
----
 
 @exhaustion_three
 on-arrival: sandbox = 1; civil_war_end = "stalemate"
