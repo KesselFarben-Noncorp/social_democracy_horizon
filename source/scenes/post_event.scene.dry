@@ -3866,9 +3866,12 @@ if (Q.dnvp_banned || Q.sh_banned) {
     Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
 }
 
-if (Q.kpd_banned) {
+if (Q.rfb_banned && !Q.april_challenge) {
     Q.rfb_strength *= 0.65;
     Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else if (Q.rfb_true_ban && Q.april_challenge) {
+    Q.rfb_strength *= 0.95;
+    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.01);
 } else {
     Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
 }
@@ -3913,7 +3916,8 @@ Q.jungdo_strength -= Q.random_factor(Q.combined_decay, 0.25);
 // Caps for banned orgs
 if (Q.nsdap_banned) Q.sa_strength     = Math.min(Q.sa_strength, 10);
 if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
-if (Q.kpd_banned)  Q.rfb_strength    = Math.min(Q.rfb_strength, 5);
+if (Q.rfb_banned && !Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 10);
+if (Q.rfb_true_ban && Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 3);
 
 
 // Caps for RB.
