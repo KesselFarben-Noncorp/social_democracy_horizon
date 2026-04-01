@@ -72,6 +72,16 @@ on-arrival: kpd_relation -= 15; rfb_strength -= 50; rfb_banned = 1; communist_co
 
 The ban is enthusiastically carried out by the police, perhaps too enthusiastically. The Communists take this as one more reason why the Socialists are traitors to the left. However, the moderate and center-right parties approve, as do the police.
 
+[? if april_challenge = 1: Ban was ineffective as RFB is rampaging the streets. We need the spirit of Noske and Social Fascism here. ?]
+
+@ban_rfb_noske
+view-if: president = "Gustav Noske" and president_party = "SPD" and rfb_true_ban = 0 and april_challenge = 1 and rfb_banned = 1
+choose-if: ((rfb_strength * rfb_militancy) < 1000) and social_fascism_adopted = 1
+unavailable-subtitle: [? ((rfb_strength * rfb_militancy) > 1000): if RFB is too strong to deny them momentum. Prepare yourself. ?] [? if not social_fascism_adopted: You may need to adopt the spirit of Social Fascism. ?]
+on-arrival: rfb_true_ban = 1; kpd_relation -= 1000; rfb_strength += 100; rfb_militancy -= 0.05; dnvp_relation += 10; dvp_relation += 10; z_relation += 10; prussian_police_loyalty += 0.1; interior_police_loyalty += 0.1; communist_revolution_timer -= 10
+
+Under the presidency of Noske, we have banned KPD's paramilitary at once. We will crush them...
+
 @unban_rfb
 view-if: rfb_banned = 1
 on-arrival: rfb_banned = 0; kpd_relation += 5; rfb_strength += 50; prussian_police_loyalty -= 0.05; interior_police_loyalty -= 0.05
