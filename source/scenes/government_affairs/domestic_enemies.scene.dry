@@ -23,7 +23,48 @@ As we have control over the Interior Ministry, we can direct police and intellig
 - @unban_rfb: Unban the RFB.
 - @persecute_rfb
 - @ban_rfb_noske: Ban the Communist RFB effectively and definitively.
+- @ban_kpd: Ban the Communist Party of Germany indefinitely.
 - @root: Take no action for now.
+
+@ban_kpd
+view-if: (kpd_r > 20 or kpd_votes > 30) and strife >= 6 and kpd_relation < 30 and april_challenge = 1 and thalmann_dead
+choose-if: (social_fascism_adopted = 0 and spd_r + kpd_r + sapd_r + srpd_r < 50) or (social_fascism_adopted = 1 and kpd_r + sapd_r < 50)
+unavailable-subtitle: The left parties hold too much collective weight — a ban would be politically untenable without broader support.
+on-arrival: kpd_banned = 1; kpd_relation -= 30; strife += 2; socialism -= 3; workers_kpd -= 5; unemployedc_kpd -= 5; workers_spd += 2; unemployedc_spd += 2; pro_republic -= 3; 
+
+= The Communist Party is Banned
+
+Interior Minister [+ interior_minister +] has signed the prohibition order. The KPD is declared an anti-constitutional organization and its activities are suspended throughout the Reich.
+
+The party's offices are sealed. Known functionaries are placed under surveillance. The Reichstag deputies lose their immunity.
+
+The workers' districts are quiet — a brittle, watchful quiet. Whether this holds depends on what the KPD leadership decides to do next.
+
+This decision cannot be undone through ordinary political means.
+
+= March on Berlin
+
+The order banning the KPD has not held.
+
+Three days after Interior Minister [+ interior_minister +] signed the prohibition, RFB formations in Wedding and Neukölln refused dispersal. By the following morning they had seized the post office on Prenzlauer Allee and were holding the bridges at Oberbaumbrücke and Schillingbrücke. Red flags went up before noon.
+
+By evening the telephone exchanges were reporting similar situations in Hamburg-Altona, in the Ruhr mining districts, and in Chemnitz.
+
+This is no longer a police matter.
+
+[? if rfb_true_ban = 1 : The harder suppression of the RFB has driven the most militant cadres underground for months. They surface now with accumulated fury and stockpiled weapons — more dangerous for having been pushed out of sight. ?]
+
+[? if rb_sh_front = 1 : The Stahlhelm-Reichsbanner arrangement has complicated the picture. Some Stahlhelm units have held to the informal understanding. Others have not. Seldte has issued no clear order. ?]
+
+The Reichsbanner is mobilizing. The question of what the Reichswehr does — and what the President permits — has no answer yet.
+
+What remains of constitutional order rests on the next several hours.
+
+The streets of Berlin are full of men with weapons and no remaining patience for politics.
+
+Are we doomed?
+
+- @socfac_civilwar: Whatever is coming, we are doomed.
 
 @ban_sa
 view-if: nazi_urgency >= 3 and sa_banned == 0
