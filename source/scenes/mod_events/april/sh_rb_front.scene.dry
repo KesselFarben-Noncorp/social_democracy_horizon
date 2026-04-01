@@ -1,0 +1,47 @@
+title: Stahlhelm Seldte and Duesterberg meets Otto Horsing and Reichsbanner...
+subtitle: Perhaps Red Front has grown too strong...
+tags: event
+new-page: true
+view-if: ((rfb_strength * rfb_militancy) > (rb_strength * rb_militancy) + (sh_strength * sh_militancy)) and year >= 1932 and kpd_relation < 30 and dnvp_relation > 30 and sh_strength * sh_militancy > 200 and rb_strength * rb_militancy > 300 and stahlhelm_rb_meeting = 0
+on-arrival: stahlhelm_rb_meeting = 1
+
+= Stahlhelm-Reichsbanner Meeting
+
+Franz Seldte and Theodor Duesterberg have requested a private meeting with Otto Horsing, the Reichsbanner's chairman. The venue is neutral — a modest conference room in a Frankfurt hotel, arranged through intermediaries.
+
+The Stahlhelm delegation arrives punctually. Seldte speaks first, without preamble: the Roter Frontkämpferbund has grown into something neither organization can manage alone. Street dominance in several industrial districts has shifted decisively toward the KPD's paramilitary wing. The nationalist leagues are losing ground. So, he implies, is the Reichsbanner.
+
+Duesterberg sets a folder of incident reports on the table. Hamburg. The Ruhr. Saxony. The pattern is clear.
+
+Horsing listens. The offer is not friendship. It is not even alliance in any formal sense. It is coordination — shared intelligence on RFB movements, parallel deployment to contest the same streets, a mutual understanding that neither side fires on the other while the Red Front is the common problem.
+
+The politics are uncomfortable. The Stahlhelm is no friend of the Republic. Seldte and Duesterberg have their own agenda, and cooperation legitimizes them. These are not men who march for democracy.
+
+The question is whether the RFB threat is large enough to warrant setting that aside.
+
+- @accept_cooperation: We will coordinate with the Stahlhelm against the RFB.
+- @reject_cooperation: We will not. The Stahlhelm is not a partner we can accept.
+
+@accept_cooperation
+choose-if: social_fascism_adopted and left_strength < 40
+unavailable-subtitle: Left fraction is blocking. Otherwise, social fascism is not adopted.
+on-arrival: sh_strength += 50; rb_strength += 30; rfb_strength -= 20; rfb_militancy -= 0.01; kpd_relation -= 15; dnvp_relation += 8; strife += 1; sh_militancy += 0.1; rb_sh_front = 1
+
+Horsing extends his hand. The agreement is unwritten and will never be acknowledged publicly.
+
+Over the following weeks the arrangement produces results. RFB formations find both organizations contesting their usual corridors. Several planned demonstrations are disrupted before they begin. The Red Front's street presence contracts.
+
+The cost is real. The Stahlhelm has gained a measure of implicit legitimacy from the arrangement, and the nationalist leagues are stronger for it. Within the Reichsbanner there is disquiet. Some units refuse to operate alongside Stahlhelm formations under any circumstances.
+
+We will no longer fight one another.
+
+This was a tactical decision. Whether it proves a sound one depends on what comes next.
+
+@reject_cooperation
+on-arrival: kpd_relation += 5; dnvp_relation -= 5; strife += 1
+
+Horsing declines. The Stahlhelm is a monarchist organization whose vision of Germany has no place for the Republic or the labor movement. Whatever the RFB's strength, building that bridge is not acceptable.
+
+Seldte receives the answer without visible reaction. The delegations part without incident.
+
+The RFB problem remains. It will have to be addressed through other means — or endured.
