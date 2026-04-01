@@ -1,0 +1,417 @@
+title: Civil War (Three-Way)
+audio: music/communist/A_las_barricadas.ogg
+on-arrival: {!
+
+Q.rb_strength = Math.round(Q.rb_strength);
+Q.sh_strength = Math.round(Q.sh_strength);
+Q.sa_strength = Math.round(Q.sa_strength);
+
+// Recalculate dissent
+var total_strength = Q.left_strength + Q.center_strength + Q.labor_strength + Q.reformist_strength + Q.neorevisionist_strength;
+var total_dissent = Q.left_strength*Q.left_dissent + Q.center_strength*Q.center_dissent + Q.labor_strength*Q.labor_dissent + Q.reformist_strength*Q.reformist_dissent + Q.neorevisionist_strength*Q.neorevisionist_dissent;
+Q.dissent = 0.01*total_dissent/total_strength;
+if (Q.dissent < 0) Q.dissent = 0;
+else if (Q.dissent > 0.95) Q.dissent = 0.95;
+
+Q.civil_war_seen = 1;
+Q.three_way_war = 1;
+
+// =============================================
+// SIDE DETERMINATION: Player picks a side
+// base_revolution = 0 → player sides with KPD/Communists
+// base_revolution = 1 → player sides with SPD/Republic (default)
+// =============================================
+
+Q.player_side = (Q.base_revolution == 0) ? "communist" : "republic";
+
+// =============================================
+// FACTION: REICHSWEHR
+// High loyalty (>= 0.40) → joins Republic
+// Low loyalty → fights as independent right-wing faction (with SA/Stahlhelm)
+// =============================================
+
+Q.reichswehr_side = (Q.reichswehr_loyalty >= 0.40) ? "republic" : "right";
+
+// =============================================
+// FACTION: STAHLHELM
+// Always follows Reichswehr
+// =============================================
+
+Q.sh_side = Q.reichswehr_side; // "republic" or "right"
+
+// =============================================
+// FACTION: SA
+// Always fights on the right
+// =============================================
+
+Q.sa_side = "right";
+
+// =============================================
+// FACTION: JUNGDO
+// Follows Republic unless nationalism is high
+// =============================================
+
+Q.jungdo_strength = Q.jungdo_strength || 80;
+Q.jungdo_militancy = Q.jungdo_militancy || 0.4;
+Q.jungdo_power = Q.jungdo_strength * Q.jungdo_militancy;
+
+var jungdo_nationalist = (Q.nationalism >= 55 || (Q.ddp_relation || 50) < 30 || Q.pro_republic < 35);
+Q.jungdo_side = jungdo_nationalist ? "right" : "republic";
+
+// =============================================
+// FACTION: PRUSSIAN POLICE
+// base_revolution = 0: player is communist, so police split —
+//   loyalists (based on dissent) defect to Republic, rest stay put or join right
+// base_revolution = 1: standard behavior
+// =============================================
+
+Q.police_republic_fraction = 0;
+Q.police_communist_fraction = 0;
+Q.police_right_fraction = 0;
+
+if (Q.player_side === "communist") {
+    // Police don't follow the KPD player
+    // Portion based on dissent: high dissent → more defect to Reichswehr/right
+    var defection_rate = Math.min(0.6, Q.dissent * 1.2);
+    Q.police_republic_fraction = (1 - defection_rate) * Q.prussian_police_loyalty;
+    Q.police_right_fraction = defection_rate * (1 - Q.prussian_police_loyalty);
+    // Rest are neutral/ineffective
+} else {
+    // Standard: republic gets loyal police if SPD controls Prussia
+    if (Q.spd_prussia) {
+        Q.police_republic_fraction = Q.prussian_police_loyalty;
+    }
+}
+
+// =============================================
+// FACTION: RFB (Red Front Fighters)
+// Always on communist side in three-way war
+// =============================================
+
+Q.rfb_power = Q.rfb_strength * Q.rfb_militancy;
+Q.rfb_side = "communist";
+
+// =============================================
+// POWER CALCULATIONS — three factions
+// =============================================
+
+// --- REPUBLIC POWER ---
+Q.republic_power = 0;
+
+// Reichsbanner (weakened by dissent if player is communist — some members defect/refuse)
+Q.rb_power = Q.rb_strength * Q.rb_militancy;
+if (Q.player_side === "communist") {
+    // Some RB members follow the leftward shift; most stay with SPD
+    var rb_communist_pull = Math.min(0.4, Q.left_strength / 100 * 0.6 + Q.dissent * 0.3);
+    Q.rb_communist_fraction = rb_communist_pull;
+    Q.rb_republic_fraction = 1 - rb_communist_pull;
+} else {
+    Q.rb_communist_fraction = 0;
+    Q.rb_republic_fraction = 1;
+    if (Q.dissent > 0.15) Q.rb_power *= (1 - Q.dissent / 1.5);
+}
+Q.republic_power += Q.rb_power * Q.rb_republic_fraction;
+
+// Reichswehr (if loyal enough)
+Q.loyal_reichswehr_power = Q.reichswehr_strength * Q.reichswehr_militancy * Q.reichswehr_loyalty;
+if (Q.reichswehr_side === "republic") {
+    Q.republic_power += Q.loyal_reichswehr_power;
+}
+
+// Prussian police
+Q.prussian_police_power = Q.prussian_police_strength * Q.prussian_police_militancy;
+Q.republic_power += Q.prussian_police_power * Q.police_republic_fraction;
+
+// Jungdo
+if (Q.jungdo_side === "republic") {
+    Q.republic_power += Q.jungdo_power;
+}
+
+// Stahlhelm with republic (if Reichswehr loyal)
+if (Q.sh_side === "republic") {
+    Q.republic_power += Q.sh_strength * Q.sh_militancy;
+}
+
+// General strike contribution (workers supporting SPD)
+Q.normalized_workers_spd = 100 * Q.workers_spd / (Q.workers_spd + Q.workers_kpd + Q.workers_nsdap + Q.workers_other + Q.workers_dnvp + Q.workers_z);
+if (Q.player_side === "republic") {
+    Q.republic_power += (2 - Q.labor_dissent / 100) * Q.normalized_workers_spd * (2 - Q.unemployed / 100) * 2.0;
+}
+
+// --- COMMUNIST POWER ---
+Q.communist_power = 0;
+
+// RFB always with communists
+Q.communist_power += Q.rfb_power;
+
+// KPD workers
+Q.normalized_workers_kpd = 100 * Q.workers_kpd / (Q.workers_spd + Q.workers_kpd + Q.workers_nsdap + Q.workers_other + Q.workers_dnvp + Q.workers_z);
+Q.communist_power += Q.normalized_workers_kpd * 3.0;
+Q.communist_power += (Q.kpd_r || 0) * 8; // KPD electoral depth
+
+// If player sides communist: Reichsbanner left-defectors + some police
+if (Q.player_side === "communist") {
+    Q.communist_power += Q.rb_power * Q.rb_communist_fraction;
+    Q.communist_power += Q.prussian_police_power * Q.police_communist_fraction;
+    // SPD workers still contribute via general strike under communist banner
+    Q.communist_power += (2 - Q.labor_dissent / 100) * Q.normalized_workers_spd * (2 - Q.unemployed / 100) * 1.5;
+}
+
+// --- RIGHT POWER ---
+Q.right_power = 0;
+
+// SA always right
+Q.right_power += Q.sa_strength * Q.sa_militancy;
+
+// Stahlhelm (if Reichswehr disloyal)
+if (Q.sh_side === "right") {
+    Q.right_power += Q.sh_strength * Q.sh_militancy;
+}
+
+// Hostile Reichswehr (if disloyal)
+if (Q.reichswehr_side === "right") {
+    Q.hostile_reichswehr_power = Q.reichswehr_strength * Q.reichswehr_militancy * (1 - Q.reichswehr_loyalty * 0.4);
+    Q.right_power += Q.hostile_reichswehr_power;
+} else {
+    // Even loyal Reichswehr has some rightist elements that defect
+    Q.hostile_reichswehr_power = Q.reichswehr_strength * Q.reichswehr_militancy * (1 - Q.reichswehr_loyalty) * 0.5;
+    Q.right_power += Q.hostile_reichswehr_power;
+}
+
+// Jungdo (reluctantly right)
+if (Q.jungdo_side === "right") {
+    Q.right_power += Q.jungdo_power;
+}
+
+// Police defectors
+Q.right_power += Q.prussian_police_power * Q.police_right_fraction;
+
+console.log("Republic power:", Q.republic_power);
+console.log("Communist power:", Q.communist_power);
+console.log("Right power:", Q.right_power);
+
+// =============================================
+// OUTCOME RESOLUTION
+// Player wins if their side beats both others,
+// or eliminates the weakest and then beats the strongest.
+// =============================================
+
+Q.republic_victory = 0;
+Q.communist_victory = 0;
+Q.right_victory = 0;
+Q.long_war = 0;
+Q.mutual_exhaustion = 0;
+
+var player_power = (Q.player_side === "communist") ? Q.communist_power : Q.republic_power;
+var sides = [
+    { name: "republic", power: Q.republic_power },
+    { name: "communist", power: Q.communist_power },
+    { name: "right", power: Q.right_power }
+];
+sides.sort(function(a, b) { return b.power - a.power; });
+
+var strongest = sides[0];
+var second = sides[1];
+var weakest = sides[2];
+
+// Clear winner: strongest beats second by 20%+
+if (strongest.power >= second.power * 1.20) {
+    if (strongest.name === "republic") Q.republic_victory = 1;
+    else if (strongest.name === "communist") Q.communist_victory = 1;
+    else Q.right_victory = 1;
+} else if (strongest.power >= second.power * 1.05) {
+    // Narrow win — long war before resolution
+    Q.long_war = 1;
+    Q.long_war_likely_winner = strongest.name;
+} else {
+    // All roughly equal → mutual exhaustion / stalemate
+    Q.mutual_exhaustion = 1;
+}
+
+// Player-specific override: if player's side wins, flavor it
+Q.player_won = (Q.player_side === "republic" && Q.republic_victory) ||
+               (Q.player_side === "communist" && Q.communist_victory);
+Q.player_lost = (Q.player_side === "republic" && (Q.right_victory || Q.communist_victory)) ||
+                (Q.player_side === "communist" && (Q.right_victory || Q.republic_victory));
+
+!}
+go-to: war_menu_three
+
+= The Array of Forces
+
+This is no longer a simple coup. Three armed camps now contend for Germany.
+
+**The Republic** — the SPD, Reichsbanner[? if reichswehr_side = "republic" :, and a loyal Reichswehr?][? if spd_prussia :, and the Prussian police?] — defends parliamentary democracy.
+
+**The Communists** — the KPD and their Red Front Fighters League, [+ rfb_strength +] thousand strong — fight for a Soviet Germany.
+
+**The Right** — the SA ([+ sa_strength +] thousand)[? if sh_side = "right" :, the Stahlhelm ([+ sh_strength +] thousand)?][? if reichswehr_side = "right" :, and a disloyal Reichswehr ([+ reichswehr_strength +] thousand soldiers)?] — fight for authoritarian nationalism.
+
+[? if reichswehr_side = "republic" : The Reichswehr, despite everything, has thrown its weight behind the republic. [+ reichswehr_strength +] thousand soldiers fight for the constitution. ?]
+[? if reichswehr_side = "right" : The Reichswehr has abandoned the republic. Its [+ reichswehr_strength +] thousand soldiers fight alongside the SA and Stahlhelm. ?]
+
+[? if sh_side = "republic" : The Stahlhelm follows the Reichswehr — nationalist veterans fighting, improbably, for Weimar. ?]
+[? if sh_side = "right" : The Stahlhelm marches with the right, as expected. ?]
+
+[? if jungdo_side = "republic" : The Young German Order, despising the Nazis while remaining republican nationalists, has sided with the republic. ?]
+[? if jungdo_side = "right" : The Young German Order has chosen the nationalist camp — reluctantly, avoiding the SA, but fighting against the republic. ?]
+
+[? if player_side = "communist" : *You stand with the Communists.* The Reichsbanner is split — some follow you leftward, most remain with the SPD. ?]
+[? if player_side = "republic" : *You stand with the Republic.* The full Reichsbanner ([+ rb_strength +] thousand) follows your banner. ?]
+
+@war_menu_three
+
+- @appeal_reichswehr_three: Appeal to the Reichswehr.
+- @rally_workers_three: Rally the workers to the general strike.
+- @police_three: Call up the Prussian police.
+- @kpd_negotiate: Negotiate with the KPD.
+- @right_weaken: Undermine the enemy's cohesion.
+- @war_outcome_three: Now, the battle...
+
+@appeal_reichswehr_three
+max-visits: 1
+go-to: war_menu_three
+on-arrival: war_choices_three += 1
+
+[? if player_side = "republic" : We urge the Reichswehr to stand for the constitution. [? if reichswehr_loyalty >= 0.6 : The response is overwhelming — most officers honor their oath. ?][? if reichswehr_loyalty >= 0.40 and reichswehr_loyalty < 0.6 : The army is split, but enough heed our call. They join the republic. ?][? if reichswehr_loyalty < 0.40 : Few heed us. The officer corps is lost to the right. ?] ?]
+[? if player_side = "communist" : We call on rank-and-file soldiers to refuse orders, to fraternize with the workers. [? if reichswehr_loyalty < 0.40 : Some desert — but most stay with their officers, fighting for the right. ?][? if reichswehr_loyalty >= 0.40 : The Reichswehr is already with the republic — our appeals fall on deaf or hostile ears. ?] ?]
+
+@rally_workers_three
+max-visits: 1
+go-to: war_menu_three
+on-arrival: war_choices_three += 1
+
+The workers are the backbone of any victory — whether for the republic or the revolution.
+
+[? if player_side = "republic" : A general strike has stopped coups before. [? if normalized_workers_spd >= 50 : The SPD workers respond in strength. ?][? if normalized_workers_spd < 50 : Too many workers have moved toward the KPD — the strike is partial at best. ?] ?]
+[? if player_side = "communist" : We call for revolutionary action. [? if normalized_workers_kpd >= 40 : The KPD workers rise. Factories shut down. The red flag flies over the gates. ?][? if normalized_workers_kpd < 40 : The KPD base is not strong enough yet — workers are divided among three directions. ?] ?]
+
+@police_three
+max-visits: 1
+view-if: spd_prussia = 1
+go-to: war_menu_three
+on-arrival: war_choices_three += 1
+
+[? if player_side = "republic" : We mobilize the Prussian police behind the republic. [? if prussian_police_loyalty >= 0.65 : Most join us loyally. ?][? if prussian_police_loyalty >= 0.40 : About half respond. ?][? if prussian_police_loyalty < 0.40 : The police are unreliable — some may even defect to the right. ?] ?]
+[? if player_side = "communist" : We appeal to the rank-and-file police — workers in uniform. [? if dissent <= 0.25 : Even with our calls, most stay with the republic — the SPD still commands loyalty there. ?][? if dissent > 0.25 : Dissent runs high enough that a portion of officers peel away, joining our lines. ?] ?]
+
+@kpd_negotiate
+max-visits: 1
+go-to: war_menu_three
+on-arrival: war_choices_three += 1
+
+[? if player_side = "republic" : We attempt to reach a ceasefire with the KPD — *"Fight the fascists first; settle the political question after."* [? if kpd_relation >= 60 : The KPD leadership agrees. For now, the guns point only rightward. ?][? if kpd_relation >= 40 and kpd_relation < 60 : The KPD is skeptical but stands down offensives against Reichsbanner positions. A fragile truce. ?][? if kpd_relation < 40 : The KPD rejects our overture. *"Social fascists cannot be trusted."* The three-way war continues. ?] ?]
+[? if player_side = "communist" : We attempt to absorb SPD left-wingers — those who agree the hour demands revolution. [? if left_strength >= 50 : Many SPD left-wingers cross over, swelling our ranks. ?][? if left_strength < 50 : Few follow. The SPD center holds its members. ?] ?]
+
+@right_weaken
+max-visits: 1
+go-to: war_menu_three
+on-arrival: war_choices_three += 1
+
+We spread disinformation among the right's ranks — SA and Stahlhelm have always despised each other; we widen those cracks.
+
+[? if sh_side = "right" and sa_strength > sh_strength : The SA dominates the right coalition. The Stahlhelm veterans resent taking orders from Hitler's street thugs. Several Stahlhelm units stand down. ?]
+[? if sh_side = "right" and sa_strength <= sh_strength : The Stahlhelm holds the right together more tightly than we hoped. The operation has limited effect. ?]
+[? if sh_side = "republic" : The Stahlhelm is already on our side — we focus agitation on the SA's internal divisions instead, with modest success. ?]
+
+@war_outcome_three
+view-if: war_choices_three >= 2
+go-to: defeat_three if right_victory = 1; communist_win_three if communist_victory = 1; republic_win_three if republic_victory = 1; long_war_three if long_war = 1; exhaustion_three if mutual_exhaustion = 1
+
+---
+
+@defeat_three
+on-arrival: sandbox = 1; civil_war_end = "national"; reichswehr_coup_civil_war = 0
+
+= The Right Prevails
+
+The SA, Stahlhelm, and disloyal Reichswehr prove too strong. They crush both the republic and the workers' militias in turn, executing or exiling every socialist and communist leader they can find.
+
+[? if player_side = "communist" : You are among the first arrested. The KPD's armed resistance bought a few more hours — but the outcome was never in doubt once the army turned against the people. ?]
+[? if player_side = "republic" : The republic fought to the end. But without a loyal army and without the workers united, there was no stopping the tide. ?]
+
+Germany passes into darkness.
+
+- @game_over: Game over.
+- @root: Perhaps...?
+
+---
+
+@communist_win_three
+on-arrival: sandbox = 1; civil_war_end = "communist"; reichswehr_coup_civil_war = 0; spd_banned = 1; nsdap_banned = 1; dnvp_banned = 1; dvp_banned = 1; z_banned = 1; ddp_banned = 1; chancellor = "Thälmann"; chancellor_party = "KPD"; president = "Thälmann"
+
+= The Revolution Prevails
+
+The RFB and the armed workers overwhelm the right's paramilitaries. The republic's forces, weakened and caught between two enemies, collapse or defect.
+
+[? if player_side = "communist" : You led this. The SPD center crumbled when the left chose revolution. The Reichsbanner fighters who followed you fought with revolutionary fervor. ?]
+[? if player_side = "republic" : You are given a choice: exile or silence. The KPD has no use for Social Democrats now that the republic is over. ?]
+
+Thälmann speaks from the steps of the Reichstag:
+
+*"The German Soviet Republic is proclaimed. The November betrayal is avenged."*
+
+Whether this is liberation or new tyranny, history has not yet decided.
+
+- @game_over: Game over.
+- @root: Perhaps something can still be done.
+
+---
+
+@republic_win_three
+on-arrival: sandbox = 1; civil_war_end = "republic"; reichswehr_coup_civil_war = 0
+
+= The Republic Survives
+
+Against all odds, the republic has beaten back both the fascist right and the communist left.
+
+[? if reichswehr_side = "republic" : A loyal Reichswehr made the difference. Professional soldiers held the line where paramilitaries alone could not. ?]
+[? if kpd_relation >= 50 : An informal ceasefire with the KPD meant only one front to fight — the right was defeated before the communists could consolidate. ?]
+[? if player_side = "republic" : You held the line. Democracy, bloodied, survives. ?]
+
+The costs are immense. The wounds of three-sided civil war will not heal quickly. But Weimar stands. Republic stands. Thanks, Ebert. 
+
+- @game_over: Game over.
+- @root: You may continue.
+
+---
+
+@long_war_three
+go-to: exhaustion_three if long_war_likely_winner = ""; go-to: long_war_republic if long_war_likely_winner = "republic"; go-to: long_war_communist if long_war_likely_winner = "communist"; go-to: long_war_right if long_war_likely_winner = "right"
+
+@long_war_republic
+= A Long War — The Republic Holds On
+The initial clash ends without a victor. The republic has the edge, but cannot finish the fight quickly. Foreign powers watch nervously as Germany bleeds.
+
+- @game_over: The war of attrition drains Germany. Game over.
+- @root: Perhaps aid will come.
+
+@long_war_communist
+= A Long War — The Revolution Grinds Forward
+The communists cannot win outright, but neither can they be defeated. Soviet aid filters through the eastern border. The republic and the right fight each other as much as they fight the KPD.
+
+- @game_over: The war of attrition drains Germany. Game over.
+- @root: Perhaps aid will come.
+
+@long_war_right
+= A Long War — The Right Advances
+The SA and Reichswehr push forward, but the workers fight street by street. This will take months. Germany destroys itself.
+
+- @game_over: The war of attrition drains Germany. Game over.
+- @root: Perhaps aid will come.
+
+---
+
+@exhaustion_three
+on-arrival: sandbox = 1; civil_war_end = "stalemate"
+
+= Mutual Exhaustion
+
+No faction wins. No faction loses. After weeks of street fighting, all three sides are bled white.
+
+The SA controls parts of Munich and Hamburg. The KPD holds workers' districts in Berlin and the Ruhr. The republic clings to the ministries in what remains of governmental Berlin.
+
+A broken armistice settles over a broken country. The Germany that emerges — if it emerges — will be something none of the three sides intended.
+
+- @game_over: Game over.
+- @root: Somehow, the pieces must be picked up.
