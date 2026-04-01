@@ -1,0 +1,38 @@
+title: An Unusual Visitor
+new-page: true
+is-card: true
+tags: event
+view-if: year >= 1932 and month >= 2 and hitler_recruited = 0 and april_challenge = 1
+on-arrival: hitler_recruited = 1
+
+= An Unusual Visitor
+
+An Austrian agitator by the name of Adolf Hitler has requested a meeting with party leadership. His background is unremarkable — a failed painter, a decorated corporal, briefly the loudest voice in the collapsed German Workers' Party before it imploded under its own contradictions.
+
+He is not famous. He is not powerful. He is, however, effective on a podium.
+
+His grievance is the Young Plan, the Dawes arrangement, and what he calls the systematic humiliation of Germany by foreign creditors and their domestic collaborators. He has been speaking to small crowds in Munich beer halls and gradually larger ones further north. The DVFP has been courting him.
+
+His proposal, delivered through an intermediary, is straightforward: he will bring his oratorical skills and his nationalist-worker following to the SPD, if the SPD will give him a platform and distance itself from what he terms the foreign reconciliation policy.
+
+The price is significant. He is not asking to become a social democrat. He is asking the SPD to move toward him.
+
+- @recruit_hitler: Hear him out. Perhaps something can be arranged.
+- @reject_hitler: Send him away. We will not compromise our foreign policy for any agitator.
+
+@recruit_hitler
+view-if: social_fascism_adopted and left_strength < reformist_strength + labor_strength + center_strength + neorevisionist_strength
+on-arrival: hitler_spd = 1; hitler_recruited = 1; dvfp_relation -= 10; kpd_relation -= 5; z_relation -= 5; ddp_relation -= 5; strife += 1
+
+The meeting takes place in a back room. Hitler speaks for forty minutes without notes. Whatever else he is, the man commands a room.
+
+The arrangement is informal — he will not join the party in any official capacity, and his nationalist rhetoric will remain his own. But he will appear on SPD platforms, draw crowds the party cannot otherwise reach, and direct his followers toward SPD electoral lists.
+
+Whether this proves wise will depend on what he does with the access we have given him.
+
+@reject_hitler
+on-arrival: hitler_dvfp = 1; dvfp_relation += 5; dvfp_votes += 2; nationalism += 2
+
+The intermediary is informed. Hitler receives the answer without apparent surprise.
+
+Within three weeks he is photographed alongside Franz Seldte at a DVFP - DNVP - Stahlhelm rally in Nuremberg. The DVFP has found their speaker. The crowds he draws for them will not be drawing for us, that's for sure.
