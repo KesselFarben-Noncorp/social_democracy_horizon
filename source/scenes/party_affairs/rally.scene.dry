@@ -5,7 +5,51 @@ tags: party_affairs
 view-if: rally_timer <= 0
 on-arrival: month_actions += 1; rally_timer = 6 if nazi_urgency <= 0; rally_timer = 5 if nazi_urgency > 0;
 card-image: img/protest.jpg
-go-to: main_rally; sa_disrupt if sa_strength > 180 and not sa_banned and not return_to_normalcy
+go-to: main_rally; sa_disrupt if sa_strength > 180 and not sa_banned and not return_to_normalcy; kpd_disrupt if kpd_relation < -40 and rfb_strength * rfb_militancy > 150 and (not rfb_banned or (april_challenge = 1 and not true_rfb_ban))
+
+@kpd_disrupt
+
+The KPD's Roter Frontkämpferbund has mobilized to block our rally! Their militants are surrounding the venue, accusing us of "social fascism" and preventing our comrades from entering.
+
+- @rb_push_through: Use the Reichsbanner to push through.
+- @both_protect_kpd: Use police and Reichsbanner together.
+- @cancel_kpd: Cancel the rally.
+
+@rb_push_through
+on-arrival: rb_success = rb_strength * rb_militancy - rfb_strength * rfb_militancy; strife += 1; kpd_relation -= 5
+go-to: rb_push_win if rb_success >= 0; rb_push_lose if rb_success < 0
+
+@rb_push_win
+go-to: main_rally
+
+The Reichsbanner has forced the RFB to back down. Our rally proceeds, though the clash deepens the rift with the KPD.
+
+@rb_push_lose
+on-arrival: workers_kpd += 3; rb_strength -= 40; workers_spd -= 2
+
+The Reichsbanner was overwhelmed. The KPD has humiliated us on the streets — a serious blow to our image among the workers.
+
+@both_protect_kpd
+view-if: spd_prussia
+choose-if: prussian_police_training > 0
+unavailable-subtitle: The police have never coordinated with the Reichsbanner against the RFB before.
+on-arrival: rb_success = rb_strength * rb_militancy + prussian_police_loyalty * prussian_police_militancy * prussian_police_strength * 2 - rfb_strength * rfb_militancy; strife += 1; kpd_relation -= 8
+go-to: both_kpd_win if rb_success >= 0; both_kpd_lose if rb_success < 0
+
+@both_kpd_win
+go-to: main_rally
+
+Police and Reichsbanner together dispersed the RFB blockade. The rally proceeds, but using state police against KPD militants will not be forgotten.
+
+@both_kpd_lose
+on-arrival: workers_kpd += 4; rb_strength -= 40; kpd_relation -= 5
+
+Even the combined force was not enough. The KPD has won this street confrontation decisively.
+
+@cancel_kpd
+on-arrival: workers_kpd += 3; workers_spd -= 2
+
+We backed down rather than risk a confrontation. The KPD claims victory.
 
 @sa_disrupt
 
