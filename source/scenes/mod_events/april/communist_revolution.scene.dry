@@ -1,0 +1,29 @@
+title: Communist Revolution has begun...
+subtitle: Time to crush it.
+view-if: communist_revolution_timer = 0 and year = 1933 and ((rfb_strength * rfb_militancy) > 300) and communist_revolution_timer = 0 and april_challenge = 1
+tags: event
+new-page: true
+on-arrival: reichswehr_loyalty -= 0.05; prussian_police_loyalty += 0.10; rb_strength += 100; rb_militancy += 0.05; rfb_militancy *= 1.05
+
+= Second Spartakist Revolution has begun...
+
+As anticipated, communists have been lately uncooperative and at the last momentum decided to launch the revolution against our government despite repeating their old fate.
+
+What action should we take? 
+
+- @crush: Crush the communists
+- @join: Join them.
+
+@crush
+view-if: ideology != "left" 
+on-arrival: base_revolution = 1;
+
+As expected, we will crush them. There is no place for workerists. Government will prosper.
+
+- @socfac_civilwar: So it has begun.
+
+@join
+view-if: ideology = "left"
+on-arrival: base_revolution = 0;
+
+- @socfac_civilwar: So it has begun.
