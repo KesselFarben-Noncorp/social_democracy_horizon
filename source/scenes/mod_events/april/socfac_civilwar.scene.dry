@@ -35,10 +35,33 @@ Q.reichswehr_side = (Q.reichswehr_loyalty >= 0.40) ? "republic" : "right";
 
 // =============================================
 // FACTION: STAHLHELM
-// Always follows Reichswehr
+// Default: follows Reichswehr
+// If rb_sh_front active and player is republican:
+//   - Reichswehr republican → Stahlhelm joins republic via Reichswehr
+//   - Reichswehr right/independent → Stahlhelm splits: 80% right, 20% republic
 // =============================================
 
-Q.sh_side = Q.reichswehr_side; // "republic" or "right"
+if (Q.rb_sh_front && Q.player_side === "republic") {
+    if (Q.reichswehr_side === "republic") {
+        Q.sh_side = "republic";
+        Q.sh_split = 0;
+        Q.sh_republic_fraction = 1.0;
+        Q.sh_right_fraction = 0.0;
+    } else {
+        // Reichswehr went right — the street-level cooperation with RB
+        // pulls some Stahlhelm units toward republic, but most follow
+        // the nationalist instinct
+        Q.sh_side = "split";
+        Q.sh_split = 1;
+        Q.sh_republic_fraction = 0.20;
+        Q.sh_right_fraction = 0.80;
+    }
+} else {
+    Q.sh_side = Q.reichswehr_side;
+    Q.sh_split = 0;
+    Q.sh_republic_fraction = Q.sh_side === "republic" ? 1.0 : 0.0;
+    Q.sh_right_fraction = Q.sh_side === "right" ? 1.0 : 0.0;
+}
 
 // =============================================
 // FACTION: SA
@@ -129,9 +152,8 @@ if (Q.jungdo_side === "republic") {
 }
 
 // Stahlhelm with republic (if Reichswehr loyal)
-if (Q.sh_side === "republic") {
-    Q.republic_power += Q.sh_strength * Q.sh_militancy;
-}
+// Stahlhelm — fractional if split
+Q.republic_power += Q.sh_strength * Q.sh_militancy * Q.sh_republic_fraction;
 
 // General strike contribution (workers supporting SPD)
 Q.normalized_workers_spd = 100 * Q.workers_spd / (Q.workers_spd + Q.workers_kpd + Q.workers_nsdap + Q.workers_other + Q.workers_dnvp + Q.workers_z);
@@ -162,7 +184,7 @@ if (Q.player_side === "communist") {
 Q.right_power = 0;
 
 // SA always right
-Q.right_power += Q.sa_strength * Q.sa_militancy;
+Q.right_power += Q.sh_strength * Q.sh_militancy * Q.sh_right_fraction;
 
 // Stahlhelm (if Reichswehr disloyal)
 if (Q.sh_side === "right") {
@@ -253,6 +275,7 @@ This is no longer a simple coup. Three armed camps now contend for Germany.
 
 [? if sh_side = "republic" : The Stahlhelm follows the Reichswehr — nationalist veterans fighting, improbably, for Weimar. ?]
 [? if sh_side = "right" : The Stahlhelm marches with the right, as expected. ?]
+[? if sh_side = "split" : The Stahlhelm is divided. The street-level cooperation with the Reichsbanner has pulled roughly a fifth of their units toward the republic — but most follow the nationalist call. Seldte himself is said to be furious at the split. ?]
 
 [? if jungdo_side = "republic" : The Young German Order, despising the Nazis while remaining republican nationalists, has sided with the republic. ?]
 [? if jungdo_side = "right" : The Young German Order has chosen the nationalist camp — reluctantly, avoiding the SA, but fighting against the republic. ?]
