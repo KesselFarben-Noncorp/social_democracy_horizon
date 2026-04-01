@@ -16,6 +16,7 @@ We must do something to protect the workers against these predations.
 
 # - @battle: Test our defense units in battle against the fascists!
 - @arm_rb: Increase training and armaments for the Reichsbanner.
+- @coordinate_sh: Coordinate with the Stahlhelm.
 - @if_training: Train union members to fight as part of the Iron Front.
 - @prussian_police_training: Use the Prussian police to help train the Reichsbanner.
 - @peace: Try to avoid all militant confrontations, as much as possible.
@@ -59,9 +60,23 @@ on-arrival: rb_militancy -= 0.02; rb_strength -= 50; pacifism += 1; neorevisioni
 By not fighting, the strength of the Reichsbanner atrophies. Pacifists in the party are gaining the upper hand.
 
 @truce_rfb
-choose-if: kpd_relation >= 45
+choose-if: kpd_relation >= 45 or not social_fascism_adopted
 view-if: kpd_truce == 0
 unavailable-subtitle: The KPD is not interested.
 on-arrival: kpd_truce = 1; kpd_relation += 5; rfb_strength += 50; rb_strength += 50; sa_strength += 50; neorevisionist_dissent += 8
 
 We have made at least a temporary truce with the KPD, so that our respective paramilitaries will stop fighting.
+
+@coordinate_sh
+view-if: rb_sh_front = 1 and dnvp_relation >= 30 and sh_strength > 200
+choose-if: kpd_relation < 20 and rfb_strength * rfb_militancy > rb_strength * rb_militancy
+unavailable-subtitle: The conditions for such an arrangement are not present — either the RFB threat is insufficient or relations with the KPD are not hostile enough to justify it.
+on-arrival: sh_strength += 50; rb_strength += 50; dnvp_relation += 8; kpd_relation -= 10; z_relation -= 5; strife += 1; neorevisionist_dissent += 8; left_dissent += 5; center_dissent += 3; labor_dissent += 5
+
+A quiet arrangement has been reached with Seldte and Duesterberg of the Stahlhelm.
+
+There is no signed document. There will be no public announcement. The understanding is functional rather than political — Reichsbanner and Stahlhelm units will not fire on each other, will share intelligence on RFB movements, and will contest the same streets when the Red Front overreaches.
+
+The arrangement produces immediate results in several districts where the RFB had been operating freely.
+
+Our left wing is furious, but what is left of them now?...
