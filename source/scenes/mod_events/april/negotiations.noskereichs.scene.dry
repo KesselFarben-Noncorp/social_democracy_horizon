@@ -1,0 +1,34 @@
+title: Noske - [+ reichswehr_minister +] Negotiations
+subtitle: Will they reach the agreement...?
+view-if: president = "Noske" and year >= 1932 and month >= 7
+tags: event
+new-page: true
+max-visits: 1
+on-arrival: reichswehr_strength += 10 if rb_strength * rb_militancy < 0.20
+
+= Noske meets the Reichswehr Minister
+
+As the streets have been rampaging with the RFB and Stahlhelm fighting one another, we have decided to reach out the military for some sort of agreement.
+
+The main thing in the document of the agreement are points:
+
+• ​Tactical Integration: The Reichsbanner and the Reichswehr shall initiate formal intelligence sharing and logistical cooperation to secure vital infrastructure and transport hubs.
+
+• ​Autonomy of Rearmament: The Reichspräsidium pledges a policy of non-interference regarding the internal expansion and modernization of the Reichswehr, effectively shielding the military’s rearmament process from parliamentary oversight.
+
+• ​Mutual Non-Aggression & Integrity: The Reichswehr formally recognizes the Reichsbanner as a secondary defense organ of the State; all previous disarmament orders targeting Republican units are rescinded, and the Reichsbanner pledges absolute non-hostility toward professional military installations.
+
+​• The Liquidation of the RFB: The Reichswehr is granted broad executive authority to assist police in the total suppression of Roter Frontkämpferbund activity, treating all KPD-led paramilitary maneuvers as acts of high treason.
+
+- @accepted: Agreement is signed.
+- @declined: Agreement is not signed.
+
+@accepted
+on-arrival: rb_rw_coop = 1; reichwehr_militancy += 1
+
+Done
+
+@declined
+on-arrival: reichswehr_strength += 10; reichswehr_loyalty -= 0.10
+
+Oof.
