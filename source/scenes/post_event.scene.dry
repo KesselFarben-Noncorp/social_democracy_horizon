@@ -2760,10 +2760,11 @@ Q.identity_modifier = {
     wp: {
         base: Q.wp_banned ? 0 : (() => {
             let rep = Q.pro_republic_factor;
+            let nat = Q.nationalism_factor;
             // Middle class size and inflation sensitivity baked in
-            let middle_norm = (Q.old_middle + Q.new_middle) / 102;
-            let crisis = 1 + (Q.inflation * 0.18) - (Q.unemployed * 0.12);
-            return rep * 37 * middle_norm * Math.max(0.3, crisis) * Q.identity_modifier.wp;
+            let middle_norm = (Q.old_middle + Q.new_middle) / 99;
+            let crisis = 1 + (Q.inflation * 0.23) - (Q.unemployed * 0.15);
+            return rep * 39 * nat * 25 * middle_norm * Math.max(0.3, crisis) * Q.identity_modifier.wp;
         })(),
         workers: 0.50,
         old_middle: (() => {
@@ -2787,7 +2788,7 @@ Q.identity_modifier = {
             let rep = Q.pro_republic_factor;
             let nat = Q.nationalism_factor;
             // Rural population baked into base
-            return (rep * 23 + nat * 25) * (1 + Q.rural * 0.012) * Q.identity_modifier.cnbl;
+            return (rep * 20 + nat * 21) * (1 + Q.rural * 0.010) * Q.identity_modifier.cnbl;
         })(),
         workers: 0.25,
         old_middle: 0.60,
@@ -2838,7 +2839,7 @@ Q.identity_modifier = {
         base: Q.sapd_banned ? 0 : (() => {
             let soc = Q.socialism_factor;
             let unr = Q.unrest_factor;
-            return soc * 10 * 2.0 * (1 + unr * 0.12) * Q.identity_modifier.sapd;
+            return soc * 30 * 2.0 * (1 + unr * 0.12) * Q.identity_modifier.sapd;
         })(),
         workers: (() => {
             let m = 1.30;
@@ -2868,12 +2869,31 @@ Q.identity_modifier = {
     },
 
     csrp: {
-        base: Q.csrp_banned ? 0 : Q.pro_republic_factor * 16 * Q.identity_modifier.csrp,
-        workers: 0.20,
-        old_middle: 0.05,
-        new_middle: 0.15,
-        rural: 0.10,
-        unemployedc: 0.30,
+    base: Q.csrp_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let april = Q.april_challenge && Q.year >= 1933 ? 20 : 1;
+        return rep * 16 * Q.identity_modifier.csrp * april;
+    })(),
+    workers: (() => {
+        let m = 0.20;
+        return m;
+    })(),
+    old_middle: (() => {
+        let m = 0.05;
+        return m;
+    })(),
+    new_middle: (() => {
+        let m = 0.15;
+        return m;
+    })(),
+    rural: (() => {
+        let m = 0.10;
+        return m;
+    })(),
+    unemployedc: (() => {
+        let m = 0.30;
+        return m;
+    })(),
     },
 
     vrp: {
@@ -2970,6 +2990,7 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.08;
             if (Q.dues_workers > 0) m -= Q.dues_workers * 0.086;
             if (Q.wtb_timer > 0) m += (Q.workers / 100) * 0.75;
+            if (Q.unions_independent === 1) m *= 0.50;
             return m;
         })(),
         old_middle: (() => {
@@ -2997,6 +3018,7 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'catholics' && ci > 0) m += ci * 0.07 * (Q.catholics / 35);
             if (Q.dues_new_middle > 0) m -= Q.dues_new_middle * 0.094;
             if (Q.wtb_timer > 0) m += (Q.new_middle / 100) * 0.27;
+            if (Q.reformists_resign === 1) m *= 0.50;
             return m;
         })(),
         rural: (() => {
@@ -3017,6 +3039,7 @@ Q.identity_modifier = {
             if (Q.dues_unemployedc == 0) m *= 1.17;
             if (Q.wtb_timer > 0) m += (Q.unemployedc / 100) * 1.03;
             if (Q.hitler_spd === 1) m * 1.08;
+            if (Q.left_split === 1) m *= 0.50;
             return m;
         })(),
     },
