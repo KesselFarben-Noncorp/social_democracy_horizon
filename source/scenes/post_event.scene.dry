@@ -1,21 +1,3 @@
-@rootway
-title: Post Event
-new-page: true
-go-to: eventschoice if has_event = 1; main if has_event = 0 and difficulty >= 0; main.main_easy if has_event = 0 and difficulty < 0
-
-= [+ weeks +] , [+ month : month +] [+ year +]
-
-@eventschoice
-title: Post Event
-new-page: true
-go-to: post_eventu if month_actions >= 1; main if month_actions <= 0 and difficulty >= 0; main.main_easy if month_actions <= 0 and difficulty < 0;
-
-- #event
-
-# This scene is solely for updating numbers after events, and routing to special events.
-
-
-@post_eventu
 title: Post Event
 new-page: true
 on-arrival: {!
@@ -816,6 +798,19 @@ for (const name of CABINET_CHANCELLORS) {
     const key = name.toLowerCase().replace("ü", "u") + "_cabinet";
     Q[key] = (Q.chancellor === name) ? 1 : 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4738,7 +4733,6 @@ if (_pres_key === "Hindenburg") {
     Q.camarilla_exists     = Q.camarilla_strength > 20 ? 1 : 0;
     Q.hindenburg_president = 0;
   }
-}
 
 
 
@@ -4931,6 +4925,8 @@ if (Q.bruning_cabinet || Q.schleicher_cabinet || Q.papen_cabinet || Q.chancellor
     Q.chancellor_minority_ticks = 0;
     Q.hindenburg_patience_low   = 0;
     Q.hindenburg_patience_critical = 0;
+}
+
 }
 
 }
@@ -5366,4 +5362,12 @@ Q.general_strike_progress = Math.max(0, Math.min(15, Q.general_strike_progress |
 if (typeof window !== "undefined" && window.generateBar) {
 }
 !}
-go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
+go-to: events_choice if has_event = 1; main if has_event = 0 and difficulty >= 0; main.main_easy if has_event = 0 and difficulty < 0
+
+= [+ weeks +] , [+ month : month +] [+ year +]
+
+@events_choice
+
+- #event
+
+# This scene is solely for updating numbers after events, and routing to special events.
