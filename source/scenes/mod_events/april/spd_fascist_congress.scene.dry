@@ -13,4 +13,112 @@ The SPD Party Congress has convened in a state of high-tension transition as Gus
 
 Now, who will it be?
 
-WIP.
+- @result: And the result...
+
+@result
+on-arrival: {!
+
+// Calculate the variables
+
+Q.winnig_support = 0;
+Q.sudukum_support = 0;
+Q.wels_support = 0;
+Q.horsing_support = 0;
+Q.cunow_support = 0;
+
+// High nationalism helps Winnig, republic helps Cunow, Sudukum, socialism helps Wels
+
+if (Q.nationalism > Q.pro_republic && Q.nationalism > Q.socialism) {
+    Q.winnig_support += 1;
+    Q.sudukum_support -= 1;
+    Q.wels_support -= 1;
+} else if (Q.pro_republic > Q.nationalism && Q.pro_republic > Q.socialism) {
+    Q.winnig_support -= 1;
+    Q.sudukum_support += 1;
+    Q.wels_support -= 1;
+    Q.cunow_support += 1;
+} else {
+    Q.wels_support += 2;
+    Q.cunow_support += 1;
+    Q.winnig_support -= 1;
+    Q.sudukum_support -= 1;
+}
+
+if (Q.nationalism > 50) Q.winnig_support += 1
+if (Q.socialism > 50) Q.wels_support += 1
+if (Q.pro_republic > 50) {
+    Q.cunow_support += 1;
+    Q.sudukum_support += 1;
+    Q.horsing_support += 1;
+}
+
+if (Q.rb_strength * Q.rb_militancy < Q.rfb_strength * Q.rfb_militancy) {
+    Q.horsing_support += 1;
+    Q.winnig_support += 1;
+} else {
+    Q.sudukum_support += 1;
+    Q.cunow_support += 1;
+    Q.horsing_support -= 1;
+    Q.winnig_support -= 1;
+}
+
+if (Q.reichswehr_loyalty < 0.20) {
+    Q.horsing_support += 1;
+    Q.cunow_support -= 1;
+    Q.wels_support += 1;
+    Q.winnig_support -= 1;
+} else {
+    Q.winnig_support += 1;
+    Q.horsing_support += 1;
+    Q.sudukum_support -= 1;
+    Q.wels_support -= 1;
+}
+
+const candidates = [
+    { name: "winnig",  score: Q.winnig_support  },
+    { name: "sudukum", score: Q.sudukum_support  },
+    { name: "wels",    score: Q.wels_support     },
+    { name: "horsing", score: Q.horsing_support  },
+    { name: "cunow",   score: Q.cunow_support    },
+];
+
+const maxScore = Math.max(...candidates.map(c => c.score));
+const leaders = candidates.filter(c => c.score === maxScore);
+
+let winner;
+if (leaders.length === 1) {
+    winner = leaders[0].name;
+} else {
+    // Tiebreak: apply PRNG jitter only among tied candidates
+    const broken = leaders.map(c => ({
+        name: c.name,
+        jittered: Q.random_factor(1.0)
+    }));
+    broken.sort((a, b) => b.jittered - a.jittered);
+    winner = broken[0].name;
+}
+
+Q.spd_party_leader = winner;
+Q.victor = winner;
+!}
+go-to: wels if victor = "wels"; winnig if victor = "winnig"; horsing if victor = "horsing"; sudukum if victor = "sudukum"; cunow if victor = "cunow";
+
+@wels
+
+Wels won
+
+@winnig
+
+Winnig won
+
+@horsing
+
+Horsing won
+
+@sudukum
+
+Sudukum Won
+
+@cunow
+
+Cunow won
