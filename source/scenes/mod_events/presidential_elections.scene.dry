@@ -2236,7 +2236,8 @@ candOrder.forEach(function(cand) {
 
     // 50% threshold line
     var threshold = document.createElement('div');
-    threshold.style.cssText = "position:absolute; top:0; left:50%; width:2px; height:100%;"
+    var thresholdPos = Math.min(100, Math.round(50 / (total > 0 ? candidateTotals[candOrder[0]] / total * 100 : 1) * 100));
+    threshold.style.cssText = "position:absolute; top:0; left:" + thresholdPos + "%; width:2px; height:100%;"
         + "background:rgba(0,0,0,0.3); z-index:2;";
 
     var pctEl = document.createElement('div');
