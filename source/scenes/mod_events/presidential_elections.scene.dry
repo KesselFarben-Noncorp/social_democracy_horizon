@@ -2047,7 +2047,7 @@ on-arrival: {!
         Q[supported_candidate + '_running'] = 1;
         
         // Get party vote share
-        var party_votes = Q[party + '_r'] || Q[party + '_votes'] || 0;
+        var party_votes = Q[party + '_votes'] || Q[party + '_r'] || 0;
         
         // Aggregate to candidate
         if (candidate_votes[supported_candidate]) {
@@ -2725,7 +2725,7 @@ on-arrival: {!
         
         supported_candidate = supported_candidate.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         
-        var party_votes = Q[party + '_r'] || Q[party + '_votes'] || 0;
+        var party_votes = Q[party + '_votes'] || Q[party + '_r'] || 0;
         
         if (candidate_votes[supported_candidate]) {
             candidate_votes[supported_candidate] += party_votes;
