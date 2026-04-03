@@ -1,7 +1,7 @@
 title: Constitutional Reform
 new-page: true
 is-card: true
-view-if: spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer = 0 and judicial_reform >= 4 and full_reform_initiated = 1 and ((in_weimar_coalition) or (in_spd_majority) or (in_left_front) or (in_popular_front) or (in_social_liberal_coalition) or (in_social_christian_coalition)) and constitutional_reform < 5
+view-if: spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer = 0 and judicial_reform >= 4 and full_reform_initiated = 1 and constitutional_reform < 5 and ( coalition_votes >= 67 or (coalition_votes >= 50 and (kpd_in_government or sapd_in_government or ddp_in_government or z_in_government)) or (spd_r >= 40) or (dnvp_in_government = 0 and nsdap_r < 20 and coalition_votes >= 55) )
 frequency: 25
 on-arrival: month_actions += 1; constitutional_reform_timer += 12; pass_threshold = 0.51; pass_threshold = 0.6 if pro_republic < 65;
 card-image: img/portraits/RadbruchGustav.jpg
