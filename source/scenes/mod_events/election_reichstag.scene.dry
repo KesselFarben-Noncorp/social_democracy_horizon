@@ -2220,9 +2220,10 @@ function president_vetoes(name, party) {
         var weakness = ((Q.hindenburg_senility || 0) + Math.max(0, 100 - (Q.hindenburg_health || 100))) / 200;
         veto_score *= (1 + weakness * 0.6);
 
-    } else if (pres === 'Braun') {
+    } else if (pres === 'Braun' || Q.president_party === 'SPD') {
         if (party === 'NSDAP' || party === 'DNVP') veto_score += 80;
         if (party === 'DVP' && (Q.dvp_right_shift || 0) >= 1) veto_score += 30;
+        if (party === 'SPD') veto_score -= 30;
 
     } else if (pres === 'Hitler') {
         if (party === 'SPD' || party === 'KPD' || party === 'SAPD') veto_score += 90;
@@ -2340,14 +2341,13 @@ The coalition has collapsed before it could take office. A new attempt at coalit
 @continue_after_veto
 on-arrival: {!
 Q.pro_republic -= 10;
-Q.presidential_powers += 1;
 
 if (Q.spd_in_government) {
     Q.reformist_dissent += 10;
     Q.left_dissent += 15;
 }
 !}
-go-to: chancellor_confirmed
+go-to: coalition_failure
 
 # ============================================
 # CHANCELLOR CONFIRMED
@@ -3766,7 +3766,8 @@ Q.original_allocation = {
     economic: Q.economic_minister_party,
     finance: Q.finance_minister_party,
     agriculture: Q.agriculture_minister_party,
-    transport: Q.transport_minister_party
+    transport: Q.transport_minister_party,
+    reichswehr: Q.reichswehr_minister_party
 };
 
 // Calculate current leverage (may have changed since coalition formation)
