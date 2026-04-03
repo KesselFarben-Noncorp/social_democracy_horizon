@@ -3959,7 +3959,9 @@ if (Q.rfb_true_ban && Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strengt
 
 // Caps for RB.
 
-if (!Q.prussian_police_training) Q.rb_militancy = Math.min(Q.rb_militancy, 0.20)
+if (Q.prussian_police_training < 1) {
+    Q.rb_militancy = Math.min(Q.rb_militancy, 0.20); 
+    }
 
 
         // === PARAMILITARY CONSTRAINTS (SKIP IN CHAOS MODE) ===
