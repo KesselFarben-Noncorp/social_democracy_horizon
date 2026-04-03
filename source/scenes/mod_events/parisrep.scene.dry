@@ -23,39 +23,33 @@ on-arrival: reparation_negotiation = "schacht"; dvp_relation += 5; z_relation +=
 
 We have taken no active position in this issue, since our government knows very well technocrats will fare better than socialists in negotiations, especially considering bourgeouise nature of both countries.
 
-Schacht and Vogler have departed in the next week to the Paris alongside some members.
+Schacht and Vogler have departed in the next week to the Paris alongside some members. Fare well, Reichsbank President.
 
 We hope this trip will end with success and we finally can reach some sort of agreement to renegotiate this Treaty and it's unfair imposements on Germany.
 
 @propose_alternatives
 choose-if: spd_in_government
-unavailable-subtitle: [? if not in_grand_coalition and not in_weimar_coalition: We need to be in a coalition government to have influence over the delegation composition. ?]
-on-arrival: reparation_negotiation = "labor_included"; labor_strength += 5; left_dissent -= 5; reformist_strength += 3; dvp_relation -= 8; z_relation -= 4; dnvp_relation -= 10; allies_suspicious = 1;
+unavailable-subtitle: [? if not spd_in_government: We need to be in a coalition government to have influence over the delegation composition. ?]
+on-arrival: reparation_negotiation = "labor_included"; labor_strength += 5; left_dissent -= 5; reformist_strength += 3; dvp_relation -= 8; z_relation -= 4; dnvp_relation -= 10
 
-"Germany's delegation must include representatives of organized labor!" we insist. We propose adding Theodor Leipart of the ADGB trade unions and Hermann Müller as political balance to Schacht and Vögler.
+Despite all objections from the members of the Reformist Fraction and our coalition members, we have taken those two to the suspicion and sent out the local Labor leadership members alongside them to the Paris.
 
-The bourgeois parties are appalled. "You'll turn serious negotiations into a socialist circus!" the DVP thunders. The DNVP withdraws all cooperation. Even the Center Party worries this will antagonize the French.
+Schacht has called out on this trip serving ideological purposes of the Social Democratic Party of the Germany. Having Vogler leave the renegotiations trip, he was forced to accept the current delegation composition. 
 
-And they may be right. When Berlin announces the expanded delegation, Paris responds coolly. The French prefer dealing with "responsible" figures—meaning capitalists—not trade unionists. British negotiators express similar reservations.
+Our coalition members have pressured us to not interfere further in the ordeal and let him have his way in the negotiations, urging that Schacht wouldn't be that inflammating to the Western Governments.
 
-But our base is energized. Finally, workers will have a voice in determining Germany's financial future! The ADGB mobilizes support. Our left wing celebrates this assertion of labor power.
-
-The negotiations begin under a cloud of Allied skepticism. Whether labor's presence will strengthen or weaken Germany's position remains to be seen.
+Is our choice wrong after all if we are right?
 
 @hilferding_lead
-choose-if: (in_grand_coalition or in_weimar_coalition) and spd_in_government and reformist_strength >= left_strength and coalition_dissent <= 2
-subtitle: ... Hilferding?
+choose-if: spd_in_government  and coalition_dissent <= 2 and finance_minister_party != "SPD" and spd_votes >= 30
+subtitle: ...Hilferding?
 unavailable-subtitle: [? if not spd_in_government: We must be in government to propose our Finance Minister. ?][? if not in_grand_coalition and not in_weimar_coalition: We need to be in a coalition to have this influence. ?][? if reformist_strength < left_strength: The party's left wing would never accept a reformist leading such crucial negotiations. ?][? if coalition_dissent > 2: Our coalition partners are already too alienated to accept this demand. ?]
-on-arrival: reparation_negotiation = "hilferding"; reformist_strength += 8; center_strength += 5; left_dissent -= 3; dvp_relation -= 12; dnvp_relation -= 15; z_relation -= 6; allies__suspicious = 2; coalition_dissent += 0.5;
+on-arrival: reparation_negotiation = "hilferding"; reformist_strength += 8; center_strength += 5; left_dissent -= 3; dvp_relation -= 12; dnvp_relation -= 15; z_relation -= 6
 
-"Rudolf Hilferding, as Finance Minister, should lead Germany's delegation!" we declare. "He understands both economics and Germany's needs better than any banker."
+Hilferding has proposed to us, that he would like to lead the delegation to the Paris by himself. We were left confused on why would he ever do this. But overall we decided to prefer this over Schacht and Vogler, despite uncovered and clear purpose behind the delegation and it's composition.
 
-It's a bold move—perhaps too bold. The DVP threatens to leave the coalition. "A Marxist theorist negotiating with international capital? Madness!" The DNVP calls it a "Jewish-Bolshevik plot" to sell out Germany. Even the Center Party blanches at our audacity.
+Schacht has called out on us for this act, saying Müller (and Wels) have prevented his visit to the Paris, now leading to the further stalling from SPD in the following round of reparation negotiations.
 
-The international reaction is worse. The French government privately indicates it may refuse to negotiate with a socialist Finance Minister. The British express "serious reservations." American bankers threaten to withdraw credit if a "radical" leads the talks.
+But, in the end, we know our position is righteous. Right will not lead the country and Hindenburg entrusted us to this mission.
 
-Hilferding himself is ambivalent. "I appreciate the confidence," he tells the party leadership, "but perhaps this fight isn't worth the cost. If the Allies refuse to negotiate seriously, Germany gains nothing."
-
-Our left wing loves the symbolic gesture—an SPD Finance Minister dictating terms to international capital!—but even they recognize the practical difficulties.
-
-[? if in_grand_coalition: The coalition is fracturing over this issue. We may need to back down to preserve government unity. ?]
+Good luck...
