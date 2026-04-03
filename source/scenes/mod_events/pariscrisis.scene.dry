@@ -34,7 +34,7 @@ Now the Reich Cabinet must decide: do we repudiate Schacht's memorandum and salv
 - @blame_schacht: Make Schacht the scapegoat and demand his resignation.
 
 @repudiate_memorandum
-on-arrival: west_relation += 1; poland_relation += 2; dnvp_relation -= 9; dvp_relation -= 5; z_relation += 4 if z_leader == "Brüning"; nationalism -= 3; left_strength += 5; reformist_strength += 3; reparations_negotiation += 1; hindenburg_relation -= 8;
+on-arrival: west_relation += 1; poland_relation += 2; dnvp_relation -= 9; dvp_relation -= 5; z_relation += 4 if z_leader == "Brüning"; nationalism -= 3; left_strength += 5; reformist_strength += 3; reparations_negotiation += 1; hindenburg_relation -= 8; schacht_enemy = 1
 
 The Reich government issues a formal disavowal. "The memorandum does not represent German government policy," we announce. "Germany seeks a fair reparations settlement within the existing treaty framework. Territorial questions are separate matters."
 
@@ -89,24 +89,3 @@ The Allies are wary but willing to continue. Poland remains suspicious—clearly
 The Nationalists denounce our "weasel words," but lack grounds for full assault. We've preserved some nationalist credibility without sabotaging the economic negotiations entirely.
 
 It's neither triumph nor disaster—the usual fate of Weimar compromise.
-
-@blame_schacht
-choose-if: reparation_negotiation == "schacht" or reparation_negotiation == "labor_included"
-unavailable-subtitle: [? if reparations_negotiation == "hilferding" : Hilferding led the delegation—we can't scapegoat Schacht. ?] [? if reparations_negotiation == "worker_veto" : We already established trade union oversight—attacking Schacht now seems hypocritical. ?]
-on-arrival: west_relation += 5; poland_relation += 3; schacht_enemy = 1; reichsbank_independent = 1; dnvp_relation -= 10; dvp_relation -= 5; left_strength += 3; labor_strength += 5; reparations_negotiation += 1; hindenburg_relation -= 5;
-
-"Hjalmar Schacht exceeded his authority!" we announce. "The memorandum was his personal initiative, not German government policy. His actions have sabotaged negotiations and damaged Germany's international standing."
-
-[? if reparation_negotiation == "labor_included" : Leipart strongly supports this position. "This is exactly why we demanded labor representation—to prevent rogue actions by reactionary financiers!" ?]
-
-We call for Schacht's resignation as chief negotiator, though as Reichsbank President he retains his position there. A new delegation, more carefully controlled, will return to Paris.
-
-The Allies are somewhat mollified—at least Germany is punishing the provocateur. Poland appreciates the gesture. Negotiations can resume.
-
-But Schacht becomes a permanent enemy. "Political hacks undermining technical experts!" he rages. His considerable influence in financial circles turns hostile. More dangerously, the Reichsbank President now sees the republican government as obstacle to Germany's recovery.
-
-The Nationalists rally around Schacht as a martyr. "A patriot punished for defending German interests!" Even the DVP is uncomfortable with our treatment of such a prominent figure.
-
-And Hindenburg notes coldly that the government has humiliated one of Germany's most respected financial minds for the crime of excessive patriotism. The Reich President's displeasure is palpable.
-
-[? if left_strength > 35 : Our left wing celebrates: "Finally we've stood up to the reactionary financial elite!" But have we made a powerful enemy? ?]
