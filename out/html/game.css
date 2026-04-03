@@ -658,18 +658,18 @@ table td {
 ul.decks, ul.hand, ul.pinned-cards {
   list-style: none;
   padding-left: 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1em;
   margin-bottom: 1.5em;
 }
 
 .card-in-hand, .pinned-card, .deck {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: relative;
-  max-width: 150px;
-  margin-right: 1em;
-  vertical-align: top;
+
 }
 
 a.card {
@@ -680,13 +680,12 @@ a.card {
   border: 10px solid var(--card-border-color);
   margin-bottom: 0.5em;
   position: relative;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 a.card:hover {
   box-shadow: 10px 10px 10px rgba(0,0,0,0.2);
-  left: -5px;
-  top: -5px;
+  transform: translate(-5px, -5px);
 }
 
 div.blank-card {
@@ -912,7 +911,13 @@ body.crt-mode tr.row-neutral   { background-color: rgba(51, 255, 100, 0.02); }
 
   #content { font-size: 1em; }
   #bottom_panel { font-size: 0.95em; }
+
+   ul.decks, ul.hand, ul.pinned-cards {
+    grid-template-columns: repeat(3, 1fr);
+   }
+   
 }
+
 
 @media screen and (max-width: 560px) {
   #page { position: static; }
@@ -933,7 +938,11 @@ body.crt-mode tr.row-neutral   { background-color: rgba(51, 255, 100, 0.02); }
 
   #bottom_panel { padding: 1em; margin-top: 15px; }
 
-  ul.decks, ul.hand, ul.pinned-cards { gap: 0.5em; justify-content: center; }
+  ul.decks, ul.hand, ul.pinned-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5em;
+    justify-items: center;
+  }
 
   .card-img { height: 125px; width: 100px; }
   a.card { width: 100px; height: 125px; border-width: 8px; }
