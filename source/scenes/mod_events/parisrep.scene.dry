@@ -6,22 +6,17 @@ max-visits: 1
 
 = The Reparations Committee
 
-The Allied powers have finally agreed to reconsider Germany's reparations burden. A committee of experts will convene in Paris to negotiate what the newspapers are calling a "final settlement" of the war debt question.
+The former Allied powers, now France and United Kingdom, have welcomed our renegotiational concialatory foreign stance on Treaty of Versailles and following next treaties, which have heavily jeopardized our situation and bringed national situation to the apogea of chaos and pessimism.
 
-The Reich government must appoint German representatives. The bourgeois parties favor Hjalmar Schacht, President of the Reichsbank, and industrialist Albert Vögler. Both are conservatives with international credibility—exactly the sort of "respectable" figures the French and British will negotiate with seriously.
+Now, what was supposed to be usual trip from our German Represenatives to the Paris is being the center of the debate in higher society and politics. Hjalmar Schacht and Albert Vogler, two prominent economists of the country, have suggested our government to be the part of representatives and even lead it.
 
-But this troubles many in our party. Schacht, brilliant though he is, sympathizes with the Nationalists. Vögler represents heavy industry—the same steel magnates who starve workers of wages while crying poverty over reparations. These men will negotiate from the perspective of capital, not labor.
+On the one hand, we trust their capabilities and that France will be more inclined to trust technocrats over socialists and nationalists. On the other hand, as suggested by some informations, he has some open sympathies with nationalists of the country, unlike Stresemann, who has "balanced approach" image in order to secure the best position for the Germany.
 
-Rudolf Hilferding, our Finance Minister, argues we could propose alternative representatives: trade unionists like Theodor Leipart, economists sympathetic to labor, or even Hilferding himself. "Why should Krupp's friends speak for Germany?" he asks. "The working class paid the war's blood price. We should negotiate the financial price."
-
-But others counsel caution. The Allies want to deal with men they consider serious—bankers and industrialists, not socialists. Proposing alternative delegates might derail the negotiations entirely, leaving Germany stuck with the current, unbearable Dawes Plan.
-
-How should we proceed?
+How shall we act?
 
 - @support_schacht: Accept Schacht and Vögler as Germany's representatives.
 - @propose_alternatives: Insist on including labor representatives on the delegation.
 - @hilferding_lead: Demand that Finance Minister Hilferding lead the delegation.
-- @demand_worker_consultation: Require that any agreement be submitted to trade union approval.
 
 @support_schacht
 on-arrival: reparation_negotiation = "schacht"; dvp_relation += 5; z_relation += 3; dnvp_relation += 4; left_dissent += 5; labor_dissent += 3; reichsbank_independent = 1;
@@ -51,6 +46,7 @@ The negotiations begin under a cloud of Allied skepticism. Whether labor's prese
 
 @hilferding_lead
 choose-if: (in_grand_coalition or in_weimar_coalition) and spd_in_government and reformist_strength >= left_strength and coalition_dissent <= 2
+subtitle: ... Hilferding?
 unavailable-subtitle: [? if not spd_in_government: We must be in government to propose our Finance Minister. ?][? if not in_grand_coalition and not in_weimar_coalition: We need to be in a coalition to have this influence. ?][? if reformist_strength < left_strength: The party's left wing would never accept a reformist leading such crucial negotiations. ?][? if coalition_dissent > 2: Our coalition partners are already too alienated to accept this demand. ?]
 on-arrival: reparation_negotiation = "hilferding"; reformist_strength += 8; center_strength += 5; left_dissent -= 3; dvp_relation -= 12; dnvp_relation -= 15; z_relation -= 6; allies__suspicious = 2; coalition_dissent += 0.5;
 
@@ -65,22 +61,3 @@ Hilferding himself is ambivalent. "I appreciate the confidence," he tells the pa
 Our left wing loves the symbolic gesture—an SPD Finance Minister dictating terms to international capital!—but even they recognize the practical difficulties.
 
 [? if in_grand_coalition: The coalition is fracturing over this issue. We may need to back down to preserve government unity. ?]
-
-@demand_worker_consultation
-choose-if: left_strength > (reformist_strength + center_strength) / 2 and labor_strength >= 25
-unavailable-subtitle: [? if left_strength <= (reformist_strength + center_strength) / 2: The left wing lacks the strength to push through such a radical demand. ?][? if labor_strength < 25: We need stronger trade union support to make this credible. ?]
-on-arrival: reparation_negotiation = "worker_veto"; labor_strength += 8; left_strength += 5; left_dissent -= 8; dvp_relation -= 10; z_relation -= 5; dnvp_relation -= 12; capital_strike_progress += 1; coalition_dissent += 1;
-
-"Any reparations agreement must be submitted to the trade unions for approval before Germany signs!" we announce. "The working class will not accept terms negotiated without their consent!"
-
-It's a revolutionary demand—giving organized labor veto power over international treaties. The ADGB is thrilled. The left wing erupts in applause. Even skeptical workers appreciate our assertion that their interests matter.
-
-But the bourgeois parties are horrified. "You're making Germany ungovernable!" the DVP shrieks. "International negotiations subject to trade union approval? This is Soviet-style madness!" The industrialists threaten a capital strike if we persist.
-
-More pragmatically, it's unclear the demand is even constitutional. Can trade unions veto treaties? The Center Party warns this violates separation of powers. Even some reformists worry we're overreaching.
-
-Still, we've drawn a line: Germany's workers will not be sacrificed on the altar of international finance. Whatever deal Schacht negotiates, it will face labor scrutiny.
-
-The implications ripple outward. If workers can veto reparations agreements, what else might require trade union approval? Budgets? Trade deals? The balance of power in Weimar is shifting.
-
-[? if coalition_dissent > 2: The coalition is near collapse. Our partners may force us to choose between this demand and government participation. ?]
