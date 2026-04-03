@@ -2181,7 +2181,7 @@ for (var i = 0; i < allParties.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    var votes = Q[p + '_r'] || Q[p + '_votes'] || 0;
+    var votes = Q[p + '_votes'] || Q[p + '_r'] || 0;
     if (votes <= 0) continue;
     if (!candidateTotals[candNorm]) candidateTotals[candNorm] = 0;
     candidateTotals[candNorm] += votes;
@@ -2869,7 +2869,7 @@ for (var i = 0; i < allParties.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    var votes = Q[p + '_r'] || Q[p + '_votes'] || 0;
+    var votes = Q[p + '_votes'] || Q[p + '_r'] || 0;
     if (votes <= 0) continue;
     var bucket = candNorm === finalist1 ? finalist1
                : candNorm === finalist2 ? finalist2
