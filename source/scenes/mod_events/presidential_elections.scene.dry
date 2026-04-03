@@ -1965,8 +1965,7 @@ The KPD now supports [+ spd_candidate +]!
 
 @round_1
 on-arrival: round = 1;
-go-to: election_algorithm
-set-jump: post_r1
+go-to: post_r1
 
 @post_r1
 on-arrival: {!
@@ -2708,8 +2707,7 @@ The KPD now supports [+ spd_candidate +]!
 
 @r2_vote
 on-arrival: round = 2;
-go-to: election_algorithm
-set-jump: post_r2
+go-to: post_r2
 
 @post_r2
 on-arrival: {!
@@ -2951,7 +2949,7 @@ for (var i = 0; i < allParties.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    var votes = Q[p + '_r'] || Q[p + '_votes'] || 0;
+    var votes = Q[p + '_votes'] || Q[p + '_r'] || 0;
     if (votes <= 0) continue;
     if (!grouped[candNorm]) grouped[candNorm] = [];
     grouped[candNorm].push({ party: p, votes: votes, cand: candNorm });
