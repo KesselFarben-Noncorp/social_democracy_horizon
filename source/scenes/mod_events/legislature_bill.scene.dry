@@ -47,7 +47,7 @@ if (!Q.spd_holds_rt_presidency && Q.active_bill_slot !== -1) {
     }
 
     Q.rt_president_block_rel = rel;
-    Q.rt_president_allows_vote = (rel >= 40) ? 1 : 0;
+    Q.rt_president_allows_vote = (rel >= 40 || pres_party === bill_party) ? 1 : 0;
 }
 
 !}
@@ -222,6 +222,8 @@ function score_bill_vote(party, in_gov) {
 
     // SPD vote is player-controlled
     if (party === 'SPD') return spd_vote;
+    // Bill party always votes for their own bill
+    if (party === bill_party) return 'for';
 
     var rel_to_bill = 50;
     if (Q.party_relations && Q.party_relations[party]) {
@@ -353,12 +355,44 @@ if (s >= 0) {
 Q.any_bill_crisis = 0;
 
 !}
+on-display: {!
+
+var for_seats     = Q.bill_votes_for     || 0;
+var against_seats = Q.bill_votes_against || 0;
+var abstain_seats = Q.bill_votes_abstain || 0;
+
+var data = [];
+if (for_seats     > 0) data.push({ id: 'for',     legend: 'For ('     + for_seats     + ')', name: 'For',     seats: for_seats,     color: '#2d8a2d' });
+if (against_seats > 0) data.push({ id: 'against',  legend: 'Against (' + against_seats + ')', name: 'Against', seats: against_seats, color: '#c0392b' });
+if (abstain_seats > 0) data.push({ id: 'abstain',  legend: 'Abstain (' + abstain_seats + ')', name: 'Abstain', seats: abstain_seats, color: '#888888' });
+
+if (window && d3) {
+    var width = 500, height = 250;
+    var screenWidth = document.getElementById('content').offsetWidth;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+    var el = document.getElementById('bill-vote-seats');
+    el.style.width  = width  + 'px';
+    el.style.height = height + 'px';
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select('#bill-vote-seats').datum(data).call(parliament);
+}
+
+!}
 
 = Vote: [+ active_bill_name +]
 
 The **[+ active_bill_party +]** has brought **[+ active_bill_name +]** to the floor.
 
 **SPD fraction voted: [+ spd_bill_vote +]**
+
+{!<svg id="bill-vote-seats" style="width:500px; height:250px;"></svg>!}
 
 **Results:**
 - For: **[+ bill_votes_for +]** — [+ bill_for_list +]
