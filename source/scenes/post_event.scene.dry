@@ -2569,7 +2569,7 @@ Q.identity_modifier = {
      nsdap: {
         base: Q.nsdap_banned ? 0 : (() => {
         // Nationalism provides a stable floor (3–8% range)
-        let nat_floor = Q.nationalism_factor * 12 + Q.socialism_factor * 2;
+        let nat_floor = Q.nationalism_factor * 18 + Q.socialism_factor * 2;
 
         // Crisis ramp — sigmoid shape
         // unrest 0.3 (stable)   → ramp ≈ 0
@@ -2577,7 +2577,7 @@ Q.identity_modifier = {
         // unrest 2.5 (crisis)   → ramp ≈ 22
         // unrest 4.0 (collapse) → ramp ≈ 34
         let u = Math.max(0, Q.unrest_factor - 0.4);
-        let crisis_ramp = 38 / (1 + Math.exp(-1.4 * (u - 1.1)));
+        let crisis_ramp = 38 / (1 + Math.exp(-1.4 * (u - 1.0)));
 
         // Hard ceiling on the combined base before identity modifier
         let raw = Math.min(nat_floor + crisis_ramp, 43);
@@ -2673,9 +2673,8 @@ Q.identity_modifier = {
             let crisis_bonus = Q.unemployment * 55;
             return (nat * 40) + polarization + crisis_bonus * Q.identity_modifier.dnvp;
         } else {
-            let chaos_penalty = u > 1.2 ? (u * 12) : 0;
-            let elite_support = (Q.rural_policy_factor || 0) * 25;
-            return ((nat * 65) + elite_support - chaos_penalty) * Q.identity_modifier.dnvp;
+            let chaos_penalty = u > 0.7 ? (u * 1) : 0;
+            return ((nat * 64) + (rep * 10) - chaos_penalty) * Q.identity_modifier.dnvp;
         }
     })(),
         workers: (() => {
@@ -2712,23 +2711,22 @@ Q.identity_modifier = {
     },
 
     dvp: {
-        base: Q.dvp_banned ? 0 : (() => {
+    base: Q.dvp_banned ? 0 : (() => {
         let factor = Q.dvp_right_shift 
-            ? Q.nationalism_factor * 0.85
-            : Q.pro_republic_factor * 0.88;
+            ? Q.nationalism_factor * 0.95
+            : Q.pro_republic_factor * 1.0;
 
-        // Deflation is bad, inflation is bad, both from opposite ends
-        // Optimal around 1-3% inflation
-        let inflation_penalty = Math.pow(Math.abs(Q.inflation - 1.5) / 8, 1.4);
+        // Dampened penalties: higher divisor and lower exponent for slower decay
+        let inflation_penalty = Math.pow(Math.abs(Q.inflation - 1.5) / 12, 1.2);
+        let unemp_penalty = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
         
-        // Unemployment damages business confidence directly
-        let unemp_penalty = Math.pow(Math.max(0, Q.unemployed - 5) / 15, 1.3);
+        // Higher floor and softer subtraction to prevent vanishing
+        let econ_confidence = Math.max(0.35, 1 - (inflation_penalty * 0.7) - (unemp_penalty * 0.7));
         
-        // Combined economic confidence, floored at 0.15 so DVP doesn't vanish entirely
-        let econ_confidence = Math.max(0.15, 1 - inflation_penalty - unemp_penalty);
-        
-        let scale = Q.dvp_right_shift ? 2.0 : 1.6;
-        return factor * 55 * scale * econ_confidence * Q.identity_modifier.dvp;
+        let scale = Q.dvp_right_shift ? 2.2 : 1.8;
+        let id_mod = (Q.identity_modifier && Q.identity_modifier.dvp) ? Q.identity_modifier.dvp : 1;
+
+        return factor * 60 * scale * econ_confidence * id_mod;
     })(),
         workers: (() => {
             let m = 0.40;
@@ -3421,7 +3419,7 @@ Q.identity_modifier = {
                 case 'nsdap':
                     // Single crisis signal, sigmoid-shaped, with nationalism floor
                     let u = Math.max(0, Q.unrest_factor - 0.4);
-                    let crisis_signal = 1 / (1 + Math.exp(-1.2 * (u - 1.8)));
+                    let crisis_signal = 1 / (1 + Math.exp(-1.2 * (u - 1.0)));
     
                     // Nationalism provides baseline activity even in calm conditions
                     let nat_base = Q.nationalism_factor * 0.25;
