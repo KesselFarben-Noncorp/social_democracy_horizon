@@ -105,10 +105,29 @@ The Reichstag is in session. Bills move through the chamber on their own schedul
 
 **Current Legislative Queue**
 
+[? if num_queued_bills = 0 : *No bills currently in the legislative queue.* ?]
+[? if num_queued_bills >= 1 : **[+ queued_0_name +]** ([+ queued_0_party +]) — [+ queued_0_type +] ?]
+[? if num_queued_bills >= 2 : **[+ queued_1_name +]** ([+ queued_1_party +]) — [+ queued_1_type +] ?]
+[? if num_queued_bills >= 3 : **[+ queued_2_name +]** ([+ queued_2_party +]) — [+ queued_2_type +] ?]
+[? if num_queued_bills >= 4 : **[+ queued_3_name +]** ([+ queued_3_party +]) — [+ queued_3_type +] ?]
+[? if num_queued_bills >= 5 : **[+ queued_4_name +]** ([+ queued_4_party +]) — [+ queued_4_type +] ?]
+[? if num_queued_bills >= 6 : **[+ queued_5_name +]** ([+ queued_5_party +]) — [+ queued_5_type +] ?]
+[? if num_queued_bills >= 7 : **[+ queued_6_name +]** ([+ queued_6_party +]) — [+ queued_6_type +] ?]
+[? if num_queued_bills >= 8 : **[+ queued_7_name +]** ([+ queued_7_party +]) — [+ queued_7_type +] ?]
+[? if num_queued_bills >= 9 : **[+ queued_8_name +]** ([+ queued_8_party +]) — [+ queued_8_type +] ?]
+[? if num_queued_bills >= 10 : **[+ queued_9_name +]** ([+ queued_9_party +]) — [+ queued_9_type +] ?]
+
+
 
 ---
 
 **SPD Bills Available to Introduce**
+
+[? if num_spd_unqueued = 0 : *All SPD bills are already queued or passed.* ?]
+[? if num_spd_unqueued >= 1 : **[+ spd_unqueued_0_name +]** — [+ spd_unqueued_0_type +] ?]
+[? if num_spd_unqueued >= 2 : **[+ spd_unqueued_1_name +]** — [+ spd_unqueued_1_type +] ?]
+[? if num_spd_unqueued >= 3 : **[+ spd_unqueued_2_name +]** — [+ spd_unqueued_2_type +] ?]
+[? if num_spd_unqueued >= 4 : **[+ spd_unqueued_3_name +]** — [+ spd_unqueued_3_type +] ?]
 
 
 ---
@@ -125,6 +144,17 @@ The Reichstag is in session. Bills move through the chamber on their own schedul
 view-if: can_propose = 1 and num_queued_bills > 0
 
 = Force a Queued Bill to a Vote
+
+[? if num_queued_bills >= 1 : **1.** [+ queued_0_name +] ([+ queued_0_party +]) — [+ queued_0_type +] ?]
+[? if num_queued_bills >= 2 : **2.** [+ queued_1_name +] ([+ queued_1_party +]) — [+ queued_1_type +] ?]
+[? if num_queued_bills >= 3 : **3.** [+ queued_2_name +] ([+ queued_2_party +]) — [+ queued_2_type +] ?]
+[? if num_queued_bills >= 4 : **4.** [+ queued_3_name +] ([+ queued_3_party +]) — [+ queued_3_type +] ?]
+[? if num_queued_bills >= 5 : **5.** [+ queued_4_name +] ([+ queued_4_party +]) — [+ queued_4_type +] ?]
+[? if num_queued_bills >= 6 : **6.** [+ queued_5_name +] ([+ queued_5_party +]) — [+ queued_5_type +] ?]
+[? if num_queued_bills >= 7 : **7.** [+ queued_6_name +] ([+ queued_6_party +]) — [+ queued_6_type +] ?]
+[? if num_queued_bills >= 8 : **8.** [+ queued_7_name +] ([+ queued_7_party +]) — [+ queued_7_type +] ?]
+[? if num_queued_bills >= 9 : **9.** [+ queued_8_name +] ([+ queued_8_party +]) — [+ queued_8_type +] ?]
+[? if num_queued_bills >= 10 : **10.** [+ queued_9_name +] ([+ queued_9_party +]) — [+ queued_9_type +] ?]
 
 Choose which bill to bring to the floor immediately:
 
@@ -196,6 +226,11 @@ go-to: propose_spd_vote_choice
 view-if: can_propose = 1 and num_spd_unqueued > 0
 
 = Introduce an SPD Bill
+
+[? if num_spd_unqueued >= 1 : **1.** [+ spd_unqueued_0_name +] — [+ spd_unqueued_0_type +] ?]
+[? if num_spd_unqueued >= 2 : **2.** [+ spd_unqueued_1_name +] — [+ spd_unqueued_1_type +] ?]
+[? if num_spd_unqueued >= 3 : **3.** [+ spd_unqueued_2_name +] — [+ spd_unqueued_2_type +] ?]
+[? if num_spd_unqueued >= 4 : **4.** [+ spd_unqueued_3_name +] — [+ spd_unqueued_3_type +] ?]
 
 Choose which SPD bill to introduce and bring immediately to a vote:
 
