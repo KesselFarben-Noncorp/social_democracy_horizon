@@ -760,14 +760,49 @@ Q.rt_round_desc =
 on-arrival: {!
 
 var gov_parties = Q.government_parties || [];
+
+// Calculate per-party council seats (proportional from 21)
+var total_seats = Q.total_seats_filled || 600;
+var party_list = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','CSVD','KVP',
+                  'DVP','WP','VRP','DHP','BB','CNBL','DNVP','NSDAP','DVFP','OTHER'];
+
+var party_reichstag_seats = {};
+var grand_total = 0;
+for (var i = 0; i < party_list.length; i++) {
+    var p = party_list[i];
+    var s = Math.round((Q[p.toLowerCase() + '_r'] || 0) * 6);
+    party_reichstag_seats[p] = s;
+    grand_total += s;
+}
+if (grand_total === 0) grand_total = 600;
+
+// Assign 21 council seats proportionally per party, largest-remainder method
+var council_total = 21;
+var raw = {};
+var floor_sum = 0;
+for (var i = 0; i < party_list.length; i++) {
+    var p = party_list[i];
+    var exact = (party_reichstag_seats[p] / grand_total) * council_total;
+    raw[p] = { floor: Math.floor(exact), remainder: exact - Math.floor(exact), party: p };
+    floor_sum += Math.floor(exact);
+}
+var remainder_needed = council_total - floor_sum;
+var sorted_rem = party_list.slice().sort(function(a,b) {
+    return raw[b].remainder - raw[a].remainder;
+});
+var council_seats = {};
+for (var i = 0; i < party_list.length; i++) {
+    council_seats[party_list[i]] = raw[party_list[i]].floor;
+}
+for (var i = 0; i < remainder_needed; i++) {
+    council_seats[sorted_rem[i]]++;
+}
+Q._council_seats_json = JSON.stringify(council_seats);
+
+// Government council influence
 var gov_council = 0;
 for (var i = 0; i < gov_parties.length; i++) {
-    var p = gov_parties[i];
-    if      (['KPD','SAPD','SPD','SRPD'].indexOf(p) >= 0)           gov_council += Q.council_left        || 0;
-    else if (['DDP','Z','BVP','CSRP','CSVD','KVP'].indexOf(p) >= 0) gov_council += Q.council_center      || 0;
-    else if (['DVP','WP','VRP','DHP'].indexOf(p) >= 0)              gov_council += Q.council_lib_right   || 0;
-    else if (['DNVP','CNBL','BB'].indexOf(p) >= 0)                  gov_council += Q.council_nationalist || 0;
-    else if (p === 'NSDAP' || p === 'DVFP')                                          gov_council += Q.council_far_right   || 0;
+    gov_council += council_seats[gov_parties[i]] || 0;
 }
 Q.council_gov_influence = gov_council;
 Q.council_opp_influence = 21 - gov_council;
@@ -785,12 +820,113 @@ Q.parliament_summary =
     " (" + Q.reichstag_president_party + ", " + Q.reichstag_president_stance + ")";
 
 !}
+on-display: {!
+
+var council_seats = JSON.parse(Q._council_seats_json || '{}');
+
+var partyMeta = [
+    { id: "kpd",   name: "KPD",   color: "#8B0000", show: true },
+    { id: "sapd",  name: "SAPD",  color: "#C40000", show: !!(Q.sapd_formed && Q.sapd_r > 0) },
+    { id: "spd",   name: "SPD",   color: "#E3000F", show: true },
+    { id: "srpd",  name: "SRPD",  color: "#FF6B6B", show: !!(Q.srpd_formed && Q.srpd_r > 0) },
+    { id: "ddp",   name: Q.ddp_name || "DDP", color: "#DCCA4A", show: true },
+    { id: "z",     name: "Center",color: "#000000", show: true },
+    { id: "bb",    name: "BB",    color: "#69A2BE", show: !!(Q.bb_r > 0) },
+    { id: "bvp",   name: "BVP",   color: "#69A2BE", show: true },
+    { id: "csrp",  name: "CSRP",  color: "#FFCCFF", show: !!(Q.csrp_r > 0) },
+    { id: "dhp",   name: "DHP",   color: "#69A2BE", show: !!(Q.dhp_r > 0) },
+    { id: "dvp",   name: "DVP",   color: "#D5AC27", show: true },
+    { id: "vrp",   name: "VRP",   color: "#8B7355", show: !!(Q.vrp_r > 0) },
+    { id: "wp",    name: "WP",    color: "#424242", show: !!(Q.wp_r > 0) },
+    { id: "cnbl",  name: "CNBL",  color: "#5D4E37", show: !!(Q.cnbl_r > 0) },
+    { id: "csvd",  name: "CSVD",  color: "#3f7bc1", show: !!Q.csvd_flee },
+    { id: "kvp",   name: "KVP",   color: "#3f7bc1", show: !!Q.kvp_flee },
+    { id: "dnvp",  name: "DNVP",  color: "#3f7bc1", show: true },
+    { id: "other", name: "Other", color: "#a0a0a0", show: true },
+    { id: "nsdap", name: "NSDAP", color: "#954B00", show: true },
+    { id: "dvfp",  name: "DVFP",  color: "#1A0F00", show: !!(Q.dvfp_r > 0) },
+];
+
+var visibleParties = partyMeta.filter(function(p) {
+    return p.show && (council_seats[p.id.toUpperCase()] || 0) > 0;
+}).map(function(p) {
+    return {
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        seats: council_seats[p.id.toUpperCase()] || 0
+    };
+});
+
+// Parliament diagram (21 seats)
+var data = visibleParties.map(function(p) {
+    return { id: p.id, legend: p.name, name: p.name, seats: p.seats };
+});
+
+if (window && d3) {
+    var width = 500, height = 250;
+    var screenWidth = document.getElementById('content').offsetWidth;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+    var el = document.getElementById("council-seats");
+    el.style.width  = width  + "px";
+    el.style.height = height + "px";
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#council-seats").datum(data).call(parliament);
+
+    // Color bar
+    var bar = document.getElementById("council-color-bar");
+    bar.innerHTML = "";
+    bar.style.display = "flex";
+    bar.style.width   = "100%";
+    bar.style.height  = "28px";
+    bar.style.marginTop = "8px";
+    bar.style.overflow = "hidden";
+    bar.style.borderRadius = "3px";
+
+    visibleParties.forEach(function(p) {
+        var pct = p.seats / 21;
+        var seg = document.createElement("div");
+        seg.style.width           = (pct * 100) + "%";
+        seg.style.height          = "100%";
+        seg.style.backgroundColor = p.color;
+        seg.style.display         = "flex";
+        seg.style.alignItems      = "center";
+        seg.style.justifyContent  = "center";
+        seg.style.overflow        = "hidden";
+        seg.style.boxSizing       = "border-box";
+        seg.title = p.name + ": " + p.seats + " seat" + (p.seats !== 1 ? "s" : "");
+
+        if (pct > 0.06) {
+            var label = document.createElement("span");
+            label.style.fontSize   = "10px";
+            label.style.fontWeight = "bold";
+            label.style.color      = "#fff";
+            label.style.textShadow = "0 0 2px #000, 0 0 2px #000";
+            label.style.whiteSpace = "nowrap";
+            label.textContent = p.name + " " + p.seats;
+            seg.appendChild(label);
+        }
+        bar.appendChild(seg);
+    });
+}
+
+!}
 
 = The Reichstag Is Constituted
 
 **[+ parliament_summary +]**
 
 Council of Elders: [+ council_display +]
+
+{!<svg id="council-seats" style="width:500px; height:250px;"></svg>
+<div id="council-color-bar"></div>!}
 
 [? if reichstag_president_stance = "friendly" : With a friendly Reichstag President to us, the government's legislative agenda should proceed smoothly, at least we hope so. ?]
 [? if reichstag_president_stance = "neutral" : The President will apply procedural rules impartially. That should be tolerable for us. ?]
