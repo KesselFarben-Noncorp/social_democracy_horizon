@@ -2567,50 +2567,50 @@ Q.identity_modifier = {
 
      Q.ideology_caps = {
      nsdap: {
-        base: Q.nsdap_banned ? 0 : (() => {
-        // Nationalism provides a stable floor (3–8% range)
-        let nat_floor = Q.nationalism_factor * 18 + Q.socialism_factor * 2;
+    base: Q.nsdap_banned ? 0 : (() => {
+    let effective_unrest = Math.max(0, Q.unrest_factor - 0.2); 
+    let growth = (effective_unrest * 25) + (Q.nationalism_factor * effective_unrest * 15);
 
-        // Crisis ramp — sigmoid shape
-        // unrest 0.3 (stable)   → ramp ≈ 0
-        // unrest 1.5 (tense)    → ramp ≈ 8
-        // unrest 2.5 (crisis)   → ramp ≈ 22
-        // unrest 4.0 (collapse) → ramp ≈ 34
-        let u = Math.max(0, Q.unrest_factor - 0.4);
-        let crisis_ramp = 38 / (1 + Math.exp(-1.4 * (u - 1.0)));
+    let target_max = 60;
+    let soft_cap_threshold = 35;
+    
+    let raw;
+    if (growth <= soft_cap_threshold) {
+        raw = growth;
+    } else {
+        raw = soft_cap_threshold + (target_max - soft_cap_threshold) * (1 - Math.exp(-(growth - soft_cap_threshold) / 20));
+    }
 
-        // Hard ceiling on the combined base before identity modifier
-        let raw = Math.min(nat_floor + crisis_ramp, 43);
-        return raw * Q.identity_modifier.nsdap;
-        })(),
+    return raw * Q.identity_modifier.nsdap;
+    })(),
         workers: (() => {
             let m = 0.70;
             if (Q.peoples_party === 1) m *= 1.02;
             return m;
         })(),
         old_middle: (() => {
-            let m = 1.35;
+            let m = 1.40;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.25);
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
         new_middle: (() => {
-            let m = 1.20;
+            let m = 1.30;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.20);
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
         rural: (() => {
-            let m = 1.45;
+            let m = 1.50;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.22);
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
         unemployedc: (() => {
-            let m = 1.40;
+            let m = 1.45;
             m += Math.min(Q.unemployed / 20, 0.60);  // up to 2.00 at 12%+ unemployment
             if (Q.peoples_party === 1) m *= 1.03;
             return m;
@@ -2674,7 +2674,7 @@ Q.identity_modifier = {
             return (nat * 40) + polarization + crisis_bonus * Q.identity_modifier.dnvp;
         } else {
             let chaos_penalty = u > 0.7 ? (u * 1) : 0;
-            return ((nat * 64) + (rep * 10) - chaos_penalty) * Q.identity_modifier.dnvp;
+            return ((nat * 54) + (rep * 10) - chaos_penalty) * Q.identity_modifier.dnvp;
         }
     })(),
         workers: (() => {
@@ -2812,7 +2812,7 @@ Q.identity_modifier = {
         base: Q.kpd_banned ? 0 : (() => {
             let soc = Q.socialism_factor;
             let unr = Q.unrest_factor;
-            return soc * 45 * 2.2 * (1 + unr * 0.15) * Q.identity_modifier.kpd;
+            return soc * 45 * 2.0 * (1 + unr * 0.13) * Q.identity_modifier.kpd;
         })(),
         workers: (() => {
             let m = 1.50;
