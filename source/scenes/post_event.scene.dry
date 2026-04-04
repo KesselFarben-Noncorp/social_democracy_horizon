@@ -4954,7 +4954,422 @@ if (Q.bruning_cabinet || Q.schleicher_cabinet || Q.papen_cabinet || Q.chancellor
 
 }
 
+// ============================================
+// BILL SYSTEM — POST EVENT tick block
+// ============================================
+
+// ============================================
+// SECTION A: PARTY BILL POOLS
+// Single source of truth. Add new bills here only.
+// Each bill: { id, name, type, timer, ideo,
+//              expire_crisis,   // flag set when timer hits 0
+//              push_weight }    // base PRNG weight (0-1)
+// ============================================
+
+const PARTY_BILLS = {
+
+    KPD: [
+        { id: 'kpd_socialisation',    name: 'Socialisation of Heavy Industry',
+          type: 'economic',     ideo: 1, timer: 5, push_weight: 0.18,
+          expire_crisis: 'crisis_kpd_socialisation' },
+        { id: 'kpd_rent_control',     name: 'Emergency Rent Controls',
+          type: 'economic',     ideo: 1, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_kpd_rent' },
+        { id: 'kpd_amnesty',          name: 'Political Prisoner Amnesty',
+          type: 'civil',        ideo: 1, timer: 3, push_weight: 0.10,
+          expire_crisis: 'crisis_kpd_amnesty' },
+    ],
+
+    SAPD: [
+        { id: 'sapd_works_councils',  name: 'Expanded Works Councils Act',
+          type: 'labor',        ideo: 2, timer: 4, push_weight: 0.12,
+          expire_crisis: 'crisis_sapd_councils' },
+        { id: 'sapd_land_reform',     name: 'Agricultural Land Reform',
+          type: 'economic',     ideo: 2, timer: 5, push_weight: 0.10,
+          expire_crisis: 'crisis_sapd_land' },
+    ],
+
+    SPD: [
+        { id: 'spd_unemployment_ext', name: 'Unemployment Insurance Extension',
+          type: 'economic',     ideo: 3, timer: 4, push_weight: 0.20,
+          expire_crisis: 'crisis_spd_unemp' },
+        { id: 'spd_civil_service',    name: 'Civil Service Reform Bill',
+          type: 'administrative', ideo: 3, timer: 5, push_weight: 0.14,
+          expire_crisis: 'crisis_spd_civil' },
+        { id: 'spd_press_freedom',    name: 'Press Freedom Protection Act',
+          type: 'civil',        ideo: 3, timer: 4, push_weight: 0.12,
+          expire_crisis: 'crisis_spd_press' },
+        { id: 'spd_wtb',             name: 'WTB Public Works Programme',
+          type: 'economic',     ideo: 3, timer: 6, push_weight: 0.16,
+          expire_crisis: 'crisis_spd_wtb' },
+    ],
+
+    DDP: [
+        { id: 'ddp_school_reform',    name: 'Secular School Reform',
+          type: 'social',       ideo: 5, timer: 4, push_weight: 0.12,
+          expire_crisis: 'crisis_ddp_school' },
+        { id: 'ddp_police_reform',    name: 'Police Accountability Act',
+          type: 'administrative', ideo: 5, timer: 4, push_weight: 0.10,
+          expire_crisis: 'crisis_ddp_police' },
+    ],
+
+    Z: [
+        { id: 'z_concordat',         name: 'Church-State Concordat',
+          type: 'social',       ideo: 5, timer: 5, push_weight: 0.16,
+          expire_crisis: 'crisis_z_concordat' },
+        { id: 'z_confessional',      name: 'Confessional Schools Protection',
+          type: 'social',       ideo: 5, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_z_confessional' },
+        { id: 'z_austerity',         name: 'Budget Consolidation Act',
+          type: 'economic',     ideo: 6, timer: 4, push_weight: 0.12,
+          expire_crisis: 'crisis_z_austerity' },
+    ],
+
+    BVP: [
+        { id: 'bvp_bavarian_police',  name: 'Bavarian Police Autonomy Bill',
+          type: 'administrative', ideo: 6, timer: 4, push_weight: 0.12,
+          expire_crisis: 'crisis_bvp_police' },
+        { id: 'bvp_tariff',          name: 'Agricultural Import Tariff',
+          type: 'economic',     ideo: 6, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_bvp_tariff' },
+    ],
+
+    DVP: [
+        { id: 'dvp_trade_treaty',    name: 'Commercial Trade Treaty Act',
+          type: 'foreign',      ideo: 7, timer: 5, push_weight: 0.14,
+          expire_crisis: 'crisis_dvp_trade' },
+        { id: 'dvp_tax_reform',      name: 'Business Tax Reduction',
+          type: 'economic',     ideo: 7, timer: 4, push_weight: 0.16,
+          expire_crisis: 'crisis_dvp_tax' },
+        { id: 'dvp_reparations',     name: 'Reparations Protest Motion',
+          type: 'foreign',      ideo: 7, timer: 3, push_weight: 0.10,
+          expire_crisis: 'crisis_dvp_rep' },
+    ],
+
+    WP: [
+        { id: 'wp_middle_class',     name: 'Middle Class Credit Relief',
+          type: 'economic',     ideo: 7, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_wp_credit' },
+        { id: 'wp_inflation_comp',   name: 'Inflation Compensation Fund',
+          type: 'economic',     ideo: 7, timer: 4, push_weight: 0.12,
+          expire_crisis: 'crisis_wp_inflation' },
+    ],
+
+    CNBL: [
+        { id: 'cnbl_grain_tariff',   name: 'Emergency Grain Tariff',
+          type: 'economic',     ideo: 7, timer: 4, push_weight: 0.16,
+          expire_crisis: 'crisis_cnbl_grain' },
+        { id: 'cnbl_debt_relief',    name: 'Rural Debt Moratorium',
+          type: 'economic',     ideo: 7, timer: 5, push_weight: 0.14,
+          expire_crisis: 'crisis_cnbl_debt' },
+    ],
+
+    DNVP: [
+        { id: 'dnvp_accountability', name: 'Government Accountability Motion',
+          type: 'constitutional', ideo: 9, timer: 4, push_weight: 0.18,
+          expire_crisis: 'crisis_dnvp_account' },
+        { id: 'dnvp_war_guilt',      name: 'War Guilt Rejection Motion',
+          type: 'foreign',      ideo: 9, timer: 3, push_weight: 0.14,
+          expire_crisis: 'crisis_dnvp_guilt' },
+        { id: 'dnvp_red_ban',        name: 'Anti-Marxist Emergency Law',
+          type: 'civil',        ideo: 9, timer: 5, push_weight: 0.16,
+          expire_crisis: 'crisis_dnvp_redban' },
+        { id: 'dnvp_landowner',      name: 'Landed Estate Protection Act',
+          type: 'economic',     ideo: 9, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_dnvp_land' },
+    ],
+
+    NSDAP: [
+        { id: 'nsdap_enabling',      name: 'Emergency Powers Enabling Act',
+          type: 'constitutional', ideo: 10, timer: 5, push_weight: 0.20,
+          expire_crisis: 'crisis_nsdap_enabling' },
+        { id: 'nsdap_aliens',        name: 'Law on Alien Citizenship',
+          type: 'civil',        ideo: 10, timer: 4, push_weight: 0.16,
+          expire_crisis: 'crisis_nsdap_aliens' },
+        { id: 'nsdap_press_ban',     name: 'Marxist Press Suppression Act',
+          type: 'civil',        ideo: 10, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_nsdap_press' },
+        { id: 'nsdap_no_confidence', name: 'Vote of No Confidence',
+          type: 'constitutional', ideo: 10, timer: 3, push_weight: 0.22,
+          expire_crisis: 'crisis_nsdap_noconf' },
+    ],
+
+    DVFP: [
+        { id: 'dvfp_volkisch',       name: 'Völkisch Community Protection Act',
+          type: 'civil',        ideo: 10, timer: 4, push_weight: 0.14,
+          expire_crisis: 'crisis_dvfp_volkisch' },
+        { id: 'dvfp_republic_guilt', name: 'November Criminals Motion',
+          type: 'constitutional', ideo: 10, timer: 3, push_weight: 0.12,
+          expire_crisis: 'crisis_dvfp_guilt' },
+    ],
+};
+
+// ============================================
+// SECTION B: CONDITION MODIFIERS
+// Per-party weight multipliers based on game state.
+// Applied on top of push_weight before PRNG roll.
+// ============================================
+
+function get_push_multiplier(party) {
+    let m = 1.0;
+    switch (party) {
+        case 'KPD':
+            if (Q.workers_mood < 35)    m += 0.4;
+            if (Q.unemployed > 20)      m += 0.3;
+            if (Q.kpd_banned)           m  = 0;
+            break;
+        case 'SAPD':
+            if (!Q.sapd_formed)         m  = 0;
+            if (Q.sapd_banned)          m  = 0;
+            break;
+        case 'SPD':
+            if (Q.spd_in_government)    m -= 0.3; // gov party pushes less
+            if (Q.unemployed > 18)      m += 0.3;
+            if (Q.spd_banned)           m  = 0;
+            break;
+        case 'DDP':
+            if (Q.ddp_banned)           m  = 0;
+            if (Q.pro_republic > 60)    m += 0.2;
+            break;
+        case 'Z':
+            if (Q.z_in_government)      m -= 0.2;
+            if (Q.catholics > 30)       m += 0.2;
+            if (Q.z_banned)             m  = 0;
+            break;
+        case 'BVP':
+            if (Q.bvp_banned)           m  = 0;
+            break;
+        case 'DVP':
+            if (Q.dvp_in_government)    m -= 0.3;
+            if (Q.economic_growth < -1) m += 0.3;
+            if (Q.dvp_banned)           m  = 0;
+            break;
+        case 'WP':
+            if (Q.wp_banned)            m  = 0;
+            if (Q.inflation > 4)        m += 0.3;
+            break;
+        case 'CNBL':
+            if (Q.cnbl_banned)          m  = 0;
+            if (Q.rural > 35)           m += 0.2;
+            break;
+        case 'DNVP':
+            if (Q.dnvp_banned)          m  = 0;
+            if (Q.dnvp_line === 3)      m += 0.4;
+            if (Q.dnvp_in_government)   m -= 0.3;
+            break;
+        case 'NSDAP':
+            if (Q.nsdap_banned)         m  = 0;
+            if (Q.nsdap_r > 20)         m += 0.5;
+            if (Q.nsdap_r > 35)         m += 0.5;
+            break;
+        case 'DVFP':
+            if (!Q.dvfp_formed)         m  = 0;
+            if (Q.dvfp_banned)          m  = 0;
+            if (Q.nationalism > 50)     m += 0.2;
+            break;
+    }
+    return Math.max(0, m);
 }
+
+// ============================================
+// SECTION C: QUEUE HELPERS
+// ============================================
+
+const BILL_SLOTS = 10;
+
+// Count filled slots
+function count_filled_slots() {
+    let n = 0;
+    for (let i = 0; i < BILL_SLOTS; i++) {
+        if (Q['bill_' + i + '_id']) n++;
+    }
+    return n;
+}
+
+// Find first empty slot, -1 if full
+function find_empty_slot() {
+    for (let i = 0; i < BILL_SLOTS; i++) {
+        if (!Q['bill_' + i + '_id']) return i;
+    }
+    return -1;
+}
+
+// Check if a bill id is already in queue
+function bill_in_queue(id) {
+    for (let i = 0; i < BILL_SLOTS; i++) {
+        if (Q['bill_' + i + '_id'] === id) return true;
+    }
+    return false;
+}
+
+// Push a bill into the next empty slot
+function push_bill(bill, party) {
+    const slot = find_empty_slot();
+    if (slot === -1) return false; // queue full
+    Q['bill_' + slot + '_id']     = bill.id;
+    Q['bill_' + slot + '_name']   = bill.name;
+    Q['bill_' + slot + '_party']  = party;
+    Q['bill_' + slot + '_type']   = bill.type;
+    Q['bill_' + slot + '_ideo']   = bill.ideo;
+    Q['bill_' + slot + '_timer']  = bill.timer;
+    Q['bill_' + slot + '_crisis'] = bill.expire_crisis;
+    Q['bill_' + slot + '_frozen'] = 0; // not in crisis yet
+    return true;
+}
+
+// Clear a slot entirely
+function clear_slot(i) {
+    Q['bill_' + i + '_id']     = '';
+    Q['bill_' + i + '_name']   = '';
+    Q['bill_' + i + '_party']  = '';
+    Q['bill_' + i + '_type']   = '';
+    Q['bill_' + i + '_ideo']   = 0;
+    Q['bill_' + i + '_timer']  = 0;
+    Q['bill_' + i + '_crisis'] = '';
+    Q['bill_' + i + '_frozen'] = 0;
+}
+
+// Manual push — callable from anywhere in game
+// Usage: Q.push_bill_manual('NSDAP', 'nsdap_enabling')
+Q.push_bill_manual = function(party, bill_id) {
+    if (bill_in_queue(bill_id)) return false;
+    const pool = PARTY_BILLS[party] || [];
+    for (let i = 0; i < pool.length; i++) {
+        if (pool[i].id === bill_id) return push_bill(pool[i], party);
+    }
+    return false;
+};
+
+// ============================================
+// SECTION D: TICK — TIMER DECAY & CRISIS FLAGS
+// Runs every tick BEFORE new bills are pushed.
+// ============================================
+
+for (let i = 0; i < BILL_SLOTS; i++) {
+    if (!Q['bill_' + i + '_id'])     continue; // empty slot
+    if (Q['bill_' + i + '_frozen'])  continue; // waiting for crisis resolution
+
+    Q['bill_' + i + '_timer']--;
+
+    if (Q['bill_' + i + '_timer'] <= 0) {
+        // Fire crisis flag — event system reads this
+        const crisis_flag = Q['bill_' + i + '_crisis'];
+        if (crisis_flag) Q[crisis_flag] = 1;
+
+        // Freeze slot — bill stays until event resolves it
+        Q['bill_' + i + '_frozen'] = 1;
+        Q['bill_' + i + '_timer']  = 0;
+    }
+}
+
+// ============================================
+// SECTION E: TICK — PRNG PUSH LOOP
+// Each party rolls once per tick.
+// If roll succeeds, a random eligible bill
+// from their pool is pushed into a free slot.
+// ============================================
+
+const _bill_parties = Object.keys(PARTY_BILLS);
+
+for (let pi = 0; pi < _bill_parties.length; pi++) {
+    const party = _bill_parties[pi];
+    const pool  = PARTY_BILLS[party];
+    const mult  = get_push_multiplier(party);
+    if (mult <= 0) continue;
+
+    // Shuffle pool using seeded PRNG so picks vary each tick
+    // but are reproducible for the same seed+tick
+    const shuffled = pool.slice().sort(() => _r() - 0.5);
+
+    for (let bi = 0; bi < shuffled.length; bi++) {
+        const bill = shuffled[bi];
+
+        // Skip if already queued or already done this session
+        if (bill_in_queue(bill.id))               continue;
+        if (Q['bill_done_' + bill.id])            continue;
+
+        // PRNG roll — weight * multiplier is the per-tick push chance
+        const roll = _r();
+        if (roll < bill.push_weight * mult) {
+            push_bill(bill, party);
+            break; // one bill per party per tick
+        }
+    }
+}
+
+// ============================================
+// SECTION F: BUILD DISPLAY VARS
+// Q.bill_list_text  — plain text fallback
+// Q.bill_list_html  — rich HTML for on-display
+// ============================================
+
+let _text = '';
+let _html = '<table style="width:100%;border-collapse:collapse;font-size:0.93em;">';
+_html += '<tr style="border-bottom:1px solid #555;">'
+       + '<th style="text-align:left;padding:3px 6px;">Bill</th>'
+       + '<th style="padding:3px 6px;">Party</th>'
+       + '<th style="padding:3px 6px;">Type</th>'
+       + '<th style="padding:3px 6px;">Timer</th>'
+       + '<th style="padding:3px 6px;">Status</th>'
+       + '</tr>';
+
+const TYPE_COLORS = {
+    economic:       '#c8a84b',
+    labor:          '#e3000f',
+    social:         '#a0c4a0',
+    civil:          '#7eb8d4',
+    foreign:        '#9b8ec4',
+    constitutional: '#d47f7f',
+    administrative: '#b0b0b0',
+};
+
+let _filled = 0;
+for (let i = 0; i < BILL_SLOTS; i++) {
+    if (!Q['bill_' + i + '_id']) continue;
+    _filled++;
+
+    const name   = Q['bill_' + i + '_name'];
+    const party  = Q['bill_' + i + '_party'];
+    const type   = Q['bill_' + i + '_type'];
+    const timer  = Q['bill_' + i + '_timer'];
+    const frozen = Q['bill_' + i + '_frozen'];
+    const status = frozen ? '⚠ Crisis' : timer <= 1 ? '🔴 Urgent' : timer <= 2 ? '🟡 Soon' : '🟢 Active';
+    const color  = TYPE_COLORS[type] || '#888';
+
+    _text += (i+1) + '. ' + name + ' (' + party + ') — '
+           + type + ' — ' + (frozen ? 'CRISIS' : 'T-' + timer) + '\n';
+
+    _html += '<tr style="border-bottom:1px solid #333;">'
+           + '<td style="padding:3px 6px;">' + name + '</td>'
+           + '<td style="padding:3px 6px;text-align:center;">' + party + '</td>'
+           + '<td style="padding:3px 6px;text-align:center;">'
+           +   '<span style="background:' + color + ';color:#111;border-radius:3px;padding:1px 5px;font-size:0.85em;">' + type + '</span>'
+           + '</td>'
+           + '<td style="padding:3px 6px;text-align:center;">' + (frozen ? '—' : timer) + '</td>'
+           + '<td style="padding:3px 6px;text-align:center;">' + status + '</td>'
+           + '</tr>';
+
+    // Expose slot vars for Ink choices
+    Q['bill_' + i + '_display'] = name + ' (' + party + ')';
+}
+
+if (_filled === 0) {
+    _text = 'No bills currently in queue.';
+    _html += '<tr><td colspan="5" style="padding:6px;text-align:center;color:#888;">No bills in queue</td></tr>';
+}
+
+_html += '</table>';
+
+Q.bill_list_text        = _text;
+Q.bill_list_html        = _html;
+Q.bill_queue_count      = _filled;
+Q.bill_queue_full       = (_filled >= BILL_SLOTS) ? 1 : 0;
+
+}
+
+
+
+
 
 
 
