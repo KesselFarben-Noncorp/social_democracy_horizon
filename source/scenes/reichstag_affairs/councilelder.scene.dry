@@ -5,6 +5,20 @@ tags: reichstag_affairs
 view-if: spd_in_government
 on-arrival: {!
 
+// Initialize all slot vars to empty strings
+for (var i = 0; i < 10; i++) {
+    Q['queued_' + i + '_slot']  = 0;
+    Q['queued_' + i + '_name']  = '';
+    Q['queued_' + i + '_party'] = '';
+    Q['queued_' + i + '_type']  = '';
+    Q['queued_' + i + '_frozen']= 0;
+}
+for (var i = 0; i < 4; i++) {
+    Q['spd_unqueued_' + i + '_id']   = '';
+    Q['spd_unqueued_' + i + '_name'] = '';
+    Q['spd_unqueued_' + i + '_type'] = '';
+}
+
 // ============================================
 // BUILD DISPLAY: ALL QUEUED BILLS
 // ============================================
