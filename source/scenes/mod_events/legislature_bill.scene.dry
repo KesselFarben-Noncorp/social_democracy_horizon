@@ -1,0 +1,177 @@
+title: Legislative Crisis!
+subtitle: A bill demands resolution
+tags: event
+view-if: any_bill_crisis = 1 and developer_mode = 1
+new-page: true
+on-arrival: {!
+    // Clear the crisis flag for the active slot
+    const flag = Q['bill_' + Q.active_bill_slot + '_crisis'];
+    if (flag) Q[flag] = 0;
+!}
+
+The **[+ active_bill_party +]** has forced a vote on the **[+ active_bill_name +]**. The Reichstag cannot ignore it any longer — a decision must be made.
+
+- @pass: Pass it
+- @reject: Reject it
+- @lapse: Lapse it.
+  
+@pass
+on-arrival: {!
+        Q['bill_done_' + Q['bill_' + Q.active_bill_slot + '_id']] = 1;
+        // clear slot
+        for (const f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
+            Q['bill_' + Q.active_bill_slot + '_' + f] = '';
+        }
+        Q.any_bill_crisis = 0;
+!}
+go-to: rt_bill_vote
+
+
+@reject
+on-arrival: {!
+        Q['bill_done_' + Q['bill_' + Q.active_bill_slot + '_id']] = 1;
+        for (const f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
+            Q['bill_' + Q.active_bill_slot + '_' + f] = '';
+        }
+        Q.any_bill_crisis = 0;
+    !}
+
+
+@lapse
+on-arrival: {!
+        Q['bill_done_' + Q['bill_' + Q.active_bill_slot + '_id']] = 1;
+        for (const f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
+            Q['bill_' + Q.active_bill_slot + '_' + f] = '';
+        }
+        Q.any_bill_crisis = 0;
+    !}
+
+@rt_bill_vote
+on-arrival: {!
+
+var bill_name  = Q.active_bill_name;
+var bill_party = Q.active_bill_party;
+var bill_type  = Q.active_bill_type;
+var bill_ideo  = Q.active_bill_ideo || 5;
+
+var ideology_pos = JSON.parse(Q._ideology_pos_json || '{}');
+var gov_parties  = Q.government_parties || ['SPD'];
+var all_parties  = Q._all_rt_parties || [];
+var total_seats  = Q.total_seats_filled || 600;
+var majority     = Math.floor(total_seats / 2) + 1;
+
+// ============================================
+// VOTE SCORING
+// How each party votes on the bill itself
+// ============================================
+
+function score_bill_vote(party, in_gov) {
+    var p_pos  = ideology_pos[party] || 5;
+    var rel    = Q[party.toLowerCase() + '_relation'] || 30;
+    var dissent = Q[party.toLowerCase() + '_dissent'] || 0;
+
+    // Ideological distance from the bill's ideological position
+    var ideo_gap = Math.abs(p_pos - bill_ideo);
+
+    // Base score: closer ideology + better relations = more likely to support
+    var score = (rel - 50) * 0.5 - ideo_gap * 8;
+
+    // Government parties get a loyalty bonus
+    if (in_gov) score += 25;
+
+    // High dissent within a governing party weakens loyalty
+    if (in_gov && dissent >= 2) score -= dissent * 4;
+
+    // NSDAP never supports left bills, always supports right bills
+    if (party === 'NSDAP') {
+        if (bill_ideo <= 4) return 'against';
+        if (bill_ideo >= 8) return 'for';
+        return 'abstain';
+    }
+
+    // KPD never supports right bills
+    if (party === 'KPD') {
+        if (bill_ideo >= 7) return 'against';
+        if (bill_ideo <= 3) return 'for';
+        return 'abstain';
+    }
+
+    if (score >= 15)  return 'for';
+    if (score >= -10) return 'abstain';
+    return 'against';
+}
+
+// ============================================
+// TALLY
+// ============================================
+
+var votes_for = 0, votes_against = 0, votes_abstain = 0;
+var for_list = [], against_list = [], abstain_list = [];
+
+for (var i = 0; i < all_parties.length; i++) {
+    var p      = all_parties[i];
+    var result = score_bill_vote(p.party, p.in_gov);
+
+    if      (result === 'for')     { votes_for     += p.seats; for_list.push(p.party);     }
+    else if (result === 'against') { votes_against  += p.seats; against_list.push(p.party); }
+    else                           { votes_abstain  += p.seats; abstain_list.push(p.party); }
+}
+
+Q.bill_votes_for     = votes_for;
+Q.bill_votes_against = votes_against;
+Q.bill_votes_abstain = votes_abstain;
+Q.bill_majority      = majority;
+Q.bill_passed        = votes_for > votes_against ? 1 : 0;
+
+Q.bill_for_list     = for_list.join(', ')     || '—';
+Q.bill_against_list = against_list.join(', ') || '—';
+Q.bill_abstain_list = abstain_list.join(', ') || '—';
+
+// ============================================
+// EFFECTS ON PASS/FAIL
+// Generic by bill_type — you can override per bill_id later
+// ============================================
+
+if (Q.bill_passed) {
+    if (bill_type === 'economic')       { Q.demand_impulse += 0.05; Q.budget -= 0.3; }
+    if (bill_type === 'labor')          { Q.demand_impulse += 0.04; Q.workers_mood = (Q.workers_mood||50) + 3; }
+    if (bill_type === 'constitutional') { Q.pro_republic += 2; }
+    if (bill_type === 'civil')          { Q.pro_republic += 1; }
+    if (bill_type === 'foreign')        { Q.reparations = (Q.reparations||0) - 1; }
+    // Relation bonus with passing party
+    Q[bill_party.toLowerCase() + '_relation'] = Math.min(100,
+        (Q[bill_party.toLowerCase() + '_relation'] || 50) + 5
+    );
+} else {
+    // Relation penalty with passing party on failure
+    Q[bill_party.toLowerCase() + '_relation'] = Math.max(-100,
+        (Q[bill_party.toLowerCase() + '_relation'] || 50) - 5
+    );
+    Q[bill_party.toLowerCase() + '_dissent'] = Math.min(99,
+        (Q[bill_party.toLowerCase() + '_dissent'] || 0) + 3
+    );
+}
+
+// Clear bill slot
+var slot = Q.active_bill_slot;
+for (var f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
+    Q['bill_' + slot + '_' + f] = '';
+}
+Q['bill_done_' + Q['bill_' + slot + '_id']] = 1;
+Q.any_bill_crisis = 0;
+
+!}
+
+= Vote: [+ active_bill_name +]
+
+The **[+ active_bill_party +]** has forced a vote on **[+ active_bill_name +]**.
+
+**Results:**
+- For: **[+ bill_votes_for +]** — [+ bill_for_list +]
+- Against: **[+ bill_votes_against +]** — [+ bill_against_list +]
+- Abstaining: **[+ bill_votes_abstain +]** — [+ bill_abstain_list +]
+
+[? if bill_passed : ✓ The bill passes. ?]
+[? if not bill_passed : ✗ The bill fails. ?]
+
+- @root: Continue
