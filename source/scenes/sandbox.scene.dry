@@ -14,6 +14,79 @@ go-to: sandbox_menu
 - @wacky: All wacky things (unlocked when reaching 1935)
 - @technical: Technical things, just messing with variables.
 - @truesandbox
+- @developermode: Developer Mode
+
+@developermode
+on-display: {!
+
+// Only render if not already unlocked
+if (Q.developer_mode) {
+    document.getElementById('dev-console').innerHTML =
+        '<p style="color:lime;font-family:monospace;">✓ Developer mode active.</p>';
+    return;
+}
+
+var container = document.getElementById('dev-console');
+container.innerHTML = '';
+
+// Build input UI
+var wrapper = document.createElement('div');
+wrapper.style.cssText = 'margin-top:12px; font-family:monospace;';
+
+var input = document.createElement('input');
+input.type        = 'password';
+input.placeholder = 'Enter access code…';
+input.id          = 'dev-code-input';
+input.style.cssText =
+    'background:#111; color:#0f0; border:1px solid #0f0;' +
+    'padding:6px 10px; font-family:monospace; font-size:13px;' +
+    'width:220px; outline:none; border-radius:2px;';
+
+var btn = document.createElement('button');
+btn.textContent  = 'Confirm';
+btn.style.cssText =
+    'margin-left:8px; background:#0f0; color:#000; border:none;' +
+    'padding:6px 12px; font-family:monospace; font-size:13px;' +
+    'cursor:pointer; border-radius:2px;';
+
+var msg = document.createElement('p');
+msg.id             = 'dev-code-msg';
+msg.style.cssText  = 'color:#f55; font-size:12px; margin-top:6px; height:16px;';
+
+btn.onclick = function() {
+    var val = document.getElementById('dev-code-input').value;
+    if (val === '1920Luxembourg') {
+        // Write to Inkle state
+        window.story.state.variablesState['developer_mode'] = 1;
+        container.innerHTML =
+            '<p style="color:lime;font-family:monospace;">' +
+            '✓ Access granted. Developer mode enabled.</p>';
+    } else {
+        document.getElementById('dev-code-msg').textContent =
+            '✗ Incorrect code.';
+        document.getElementById('dev-code-input').value = '';
+    }
+};
+
+// Also trigger on Enter key
+input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') btn.click();
+});
+
+wrapper.appendChild(input);
+wrapper.appendChild(btn);
+wrapper.appendChild(msg);
+container.appendChild(wrapper);
+
+!}
+
+= Developer Console
+
+{!<div id="dev-console"></div>!}
+
+[? if developer_mode = 1 : **Developer mode is active.** ?]
+
+- @sandbox_menu: Back
 
 @truesandbox
 title: True Sandbox
