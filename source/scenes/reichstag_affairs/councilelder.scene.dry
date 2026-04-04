@@ -3,9 +3,311 @@ new-page: true
 is-card: true
 tags: reichstag_affairs
 view-if: spd_in_government
+on-arrival: {!
 
-= Reichstag 
+// ============================================
+// BUILD DISPLAY: ALL QUEUED BILLS
+// ============================================
 
-Reichstag, very wonderful place.
+Q.queued_bills_display = '';
+Q.num_queued_bills = 0;
 
-We can: Negotiate, conspire, talk, suppress and etcetera, popularity, plan and etcetera.
+for (var i = 0; i < 10; i++) {
+    if (!Q['bill_' + i + '_id']) continue;
+
+    var name   = Q['bill_' + i + '_name'];
+    var party  = Q['bill_' + i + '_party'];
+    var type   = Q['bill_' + i + '_type'];
+    var timer  = Q['bill_' + i + '_timer'];
+    var frozen = Q['bill_' + i + '_frozen'];
+
+    var status = frozen ? '⚠ Crisis' : timer <= 1 ? '🔴 Urgent' : timer <= 2 ? '🟡 Soon' : '🟢 Active';
+
+    Q.queued_bills_display += '**' + name + '** (' + party + ') — ' + type + ' — ' + status + '\n\n';
+
+    // Expose slot vars for proposal choices
+    Q['queued_' + Q.num_queued_bills + '_slot']  = i;
+    Q['queued_' + Q.num_queued_bills + '_name']  = name;
+    Q['queued_' + Q.num_queued_bills + '_party'] = party;
+    Q['queued_' + Q.num_queued_bills + '_type']  = type;
+    Q['queued_' + Q.num_queued_bills + '_frozen']= frozen ? 1 : 0;
+
+    Q.num_queued_bills++;
+}
+
+if (Q.num_queued_bills === 0) {
+    Q.queued_bills_display = '*No bills currently in the legislative queue.*';
+}
+
+// ============================================
+// BUILD DISPLAY: SPD UNQUEUED BILLS
+// (SPD pool bills not yet in queue)
+// ============================================
+
+var SPD_POOL = [
+    { id: 'spd_unemployment_ext', name: 'Unemployment Insurance Extension',  type: 'economic'     },
+    { id: 'spd_civil_service',    name: 'Civil Service Reform Bill',          type: 'administrative'},
+    { id: 'spd_press_freedom',    name: 'Press Freedom Protection Act',       type: 'civil'        },
+    { id: 'spd_wtb',              name: 'WTB Public Works Programme',         type: 'economic'     },
+];
+
+Q.spd_unqueued_display = '';
+Q.num_spd_unqueued = 0;
+
+for (var i = 0; i < SPD_POOL.length; i++) {
+    var bill = SPD_POOL[i];
+
+    // Skip if already in queue or already done
+    var in_queue = false;
+    for (var j = 0; j < 10; j++) {
+        if (Q['bill_' + j + '_id'] === bill.id) { in_queue = true; break; }
+    }
+    if (in_queue)              continue;
+    if (Q['bill_done_' + bill.id]) continue;
+
+    Q.spd_unqueued_display += '**' + bill.name + '** — ' + bill.type + '\n\n';
+
+    Q['spd_unqueued_' + Q.num_spd_unqueued + '_id']   = bill.id;
+    Q['spd_unqueued_' + Q.num_spd_unqueued + '_name']  = bill.name;
+    Q['spd_unqueued_' + Q.num_spd_unqueued + '_type']  = bill.type;
+
+    Q.num_spd_unqueued++;
+}
+
+if (Q.num_spd_unqueued === 0) {
+    Q.spd_unqueued_display = '*All SPD bills are already queued or passed.*';
+}
+
+// already proposed this month?
+Q.can_propose = (Q.bill_proposed_this_month || 0) === 0 ? 1 : 0;
+
+!}
+
+= Council of Elders
+
+The Reichstag is in session. Bills move through the chamber on their own schedule — but the SPD can force the issue.
+
+---
+
+**Current Legislative Queue**
+
+[+ queued_bills_display +]
+
+---
+
+**SPD Bills Available to Introduce**
+
+[+ spd_unqueued_display +]
+
+---
+
+[? if can_propose : You may force one bill to a vote this month. ?]
+[? if not can_propose : You have already forced a vote this month. ?]
+
+- @propose_queued: Force a queued bill to a vote
+- @propose_spd_own: Introduce and force an SPD bill to a vote
+- @root: Leave
+
+
+@propose_queued
+view-if: can_propose = 1 and num_queued_bills > 0
+
+= Force a Queued Bill to a Vote
+
+Choose which bill to bring to the floor immediately:
+
+- @force_queued_0: [+ queued_0_name +] ([+ queued_0_party +])
+- @force_queued_1: [+ queued_1_name +] ([+ queued_1_party +])
+- @force_queued_2: [+ queued_2_name +] ([+ queued_2_party +])
+- @force_queued_3: [+ queued_3_name +] ([+ queued_3_party +])
+- @force_queued_4: [+ queued_4_name +] ([+ queued_4_party +])
+- @force_queued_5: [+ queued_5_name +] ([+ queued_5_party +])
+- @force_queued_6: [+ queued_6_name +] ([+ queued_6_party +])
+- @force_queued_7: [+ queued_7_name +] ([+ queued_7_party +])
+- @force_queued_8: [+ queued_8_name +] ([+ queued_8_party +])
+- @force_queued_9: [+ queued_9_name +] ([+ queued_9_party +])
+- @root: Cancel
+
+
+@force_queued_0
+view-if: num_queued_bills >= 1
+on-arrival: {! Q.active_bill_slot = Q.queued_0_slot; Q.active_bill_name = Q.queued_0_name; Q.active_bill_party = Q.queued_0_party; Q.active_bill_type = Q.queued_0_type; Q.active_bill_ideo = Q['bill_' + Q.queued_0_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_1
+view-if: num_queued_bills >= 2
+on-arrival: {! Q.active_bill_slot = Q.queued_1_slot; Q.active_bill_name = Q.queued_1_name; Q.active_bill_party = Q.queued_1_party; Q.active_bill_type = Q.queued_1_type; Q.active_bill_ideo = Q['bill_' + Q.queued_1_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_2
+view-if: num_queued_bills >= 3
+on-arrival: {! Q.active_bill_slot = Q.queued_2_slot; Q.active_bill_name = Q.queued_2_name; Q.active_bill_party = Q.queued_2_party; Q.active_bill_type = Q.queued_2_type; Q.active_bill_ideo = Q['bill_' + Q.queued_2_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_3
+view-if: num_queued_bills >= 4
+on-arrival: {! Q.active_bill_slot = Q.queued_3_slot; Q.active_bill_name = Q.queued_3_name; Q.active_bill_party = Q.queued_3_party; Q.active_bill_type = Q.queued_3_type; Q.active_bill_ideo = Q['bill_' + Q.queued_3_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_4
+view-if: num_queued_bills >= 5
+on-arrival: {! Q.active_bill_slot = Q.queued_4_slot; Q.active_bill_name = Q.queued_4_name; Q.active_bill_party = Q.queued_4_party; Q.active_bill_type = Q.queued_4_type; Q.active_bill_ideo = Q['bill_' + Q.queued_4_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_5
+view-if: num_queued_bills >= 6
+on-arrival: {! Q.active_bill_slot = Q.queued_5_slot; Q.active_bill_name = Q.queued_5_name; Q.active_bill_party = Q.queued_5_party; Q.active_bill_type = Q.queued_5_type; Q.active_bill_ideo = Q['bill_' + Q.queued_5_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_6
+view-if: num_queued_bills >= 7
+on-arrival: {! Q.active_bill_slot = Q.queued_6_slot; Q.active_bill_name = Q.queued_6_name; Q.active_bill_party = Q.queued_6_party; Q.active_bill_type = Q.queued_6_type; Q.active_bill_ideo = Q['bill_' + Q.queued_6_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_7
+view-if: num_queued_bills >= 8
+on-arrival: {! Q.active_bill_slot = Q.queued_7_slot; Q.active_bill_name = Q.queued_7_name; Q.active_bill_party = Q.queued_7_party; Q.active_bill_type = Q.queued_7_type; Q.active_bill_ideo = Q['bill_' + Q.queued_7_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_8
+view-if: num_queued_bills >= 9
+on-arrival: {! Q.active_bill_slot = Q.queued_8_slot; Q.active_bill_name = Q.queued_8_name; Q.active_bill_party = Q.queued_8_party; Q.active_bill_type = Q.queued_8_type; Q.active_bill_ideo = Q['bill_' + Q.queued_8_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+@force_queued_9
+view-if: num_queued_bills >= 10
+on-arrival: {! Q.active_bill_slot = Q.queued_9_slot; Q.active_bill_name = Q.queued_9_name; Q.active_bill_party = Q.queued_9_party; Q.active_bill_type = Q.queued_9_type; Q.active_bill_ideo = Q['bill_' + Q.queued_9_slot + '_ideo'] || 5; Q.bill_proposed_this_month = 1; !}
+go-to: propose_spd_vote_choice
+
+
+@propose_spd_own
+view-if: can_propose = 1 and num_spd_unqueued > 0
+
+= Introduce an SPD Bill
+
+Choose which SPD bill to introduce and bring immediately to a vote:
+
+- @introduce_spd_0: [+ spd_unqueued_0_name +]
+- @introduce_spd_1: [+ spd_unqueued_1_name +]
+- @introduce_spd_2: [+ spd_unqueued_2_name +]
+- @introduce_spd_3: [+ spd_unqueued_3_name +]
+- @root: Cancel
+
+
+@introduce_spd_0
+view-if: num_spd_unqueued >= 1
+on-arrival: {!
+    var id   = Q.spd_unqueued_0_id;
+    var name = Q.spd_unqueued_0_name;
+    var type = Q.spd_unqueued_0_type;
+
+    // Push into first empty slot
+    for (var i = 0; i < 10; i++) {
+        if (!Q['bill_' + i + '_id']) {
+            Q['bill_' + i + '_id']     = id;
+            Q['bill_' + i + '_name']   = name;
+            Q['bill_' + i + '_party']  = 'SPD';
+            Q['bill_' + i + '_type']   = type;
+            Q['bill_' + i + '_ideo']   = 3;
+            Q['bill_' + i + '_timer']  = 0;
+            Q['bill_' + i + '_crisis'] = '';
+            Q['bill_' + i + '_frozen'] = 0;
+            Q.active_bill_slot  = i;
+            break;
+        }
+    }
+    Q.active_bill_name  = name;
+    Q.active_bill_party = 'SPD';
+    Q.active_bill_type  = type;
+    Q.active_bill_ideo  = 3;
+    Q.bill_proposed_this_month = 1;
+!}
+go-to: propose_spd_vote_choice
+
+@introduce_spd_1
+view-if: num_spd_unqueued >= 2
+on-arrival: {!
+    var id   = Q.spd_unqueued_1_id;
+    var name = Q.spd_unqueued_1_name;
+    var type = Q.spd_unqueued_1_type;
+    for (var i = 0; i < 10; i++) {
+        if (!Q['bill_' + i + '_id']) {
+            Q['bill_' + i + '_id']     = id;
+            Q['bill_' + i + '_name']   = name;
+            Q['bill_' + i + '_party']  = 'SPD';
+            Q['bill_' + i + '_type']   = type;
+            Q['bill_' + i + '_ideo']   = 3;
+            Q['bill_' + i + '_timer']  = 0;
+            Q['bill_' + i + '_crisis'] = '';
+            Q['bill_' + i + '_frozen'] = 0;
+            Q.active_bill_slot  = i;
+            break;
+        }
+    }
+    Q.active_bill_name  = name;
+    Q.active_bill_party = 'SPD';
+    Q.active_bill_type  = type;
+    Q.active_bill_ideo  = 3;
+    Q.bill_proposed_this_month = 1;
+!}
+go-to: propose_spd_vote_choice
+
+@introduce_spd_2
+view-if: num_spd_unqueued >= 3
+on-arrival: {!
+    var id   = Q.spd_unqueued_2_id;
+    var name = Q.spd_unqueued_2_name;
+    var type = Q.spd_unqueued_2_type;
+    for (var i = 0; i < 10; i++) {
+        if (!Q['bill_' + i + '_id']) {
+            Q['bill_' + i + '_id']     = id;
+            Q['bill_' + i + '_name']   = name;
+            Q['bill_' + i + '_party']  = 'SPD';
+            Q['bill_' + i + '_type']   = type;
+            Q['bill_' + i + '_ideo']   = 3;
+            Q['bill_' + i + '_timer']  = 0;
+            Q['bill_' + i + '_crisis'] = '';
+            Q['bill_' + i + '_frozen'] = 0;
+            Q.active_bill_slot  = i;
+            break;
+        }
+    }
+    Q.active_bill_name  = name;
+    Q.active_bill_party = 'SPD';
+    Q.active_bill_type  = type;
+    Q.active_bill_ideo  = 3;
+    Q.bill_proposed_this_month = 1;
+!}
+go-to: propose_spd_vote_choice
+
+@introduce_spd_3
+view-if: num_spd_unqueued >= 4
+on-arrival: {!
+    var id   = Q.spd_unqueued_3_id;
+    var name = Q.spd_unqueued_3_name;
+    var type = Q.spd_unqueued_3_type;
+    for (var i = 0; i < 10; i++) {
+        if (!Q['bill_' + i + '_id']) {
+            Q['bill_' + i + '_id']     = id;
+            Q['bill_' + i + '_name']   = name;
+            Q['bill_' + i + '_party']  = 'SPD';
+            Q['bill_' + i + '_type']   = type;
+            Q['bill_' + i + '_ideo']   = 3;
+            Q['bill_' + i + '_timer']  = 0;
+            Q['bill_' + i + '_crisis'] = '';
+            Q['bill_' + i + '_frozen'] = 0;
+            Q.active_bill_slot  = i;
+            break;
+        }
+    }
+    Q.active_bill_name  = name;
+    Q.active_bill_party = 'SPD';
+    Q.active_bill_type  = type;
+    Q.active_bill_ideo  = 3;
+    Q.bill_proposed_this_month = 1;
+!}
+go-to: propose_spd_vote_choice
+
+
+@propose_spd_vote_choice
+go-to: crisis_spd_president if spd_holds_rt_presidency = 1; crisis_other_president if spd_holds_rt_presidency = 0
