@@ -4970,10 +4970,10 @@ const PARTY_BILLS = {
 
     KPD: [
         { id: 'kpd_socialisation',    name: 'Socialisation of Heavy Industry',
-          type: 'economic',     ideo: 1, timer: 5, push_weight: 0.18,
+          type: 'economic',     ideo: 1, timer: 20, push_weight: 0.18,
           expire_crisis: 'crisis_kpd_socialisation' },
         { id: 'kpd_rent_control',     name: 'Emergency Rent Controls',
-          type: 'economic',     ideo: 1, timer: 4, push_weight: 0.14,
+          type: 'economic',     ideo: 1, timer: 30, push_weight: 0.14,
           expire_crisis: 'crisis_kpd_rent' },
         { id: 'kpd_amnesty',          name: 'Political Prisoner Amnesty',
           type: 'civil',        ideo: 1, timer: 3, push_weight: 0.10,
@@ -5114,7 +5114,7 @@ function get_push_multiplier(party) {
     let m = 1.0;
     switch (party) {
         case 'KPD':
-            if (Q.workers_mood < 35)    m += 0.4;
+            if (Q.workers < 35)         m += 0.4;
             if (Q.unemployed > 20)      m += 0.3;
             if (Q.kpd_banned)           m  = 0;
             break;
@@ -5364,6 +5364,19 @@ Q.bill_list_text        = _text;
 Q.bill_list_html        = _html;
 Q.bill_queue_count      = _filled;
 Q.bill_queue_full       = (_filled >= BILL_SLOTS) ? 1 : 0;
+
+// === BILL CRISIS UNIFIED TRIGGER ===
+Q.any_bill_crisis = 0;
+for (let i = 0; i < 10; i++) {
+    if (Q['bill_' + i + '_frozen'] && Q['bill_' + i + '_id']) {
+        Q.any_bill_crisis = 1;
+        Q.active_bill_name  = Q['bill_' + i + '_name'];
+        Q.active_bill_party = Q['bill_' + i + '_party'];
+        Q.active_bill_type  = Q['bill_' + i + '_type'];
+        Q.active_bill_slot  = i;
+        break;
+    }
+}
 
 }
 
