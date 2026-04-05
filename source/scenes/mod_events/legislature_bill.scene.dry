@@ -110,9 +110,16 @@ Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 4);
 
 // Clear bill slot
 var s = Q.active_bill_slot;
-Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
-for (var f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
-    Q['bill_' + s + '_' + f] = '';
+if (s >= 0) {
+    Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
+    Q['bill_' + s + '_id']     = '';
+    Q['bill_' + s + '_name']   = '';
+    Q['bill_' + s + '_party']  = '';
+    Q['bill_' + s + '_type']   = '';
+    Q['bill_' + s + '_ideo']   = 0;
+    Q['bill_' + s + '_timer']  = 0;
+    Q['bill_' + s + '_crisis'] = '';
+    Q['bill_' + s + '_frozen'] = 0;
 }
 Q.any_bill_crisis = 0;
 
@@ -145,9 +152,16 @@ Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 3);
 
 // Clear slot
 var s = Q.active_bill_slot;
-Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
-for (var f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
-    Q['bill_' + s + '_' + f] = '';
+if (s >= 0) {
+    Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
+    Q['bill_' + s + '_id']     = '';
+    Q['bill_' + s + '_name']   = '';
+    Q['bill_' + s + '_party']  = '';
+    Q['bill_' + s + '_type']   = '';
+    Q['bill_' + s + '_ideo']   = 0;
+    Q['bill_' + s + '_timer']  = 0;
+    Q['bill_' + s + '_crisis'] = '';
+    Q['bill_' + s + '_frozen'] = 0;
 }
 Q.any_bill_crisis = 0;
 
@@ -325,9 +339,14 @@ if (Q.bill_passed && !Q['bill_done_' + (Q['bill_' + Q.active_bill_slot + '_id'] 
 var s = Q.active_bill_slot;
 if (s >= 0) {
     Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
-    for (var f of ['id','name','party','type','ideo','timer','crisis','frozen']) {
-        Q['bill_' + s + '_' + f] = '';
-    }
+    Q['bill_' + s + '_id']     = '';
+    Q['bill_' + s + '_name']   = '';
+    Q['bill_' + s + '_party']  = '';
+    Q['bill_' + s + '_type']   = '';
+    Q['bill_' + s + '_ideo']   = 0;
+    Q['bill_' + s + '_timer']  = 0;
+    Q['bill_' + s + '_crisis'] = '';
+    Q['bill_' + s + '_frozen'] = 0;
 }
 Q.any_bill_crisis = 0;
 
