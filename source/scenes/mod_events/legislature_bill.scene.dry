@@ -304,44 +304,6 @@ Q.bill_against_list = against_list.join(', ') || '—';
 Q.bill_abstain_list = abstain_list.join(', ') || '—';
 
 // ============================================
-// EFFECTS
-// ============================================
-
-if (Q.bill_passed) {
-
-    // Generic by type
-    if (bill_type === 'economic')       { Q.demand_impulse  += 0.05; Q.budget -= 0.3; }
-    if (bill_type === 'labor')          { Q.demand_impulse  += 0.04; }
-    if (bill_type === 'constitutional') { Q.pro_republic    += 2; }
-    if (bill_type === 'civil')          { Q.pro_republic    += 1; }
-    if (bill_type === 'foreign')        { Q.reparations      = (Q.reparations || 0) - 1; }
-
-    // Relation bonus with bill party
-    var rel_key = bill_party.toLowerCase() + '_relation';
-    Q[rel_key] = Math.min(100, (Q[rel_key] || 50) + 6);
-
-    // If SPD voted against a passing bill — small dissent bleed
-    if (spd_vote === 'against') {
-        Q.left_dissent   = Math.min(99, (Q.left_dissent   || 0) + 2);
-        Q.center_dissent = Math.min(99, (Q.center_dissent || 0) + 1);
-    }
-
-} else {
-
-    // Relation penalty with bill party on failure
-    var rel_key = bill_party.toLowerCase() + '_relation';
-    Q[rel_key] = Math.max(-100, (Q[rel_key] || 50) - 5);
-
-    var diss_key = bill_party.toLowerCase() + '_dissent';
-    Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 3);
-
-    // If SPD voted for a failing bill — minor patience drain
-    if (spd_vote === 'for') {
-        Q.hindenburg_patience = Math.max(0, (Q.hindenburg_patience || 50) - 2);
-    }
-}
-
-// ============================================
 // CLEAR SLOT
 // ============================================
 
@@ -353,6 +315,34 @@ if (s >= 0) {
     }
 }
 Q.any_bill_crisis = 0;
+
+if (Q.bill_passed) {
+    var _slot = Q.active_bill_slot;
+    var _bid  = Q['bill_' + _slot + '_id'] || '';
+
+    // Ministry lookup — runs here where PARTY_BILLS is in scope
+    var _ministry = 'chancellor';
+    var _pools = Object.keys(PARTY_BILLS);
+    found:
+    for (var _p = 0; _p < _pools.length; _p++) {
+        var _pool = PARTY_BILLS[_pools[_p]];
+        for (var _b = 0; _b < _pool.length; _b++) {
+            if (_pool[_b].id === _bid) {
+                _ministry = _pool[_b].ministry || 'chancellor';
+                break found;
+            }
+        }
+    }
+
+    Q.ratify_bill_id     = _bid;
+    Q.ratify_bill_name   = Q.active_bill_name;
+    Q.ratify_bill_party  = Q.active_bill_party;
+    Q.ratify_bill_type   = Q.active_bill_type;
+    Q.ratify_bill_ideo   = Q.active_bill_ideo  || 5;
+    Q.ratify_ministry    = _ministry;
+    Q.bill_stall_attempt = 0;
+    Q.bill_awaiting_ratification = 1;
+}
 
 !}
 on-display: {!
