@@ -180,6 +180,7 @@ on-arrival: spd_bill_vote = 'against'
 go-to: rt_bill_vote_simulation
 
 
+
 @rt_bill_vote_simulation
 on-arrival: {!
 
@@ -192,7 +193,6 @@ var spd_vote    = Q.spd_bill_vote || 'for';
 var gov_parties = Q.government_parties || ['SPD'];
 var all_parties = Q._all_rt_parties    || [];
 
-// Gate: if party list empty, rebuild minimal version from votes
 if (!all_parties || all_parties.length === 0) {
     var party_list = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP',
                       'DVP','WP','VRP','CNBL','CSVD','KVP','DHP','BB',
@@ -213,16 +213,8 @@ if (!all_parties || all_parties.length === 0) {
 var total_seats = Q.total_seats_filled || 600;
 var majority    = Math.floor(total_seats / 2) + 1;
 
-// ============================================
-// VOTE SCORING
-// Relations-primary, ideology secondary (small tiebreak only)
-// ============================================
-
 function score_bill_vote(party, in_gov) {
-
-    // SPD vote is player-controlled
     if (party === 'SPD') return spd_vote;
-    // Bill party always votes for their own bill
     if (party === bill_party) return 'for';
 
     var rel_to_bill = 50;
@@ -231,58 +223,40 @@ function score_bill_vote(party, in_gov) {
         rel_to_bill = (r !== undefined) ? r : 50;
     }
 
-    // Small ideology tiebreak — keeps extreme parties from ever
-    // supporting opposite-end bills even on good relations
     var ideology_pos = {
         KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
         DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
         DVP: 7, WP: 7, VRP: 7, DHP: 7,
         BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10
     };
-    var p_pos   = ideology_pos[party]    || 5;
+    var p_pos    = ideology_pos[party] || 5;
     var ideo_gap = Math.abs(p_pos - bill_ideo);
+    var score    = (rel_to_bill - 50) - (ideo_gap * 1.5);
 
-    // Base score: relations dominate (weight 1.0), ideology is tiebreak (weight 0.15)
-    var score = (rel_to_bill - 50) - (ideo_gap * 1.5);
-
-    // Government parties: loyalty bonus
     if (in_gov) {
         score += 20;
         var dissent = Q[party.toLowerCase() + '_dissent'] || 0;
         if (dissent >= 2) score -= dissent * 3;
     }
 
-    // Hard overrides for extremes
-    // NSDAP never supports left bills
     if (party === 'NSDAP' && bill_ideo <= 4) return 'against';
     if (party === 'NSDAP' && bill_ideo >= 8) return 'for';
-
-    // KPD never supports hard-right bills
-    if (party === 'KPD' && bill_ideo >= 8) return 'against';
-    if (party === 'KPD' && bill_ideo <= 2) return 'for';
+    if (party === 'KPD'   && bill_ideo >= 8) return 'against';
+    if (party === 'KPD'   && bill_ideo <= 2) return 'for';
 
     if (score >= 12)  return 'for';
     if (score >= -8)  return 'abstain';
     return 'against';
 }
 
-// ============================================
-// TALLY
-// ============================================
-
-var votes_for     = 0;
-var votes_against = 0;
-var votes_abstain = 0;
-var for_list      = [];
-var against_list  = [];
-var abstain_list  = [];
+var votes_for = 0, votes_against = 0, votes_abstain = 0;
+var for_list = [], against_list = [], abstain_list = [];
 
 for (var i = 0; i < all_parties.length; i++) {
     var p      = all_parties[i];
     var result = score_bill_vote(p.party, p.in_gov);
-
     if (result === 'for') {
-        votes_for     += p.seats;
+        votes_for += p.seats;
         for_list.push(p.party + ' (' + p.seats + ')');
     } else if (result === 'against') {
         votes_against += p.seats;
@@ -298,13 +272,48 @@ Q.bill_votes_against = votes_against;
 Q.bill_votes_abstain = votes_abstain;
 Q.bill_majority      = majority;
 Q.bill_passed        = (votes_for > votes_against) ? 1 : 0;
-
-Q.bill_for_list     = for_list.join(', ')     || '—';
-Q.bill_against_list = against_list.join(', ') || '—';
-Q.bill_abstain_list = abstain_list.join(', ') || '—';
+Q.bill_for_list      = for_list.join(', ')     || '—';
+Q.bill_against_list  = against_list.join(', ') || '—';
+Q.bill_abstain_list  = abstain_list.join(', ') || '—';
 
 // ============================================
-// CLEAR SLOT
+// RATIFICATION SETUP — must run BEFORE clear slot
+// so bill_N_id is still readable for ministry lookup
+// ============================================
+
+Q.bill_awaiting_ratification = 0;
+
+if (Q.bill_passed) {
+    var s    = Q.active_bill_slot;
+    var _bid = Q['bill_' + s + '_id'] || '';
+
+    // Ministry lookup against PARTY_BILLS pool
+    var _ministry = 'chancellor';
+    var _pools = Object.keys(PARTY_BILLS);
+    var _found = false;
+    for (var _p = 0; _p < _pools.length && !_found; _p++) {
+        var _pool = PARTY_BILLS[_pools[_p]];
+        for (var _b = 0; _b < _pool.length; _b++) {
+            if (_pool[_b].id === _bid) {
+                _ministry = _pool[_b].ministry || 'chancellor';
+                _found = true;
+                break;
+            }
+        }
+    }
+
+    Q.ratify_bill_id     = _bid;
+    Q.ratify_bill_name   = Q.active_bill_name;
+    Q.ratify_bill_party  = Q.active_bill_party;
+    Q.ratify_bill_type   = Q.active_bill_type;
+    Q.ratify_bill_ideo   = Q.active_bill_ideo || 5;
+    Q.ratify_ministry    = _ministry;
+    Q.bill_stall_attempt = 0;
+    Q.bill_awaiting_ratification = 1;
+}
+
+// ============================================
+// CLEAR SLOT — runs after ratification setup
 // ============================================
 
 var s = Q.active_bill_slot;
@@ -316,34 +325,6 @@ if (s >= 0) {
 }
 Q.any_bill_crisis = 0;
 
-if (Q.bill_passed) {
-    var _slot = Q.active_bill_slot;
-    var _bid  = Q['bill_' + _slot + '_id'] || '';
-
-    // Ministry lookup — runs here where PARTY_BILLS is in scope
-    var _ministry = 'chancellor';
-    var _pools = Object.keys(PARTY_BILLS);
-    found:
-    for (var _p = 0; _p < _pools.length; _p++) {
-        var _pool = PARTY_BILLS[_pools[_p]];
-        for (var _b = 0; _b < _pool.length; _b++) {
-            if (_pool[_b].id === _bid) {
-                _ministry = _pool[_b].ministry || 'chancellor';
-                break found;
-            }
-        }
-    }
-
-    Q.ratify_bill_id     = _bid;
-    Q.ratify_bill_name   = Q.active_bill_name;
-    Q.ratify_bill_party  = Q.active_bill_party;
-    Q.ratify_bill_type   = Q.active_bill_type;
-    Q.ratify_bill_ideo   = Q.active_bill_ideo  || 5;
-    Q.ratify_ministry    = _ministry;
-    Q.bill_stall_attempt = 0;
-    Q.bill_awaiting_ratification = 1;
-}
-
 !}
 on-display: {!
 
@@ -353,8 +334,8 @@ var abstain_seats = Q.bill_votes_abstain || 0;
 
 var data = [];
 if (for_seats     > 0) data.push({ id: 'for',     legend: 'For ('     + for_seats     + ')', name: 'For',     seats: for_seats,     color: '#2d8a2d' });
-if (against_seats > 0) data.push({ id: 'against',  legend: 'Against (' + against_seats + ')', name: 'Against', seats: against_seats, color: '#c0392b' });
-if (abstain_seats > 0) data.push({ id: 'abstain',  legend: 'Abstain (' + abstain_seats + ')', name: 'Abstain', seats: abstain_seats, color: '#888888' });
+if (against_seats > 0) data.push({ id: 'against', legend: 'Against (' + against_seats + ')', name: 'Against', seats: against_seats, color: '#c0392b' });
+if (abstain_seats > 0) data.push({ id: 'abstain', legend: 'Abstain (' + abstain_seats + ')', name: 'Abstain', seats: abstain_seats, color: '#888888' });
 
 if (window && d3) {
     var width = 500, height = 250;
@@ -389,5 +370,12 @@ The **[+ active_bill_party +]** has brought **[+ active_bill_name +]** to the fl
 - Against: **[+ bill_votes_against +]** — [+ bill_against_list +]
 - Abstaining: **[+ bill_votes_abstain +]** — [+ bill_abstain_list +]
 
-[? if bill_passed : ✓ The bill passes with [+ bill_votes_for +] votes in favour. ?]
+[? if bill_passed : ✓ The bill passes with [+ bill_votes_for +] votes in favour. Awaiting ministerial ratification. ?]
 [? if not bill_passed : ✗ The bill fails. [+ bill_votes_against +] votes against. ?]
+
+- @go_to_ratification: Proceed to ratification
+- @root: Return to overview
+
+@go_to_ratification
+view-if: bill_awaiting_ratification = 1
+go-to: legislature_ratify
