@@ -6,12 +6,18 @@ new-page: true
 on-arrival: {!
 
 // === FIND ACTIVE FROZEN SLOT ===
-Q.active_bill_slot = -1;
-for (var i = 0; i < 10; i++) {
-    if (Q['bill_' + i + '_frozen'] && Q['bill_' + i + '_id']) {
-        Q.active_bill_slot = i;
-        break;
+if (Q.active_bill_slot === -1) {
+    // Clear any orphaned frozen slots that have lost their id
+    for (var i = 0; i < 10; i++) {
+        if (Q['bill_' + i + '_frozen'] && !Q['bill_' + i + '_id']) {
+            Q['bill_' + i + '_frozen'] = 0;
+        }
     }
+    Q.any_bill_crisis = 0;
+    Q.active_bill_name  = '(none)';
+    Q.active_bill_party = '(none)';
+    Q.active_bill_type  = '(none)';
+    Q.active_bill_ideo  = 5;
 }
 
 // Gate: if nothing found, clear crisis and bail
