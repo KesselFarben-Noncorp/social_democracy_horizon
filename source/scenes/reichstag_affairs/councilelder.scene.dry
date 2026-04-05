@@ -64,9 +64,7 @@ Q.spd_holds_rt_presidency = (Q.reichstag_president_party === 'SPD') ? 1 : 0;
 The Reichstag is in session. Bills move through the chamber on their own schedule — but the SPD can force the issue.
 
 - @propose_queued: Force a queued bill to a vote
-  view-if: can_propose = 1 and num_queued_bills > 0
 - @propose_spd_own: Introduce and force an SPD bill to a vote
-  view-if: can_propose = 1 and num_spd_unqueued > 0
 - @root: Leave
 
 
@@ -145,13 +143,9 @@ view-if: can_propose = 1 and num_spd_unqueued > 0
 = Introduce an SPD Bill
 
 - @introduce_spd_0: Introduce bill 1
-  view-if: num_spd_unqueued >= 1
 - @introduce_spd_1: Introduce bill 2
-  view-if: num_spd_unqueued >= 2
 - @introduce_spd_2: Introduce bill 3
-  view-if: num_spd_unqueued >= 3
 - @introduce_spd_3: Introduce bill 4
-  view-if: num_spd_unqueued >= 4
 - @root: Cancel
 
 
