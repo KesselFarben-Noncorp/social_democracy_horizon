@@ -5395,34 +5395,32 @@ if (Q.bill_stall_timer > 0) {
 
     if (Q.bill_stall_timer <= 0) {
 
-        // Second attempt blocked — bill dies quietly
+            // Second attempt blocked — bill dies quietly
         if ((Q.bill_stall_attempt || 0) >= 2) {
-            var s_party  = Q.bill_stall_party || '';
-            var diss_key = s_party.toLowerCase() + '_dissent';
-            var rel_key  = s_party.toLowerCase() + '_relation';
-            Q[diss_key] = Math.min(99,   (Q[diss_key] || 0)  + 3);
-            Q[rel_key]  = Math.max(-100, (Q[rel_key]  || 50) - 4);
+        var s_party  = Q.bill_stall_party || '';
+        var diss_key = s_party.toLowerCase() + '_dissent';
+        var rel_key  = s_party.toLowerCase() + '_relation';
+        Q[diss_key] = Math.min(99,   (Q[diss_key] || 0)  + 3);
+        Q[rel_key]  = Math.max(-100, (Q[rel_key]  || 50) - 4);
 
-            // Clear stall
-            Q.bill_stall_id      = '';
-            Q.bill_stall_name    = '';
-            Q.bill_stall_party   = '';
-            Q.bill_stall_type    = '';
-            Q.bill_stall_ideo    = 0;
-            Q.bill_stall_ministry= '';
-            Q.bill_stall_timer   = 0;
-            Q.bill_stall_attempt = 0;
+        Q.bill_stall_id      = '';
+        Q.bill_stall_name    = '';
+        Q.bill_stall_party   = '';
+        Q.bill_stall_type    = '';
+        Q.bill_stall_ideo    = 0;
+        Q.bill_stall_ministry= '';
+        Q.bill_stall_timer   = 0;
+        Q.bill_stall_attempt = 0;
 
-        } // Re-fire ratification event with stalled bill data
-        if (!Q.bill_awaiting_ratification) {
-            Q.ratify_bill_id     = Q.bill_stall_id;
-            Q.ratify_bill_name   = Q.bill_stall_name;
-            Q.ratify_bill_party  = Q.bill_stall_party;
-            Q.ratify_bill_type   = Q.bill_stall_type;
-            Q.ratify_bill_ideo   = Q.bill_stall_ideo;
-            Q.ratify_ministry    = Q.bill_stall_ministry;
-            Q.bill_awaiting_ratification = 1;
-            Q.bill_stall_timer   = 0;
+        } else if (!Q.bill_awaiting_ratification) {
+        Q.ratify_bill_id     = Q.bill_stall_id;
+        Q.ratify_bill_name   = Q.bill_stall_name;
+        Q.ratify_bill_party  = Q.bill_stall_party;
+        Q.ratify_bill_type   = Q.bill_stall_type;
+        Q.ratify_bill_ideo   = Q.bill_stall_ideo;
+        Q.ratify_ministry    = Q.bill_stall_ministry;
+        Q.bill_awaiting_ratification = 1;
+        Q.bill_stall_timer   = 0;
         }
     }
 }
