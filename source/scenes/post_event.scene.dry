@@ -5413,8 +5413,8 @@ if (Q.bill_stall_timer > 0) {
             Q.bill_stall_timer   = 0;
             Q.bill_stall_attempt = 0;
 
-        } else {
-            // Re-fire ratification event with stalled bill data
+        } // Re-fire ratification event with stalled bill data
+        if (!Q.bill_awaiting_ratification) {
             Q.ratify_bill_id     = Q.bill_stall_id;
             Q.ratify_bill_name   = Q.bill_stall_name;
             Q.ratify_bill_party  = Q.bill_stall_party;
@@ -5422,9 +5422,7 @@ if (Q.bill_stall_timer > 0) {
             Q.ratify_bill_ideo   = Q.bill_stall_ideo;
             Q.ratify_ministry    = Q.bill_stall_ministry;
             Q.bill_awaiting_ratification = 1;
-
-            // Clear stall slot (ratification will reset attempt on second block)
-            Q.bill_stall_timer = 0;
+            Q.bill_stall_timer   = 0;
         }
     }
 }
