@@ -2,7 +2,11 @@ title: Council of Elders
 new-page: true
 is-card: true
 tags: reichstag_affairs
-view-if: spd_in_government
+view-if: spd_in_government and developer_mode = 1
+on-display: {!
+document.getElementById('bill-queue-display').innerHTML = Q.bill_list_html || Q.bill_list_text;
+!}
+
 on-arrival: {!
 
 // Initialize all slot vars to empty strings
@@ -62,6 +66,10 @@ Q.spd_holds_rt_presidency = (Q.reichstag_president_party === 'SPD') ? 1 : 0;
 == Council of Elders
 
 The Reichstag is in session. Bills move through the chamber on their own schedule — but the SPD can force the issue.
+
+{!<div id="bill-queue-display"></div>!}
+
+[+ bill_list_text +]
 
 - @propose_queued: Force a queued bill to a vote
 - @propose_spd_own: Introduce and force an SPD bill to a vote
