@@ -110,19 +110,20 @@ var diss_key = Q.active_bill_party.toLowerCase() + '_dissent';
 Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 4);
 
 // Clear bill slot
-var s = Q.active_bill_slot;
-if (s >= 0) {
-    var _done_id = Q['bill_' + s + '_id'];   // capture BEFORE clearing
-    if (_done_id) Q['bill_done_' + _done_id] = 1;
-    Q['bill_' + s + '_id']     = '';
-    Q['bill_' + s + '_name']   = '';
-    Q['bill_' + s + '_party']  = '';
-    Q['bill_' + s + '_type']   = '';
-    Q['bill_' + s + '_ideo']   = 0;
-    Q['bill_' + s + '_timer']  = 0;
-    Q['bill_' + s + '_crisis'] = '';
-    Q['bill_' + s + '_frozen'] = 0;
+var _clear_s  = Q.active_bill_slot;
+var _clear_id = Q['bill_' + _clear_s + '_id'];
+if (_clear_s >= 0 && _clear_id) {
+    Q['bill_done_' + _clear_id] = 1;
+    Q['bill_' + _clear_s + '_id']     = '';
+    Q['bill_' + _clear_s + '_name']   = '';
+    Q['bill_' + _clear_s + '_party']  = '';
+    Q['bill_' + _clear_s + '_type']   = '';
+    Q['bill_' + _clear_s + '_ideo']   = 0;
+    Q['bill_' + _clear_s + '_timer']  = 0;
+    Q['bill_' + _clear_s + '_crisis'] = '';
+    Q['bill_' + _clear_s + '_frozen'] = 0;
 }
+Q.active_bill_slot = -1;
 Q.any_bill_crisis = 0;
 Q.bill_crisis_in_progress = 1
 
@@ -154,20 +155,20 @@ var diss_key = bill_party.toLowerCase() + '_dissent';
 Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 3);
 
 // Clear slot
-var s = Q.active_bill_slot;
-var s = Q.active_bill_slot;
-if (s >= 0) {
-    var _done_id = Q['bill_' + s + '_id'];   // capture BEFORE clearing
-    if (_done_id) Q['bill_done_' + _done_id] = 1;
-    Q['bill_' + s + '_id']     = '';
-    Q['bill_' + s + '_name']   = '';
-    Q['bill_' + s + '_party']  = '';
-    Q['bill_' + s + '_type']   = '';
-    Q['bill_' + s + '_ideo']   = 0;
-    Q['bill_' + s + '_timer']  = 0;
-    Q['bill_' + s + '_crisis'] = '';
-    Q['bill_' + s + '_frozen'] = 0;
+var _clear_s  = Q.active_bill_slot;
+var _clear_id = Q['bill_' + _clear_s + '_id'];
+if (_clear_s >= 0 && _clear_id) {
+    Q['bill_done_' + _clear_id] = 1;
+    Q['bill_' + _clear_s + '_id']     = '';
+    Q['bill_' + _clear_s + '_name']   = '';
+    Q['bill_' + _clear_s + '_party']  = '';
+    Q['bill_' + _clear_s + '_type']   = '';
+    Q['bill_' + _clear_s + '_ideo']   = 0;
+    Q['bill_' + _clear_s + '_timer']  = 0;
+    Q['bill_' + _clear_s + '_crisis'] = '';
+    Q['bill_' + _clear_s + '_frozen'] = 0;
 }
+Q.active_bill_slot = -1;
 Q.any_bill_crisis = 0;
 Q.bill_crisis_in_progress = 1
 
@@ -342,19 +343,20 @@ if (Q.bill_passed && !Q['bill_done_' + (Q['bill_' + Q.active_bill_slot + '_id'] 
 // CLEAR SLOT — runs after ratification setup
 // ============================================
 
-var s = Q.active_bill_slot;
-if (s >= 0) {
-    var _done_id = Q['bill_' + s + '_id'];   // capture BEFORE clearing
-    if (_done_id) Q['bill_done_' + _done_id] = 1;
-    Q['bill_' + s + '_id']     = '';
-    Q['bill_' + s + '_name']   = '';
-    Q['bill_' + s + '_party']  = '';
-    Q['bill_' + s + '_type']   = '';
-    Q['bill_' + s + '_ideo']   = 0;
-    Q['bill_' + s + '_timer']  = 0;
-    Q['bill_' + s + '_crisis'] = '';
-    Q['bill_' + s + '_frozen'] = 0;
+var _clear_s  = Q.active_bill_slot;
+var _clear_id = Q['bill_' + _clear_s + '_id'];
+if (_clear_s >= 0 && _clear_id) {
+    Q['bill_done_' + _clear_id] = 1;
+    Q['bill_' + _clear_s + '_id']     = '';
+    Q['bill_' + _clear_s + '_name']   = '';
+    Q['bill_' + _clear_s + '_party']  = '';
+    Q['bill_' + _clear_s + '_type']   = '';
+    Q['bill_' + _clear_s + '_ideo']   = 0;
+    Q['bill_' + _clear_s + '_timer']  = 0;
+    Q['bill_' + _clear_s + '_crisis'] = '';
+    Q['bill_' + _clear_s + '_frozen'] = 0;
 }
+Q.active_bill_slot = -1;
 Q.any_bill_crisis = 0;
 Q.bill_passed = 0;
 Q.bill_crisis_in_progress = 0;
