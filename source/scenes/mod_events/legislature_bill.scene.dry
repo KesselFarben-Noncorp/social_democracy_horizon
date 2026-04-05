@@ -357,15 +357,16 @@ The **[+ crisis_party +]** has brought **[+ crisis_name +]** to the floor.
 
 {!<svg id="bill-vote-seats" style="width:500px;height:250px;"></svg>!}
 
-- For: **[+ bill_votes_for +]** — [+ bill_for_list +]
-- Against: **[+ bill_votes_against +]** — [+ bill_against_list +]
-- Abstaining: **[+ bill_votes_abstain +]** — [+ bill_abstain_list +]
+— For: **[+ bill_votes_for +]** — [+ bill_for_list +]
+— Against: **[+ bill_votes_against +]** — [+ bill_against_list +]
+— Abstaining: **[+ bill_votes_abstain +]** — [+ bill_abstain_list +]
 
 [? if bill_passed = 1 : ✓ The bill passes. Awaiting ministerial ratification. ?]
 [? if bill_passed = 0 : ✗ The bill fails. ?]
 
-- @go_to_ratification if bill_awaiting_ratification = 1: Proceed to ratification
+- @go_to_ratification: Proceed to ratification
 - @root: Return to overview
 
 @go_to_ratification
+view-if: bill_awaiting_ratification = 1
 go-to: legislature_ratify
