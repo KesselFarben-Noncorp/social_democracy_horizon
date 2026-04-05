@@ -4,6 +4,7 @@ tags: event
 view-if: any_bill_crisis = 1 and developer_mode = 1
 new-page: true
 on-arrival: {!
+Q.bill_crisis_in_progress = 1
 
 // === FIND ACTIVE FROZEN SLOT ===
 if (Q.active_bill_slot === -1) {
@@ -122,6 +123,7 @@ if (s >= 0) {
     Q['bill_' + s + '_frozen'] = 0;
 }
 Q.any_bill_crisis = 0;
+Q.bill_crisis_in_progress = 1
 
 !}
 
@@ -164,6 +166,7 @@ if (s >= 0) {
     Q['bill_' + s + '_frozen'] = 0;
 }
 Q.any_bill_crisis = 0;
+Q.bill_crisis_in_progress = 1
 
 !}
 
@@ -350,6 +353,7 @@ if (s >= 0) {
 }
 Q.any_bill_crisis = 0;
 Q.bill_passed = 0;
+Q.bill_crisis_in_progress = 0;
 
 !}
 on-display: {!
