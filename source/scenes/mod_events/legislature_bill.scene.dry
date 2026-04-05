@@ -289,7 +289,7 @@ Q.bill_abstain_list  = abstain_list.join(', ') || '—';
 
 Q.bill_awaiting_ratification = 0;
 
-if (Q.bill_passed) {
+if (Q.bill_passed && !Q['bill_done_' + (Q['bill_' + Q.active_bill_slot + '_id'] || '')]) {
     var s    = Q.active_bill_slot;
     var _bid = Q['bill_' + s + '_id'] || '';
 
