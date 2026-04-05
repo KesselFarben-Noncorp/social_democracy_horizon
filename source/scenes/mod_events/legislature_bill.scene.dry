@@ -112,7 +112,8 @@ Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 4);
 // Clear bill slot
 var s = Q.active_bill_slot;
 if (s >= 0) {
-    Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
+    var _done_id = Q['bill_' + s + '_id'];   // capture BEFORE clearing
+    if (_done_id) Q['bill_done_' + _done_id] = 1;
     Q['bill_' + s + '_id']     = '';
     Q['bill_' + s + '_name']   = '';
     Q['bill_' + s + '_party']  = '';
@@ -154,8 +155,10 @@ Q[diss_key] = Math.min(99, (Q[diss_key] || 0) + 3);
 
 // Clear slot
 var s = Q.active_bill_slot;
+var s = Q.active_bill_slot;
 if (s >= 0) {
-    Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
+    var _done_id = Q['bill_' + s + '_id'];   // capture BEFORE clearing
+    if (_done_id) Q['bill_done_' + _done_id] = 1;
     Q['bill_' + s + '_id']     = '';
     Q['bill_' + s + '_name']   = '';
     Q['bill_' + s + '_party']  = '';
@@ -341,7 +344,8 @@ if (Q.bill_passed && !Q['bill_done_' + (Q['bill_' + Q.active_bill_slot + '_id'] 
 
 var s = Q.active_bill_slot;
 if (s >= 0) {
-    Q['bill_done_' + Q['bill_' + s + '_id']] = 1;
+    var _done_id = Q['bill_' + s + '_id'];   // capture BEFORE clearing
+    if (_done_id) Q['bill_done_' + _done_id] = 1;
     Q['bill_' + s + '_id']     = '';
     Q['bill_' + s + '_name']   = '';
     Q['bill_' + s + '_party']  = '';
