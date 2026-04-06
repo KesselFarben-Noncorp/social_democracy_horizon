@@ -197,7 +197,9 @@ go-to: rt_bill_vote_simulation
 on-arrival: {!
 
 var _bill_party = Q.crisis_party;
-var _bill_ideo  = Q.crisis_ideo || 5;
+var _bill_ideo = Q.inverted_challenge && Q[_bill_party.toLowerCase() + '_ideo_override']
+    ? Q[_bill_party.toLowerCase() + '_ideo_override']
+    : (Q.crisis_ideo || 5);
 var _spd_vote   = Q.spd_bill_vote || 'for';
 
 var _gov_parties = Q.government_parties || ['SPD'];
@@ -341,7 +343,11 @@ function score_vote(party, in_gov) {
         _rel = (_rv !== undefined) ? _rv : 50;
     }
 
-    var _gap   = Math.abs((IDEO_POS[party] || 5) - _bill_ideo);
+    var _p_ideo = (Q.challenge_invert && Q[party.toLowerCase() + '_ideo_override'])
+    ? Q[party.toLowerCase() + '_ideo_override']
+    : (IDEO_POS[party] || 5);
+
+    var _gap   = Math.abs(_p_ideo - _bill_ideo);
     var _score = (_rel - 50) - (_gap * 1.5);
 
     if (in_gov) {
