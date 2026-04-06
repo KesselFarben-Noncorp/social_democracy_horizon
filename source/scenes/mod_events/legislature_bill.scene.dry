@@ -6,19 +6,16 @@ on-arrival: {!
 
 // === REICHSTAG PRESIDENT CHECK ===
 Q.spd_holds_rt_presidency = (Q.reichstag_president_party === 'SPD') ? 1 : 0;
-
 Q.rt_president_allows_vote = 1;
 
 if (!Q.spd_holds_rt_presidency) {
-    var _pres  = Q.reichstag_president_party || 'DNVP';
+    var _pres   = Q.reichstag_president_party || 'DNVP';
     var _bparty = Q.crisis_party || '';
-    var _rel   = 30;
-
+    var _rel    = 30;
     if (Q.party_relations && Q.party_relations[_pres]) {
         var _r = Q.party_relations[_pres][_bparty];
         _rel = (_r !== undefined) ? _r : 30;
     }
-
     Q.rt_president_block_rel   = _rel;
     Q.rt_president_allows_vote = (_rel >= 40 || _pres === _bparty) ? 1 : 0;
 }
@@ -42,7 +39,12 @@ The **[+ crisis_party +]** has forced the issue. A decision cannot be delayed.
 
 As Reichstag President, you control whether this bill reaches the floor.
 
-The **[+ crisis_party +]** is demanding a vote on **[+ crisis_name +]**.
+The **[+ crisis_party +]** is demanding a vote on **[+ crisis_name +]**. As President of the Reichstag, the decision to allow or suppress this bill rests with you alone.
+
+[? if crisis_ideo <= 3 : The bill originates from the left — your natural allies, but the chamber is hostile. ?]
+[? if crisis_ideo >= 4 and crisis_ideo <= 6 : The bill sits in the centre of the political spectrum. Coalition arithmetic will decide its fate. ?]
+[? if crisis_ideo >= 7 and crisis_ideo <= 8 : The bill comes from the right. Allowing it to the floor risks legitimising their agenda. ?]
+[? if crisis_ideo >= 9 : This bill comes from the radical right. Bringing it to the floor may embolden forces hostile to the Republic. ?]
 
 - @spd_bring_to_vote: Bring it to the floor
 - @spd_block_bill: Block it from reaching the floor
@@ -51,6 +53,13 @@ The **[+ crisis_party +]** is demanding a vote on **[+ crisis_name +]**.
 @spd_bring_to_vote
 
 = How Will the SPD Vote?
+
+The bill is on the floor. The fraction awaits your direction.
+
+[? if crisis_ideo <= 2 : The left of the party will push hard for this — but moderates may balk. ?]
+[? if crisis_ideo >= 3 and crisis_ideo <= 5 : This is familiar ground for the SPD. Expect broad compliance. ?]
+[? if crisis_ideo >= 6 and crisis_ideo <= 7 : Voting for this will test the patience of the left fractions. ?]
+[? if crisis_ideo >= 8 : Supporting this bill will cause serious friction within the party. ?]
 
 - @spd_vote_for: Vote **for** the bill
 - @spd_vote_against: Vote **against** the bill
@@ -72,10 +81,8 @@ var _diss_k = Q.crisis_party.toLowerCase() + '_dissent';
 Q[_rel_k]  = Math.max(-100, (Q[_rel_k]  || 50) - 8);
 Q[_diss_k] = Math.min(99,   (Q[_diss_k] || 0)  + 4);
 
-// Clear slot if this came from the queue
 var _s = Q.crisis_slot;
 if (_s >= 0) {
-    Q['bill_done_' + Q.crisis_id] = 1;
     Q['bill_' + _s + '_id']       = '';
     Q['bill_' + _s + '_name']     = '';
     Q['bill_' + _s + '_party']    = '';
@@ -86,7 +93,6 @@ if (_s >= 0) {
     Q['bill_' + _s + '_frozen']   = 0;
 }
 
-// Always mark done and clear staging
 Q['bill_done_' + Q.crisis_id] = 1;
 Q.crisis_slot     = -1;
 Q.crisis_id       = '';
@@ -95,7 +101,6 @@ Q.crisis_party    = '';
 Q.crisis_type     = '';
 Q.crisis_ideo     = 0;
 Q.crisis_ministry = '';
-
 Q.any_bill_crisis         = 0;
 Q.bill_crisis_in_progress = 0;
 
@@ -103,12 +108,18 @@ Q.bill_crisis_in_progress = 0;
 
 = Bill Blocked
 
-You prevented **[+ crisis_name +]** from reaching the floor.
+You used the authority of the Reichstag Presidency to prevent **[+ crisis_name +]** from reaching the floor.
 
-The **[+ crisis_party +]** is furious.
+[? if crisis_ideo <= 3 : The left will not forgive this easily. The **[+ crisis_party +]** accuses you of betraying working-class interests. ?]
+[? if crisis_ideo >= 7 : The **[+ crisis_party +]** is furious at the procedural manoeuvre, but the damage to the Republic is contained. ?]
+[? if crisis_ideo >= 4 and crisis_ideo <= 6 : The **[+ crisis_party +]** protests, but your reasoning is defensible. ?]
 
 - @root: Continue
 
+
+// ============================================
+// OTHER PRESIDENT
+// ============================================
 
 @crisis_other_president
 go-to: other_president_blocks if rt_president_allows_vote = 0; other_president_allows if rt_president_allows_vote = 1
@@ -124,7 +135,6 @@ Q[_diss_k] = Math.min(99,   (Q[_diss_k] || 0)  + 3);
 
 var _s = Q.crisis_slot;
 if (_s >= 0) {
-    Q['bill_done_' + Q.crisis_id] = 1;
     Q['bill_' + _s + '_id']       = '';
     Q['bill_' + _s + '_name']     = '';
     Q['bill_' + _s + '_party']    = '';
@@ -143,7 +153,6 @@ Q.crisis_party    = '';
 Q.crisis_type     = '';
 Q.crisis_ideo     = 0;
 Q.crisis_ministry = '';
-
 Q.any_bill_crisis         = 0;
 Q.bill_crisis_in_progress = 0;
 
@@ -151,7 +160,13 @@ Q.bill_crisis_in_progress = 0;
 
 = Blocked by the Chair
 
-**[+ reichstag_president +]** ([+ reichstag_president_party +]) refused to bring **[+ crisis_name +]** to the floor.
+**[+ reichstag_president +]** ([+ reichstag_president_party +]) has refused to bring **[+ crisis_name +]** to the floor.
+
+[? if crisis_ideo <= 3 : The President's hostility to left-wing legislation is on open display. The **[+ crisis_party +]** erupts in protest. ?]
+[? if crisis_ideo >= 9 : Even so, the radical right will find another path. This is a delay, not a defeat. ?]
+[? if crisis_ideo >= 4 and crisis_ideo <= 8 : The **[+ crisis_party +]** cries procedural foul — but the chair's ruling stands. ?]
+
+*(President's relation to bill party: [+ rt_president_block_rel +] — below threshold of 40)*
 
 - @root: Continue
 
@@ -160,7 +175,12 @@ Q.bill_crisis_in_progress = 0;
 
 = How Will the SPD Vote?
 
-**[+ reichstag_president +]** ([+ reichstag_president_party +]) has allowed **[+ crisis_name +]** to proceed.
+**[+ reichstag_president +]** ([+ reichstag_president_party +]) has allowed **[+ crisis_name +]** to proceed to a vote.
+
+[? if crisis_ideo <= 2 : A radical bill reaches the floor. The left fraction will be energised — but expect resistance from the moderates. ?]
+[? if crisis_ideo >= 3 and crisis_ideo <= 5 : The bill is within reach of a broad coalition. Your vote may be decisive. ?]
+[? if crisis_ideo >= 6 and crisis_ideo <= 8 : Supporting this will sit uneasily with the SPD's left wing. ?]
+[? if crisis_ideo >= 9 : This is dangerous territory. A vote for hands legitimacy to forces that would destroy the Republic. ?]
 
 - @other_spd_vote_for: Vote **for** the bill
 - @other_spd_vote_against: Vote **against** the bill
@@ -174,15 +194,9 @@ on-arrival: spd_bill_vote = 'against'
 go-to: rt_bill_vote_simulation
 
 
-
-
-
-
-
-
-
-
-
+// ============================================
+// VOTE SIMULATION
+// ============================================
 
 @rt_bill_vote_simulation
 on-arrival: {!
@@ -209,7 +223,7 @@ for (var i = 0; i < _party_list.length; i++) {
     });
 }
 
-var _total   = Q.total_seats_filled || 600;
+var _total    = Q.total_seats_filled || 600;
 var _majority = Math.floor(_total / 2) + 1;
 
 var IDEO_POS = {
@@ -219,9 +233,102 @@ var IDEO_POS = {
     BB:7, CNBL:8, DNVP:9, NSDAP:10, DVFP:10
 };
 
+// ============================================
+// SPD FRACTION SPLIT
+// ============================================
+
+var FRACTIONS = [
+    { key: 'left',           ideo_min: 1, ideo_max: 4, abstain_min: 5, abstain_max: 6  },
+    { key: 'center',         ideo_min: 1, ideo_max: 5, abstain_min: 6, abstain_max: 7  },
+    { key: 'labor',          ideo_min: 2, ideo_max: 6, abstain_min: 7, abstain_max: 7  },
+    { key: 'reformist',      ideo_min: 3, ideo_max: 6, abstain_min: 2, abstain_max: 2  },
+    { key: 'neorevisionist', ideo_min: 4, ideo_max: 7, abstain_min: 2, abstain_max: 3  },
+];
+
+var _total_str = 0;
+for (var fi = 0; fi < FRACTIONS.length; fi++) {
+    var _fk = FRACTIONS[fi].key;
+    if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+    _total_str += Q[_fk + '_strength'] || 0;
+}
+
+var _spd_total_seats = Math.round((Q.spd_r || 0) * 6);
+var _spd_for     = 0;
+var _spd_against = 0;
+var _spd_abstain = 0;
+
+// Store per-fraction results for flavor text
+var _fraction_results = {};
+
+for (var fi = 0; fi < FRACTIONS.length; fi++) {
+    var _f = FRACTIONS[fi];
+    if (_f.key === 'neorevisionist' && !Q.neorevisionism) continue;
+
+    var _fstr   = Q[_f.key + '_strength'] || 0;
+    var _fdiss  = Q[_f.key + '_dissent']  || 0;
+    var _fseats = (_total_str > 0) ? Math.round(_spd_total_seats * (_fstr / _total_str)) : 0;
+
+    var _natural;
+    if (_bill_ideo >= _f.ideo_min && _bill_ideo <= _f.ideo_max) {
+        _natural = 'for';
+    } else if (_bill_ideo >= _f.abstain_min && _bill_ideo <= _f.abstain_max) {
+        _natural = 'abstain';
+    } else {
+        _natural = 'against';
+    }
+
+    var _conflict = 0;
+    if (_natural !== _spd_vote) {
+        _conflict = (_natural === 'abstain') ? 0.5 : 1.0;
+    }
+
+    var _compliance = Math.max(0, Math.min(1, 1 - (_fdiss * _conflict)));
+    var _seats_comply = Math.round(_fseats * _compliance);
+    var _seats_defect = _fseats - _seats_comply;
+
+    if (_spd_vote === 'for')     _spd_for     += _seats_comply;
+    if (_spd_vote === 'against') _spd_against += _seats_comply;
+
+    if (_natural === 'for')     _spd_for     += _seats_defect;
+    if (_natural === 'against') _spd_against += _seats_defect;
+    if (_natural === 'abstain') _spd_abstain += _seats_defect;
+
+    _fraction_results[_f.key] = {
+        natural:  _natural,
+        defect:   _seats_defect,
+        comply:   _seats_comply,
+        seats:    _fseats
+    };
+}
+
+Q.spd_votes_for     = _spd_for;
+Q.spd_votes_against = _spd_against;
+Q.spd_votes_abstain = _spd_abstain;
+
+// Fraction flavor flags for display
+var _left_res  = _fraction_results['left']      || {};
+var _cent_res  = _fraction_results['center']    || {};
+var _lab_res   = _fraction_results['labor']     || {};
+var _ref_res   = _fraction_results['reformist'] || {};
+
+// Did a fraction significantly defy leadership? (>20% of their seats defected)
+Q.left_defected      = (_left_res.seats  > 0 && _left_res.defect  / _left_res.seats  > 0.2) ? 1 : 0;
+Q.center_defected    = (_cent_res.seats  > 0 && _cent_res.defect  / _cent_res.seats  > 0.2) ? 1 : 0;
+Q.labor_defected     = (_lab_res.seats   > 0 && _lab_res.defect   / _lab_res.seats   > 0.2) ? 1 : 0;
+Q.reformist_defected = (_ref_res.seats   > 0 && _ref_res.defect   / _ref_res.seats   > 0.2) ? 1 : 0;
+
+Q.left_natural      = _left_res.natural  || 'abstain';
+Q.center_natural    = _cent_res.natural  || 'abstain';
+Q.labor_natural     = _lab_res.natural   || 'abstain';
+Q.reformist_natural = _ref_res.natural   || 'abstain';
+
+// ============================================
+// REST OF PARTIES
+// ============================================
+
 function score_vote(party, in_gov) {
-    if (party === 'SPD')        return _spd_vote;
-    if (party === _bill_party)  return 'for';
+    if (party === 'SPD') return 'spd_split';
+    if (party === _bill_party) return 'for';
 
     if (party === 'NSDAP' && _bill_ideo <= 4) return 'against';
     if (party === 'NSDAP' && _bill_ideo >= 8) return 'for';
@@ -254,7 +361,12 @@ var _for_list = [], _against_list = [], _abstain_list = [];
 for (var i = 0; i < _all_parties.length; i++) {
     var _pd     = _all_parties[i];
     var _result = score_vote(_pd.party, _pd.in_gov);
-    if (_result === 'for') {
+
+    if (_result === 'spd_split') {
+        if (_spd_for     > 0) { _for     += _spd_for;     _for_list.push('SPD ('     + _spd_for     + ')'); }
+        if (_spd_against > 0) { _against += _spd_against; _against_list.push('SPD (' + _spd_against + ')'); }
+        if (_spd_abstain > 0) { _abstain += _spd_abstain; _abstain_list.push('SPD (' + _spd_abstain + ')'); }
+    } else if (_result === 'for') {
         _for += _pd.seats;
         _for_list.push(_pd.party + ' (' + _pd.seats + ')');
     } else if (_result === 'against') {
@@ -276,7 +388,7 @@ Q.bill_against_list  = _against_list.join(', ') || '—';
 Q.bill_abstain_list  = _abstain_list.join(', ') || '—';
 
 // ============================================
-// RATIFICATION SETUP — before slot clear
+// RATIFICATION SETUP
 // ============================================
 
 Q.bill_awaiting_ratification = 0;
@@ -292,13 +404,14 @@ if (Q.bill_passed) {
     Q.bill_awaiting_ratification = 1;
 }
 
-// THE SCENE WHERE YOU WOULD SAVE THE DATA
-
+// Snapshot for display before clearing
 Q.voted_bill_name  = Q.crisis_name;
 Q.voted_bill_party = Q.crisis_party;
+Q.voted_bill_ideo  = Q.crisis_ideo;
+Q.voted_bill_type  = Q.crisis_type;
 
 // ============================================
-// CLEAR SLOT — atomic, uses crisis_id not slot var
+// CLEAR SLOT
 // ============================================
 
 var _cs = Q.crisis_slot;
@@ -356,9 +469,18 @@ if (window && d3) {
 
 = Vote: [+ voted_bill_name +]
 
-The **[+ voted_bill_party +]** has brought **[+ voted_bill_name +]** to the floor. 
+The **[+ voted_bill_party +]** has brought **[+ voted_bill_name +]** to the floor.
 
-**SPD fraction voted: [+ spd_bill_vote +]**
+**SPD leadership instruction: [+ spd_bill_vote +]**
+
+[? if left_defected = 1 and left_natural = 'against' and spd_bill_vote = 'for' : The Left fraction breaks with leadership — too moderate a position for their taste. ?]
+[? if left_defected = 1 and left_natural = 'for' and spd_bill_vote = 'against' : The Left fraction refuses to oppose this bill, defying the leadership instruction. ?]
+[? if center_defected = 1 and spd_bill_vote = 'for' : The Orthodox centre is uneasy — a portion votes against or abstains despite the instruction. ?]
+[? if reformist_defected = 1 and voted_bill_ideo <= 2 : The Reformist fraction finds the bill too radical and breaks ranks. ?]
+[? if reformist_defected = 1 and voted_bill_ideo >= 8 : The Reformists refuse to support right-wing legislation even under instruction. ?]
+[? if labor_defected = 1 and voted_bill_type != 'labor' and voted_bill_type != 'economic' : The ADGB fraction shows little interest in a bill outside their core concerns. ?]
+
+SPD votes — For: **[+ spd_votes_for +]** · Against: **[+ spd_votes_against +]** · Abstain: **[+ spd_votes_abstain +]**
 
 {!<svg id="bill-vote-seats" style="width:500px;height:250px;"></svg>!}
 
@@ -366,12 +488,17 @@ The **[+ voted_bill_party +]** has brought **[+ voted_bill_name +]** to the floo
 — Against: **[+ bill_votes_against +]** — [+ bill_against_list +]
 — Abstaining: **[+ bill_votes_abstain +]** — [+ bill_abstain_list +]
 
-[? if bill_passed = 1 : ✓ The bill passes. Awaiting ministerial ratification. ?]
-[? if bill_passed = 0 : ✗ The bill fails. ?]
+[? if bill_passed = 1 : ✓ The bill passes with [+ bill_votes_for +] votes in favour. Awaiting ministerial ratification. ?]
+[? if bill_passed = 0 : ✗ The bill fails. [+ bill_votes_against +] votes against. ?]
 
-- @go_to_ratification: Proceed to ratification
+[? if bill_passed = 1 and voted_bill_ideo <= 3 : A victory for the left — but the real test comes at ratification. ?]
+[? if bill_passed = 1 and voted_bill_ideo >= 8 : The bill passes, but its provisions sit uneasily with the SPD's principles. ?]
+[? if bill_passed = 0 and voted_bill_ideo <= 3 : The left loses this round. The workers will remember. ?]
+[? if bill_passed = 0 and voted_bill_ideo >= 8 : The radical right is denied — for now. ?]
+[? if bill_passed = 0 and voted_bill_ideo >= 4 and voted_bill_ideo <= 7 : A centrist bill falls through the cracks of a fractured chamber. ?]
+
+- @go_to_ratification if bill_awaiting_ratification = 1: Proceed to ratification
 - @root: Return to overview
 
 @go_to_ratification
-view-if: bill_awaiting_ratification = 1
 go-to: legislature_ratify
