@@ -174,20 +174,27 @@ var bill_ideo  = Q.ratify_bill_ideo     || 5;
 
 // ── APPROVE: apply effects immediately ───────────────────
 if (decision === 'approve') {
+    // Find and execute the bill's on_pass function
+    var _found = false;
+    var _pools = Object.keys(PARTY_BILLS);
+    for (var _pi = 0; _pi < _pools.length && !_found; _pi++) {
+        var _pool = PARTY_BILLS[_pools[_pi]];
+        for (var _bi = 0; _bi < _pool.length; _bi++) {
+            if (_pool[_bi].id === Q.ratify_bill_id) {
+                if (_pool[_bi].on_pass) _pool[_bi].on_pass();
+                _found = true;
+                break;
+            }
+        }
+    }
 
-    if (bill_type === 'economic')       { Q.demand_impulse = (Q.demand_impulse || 0) + 0.05; Q.budget = (Q.budget || 0) - 0.3; }
-    if (bill_type === 'labor')          { Q.demand_impulse = (Q.demand_impulse || 0) + 0.04; }
-    if (bill_type === 'constitutional') { Q.pro_republic   = (Q.pro_republic   || 0) + 2; }
-    if (bill_type === 'civil')          { Q.pro_republic   = (Q.pro_republic   || 0) + 1; }
-    if (bill_type === 'foreign')        { Q.reparations    = (Q.reparations    || 0) - 1; }
+    // Relation bonus with bill party always applies
+    var _rel_key = Q.ratify_bill_party.toLowerCase() + '_relation';
+    Q[_rel_key] = Math.min(100, (Q[_rel_key] || 50) + 4);
 
-    // Relation bonus with bill party
-    var rel_key = bill_party.toLowerCase() + '_relation';
-    Q[rel_key] = Math.min(100, (Q[rel_key] || 50) + 4);
-
-    Q.ratify_result         = 'approved';
-    Q.ratify_result_label   = 'Approved';
-
+    Q.ratify_result       = 'approved';
+    Q.ratify_result_label = 'Approved';
+}
 // ── STALL: set stall timer, no effects yet ────────────────
 } else if (decision === 'stall') {
 
