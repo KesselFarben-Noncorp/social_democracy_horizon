@@ -2201,6 +2201,22 @@ if (Q.inverted_challenge === 1) {
     VRP_SPD:    false
     };
 
+    var IDEO_DEFAULTS = {
+        KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
+        DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
+        DVP: 7, WP: 7, VRP: 7, DHP: 7,
+        BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10
+    };
+
+    for (var _ip = 0; _ip < all_parties.length; _ip++) {
+        var _p = all_parties[_ip];
+        // Randomize within ±3 of default, clamped to 1-10
+        var _base    = IDEO_DEFAULTS[_p] || 5;
+        var _jitter  = Math.floor(Math.random() * 7) - 3; // -3 to +3
+        var _new_pos = Math.max(1, Math.min(10, _base + _jitter));
+        Q[_p.toLowerCase() + '_ideo_override'] = _new_pos;
+    }
+
     }
 
 !}
