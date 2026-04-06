@@ -4971,105 +4971,111 @@ if (Q.bruning_cabinet || Q.schleicher_cabinet || Q.papen_cabinet || Q.chancellor
 var PARTY_BILLS = {
 
     KPD: [
-        { id: 'kpd_socialisation', name: 'Socialisation of Heavy Industry',
-          type: 'economic', ideo: 1, timer: 35, push_weight: 0.18, ministry: 'economic' },
-        { id: 'kpd_rent_control', name: 'Emergency Rent Controls',
-          type: 'economic', ideo: 1, timer: 25, push_weight: 0.14, ministry: 'finance' },
-        { id: 'kpd_amnesty', name: 'Political Prisoner Amnesty',
-          type: 'civil', ideo: 1, timer: 20, push_weight: 0.10, ministry: 'justice' },
+        { id: 'kpd_socialisation',   name: 'Socialisation of Heavy Industry',
+          type: 'economic',      ideo: 1, timer: 35, push_weight: 0.18, ministry: 'economic',
+          on_pass: function() { Q.socializations = (Q.socializations || 0) + 1; } },
+        { id: 'kpd_works_councils',  name: 'Revolutionary Works Councils Act',
+          type: 'labor',         ideo: 1, timer: 30, push_weight: 0.14, ministry: 'labor',
+          on_pass: function() { Q.works_councils = (Q.works_councils || 0) + 2; } },
     ],
 
     SAPD: [
-        { id: 'sapd_works_councils', name: 'Expanded Works Councils Act',
-          type: 'labor', ideo: 2, timer: 30, push_weight: 0.12, ministry: 'labor' },
-        { id: 'sapd_land_reform', name: 'Agricultural Land Reform',
-          type: 'economic', ideo: 2, timer: 35, push_weight: 0.10, ministry: 'agriculture' },
+        { id: 'sapd_land_reform',    name: 'Agricultural Land Reform',
+          type: 'economic',      ideo: 2, timer: 35, push_weight: 0.10, ministry: 'agriculture',
+          on_pass: function() { Q.land_reform = (Q.land_reform || 0) + 1; } },
+        { id: 'sapd_cooperatives',   name: 'Worker Cooperative Promotion Act',
+          type: 'labor',         ideo: 2, timer: 30, push_weight: 0.12, ministry: 'economic',
+          on_pass: function() { Q.cooperatives = (Q.cooperatives || 0) + 1; } },
     ],
 
     SPD: [
-        { id: 'spd_unemployment_ext', name: 'Unemployment Insurance Extension',
-          type: 'economic', ideo: 3, timer: 30, push_weight: 0.20, ministry: 'labor' },
-        { id: 'spd_civil_service', name: 'Civil Service Reform Bill',
-          type: 'administrative', ideo: 3, timer: 40, push_weight: 0.14, ministry: 'interior' },
-        { id: 'spd_press_freedom', name: 'Press Freedom Protection Act',
-          type: 'civil', ideo: 3, timer: 35, push_weight: 0.12, ministry: 'justice' },
-        { id: 'spd_wtb', name: 'WTB Public Works Programme',
-          type: 'economic', ideo: 3, timer: 45, push_weight: 0.16, ministry: 'economic' },
+        { id: 'spd_workers_aid',     name: 'Unemployment Insurance Extension',
+          type: 'economic',      ideo: 3, timer: 30, push_weight: 0.20, ministry: 'labor',
+          on_pass: function() { Q.workers_aid = (Q.workers_aid || 0) + 1; Q.welfare = (Q.welfare || 0) + 1; } },
+        { id: 'spd_wtb',             name: 'WTB Public Works Programme',
+          type: 'economic',      ideo: 3, timer: 45, push_weight: 0.16, ministry: 'economic',
+          on_pass: function() { Q.state_buyer = (Q.state_buyer || 0) + 1; } },
     ],
 
     DDP: [
-        { id: 'ddp_school_reform', name: 'Secular School Reform',
-          type: 'social', ideo: 5, timer: 40, push_weight: 0.12, ministry: 'interior' },
-        { id: 'ddp_police_reform', name: 'Police Accountability Act',
-          type: 'administrative', ideo: 5, timer: 35, push_weight: 0.10, ministry: 'interior' },
+        { id: 'ddp_school_reform',   name: 'Secular School Reform',
+          type: 'social',        ideo: 5, timer: 40, push_weight: 0.12, ministry: 'interior',
+          on_pass: function() { Q.secularized = (Q.secularized || 0) + 1; Q.school_boards = (Q.school_boards || 0) + 1; } },
+        { id: 'ddp_constructive_vonc', name: 'Constructive Vote of No Confidence Act',
+          type: 'constitutional', ideo: 5, timer: 40, push_weight: 0.10, ministry: 'chancellor',
+          on_pass: function() { Q.constructive_vonc = (Q.constructive_vonc || 0) + 1; Q.constitutional_reform = (Q.constitutional_reform || 0) + 1; } },
     ],
 
     Z: [
-        { id: 'z_concordat', name: 'Church-State Concordat',
-          type: 'social', ideo: 5, timer: 50, push_weight: 0.16, ministry: 'chancellor' },
-        { id: 'z_confessional', name: 'Confessional Schools Protection',
-          type: 'social', ideo: 5, timer: 40, push_weight: 0.14, ministry: 'interior' },
-        { id: 'z_austerity', name: 'Budget Consolidation Act',
-          type: 'economic', ideo: 6, timer: 30, push_weight: 0.12, ministry: 'finance' },
+        { id: 'z_concordat',         name: 'Church-State Concordat',
+          type: 'social',        ideo: 5, timer: 50, push_weight: 0.16, ministry: 'chancellor',
+          on_pass: function() { Q.prussian_concordate = 1; Q.reichskonkordat = 1; } },
+        { id: 'z_confessional',      name: 'Confessional Schools Protection',
+          type: 'social',        ideo: 5, timer: 40, push_weight: 0.14, ministry: 'interior',
+          on_pass: function() { Q.secularized = Math.max(0, (Q.secularized || 0) - 1); Q.school_boards = Math.max(0, (Q.school_boards || 0) - 1); } },
     ],
 
     BVP: [
-        { id: 'bvp_bavarian_police', name: 'Bavarian Police Autonomy Bill',
-          type: 'administrative', ideo: 6, timer: 35, push_weight: 0.12, ministry: 'interior' },
-        { id: 'bvp_tariff', name: 'Agricultural Import Tariff',
-          type: 'economic', ideo: 6, timer: 30, push_weight: 0.14, ministry: 'agriculture' },
+        { id: 'bvp_tariff',          name: 'Agricultural Import Tariff',
+          type: 'economic',      ideo: 6, timer: 30, push_weight: 0.14, ministry: 'agriculture',
+          on_pass: function() { Q.agricultural_finance = (Q.agricultural_finance || 0) + 1; } },
+        { id: 'bvp_family_law',      name: 'Catholic Family Law Protection',
+          type: 'social',        ideo: 6, timer: 35, push_weight: 0.12, ministry: 'justice',
+          on_pass: function() { Q.family_law = Math.max(0, (Q.family_law || 0) - 1); Q.abortion_rights = Math.max(0, (Q.abortion_rights || 0) - 1); } },
     ],
 
     DVP: [
-        { id: 'dvp_trade_treaty', name: 'Commercial Trade Treaty Act',
-          type: 'foreign', ideo: 7, timer: 45, push_weight: 0.14, ministry: 'foreign' },
-        { id: 'dvp_tax_reform', name: 'Business Tax Reduction',
-          type: 'economic', ideo: 7, timer: 35, push_weight: 0.16, ministry: 'finance' },
-        { id: 'dvp_reparations', name: 'Reparations Protest Motion',
-          type: 'foreign', ideo: 7, timer: 20, push_weight: 0.10, ministry: 'foreign' },
+        { id: 'dvp_tax_reform',      name: 'Business Tax Reduction',
+          type: 'economic',      ideo: 7, timer: 35, push_weight: 0.16, ministry: 'finance',
+          on_pass: function() { Q.pro_consumer = Math.max(0, (Q.pro_consumer || 0) - 1); } },
+        { id: 'dvp_trade_treaty',    name: 'Commercial Trade Treaty Act',
+          type: 'foreign',       ideo: 7, timer: 45, push_weight: 0.14, ministry: 'foreign',
+          on_pass: function() { Q.agricultural_finance = Math.max(0, (Q.agricultural_finance || 0) - 1); } },
     ],
 
     WP: [
-        { id: 'wp_middle_class', name: 'Middle Class Credit Relief',
-          type: 'economic', ideo: 7, timer: 30, push_weight: 0.14, ministry: 'finance' },
-        { id: 'wp_inflation_comp', name: 'Inflation Compensation Fund',
-          type: 'economic', ideo: 7, timer: 25, push_weight: 0.12, ministry: 'finance' },
+        { id: 'wp_middle_class',     name: 'Middle Class Credit Relief',
+          type: 'economic',      ideo: 7, timer: 30, push_weight: 0.14, ministry: 'finance',
+          on_pass: function() { Q.pro_consumer = (Q.pro_consumer || 0) + 1; } },
+        { id: 'wp_consumer_protect', name: 'Consumer Price Protection Act',
+          type: 'economic',      ideo: 7, timer: 25, push_weight: 0.12, ministry: 'finance',
+          on_pass: function() { Q.pro_consumer = (Q.pro_consumer || 0) + 1; } },
     ],
 
     CNBL: [
-        { id: 'cnbl_grain_tariff', name: 'Emergency Grain Tariff',
-          type: 'economic', ideo: 7, timer: 25, push_weight: 0.16, ministry: 'agriculture' },
-        { id: 'cnbl_debt_relief', name: 'Rural Debt Moratorium',
-          type: 'economic', ideo: 7, timer: 35, push_weight: 0.14, ministry: 'agriculture' },
+        { id: 'cnbl_grain_tariff',   name: 'Emergency Grain Tariff',
+          type: 'economic',      ideo: 7, timer: 25, push_weight: 0.16, ministry: 'agriculture',
+          on_pass: function() { Q.agricultural_finance = (Q.agricultural_finance || 0) + 1; } },
+        { id: 'cnbl_debt_relief',    name: 'Rural Debt Moratorium',
+          type: 'economic',      ideo: 7, timer: 35, push_weight: 0.14, ministry: 'agriculture',
+          on_pass: function() { Q.land_reform = (Q.land_reform || 0) + 1; Q.agricultural_finance = (Q.agricultural_finance || 0) + 1; } },
     ],
 
     DNVP: [
-        { id: 'dnvp_accountability', name: 'Government Accountability Motion',
-          type: 'constitutional', ideo: 9, timer: 25, push_weight: 0.18, ministry: 'chancellor' },
-        { id: 'dnvp_war_guilt', name: 'War Guilt Rejection Motion',
-          type: 'foreign', ideo: 9, timer: 20, push_weight: 0.14, ministry: 'foreign' },
-        { id: 'dnvp_red_ban', name: 'Anti-Marxist Emergency Law',
-          type: 'civil', ideo: 9, timer: 30, push_weight: 0.16, ministry: 'interior' },
-        { id: 'dnvp_landowner', name: 'Landed Estate Protection Act',
-          type: 'economic', ideo: 9, timer: 35, push_weight: 0.14, ministry: 'agriculture' },
+        { id: 'dnvp_red_ban',        name: 'Anti-Marxist Emergency Law',
+          type: 'civil',         ideo: 9, timer: 30, push_weight: 0.16, ministry: 'interior',
+          on_pass: function() { Q.rfb_banned = 1; Q.workers_aid = Math.max(0, (Q.workers_aid || 0) - 1); } },
+        { id: 'dnvp_presidential',   name: 'Presidential Powers Expansion Act',
+          type: 'constitutional', ideo: 9, timer: 25, push_weight: 0.18, ministry: 'chancellor',
+          on_pass: function() { Q.presidential_powers = Math.max(0, (Q.presidential_powers || 0) - 1); Q.constitutional_reform = Math.max(0, (Q.constitutional_reform || 0) - 1); } },
     ],
 
     NSDAP: [
-        { id: 'nsdap_enabling', name: 'Emergency Powers Enabling Act',
-          type: 'constitutional', ideo: 10, timer: 30, push_weight: 0.20, ministry: 'chancellor' },
-        { id: 'nsdap_aliens', name: 'Law on Alien Citizenship',
-          type: 'civil', ideo: 10, timer: 25, push_weight: 0.16, ministry: 'interior' },
-        { id: 'nsdap_press_ban', name: 'Marxist Press Suppression Act',
-          type: 'civil', ideo: 10, timer: 25, push_weight: 0.14, ministry: 'interior' },
+        { id: 'nsdap_enabling',      name: 'Emergency Powers Enabling Act',
+          type: 'constitutional', ideo: 10, timer: 30, push_weight: 0.20, ministry: 'chancellor',
+          on_pass: function() { Q.presidential_powers = Math.max(0, (Q.presidential_powers || 0) - 2); Q.constitutional_reform = Math.max(0, (Q.constitutional_reform || 0) - 2); Q.sa_banned = 0; } },
         { id: 'nsdap_no_confidence', name: 'Vote of No Confidence',
-          type: 'constitutional', ideo: 10, timer: 20, push_weight: 0.22, ministry: 'chancellor' },
+          type: 'constitutional', ideo: 10, timer: 20, push_weight: 0.22, ministry: 'chancellor',
+          on_pass: function() { Q.constructive_vonc = Math.max(0, (Q.constructive_vonc || 0) - 1); } },
     ],
 
     DVFP: [
-        { id: 'dvfp_volkisch', name: 'Völkisch Community Protection Act',
-          type: 'civil', ideo: 10, timer: 30, push_weight: 0.14, ministry: 'interior' },
+        { id: 'dvfp_volkisch',       name: 'Völkisch Community Protection Act',
+          type: 'civil',         ideo: 10, timer: 30, push_weight: 0.14, ministry: 'interior',
+          on_pass: function() { Q.homosexual_rights = Math.max(0, (Q.homosexual_rights || 0) - 1); Q.womens_rights = Math.max(0, (Q.womens_rights || 0) - 1); } },
         { id: 'dvfp_republic_guilt', name: 'November Criminals Motion',
-          type: 'constitutional', ideo: 10, timer: 20, push_weight: 0.12, ministry: 'chancellor' },
+          type: 'constitutional', ideo: 10, timer: 20, push_weight: 0.12, ministry: 'chancellor',
+          on_pass: function() { Q.constitutional_reform = Math.max(0, (Q.constitutional_reform || 0) - 1); } },
     ],
 };
 
@@ -5091,7 +5097,7 @@ function get_push_multiplier(party) {
             break;
         case 'SPD':
             if (Q.spd_in_government)    m -= 0.3;
-            if (Q.unemployed > 18)      m += 0.3;
+            if (Q.unemployed > 18)      m -= 0.3;
             if (Q.spd_banned)           m  = 0;
             break;
         case 'DDP':
