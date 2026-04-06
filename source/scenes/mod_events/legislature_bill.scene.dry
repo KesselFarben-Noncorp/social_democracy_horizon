@@ -117,6 +117,10 @@ You used the authority of the Reichstag Presidency to prevent **[+ crisis_name +
 - @root: Continue
 
 
+// ============================================
+// OTHER PRESIDENT
+// ============================================
+
 @crisis_other_president
 go-to: other_president_blocks if rt_president_allows_vote = 0; other_president_allows if rt_president_allows_vote = 1
 
@@ -234,11 +238,11 @@ var IDEO_POS = {
 // ============================================
 
 var FRACTIONS = [
-    { key: 'left',           ideo_min: 1, ideo_max: 4, abstain_min: 5, abstain_max: 6  },
-    { key: 'center',         ideo_min: 1, ideo_max: 5, abstain_min: 6, abstain_max: 7  },
-    { key: 'labor',          ideo_min: 2, ideo_max: 6, abstain_min: 7, abstain_max: 7  },
-    { key: 'reformist',      ideo_min: 3, ideo_max: 6, abstain_min: 2, abstain_max: 2  },
-    { key: 'neorevisionist', ideo_min: 4, ideo_max: 7, abstain_min: 2, abstain_max: 3  },
+    { key: 'left',           ideo_min: 1, ideo_max: 4, abstain_min: 5, abstain_max: 6 },
+    { key: 'center',         ideo_min: 1, ideo_max: 5, abstain_min: 6, abstain_max: 7 },
+    { key: 'labor',          ideo_min: 2, ideo_max: 6, abstain_min: 7, abstain_max: 7 },
+    { key: 'reformist',      ideo_min: 3, ideo_max: 6, abstain_min: 2, abstain_max: 2 },
+    { key: 'neorevisionist', ideo_min: 4, ideo_max: 7, abstain_min: 2, abstain_max: 3 },
 ];
 
 var _total_str = 0;
@@ -253,16 +257,16 @@ var _spd_for     = 0;
 var _spd_against = 0;
 var _spd_abstain = 0;
 
-// Store per-fraction results for flavor text
 var _fraction_results = {};
 
 for (var fi = 0; fi < FRACTIONS.length; fi++) {
     var _f = FRACTIONS[fi];
     if (_f.key === 'neorevisionist' && !Q.neorevisionism) continue;
 
-    var _fstr   = Q[_f.key + '_strength'] || 0;
-    var _fdiss  = Q[_f.key + '_dissent']  || 0;
-    var _fseats = (_total_str > 0) ? Math.round(_spd_total_seats * (_fstr / _total_str)) : 0;
+    var _fstr        = Q[_f.key + '_strength'] || 0;
+    var _fdiss       = Q[_f.key + '_dissent']  || 0;
+    var _fdiss_norm  = Math.min(1, _fdiss / 60); // normalise 0-60 → 0-1
+    var _fseats      = (_total_str > 0) ? Math.round(_spd_total_seats * (_fstr / _total_str)) : 0;
 
     var _natural;
     if (_bill_ideo >= _f.ideo_min && _bill_ideo <= _f.ideo_max) {
@@ -273,45 +277,50 @@ for (var fi = 0; fi < FRACTIONS.length; fi++) {
         _natural = 'against';
     }
 
+    // Conflict: how strongly does natural stance oppose the instruction?
     var _conflict = 0;
     if (_natural !== _spd_vote) {
         _conflict = (_natural === 'abstain') ? 0.5 : 1.0;
     }
 
-    var _compliance = Math.max(0, Math.min(1, 1 - (_fdiss * _conflict)));
+    // Compliance: dissent=0 → full compliance, dissent=60 → full defection when conflicted
+    var _compliance   = Math.max(0, Math.min(1, 1 - (_fdiss_norm * _conflict)));
     var _seats_comply = Math.round(_fseats * _compliance);
     var _seats_defect = _fseats - _seats_comply;
 
+    // Complying seats follow instruction
     if (_spd_vote === 'for')     _spd_for     += _seats_comply;
     if (_spd_vote === 'against') _spd_against += _seats_comply;
 
+    // Defecting seats follow natural stance
     if (_natural === 'for')     _spd_for     += _seats_defect;
     if (_natural === 'against') _spd_against += _seats_defect;
     if (_natural === 'abstain') _spd_abstain += _seats_defect;
 
+    var _defect_pct = (_fseats > 0) ? Math.round(_seats_defect / _fseats * 100) : 0;
+
     _fraction_results[_f.key] = {
-        natural:  _natural,
-        defect:   _seats_defect,
-        comply:   _seats_comply,
-        seats:    _fseats
+        natural:     _natural,
+        defect:      _seats_defect,
+        comply:      _seats_comply,
+        seats:       _fseats,
+        defect_pct:  _defect_pct
     };
+
+    // Store for display
+    Q[_f.key + '_defected']   = (_defect_pct > 15) ? 1 : 0;
+    Q[_f.key + '_defect_pct'] = _defect_pct;
+    Q[_f.key + '_natural']    = _natural;
 }
 
 Q.spd_votes_for     = _spd_for;
 Q.spd_votes_against = _spd_against;
 Q.spd_votes_abstain = _spd_abstain;
 
-// Fraction flavor flags for display
 var _left_res  = _fraction_results['left']      || {};
 var _cent_res  = _fraction_results['center']    || {};
 var _lab_res   = _fraction_results['labor']     || {};
 var _ref_res   = _fraction_results['reformist'] || {};
-
-// Did a fraction significantly defy leadership? (>20% of their seats defected)
-Q.left_defected      = (_left_res.seats  > 0 && _left_res.defect  / _left_res.seats  > 0.2) ? 1 : 0;
-Q.center_defected    = (_cent_res.seats  > 0 && _cent_res.defect  / _cent_res.seats  > 0.2) ? 1 : 0;
-Q.labor_defected     = (_lab_res.seats   > 0 && _lab_res.defect   / _lab_res.seats   > 0.2) ? 1 : 0;
-Q.reformist_defected = (_ref_res.seats   > 0 && _ref_res.defect   / _ref_res.seats   > 0.2) ? 1 : 0;
 
 Q.left_natural      = _left_res.natural  || 'abstain';
 Q.center_natural    = _cent_res.natural  || 'abstain';
@@ -465,95 +474,99 @@ if (window && d3) {
 // SPD FRACTION BREAKDOWN BAR
 // ============================================
 
-var _spd_total = Q.spd_votes_for + Q.spd_votes_against + Q.spd_votes_abstain;
+var FRACTION_COLORS = {
+    left:           '#8b0000',
+    center:         '#c0392b',
+    labor:          '#e74c3c',
+    reformist:      '#e8a0a0',
+    neorevisionist: '#f5c6c6',
+};
 
-if (_spd_total > 0) {
-    var FRACTION_COLORS = {
-        left:           '#8b0000',  // deep red
-        center:         '#c0392b',  // standard red
-        labor:          '#e74c3c',  // bright red
-        reformist:      '#e8a0a0',  // pale red
-        neorevisionist: '#f5c6c6',  // very pale
-    };
+var FRACTION_LABELS = {
+    left:           'Left',
+    center:         'Orthodox',
+    labor:          'ADGB',
+    reformist:      'Reformist',
+    neorevisionist: 'Neorevisionist',
+};
 
-    var FRACTION_LABELS = {
-        left:           'Left',
-        center:         'Orthodox',
-        labor:          'ADGB',
-        reformist:      'Reformist',
-        neorevisionist: 'Neorevisionist',
-    };
+var _fractions = ['left','center','labor','reformist','neorevisionist'];
 
-    var _fractions = ['left','center','labor','reformist','neorevisionist'];
-    var _total_str = 0;
-    for (var fi = 0; fi < _fractions.length; fi++) {
-        var _fk = _fractions[fi];
-        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
-        _total_str += Q[_fk + '_strength'] || 0;
-    }
-
-    var _spd_seats = Math.round((Q.spd_r || 0) * 6);
-    var _bar_html  = '<div style="margin:10px 0 4px 0;font-size:0.85em;color:#aaa;">SPD Fraction Breakdown</div>';
-    _bar_html += '<div style="display:flex;width:100%;height:28px;border-radius:3px;overflow:hidden;">';
-
-    for (var fi = 0; fi < _fractions.length; fi++) {
-        var _fk = _fractions[fi];
-        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
-
-        var _fstr   = Q[_fk + '_strength'] || 0;
-        var _fseats = (_total_str > 0) ? Math.round(_spd_seats * (_fstr / _total_str)) : 0;
-        var _fpct   = (_spd_seats > 0) ? (_fseats / _spd_seats * 100).toFixed(1) : 0;
-
-        _bar_html += '<div style="'
-            + 'width:' + _fpct + '%;'
-            + 'background:' + FRACTION_COLORS[_fk] + ';'
-            + 'display:flex;align-items:center;justify-content:center;'
-            + 'font-size:0.75em;color:#fff;font-weight:bold;'
-            + 'overflow:hidden;white-space:nowrap;'
-            + 'title="' + FRACTION_LABELS[_fk] + ': ' + _fseats + ' seats"'
-            + '">'
-            + (_fpct > 8 ? FRACTION_LABELS[_fk] : '')
-            + '</div>';
-    }
-
-    _bar_html += '</div>';
-
-    // Defection indicators below the bar
-    _bar_html += '<div style="display:flex;width:100%;margin-top:3px;font-size:0.78em;">';
-    for (var fi = 0; fi < _fractions.length; fi++) {
-        var _fk = _fractions[fi];
-        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
-
-        var _fstr  = Q[_fk + '_strength'] || 0;
-        var _fpct  = (_total_str > 0) ? (_fstr / _total_str * 100).toFixed(1) : 0;
-        var _defected = Q[_fk + '_defected'] || 0;
-
-        _bar_html += '<div style="width:' + _fpct + '%;text-align:center;color:'
-            + (_defected ? '#e74c3c' : '#888')
-            + ';">'
-            + (_defected ? '⚡' : '·')
-            + '</div>';
-    }
-    _bar_html += '</div>';
-
-    // Legend
-    _bar_html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:0.78em;color:#aaa;">';
-    for (var fi = 0; fi < _fractions.length; fi++) {
-        var _fk = _fractions[fi];
-        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
-        var _fstr   = Q[_fk + '_strength'] || 0;
-        var _fseats = (_total_str > 0) ? Math.round(_spd_seats * (_fstr / _total_str)) : 0;
-        _bar_html += '<span>'
-            + '<span style="display:inline-block;width:10px;height:10px;background:' + FRACTION_COLORS[_fk] + ';border-radius:2px;margin-right:3px;vertical-align:middle;"></span>'
-            + FRACTION_LABELS[_fk] + ' — ' + _fseats + ' seats'
-            + (Q[_fk + '_defected'] ? ' <span style="color:#e74c3c;">⚡ defected</span>' : '')
-            + '</span>';
-    }
-    _bar_html += '</div>';
-
-    var _bar_el = document.getElementById('spd-fraction-bar');
-    if (_bar_el) _bar_el.innerHTML = _bar_html;
+var _total_str = 0;
+for (var fi = 0; fi < _fractions.length; fi++) {
+    var _fk = _fractions[fi];
+    if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+    _total_str += Q[_fk + '_strength'] || 0;
 }
+
+var _spd_seats = Math.round((Q.spd_r || 0) * 6);
+
+var _bar_html = '<div style="margin:10px 0 4px 0;font-size:0.85em;color:#aaa;">SPD Fraction Breakdown</div>';
+_bar_html += '<div style="display:flex;width:100%;height:28px;border-radius:3px;overflow:hidden;">';
+
+for (var fi = 0; fi < _fractions.length; fi++) {
+    var _fk     = _fractions[fi];
+    if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+    var _fstr   = Q[_fk + '_strength'] || 0;
+    var _fseats = (_total_str > 0) ? Math.round(_spd_seats * (_fstr / _total_str)) : 0;
+    var _fpct   = (_spd_seats > 0) ? (_fseats / _spd_seats * 100).toFixed(1) : 0;
+    var _dpct   = Q[_fk + '_defect_pct'] || 0;
+
+    // Split bar segment: complying portion full color, defecting portion darker/striped
+    var _comply_pct = _fpct * (1 - _dpct / 100);
+    var _defect_pct_seg = _fpct * (_dpct / 100);
+
+    _bar_html += '<div style="width:' + _comply_pct + '%;background:' + FRACTION_COLORS[_fk] + ';'
+        + 'display:flex;align-items:center;justify-content:center;'
+        + 'font-size:0.75em;color:#fff;font-weight:bold;overflow:hidden;white-space:nowrap;">'
+        + (_comply_pct > 8 ? FRACTION_LABELS[_fk] : '')
+        + '</div>';
+
+    if (_defect_pct_seg > 0) {
+        _bar_html += '<div style="width:' + _defect_pct_seg + '%;background:repeating-linear-gradient('
+            + '45deg,' + FRACTION_COLORS[_fk] + ',' + FRACTION_COLORS[_fk] + ' 3px,#222 3px,#222 6px);'
+            + 'opacity:0.85;"></div>';
+    }
+}
+
+_bar_html += '</div>';
+
+// Defection percentage indicators below bar
+_bar_html += '<div style="display:flex;width:100%;margin-top:3px;font-size:0.78em;">';
+for (var fi = 0; fi < _fractions.length; fi++) {
+    var _fk   = _fractions[fi];
+    if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+    var _fstr = Q[_fk + '_strength'] || 0;
+    var _fpct = (_total_str > 0) ? (_fstr / _total_str * 100).toFixed(1) : 0;
+    var _dpct = Q[_fk + '_defect_pct'] || 0;
+    _bar_html += '<div style="width:' + _fpct + '%;text-align:center;color:'
+        + (_dpct > 15 ? '#e74c3c' : '#666') + ';">'
+        + (_dpct > 0 ? _dpct + '%' : '·')
+        + '</div>';
+}
+_bar_html += '</div>';
+
+// Legend
+_bar_html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:0.78em;color:#aaa;">';
+for (var fi = 0; fi < _fractions.length; fi++) {
+    var _fk     = _fractions[fi];
+    if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+    var _fstr   = Q[_fk + '_strength'] || 0;
+    var _fseats = (_total_str > 0) ? Math.round(_spd_seats * (_fstr / _total_str)) : 0;
+    var _dpct   = Q[_fk + '_defect_pct'] || 0;
+    _bar_html += '<span>'
+        + '<span style="display:inline-block;width:10px;height:10px;background:' + FRACTION_COLORS[_fk]
+        + ';border-radius:2px;margin-right:3px;vertical-align:middle;"></span>'
+        + FRACTION_LABELS[_fk] + ' — ' + _fseats + ' seats'
+        + (_dpct > 15
+            ? ' <span style="color:#e74c3c;">⚡ ' + _dpct + '% defected</span>'
+            : '')
+        + '</span>';
+}
+_bar_html += '</div>';
+
+var _bar_el = document.getElementById('spd-fraction-bar');
+if (_bar_el) _bar_el.innerHTML = _bar_html;
 
 !}
 
@@ -567,16 +580,15 @@ The **[+ voted_bill_party +]** has brought **[+ voted_bill_name +]** to the floo
 
 {!<svg id="bill-vote-seats" style="width:500px;height:250px;"></svg>!}
 
-[? if left_defected = 1 and left_natural = 'against' and spd_bill_vote = 'for' : The Left fraction breaks with leadership — too moderate a position for their taste. ?]
-[? if left_defected = 1 and left_natural = 'for' and spd_bill_vote = 'against' : The Left fraction refuses to oppose this bill, defying the leadership instruction. ?]
-[? if center_defected = 1 and spd_bill_vote = 'for' : The Orthodox centre is uneasy — a portion votes against or abstains despite the instruction. ?]
-[? if reformist_defected = 1 and voted_bill_ideo <= 2 : The Reformist fraction finds the bill too radical and breaks ranks. ?]
-[? if reformist_defected = 1 and voted_bill_ideo >= 8 : The Reformists refuse to support right-wing legislation even under instruction. ?]
-[? if labor_defected = 1 and voted_bill_type != 'labor' and voted_bill_type != 'economic' : The ADGB fraction shows little interest in a bill outside their core concerns. ?]
+[? if left_defected = 1 and left_natural = 'against' and spd_bill_vote = 'for' : The Left fraction breaks with leadership — too moderate a position for their taste. [+ left_defect_pct +]% voted against the instruction. ?]
+[? if left_defected = 1 and left_natural = 'for' and spd_bill_vote = 'against' : The Left fraction refuses to oppose this bill, defying the leadership instruction. [+ left_defect_pct +]% broke ranks. ?]
+[? if center_defected = 1 and center_natural = 'against' and spd_bill_vote = 'for' : The Orthodox centre is uneasy — [+ center_defect_pct +]% vote against or abstain despite the instruction. ?]
+[? if center_defected = 1 and center_natural = 'for' and spd_bill_vote = 'against' : The Orthodox centre sides with the bill over the leadership — [+ center_defect_pct +]% break ranks. ?]
+[? if reformist_defected = 1 and voted_bill_ideo <= 2 : The Reformist fraction finds the bill too radical. [+ reformist_defect_pct +]% break ranks. ?]
+[? if reformist_defected = 1 and voted_bill_ideo >= 8 : The Reformists refuse to support right-wing legislation even under instruction. [+ reformist_defect_pct +]% defy the whip. ?]
+[? if labor_defected = 1 and voted_bill_type != 'labor' and voted_bill_type != 'economic' : The ADGB fraction shows little interest in a bill outside their core concerns. [+ labor_defect_pct +]% abstain or vote against. ?]
 
 SPD votes — For: **[+ spd_votes_for +]** · Against: **[+ spd_votes_against +]** · Abstain: **[+ spd_votes_abstain +]**
-
-{!<svg id="bill-vote-seats" style="width:500px;height:250px;"></svg>!}
 
 — For: **[+ bill_votes_for +]** — [+ bill_for_list +]
 — Against: **[+ bill_votes_against +]** — [+ bill_against_list +]
@@ -592,6 +604,7 @@ SPD votes — For: **[+ spd_votes_for +]** · Against: **[+ spd_votes_against +]
 [? if bill_passed = 0 and voted_bill_ideo >= 4 and voted_bill_ideo <= 7 : A centrist bill falls through the cracks of a fractured chamber. ?]
 
 - @go_to_ratification: Proceed to ratification
+- @root: Return to overview
 
 @go_to_ratification
 view-if: bill_awaiting_ratification = 1
