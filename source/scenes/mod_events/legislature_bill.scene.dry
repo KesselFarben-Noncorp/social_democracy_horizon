@@ -292,6 +292,11 @@ if (Q.bill_passed) {
     Q.bill_awaiting_ratification = 1;
 }
 
+// THE SCENE WHERE YOU WOULD SAVE THE DATA
+
+Q.voted_bill_name  = Q.crisis_name;
+Q.voted_bill_party = Q.crisis_party;
+
 // ============================================
 // CLEAR SLOT — atomic, uses crisis_id not slot var
 // ============================================
@@ -349,9 +354,9 @@ if (window && d3) {
 
 !}
 
-= Vote: [+ crisis_name +]
+= Vote: [+ voted_bill_name +]
 
-The **[+ crisis_party +]** has brought **[+ crisis_name +]** to the floor.
+The **[+ voted_bill_party +]** has brought **[+ voted_bill_name +]** to the floor. 
 
 **SPD fraction voted: [+ spd_bill_vote +]**
 
