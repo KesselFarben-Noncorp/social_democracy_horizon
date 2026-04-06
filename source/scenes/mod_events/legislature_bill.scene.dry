@@ -461,6 +461,100 @@ if (window && d3) {
     d3.select('#bill-vote-seats').datum(data).call(parliament);
 }
 
+// ============================================
+// SPD FRACTION BREAKDOWN BAR
+// ============================================
+
+var _spd_total = Q.spd_votes_for + Q.spd_votes_against + Q.spd_votes_abstain;
+
+if (_spd_total > 0) {
+    var FRACTION_COLORS = {
+        left:           '#8b0000',  // deep red
+        center:         '#c0392b',  // standard red
+        labor:          '#e74c3c',  // bright red
+        reformist:      '#e8a0a0',  // pale red
+        neorevisionist: '#f5c6c6',  // very pale
+    };
+
+    var FRACTION_LABELS = {
+        left:           'Left',
+        center:         'Orthodox',
+        labor:          'ADGB',
+        reformist:      'Reformist',
+        neorevisionist: 'Neorevisionist',
+    };
+
+    var _fractions = ['left','center','labor','reformist','neorevisionist'];
+    var _total_str = 0;
+    for (var fi = 0; fi < _fractions.length; fi++) {
+        var _fk = _fractions[fi];
+        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+        _total_str += Q[_fk + '_strength'] || 0;
+    }
+
+    var _spd_seats = Math.round((Q.spd_r || 0) * 6);
+    var _bar_html  = '<div style="margin:10px 0 4px 0;font-size:0.85em;color:#aaa;">SPD Fraction Breakdown</div>';
+    _bar_html += '<div style="display:flex;width:100%;height:28px;border-radius:3px;overflow:hidden;">';
+
+    for (var fi = 0; fi < _fractions.length; fi++) {
+        var _fk = _fractions[fi];
+        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+
+        var _fstr   = Q[_fk + '_strength'] || 0;
+        var _fseats = (_total_str > 0) ? Math.round(_spd_seats * (_fstr / _total_str)) : 0;
+        var _fpct   = (_spd_seats > 0) ? (_fseats / _spd_seats * 100).toFixed(1) : 0;
+
+        _bar_html += '<div style="'
+            + 'width:' + _fpct + '%;'
+            + 'background:' + FRACTION_COLORS[_fk] + ';'
+            + 'display:flex;align-items:center;justify-content:center;'
+            + 'font-size:0.75em;color:#fff;font-weight:bold;'
+            + 'overflow:hidden;white-space:nowrap;'
+            + 'title="' + FRACTION_LABELS[_fk] + ': ' + _fseats + ' seats"'
+            + '">'
+            + (_fpct > 8 ? FRACTION_LABELS[_fk] : '')
+            + '</div>';
+    }
+
+    _bar_html += '</div>';
+
+    // Defection indicators below the bar
+    _bar_html += '<div style="display:flex;width:100%;margin-top:3px;font-size:0.78em;">';
+    for (var fi = 0; fi < _fractions.length; fi++) {
+        var _fk = _fractions[fi];
+        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+
+        var _fstr  = Q[_fk + '_strength'] || 0;
+        var _fpct  = (_total_str > 0) ? (_fstr / _total_str * 100).toFixed(1) : 0;
+        var _defected = Q[_fk + '_defected'] || 0;
+
+        _bar_html += '<div style="width:' + _fpct + '%;text-align:center;color:'
+            + (_defected ? '#e74c3c' : '#888')
+            + ';">'
+            + (_defected ? '⚡' : '·')
+            + '</div>';
+    }
+    _bar_html += '</div>';
+
+    // Legend
+    _bar_html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:0.78em;color:#aaa;">';
+    for (var fi = 0; fi < _fractions.length; fi++) {
+        var _fk = _fractions[fi];
+        if (_fk === 'neorevisionist' && !Q.neorevisionism) continue;
+        var _fstr   = Q[_fk + '_strength'] || 0;
+        var _fseats = (_total_str > 0) ? Math.round(_spd_seats * (_fstr / _total_str)) : 0;
+        _bar_html += '<span>'
+            + '<span style="display:inline-block;width:10px;height:10px;background:' + FRACTION_COLORS[_fk] + ';border-radius:2px;margin-right:3px;vertical-align:middle;"></span>'
+            + FRACTION_LABELS[_fk] + ' — ' + _fseats + ' seats'
+            + (Q[_fk + '_defected'] ? ' <span style="color:#e74c3c;">⚡ defected</span>' : '')
+            + '</span>';
+    }
+    _bar_html += '</div>';
+
+    var _bar_el = document.getElementById('spd-fraction-bar');
+    if (_bar_el) _bar_el.innerHTML = _bar_html;
+}
+
 !}
 
 = Vote: [+ voted_bill_name +]
@@ -468,6 +562,10 @@ if (window && d3) {
 The **[+ voted_bill_party +]** has brought **[+ voted_bill_name +]** to the floor.
 
 **SPD leadership instruction: [+ spd_bill_vote +]**
+
+{!<div id="spd-fraction-bar" style="margin-bottom:12px;"></div>!}
+
+{!<svg id="bill-vote-seats" style="width:500px;height:250px;"></svg>!}
 
 [? if left_defected = 1 and left_natural = 'against' and spd_bill_vote = 'for' : The Left fraction breaks with leadership — too moderate a position for their taste. ?]
 [? if left_defected = 1 and left_natural = 'for' and spd_bill_vote = 'against' : The Left fraction refuses to oppose this bill, defying the leadership instruction. ?]
