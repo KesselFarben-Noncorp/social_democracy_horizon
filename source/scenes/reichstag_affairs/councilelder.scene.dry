@@ -18,10 +18,11 @@ for (var i = 0; i < 10; i++) {
     Q['queued_' + i + '_label'] = '';
 }
 for (var i = 0; i < 4; i++) {
-    Q['spd_unqueued_' + i + '_id']    = '';
-    Q['spd_unqueued_' + i + '_name']  = '';
-    Q['spd_unqueued_' + i + '_type']  = '';
-    Q['spd_unqueued_' + i + '_label'] = '';
+    Q['spd_unqueued_' + i + '_id']       = '';
+    Q['spd_unqueued_' + i + '_name']     = '';
+    Q['spd_unqueued_' + i + '_type']     = '';
+    Q['spd_unqueued_' + i + '_ministry'] = '';
+    Q['spd_unqueued_' + i + '_label']    = '';
 }
 
 Q.num_queued_bills = 0;
@@ -29,45 +30,49 @@ Q.num_queued_bills = 0;
 for (var i = 0; i < 10; i++) {
     if (!Q['bill_' + i + '_id']) continue;
     var n = Q.num_queued_bills;
-    Q['queued_' + n + '_slot']  = i;
-    Q['queued_' + n + '_name']  = Q['bill_' + i + '_name']  || '(unknown)';
-    Q['queued_' + n + '_party'] = Q['bill_' + i + '_party'] || '?';
-    Q['queued_' + n + '_type']  = Q['bill_' + i + '_type']  || 'economic';
-    Q['queued_' + n + '_ideo']  = Q['bill_' + i + '_ideo']  || 5;
-    // Pre-build label — safe for choice interpolation
-    var frozen = Q['bill_' + i + '_frozen'] ? ' [CRISIS]' : '';
-    Q['queued_' + n + '_label'] =
+    Q['queued_' + n + '_slot']     = i;
+    Q['queued_' + n + '_name']     = Q['bill_' + i + '_name']     || '(unknown)';
+    Q['queued_' + n + '_party']    = Q['bill_' + i + '_party']    || '?';
+    Q['queued_' + n + '_type']     = Q['bill_' + i + '_type']     || 'economic';
+    Q['queued_' + n + '_ideo']     = Q['bill_' + i + '_ideo']     || 5;
+    Q['queued_' + n + '_ministry'] = Q['bill_' + i + '_ministry'] || 'chancellor';
+    var _frozen = Q['bill_' + i + '_frozen'] ? ' [CRISIS]' : '';
+    Q['queued_' + n + '_label']    =
         Q['queued_' + n + '_name'] + ' — ' +
-        Q['queued_' + n + '_party'] + frozen;
+        Q['queued_' + n + '_party'] + _frozen;
     Q.num_queued_bills++;
 }
 
 // ── SPD unqueued pool ──────────────────────────────────────
 var SPD_POOL = [
-    { id: 'spd_unemployment_ext', name: 'Unemployment Insurance Extension',  type: 'economic'       },
-    { id: 'spd_civil_service',    name: 'Civil Service Reform Bill',          type: 'administrative' },
-    { id: 'spd_press_freedom',    name: 'Press Freedom Protection Act',       type: 'civil'          },
-    { id: 'spd_wtb',              name: 'WTB Public Works Programme',         type: 'economic'       },
+    { id: 'spd_unemployment_ext', name: 'Unemployment Insurance Extension', type: 'economic',       ideo: 3, ministry: 'labor'    },
+    { id: 'spd_civil_service',    name: 'Civil Service Reform Bill',         type: 'administrative', ideo: 3, ministry: 'interior' },
+    { id: 'spd_press_freedom',    name: 'Press Freedom Protection Act',      type: 'civil',          ideo: 3, ministry: 'justice'  },
+    { id: 'spd_wtb',              name: 'WTB Public Works Programme',        type: 'economic',       ideo: 3, ministry: 'economic' },
 ];
 
 Q.num_spd_unqueued = 0;
 
 for (var i = 0; i < SPD_POOL.length; i++) {
-    var bill = SPD_POOL[i];
-    var in_queue = false;
+    var _bill = SPD_POOL[i];
+    var _in_queue = false;
     for (var j = 0; j < 10; j++) {
-        if (Q['bill_' + j + '_id'] === bill.id) { in_queue = true; break; }
+        if (Q['bill_' + j + '_id'] === _bill.id) { _in_queue = true; break; }
     }
-    if (in_queue || Q['bill_done_' + bill.id]) continue;
+    if (_in_queue)                        continue;
+    if (Q['bill_done_' + _bill.id])       continue;
+    if (Q.crisis_id === _bill.id)         continue; // already in staging
     var m = Q.num_spd_unqueued;
-    Q['spd_unqueued_' + m + '_id']    = bill.id;
-    Q['spd_unqueued_' + m + '_name']  = bill.name;
-    Q['spd_unqueued_' + m + '_type']  = bill.type;
-    Q['spd_unqueued_' + m + '_label'] = bill.name + ' (' + bill.type + ')';
+    Q['spd_unqueued_' + m + '_id']       = _bill.id;
+    Q['spd_unqueued_' + m + '_name']     = _bill.name;
+    Q['spd_unqueued_' + m + '_type']     = _bill.type;
+    Q['spd_unqueued_' + m + '_ideo']     = _bill.ideo;
+    Q['spd_unqueued_' + m + '_ministry'] = _bill.ministry;
+    Q['spd_unqueued_' + m + '_label']    = _bill.name + ' (' + _bill.type + ')';
     Q.num_spd_unqueued++;
 }
 
-Q.can_propose          = (Q.bill_proposed_this_month || 0) === 0 ? 1 : 0;
+Q.can_propose             = (Q.bill_proposed_this_month || 0) === 0 ? 1 : 0;
 Q.spd_holds_rt_presidency = (Q.reichstag_president_party === 'SPD') ? 1 : 0;
 
 !}
@@ -82,13 +87,12 @@ The Reichstag is in session. Bills move through the chamber on their own schedul
 
 [? if can_propose = 0 : The SPD has already acted in the legislature this month. ?]
 
-- @propose_queued: Force a queued bill to a vote [? if can_propose = 0 : (unavailable) ?]
-- @propose_spd_own: Introduce an SPD bill [? if can_propose = 0 : (unavailable) ?]
+- @propose_queued if can_propose = 1 and num_queued_bills > 0: Force a queued bill to a vote
+- @propose_spd_own if can_propose = 1 and num_spd_unqueued > 0: Introduce an SPD bill
 - @root: Leave the chamber
 
 
 @propose_queued
-view-if: can_propose = 1 and num_queued_bills > 0
 
 = Force a Queued Bill to a Vote
 
@@ -111,11 +115,14 @@ Choose which bill to bring to the floor:
 view-if: num_queued_bills >= 1
 on-arrival: {!
     var n = 0;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -124,11 +131,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 2
 on-arrival: {!
     var n = 1;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -137,11 +147,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 3
 on-arrival: {!
     var n = 2;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -150,11 +163,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 4
 on-arrival: {!
     var n = 3;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -163,11 +179,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 5
 on-arrival: {!
     var n = 4;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -176,11 +195,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 6
 on-arrival: {!
     var n = 5;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -189,11 +211,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 7
 on-arrival: {!
     var n = 6;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -202,11 +227,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 8
 on-arrival: {!
     var n = 7;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -215,11 +243,14 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 9
 on-arrival: {!
     var n = 8;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -228,18 +259,20 @@ go-to: propose_spd_vote_choice
 view-if: num_queued_bills >= 10
 on-arrival: {!
     var n = 9;
-    Q.active_bill_slot  = Q['queued_' + n + '_slot'];
-    Q.active_bill_name  = Q['queued_' + n + '_name'];
-    Q.active_bill_party = Q['queued_' + n + '_party'];
-    Q.active_bill_type  = Q['queued_' + n + '_type'];
-    Q.active_bill_ideo  = Q['queued_' + n + '_ideo'];
+    Q.crisis_slot     = Q['queued_' + n + '_slot'];
+    Q.crisis_id       = Q['bill_' + Q['queued_' + n + '_slot'] + '_id'];
+    Q.crisis_name     = Q['queued_' + n + '_name'];
+    Q.crisis_party    = Q['queued_' + n + '_party'];
+    Q.crisis_type     = Q['queued_' + n + '_type'];
+    Q.crisis_ideo     = Q['queued_' + n + '_ideo'];
+    Q.crisis_ministry = Q['queued_' + n + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
 
 
 @propose_spd_own
-view-if: can_propose = 1 and num_spd_unqueued > 0
 
 = Introduce an SPD Bill
 
@@ -256,27 +289,14 @@ Choose a bill to bring before the Reichstag:
 view-if: num_spd_unqueued >= 1
 on-arrival: {!
     var m = 0;
-    var id   = Q['spd_unqueued_' + m + '_id'];
-    var name = Q['spd_unqueued_' + m + '_name'];
-    var type = Q['spd_unqueued_' + m + '_type'];
-    for (var i = 0; i < 10; i++) {
-        if (!Q['bill_' + i + '_id']) {
-            Q['bill_' + i + '_id']     = id;
-            Q['bill_' + i + '_name']   = name;
-            Q['bill_' + i + '_party']  = 'SPD';
-            Q['bill_' + i + '_type']   = type;
-            Q['bill_' + i + '_ideo']   = 3;
-            Q['bill_' + i + '_timer']  = 0;
-            Q['bill_' + i + '_crisis'] = '';
-            Q['bill_' + i + '_frozen'] = 0;
-            Q.active_bill_slot = i;
-            break;
-        }
-    }
-    Q.active_bill_name  = name;
-    Q.active_bill_party = 'SPD';
-    Q.active_bill_type  = type;
-    Q.active_bill_ideo  = 3;
+    Q.crisis_slot     = -1;
+    Q.crisis_id       = Q['spd_unqueued_' + m + '_id'];
+    Q.crisis_name     = Q['spd_unqueued_' + m + '_name'];
+    Q.crisis_party    = 'SPD';
+    Q.crisis_type     = Q['spd_unqueued_' + m + '_type'];
+    Q.crisis_ideo     = Q['spd_unqueued_' + m + '_ideo'];
+    Q.crisis_ministry = Q['spd_unqueued_' + m + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -285,27 +305,14 @@ go-to: propose_spd_vote_choice
 view-if: num_spd_unqueued >= 2
 on-arrival: {!
     var m = 1;
-    var id   = Q['spd_unqueued_' + m + '_id'];
-    var name = Q['spd_unqueued_' + m + '_name'];
-    var type = Q['spd_unqueued_' + m + '_type'];
-    for (var i = 0; i < 10; i++) {
-        if (!Q['bill_' + i + '_id']) {
-            Q['bill_' + i + '_id']     = id;
-            Q['bill_' + i + '_name']   = name;
-            Q['bill_' + i + '_party']  = 'SPD';
-            Q['bill_' + i + '_type']   = type;
-            Q['bill_' + i + '_ideo']   = 3;
-            Q['bill_' + i + '_timer']  = 0;
-            Q['bill_' + i + '_crisis'] = '';
-            Q['bill_' + i + '_frozen'] = 0;
-            Q.active_bill_slot = i;
-            break;
-        }
-    }
-    Q.active_bill_name  = name;
-    Q.active_bill_party = 'SPD';
-    Q.active_bill_type  = type;
-    Q.active_bill_ideo  = 3;
+    Q.crisis_slot     = -1;
+    Q.crisis_id       = Q['spd_unqueued_' + m + '_id'];
+    Q.crisis_name     = Q['spd_unqueued_' + m + '_name'];
+    Q.crisis_party    = 'SPD';
+    Q.crisis_type     = Q['spd_unqueued_' + m + '_type'];
+    Q.crisis_ideo     = Q['spd_unqueued_' + m + '_ideo'];
+    Q.crisis_ministry = Q['spd_unqueued_' + m + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -314,27 +321,14 @@ go-to: propose_spd_vote_choice
 view-if: num_spd_unqueued >= 3
 on-arrival: {!
     var m = 2;
-    var id   = Q['spd_unqueued_' + m + '_id'];
-    var name = Q['spd_unqueued_' + m + '_name'];
-    var type = Q['spd_unqueued_' + m + '_type'];
-    for (var i = 0; i < 10; i++) {
-        if (!Q['bill_' + i + '_id']) {
-            Q['bill_' + i + '_id']     = id;
-            Q['bill_' + i + '_name']   = name;
-            Q['bill_' + i + '_party']  = 'SPD';
-            Q['bill_' + i + '_type']   = type;
-            Q['bill_' + i + '_ideo']   = 3;
-            Q['bill_' + i + '_timer']  = 0;
-            Q['bill_' + i + '_crisis'] = '';
-            Q['bill_' + i + '_frozen'] = 0;
-            Q.active_bill_slot = i;
-            break;
-        }
-    }
-    Q.active_bill_name  = name;
-    Q.active_bill_party = 'SPD';
-    Q.active_bill_type  = type;
-    Q.active_bill_ideo  = 3;
+    Q.crisis_slot     = -1;
+    Q.crisis_id       = Q['spd_unqueued_' + m + '_id'];
+    Q.crisis_name     = Q['spd_unqueued_' + m + '_name'];
+    Q.crisis_party    = 'SPD';
+    Q.crisis_type     = Q['spd_unqueued_' + m + '_type'];
+    Q.crisis_ideo     = Q['spd_unqueued_' + m + '_ideo'];
+    Q.crisis_ministry = Q['spd_unqueued_' + m + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
@@ -343,27 +337,14 @@ go-to: propose_spd_vote_choice
 view-if: num_spd_unqueued >= 4
 on-arrival: {!
     var m = 3;
-    var id   = Q['spd_unqueued_' + m + '_id'];
-    var name = Q['spd_unqueued_' + m + '_name'];
-    var type = Q['spd_unqueued_' + m + '_type'];
-    for (var i = 0; i < 10; i++) {
-        if (!Q['bill_' + i + '_id']) {
-            Q['bill_' + i + '_id']     = id;
-            Q['bill_' + i + '_name']   = name;
-            Q['bill_' + i + '_party']  = 'SPD';
-            Q['bill_' + i + '_type']   = type;
-            Q['bill_' + i + '_ideo']   = 3;
-            Q['bill_' + i + '_timer']  = 0;
-            Q['bill_' + i + '_crisis'] = '';
-            Q['bill_' + i + '_frozen'] = 0;
-            Q.active_bill_slot = i;
-            break;
-        }
-    }
-    Q.active_bill_name  = name;
-    Q.active_bill_party = 'SPD';
-    Q.active_bill_type  = type;
-    Q.active_bill_ideo  = 3;
+    Q.crisis_slot     = -1;
+    Q.crisis_id       = Q['spd_unqueued_' + m + '_id'];
+    Q.crisis_name     = Q['spd_unqueued_' + m + '_name'];
+    Q.crisis_party    = 'SPD';
+    Q.crisis_type     = Q['spd_unqueued_' + m + '_type'];
+    Q.crisis_ideo     = Q['spd_unqueued_' + m + '_ideo'];
+    Q.crisis_ministry = Q['spd_unqueued_' + m + '_ministry'];
+    Q.bill_crisis_in_progress  = 1;
     Q.bill_proposed_this_month = 1;
 !}
 go-to: propose_spd_vote_choice
