@@ -87,12 +87,13 @@ The Reichstag is in session. Bills move through the chamber on their own schedul
 
 [? if can_propose = 0 : The SPD has already acted in the legislature this month. ?]
 
-- @propose_queued if can_propose = 1 and num_queued_bills > 0: Force a queued bill to a vote
-- @propose_spd_own if can_propose = 1 and num_spd_unqueued > 0: Introduce an SPD bill
+- @propose_queued Force a queued bill to a vote
+- @propose_spd_own : Introduce an SPD bill
 - @root: Leave the chamber
 
 
 @propose_queued
+view-if: can_propose = 1 and num_queued_bills > 0
 
 = Force a Queued Bill to a Vote
 
@@ -273,6 +274,7 @@ go-to: propose_spd_vote_choice
 
 
 @propose_spd_own
+view-if: can_propose = 1 and num_spd_unqueued > 0
 
 = Introduce an SPD Bill
 
