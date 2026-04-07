@@ -1,90 +1,15 @@
-title: The Paris Memorandum Crisis
+title: The Paris Memorandum
 subtitle: April 1929
-tags: event, economics, foreign_affairs
+tags: event
 view-if: year = 1929 and month = 4
 max-visits: 1
+face-image: img/paris1.jpg
+go-to: schavog if reparation_negotiation = "schacht"; 
 
-= The Paris Memorandum Crisis
+@schavog
 
-[? if reparation_negotiation == "schacht" : Hjalmar Schacht's telegram from Paris arrives like a thunderbolt. The Reichsbank President, leading Germany's delegation to the reparations committee, has presented what he calls a "memorandum of fundamental principles." Its contents are explosive. ?]
+= Memorandum from the Paris
 
-[? if reparation_negotiation == "labor_included" : The telegram from Paris throws the Reich Chancellery into chaos. Our expanded delegation—including trade unionist Theodor Leipart alongside Schacht and Vögler—has fractured over a "memorandum of fundamental principles" that Schacht insisted on presenting. Its contents are explosive. ?]
+Schacht and his group have spent around 3 months in there for negotiations, and as hopeful we are, there have been no to small signs of progress on this question.
 
-[? if reparation_negotiation == "hilferding" : Rudolf Hilferding's urgent telegram from Paris arrives at dawn. Our Finance Minister, leading Germany's delegation despite Allied skepticism, reports that the negotiations have collapsed. The crisis centers on demands that even Hilferding—no friend of Versailles—considers dangerously provocative. ?]
-
-[? if reparation_negotiation == "worker_veto" : The Paris negotiations have collapsed before they truly began. Hjalmar Schacht, resentful at trade union oversight of his work, has presented a memorandum so radical that even our labor representatives are alarmed. ?]
-
-[? if reparation_negotiation == "schacht" : Schacht demands that any further reparations payments be conditional on: the return of the "Polish Corridor" severing East Prussia from the Reich, and the restoration of Germany's former African colonies. Without territorial revision, he insists, Germany cannot and will not pay. ?]
-
-[? if reparation_negotiation == "labor_included" : The memorandum demands territorial revision—return of the Polish Corridor and Germany's colonies—as precondition for reparations payments. Leipart reportedly objected, warning this would derail negotiations, but was overruled by Schacht and Vögler. ?]
-
-[? if reparation_negotiation == "hilferding" : Hilferding reports that conservative members of the delegation—particularly industrialist Vögler—pressured him to include territorial demands in Germany's position: return of the Polish Corridor and former colonies as precondition for reparations. Hilferding resisted, but the damage is done. ?]
-
-[? if reparation_negotiation == "worker_veto" : Schacht's memorandum links reparations to territorial revision—demanding return of the Polish Corridor and colonies. Our labor representatives never approved this position, but Schacht presented it anyway, claiming technical authority as delegation head. ?]
-
-The Allied response is swift and harsh. The French government considers the memorandum an intolerable provocation—an attempt to unilaterally revise Versailles through economic blackmail. The British are scarcely less furious. Polish diplomats protest vehemently.
-
-The negotiations are suspended. The German delegation returns to Berlin in disgrace.
-
-Now the Reich Cabinet must decide: do we repudiate Schacht's memorandum and salvage the negotiations? Or do we stand behind the demands for territorial revision, consequences be damned?
-
-- @repudiate_memorandum: Disavow the memorandum and recommit to negotiations.
-- @support_memorandum: Stand behind the territorial demands.
-- @moderate_position: Seek a middle ground—territorial questions separate from reparations.
-
-@repudiate_memorandum
-on-arrival: west_relation += 1; poland_relation += 2; dnvp_relation -= 9; dvp_relation -= 5; z_relation += 4 if z_leader == "Brüning"; nationalism -= 3; left_strength += 5; reformist_strength += 3; reparations_negotiation += 1; hindenburg_relation -= 8; schacht_enemy = 1
-
-The Reich government issues a formal disavowal. "The memorandum does not represent German government policy," we announce. "Germany seeks a fair reparations settlement within the existing treaty framework. Territorial questions are separate matters."
-
-[? if reparation_negotiation == "schacht" : Schacht is livid. "You've undercut me while I was negotiating Germany's future!" he thunders. His relationship with the government is poisoned. ?]
-
-[? if reparation_negotiation == "labor_included" : Leipart publicly supports the disavowal, noting he objected to the memorandum from the start. "Labor representatives must have genuine authority, not mere presence," he declares. ?]
-
-[? if reparation_negotiation == "hilferding" : Hilferding returns to Berlin vindicated. "I warned that territorial maximalism would sabotage the negotiations," he tells the Cabinet. His position is strengthened. ?]
-
-The Allies cautiously welcome the clarification. Negotiations can resume, though the atmosphere is poisoned. Polish-German relations, never warm, have deteriorated further.
-
-But the Nationalists are apoplectic. "The government crawls to Poland!" the DNVP thunders. "German soil remains under foreign occupation, and our spineless leaders accept it!" Even the DVP grumbles about "unnecessary weakness."
-
-Hindenburg coldly informs the Chancellor that the military shares the Nationalists' disappointment. The Reich President expects German governments to defend national interests with more vigor.
-
-[? if spd_in_government : Our participation in a government that "surrenders" German claims costs us nationalist support. But at least the negotiations continue. ?]
-
-@support_memorandum
-choose-if: nationalism >= 5 or dnvp_relation >= 40 or (left_strength < 25 and reformist_strength < 25)
-unavailable-subtitle: [? if nationalism < 5 and dnvp_relation < 40 : The party's internationalist tradition makes fully backing territorial revisionism impossible. ?] [? if left_strength >= 25 or reformist_strength >= 25 : The party's democratic factions would never support such aggressive revisionism. ?]
-on-arrival: west_relation -= 2; poland_relation -= 3; czech_relation -= 2; dnvp_relation += 5; dvp_relation += 8; nationalism += 8; left_dissent += 9; reformist_dissent += 6; young_plan_catastrophy = 1; coalition_dissent += 1; hindenburg_relation += 5; reparations_negotiation -= 2
-
-"The memorandum states Germany's legitimate position!" we declare. "The Polish Corridor is an intolerable violation of national unity. Germany's colonies were stolen, not surrendered. These injustices must be rectified!"
-
-It's a stunning nationalist turn for the SPD. The Nationalists are delighted—finally, the socialists show some German spirit! Even the DVP offers grudging approval. Hindenburg nods approvingly.
-
-But the international consequences are catastrophic. The French government refuses further negotiations under these conditions. Britain withdraws from the reparations committee. Poland mobilizes diplomatic support from its Little Entente allies.
-
-The Young Plan—which would have reduced reparations significantly—collapses before it's even drafted. Germany remains trapped under the Dawes Plan's heavier burdens.
-
-And within our own party, the reaction is explosive. "We've become nationalist revanchists!" the left wing thunders. "We're indistinguishable from the DNVP!" Even reformists are appalled. The SPD's internationalist tradition, built over decades, lies shattered.
-
-[? if spd_in_government : Our coalition partners demand explanations. The DDP especially is horrified by this nationalist adventurism. ?]
-
-[? if left_strength > 30 : Emergency party conferences are called. The left faction threatens a split unless we reverse course. ?]
-
-@moderate_position
-on-arrival: west_relation += 2; poland_relation -= 2; dnvp_relation -= 8; dvp_relation += 3; z_relation += 6 if z_leader == "Brüning"; coalition_dissent -= 1;
-
-"Germany has legitimate grievances about territorial settlement," we state carefully, "but these should be addressed through separate diplomatic channels, not by holding reparations negotiations hostage. We seek resolution of both issues, but in proper sequence."
-
-It's a classic diplomatic hedge—we don't repudiate the territorial claims entirely, but we decouple them from reparations. Neither side is fully satisfied, but neither can accuse us of betrayal.
-
-[? if reparation_negotiation == "schacht" : Schacht grudgingly accepts the government's position, though his relationship with political authorities is strained. ?]
-
-[? if reparation_negotiation == "labor_included" : The labor representatives appreciate the government's pragmatism, noting this allows negotiations to continue while preserving German dignity. ?]
-
-[? if reparation_negotiation == "hilferding" : Hilferding successfully sells this position to the Allies as "reasonable German moderation." His stature as negotiator is enhanced. ?]
-
-The Allies are wary but willing to continue. Poland remains suspicious—clearly Germany still covets the Corridor—but at least we're not making it an explicit precondition. The negotiations limp forward.
-
-The Nationalists denounce our "weasel words," but lack grounds for full assault. We've preserved some nationalist credibility without sabotaging the economic negotiations entirely.
-
-It's neither triumph nor disaster—the usual fate of Weimar compromise.
+Until the april ... WIP. RESEARCH IS ONGOING.
