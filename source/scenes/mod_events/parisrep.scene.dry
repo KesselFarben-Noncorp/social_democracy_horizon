@@ -20,7 +20,7 @@ How shall we act?
 - @hilferding_lead: As the preparations lasted longer than necessary...
 
 @schacht
-go-to: schacht_solo if dvp_relation < 35 or capital_strike_progress > 3; support_schacht
+go-to: schacht_solo if dvp_relation < 35 or capital_strike_progress > 3; support_schacht if dvp_relation > 35 or capital_strike_progress < 3; support_schacht
 
 @schacht_solo
 on-arrival: dvp_relation += 2; schacht_relation += 10; reparation_negotiation = "schacht_solo";
@@ -42,7 +42,7 @@ choose-if: spd_in_government
 unavailable-subtitle: [? if not spd_in_government: We need to be in a coalition government to have influence over the delegation composition. ?]
 on-arrival: reparation_negotiation = "labor_included"; labor_strength += 5; left_dissent -= 5; reformist_strength += 3; dvp_relation -= 8; z_relation -= 4; dnvp_relation -= 10
 
-Despite all objections from the members of the Reformist Fraction and our coalition members, we have taken those two to the suspicion and sent out the local Labor leadership members alongside them to the Paris.
+Despite all objections from the members of the Reformist Fraction and our coalition members, we have taken Schacht to the suspicion and sent out the local Labor leadership members alongside them to the Paris.
 
 Schacht has called out on this trip serving ideological purposes of the Social Democratic Party of the Germany. Having Vogler leave the renegotiations trip, he was forced to accept the current delegation composition. 
 
@@ -51,10 +51,10 @@ Our coalition members have pressured us to not interfere further in the ordeal a
 Is our choice wrong after all if we are right?
 
 @hilferding_lead
-choose-if: spd_in_government  and coalition_dissent <= 2 and finance_minister_party != "SPD" and spd_votes >= 30
+choose-if: spd_in_government and coalition_dissent <= 2 and finance_minister_party != "SPD" and spd_votes >= 30
 subtitle: ...Hilferding?
 face-image: img/hilferding.jpg
-unavailable-subtitle: [? if not spd_in_government: We must be in government to propose our Finance Minister. ?][? if not spd_votes >= 30: We need to be strong electorally in order to influence. ?][? if reformist_strength < left_strength: The party's left wing would never accept a reformist leading such crucial negotiations. ?][? if coalition_dissent > 2: Our coalition partners are already too alienated to accept this demand. ?]
+unavailable-subtitle: [? if not spd_in_government: We must be in government to propose our Economist. ?][? if not spd_votes >= 30: We need to be strong electorally in order to influence. ?][? if reformist_strength < left_strength: The party's left wing would never accept a reformist leading such crucial negotiations. ?][? if coalition_dissent > 2: Our coalition partners are already too alienated to accept this demand. ?]
 on-arrival: reparation_negotiation = "hilferding"; reformist_strength += 8; center_strength += 5; left_dissent -= 3; dvp_relation -= 12; dnvp_relation -= 15; z_relation -= 6
 
 Hilferding has proposed to us, that he would like to lead the delegation to the Paris by himself. We were left confused on why would he ever do this. But overall we decided to prefer this over Schacht and Vogler, despite uncovered and clear purpose behind the delegation and it's composition.
