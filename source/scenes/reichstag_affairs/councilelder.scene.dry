@@ -3,6 +3,7 @@ new-page: true
 is-card: true
 tags: reichstag_affairs
 view-if: spd_in_government
+go-to: startermenu
 on-display: {!
     document.getElementById('bill-queue-display').innerHTML = Q.bill_list_html || Q.bill_list_text || '';
 !}
@@ -76,6 +77,8 @@ Q.can_propose             = (Q.bill_proposed_this_month || 0) === 0 ? 1 : 0;
 Q.spd_holds_rt_presidency = (Q.reichstag_president_party === 'SPD') ? 1 : 0;
 
 !}
+
+@startermenu
 
 == Council of Elders
 
@@ -585,4 +588,4 @@ Your contacts have sounded out the chamber on **[+ estimate_bill_name +]** ([+ e
 [? if estimate_bill_ideo >= 8 : Far-right bills are harder to read. Nationalist sentiment can shift votes unpredictably. ?]
 [? if estimate_bill_type = 'constitutional' : Constitutional bills carry extra uncertainty — party discipline tends to fracture. ?]
 
-- @root: Return to the chamber
+- @startermenu: Return to the chamber
