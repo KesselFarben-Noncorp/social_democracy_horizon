@@ -477,6 +477,82 @@ Q.results_jewish     = fmt('jewish');
 Q.results_dnsap      = dnsap_formed ? fmt('dnsap') : '—';
 
 !}
+on-display: {!
+var partyData = [
+    { id: "kpo",        name: "KPÖ",   color: "#8B0000", seats: Q.kpo_seats        || 0, show: true },
+    { id: "sdapo",      name: "SDAPÖ", color: "#C0392B", seats: Q.sdapo_seats      || 0, show: true },
+    { id: "jewish",     name: "JL",    color: "#D4AF37", seats: Q.jewish_seats     || 0, show: (Q.jewish_seats || 0) > 0 },
+    { id: "lb",         name: "LB",    color: "#8B6914", seats: Q.lb_seats         || 0, show: (Q.lb_seats || 0) > 0 },
+    { id: "cs",         name: "CS",    color: "#2E4F9E", seats: Q.cs_seats         || 0, show: true },
+    { id: "gdvp",       name: "GDVP",  color: "#1A6B4A", seats: Q.gdvp_seats       || 0, show: (Q.gdvp_seats || 0) > 0 },
+    { id: "heimatblock",name: "HB",    color: "#7D3C98", seats: Q.heimatblock_seats || 0, show: (Q.heimatblock_seats || 0) > 0 },
+    { id: "dnsap",      name: "DNSAP", color: "#2C2C2C", seats: Q.dnsap_seats      || 0, show: !!(Q.dnsap_formed && (Q.dnsap_seats || 0) > 0) },
+];
+
+var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
+
+var data = visibleParties.map(function(p) {
+    return { id: p.id, legend: p.name, name: p.name, seats: p.seats };
+});
+
+if (window && d3) {
+    var width = 600;
+    var height = 300;
+    var screenWidth = document.getElementById('content').offsetWidth;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+        document.getElementById("nationalrat").style.height = height + "px";
+    }
+    document.getElementById("nationalrat").style.width = width + "px";
+    document.getElementById("nationalrat").style.height = height + "px";
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#nationalrat").datum(data).call(parliament);
+
+    // Color bar
+    var totalSeats = visibleParties.reduce(function(sum, p) { return sum + p.seats; }, 0);
+    var bar = document.getElementById("party-color-bar");
+    bar.innerHTML = "";
+    bar.style.display = "flex";
+    bar.style.width = "100%";
+    bar.style.height = "28px";
+    bar.style.marginTop = "8px";
+    bar.style.overflow = "hidden";
+    bar.style.borderRadius = "3px";
+
+    visibleParties.forEach(function(p) {
+        var pct = p.seats / totalSeats;
+        var seg = document.createElement("div");
+        seg.style.width = (pct * 100) + "%";
+        seg.style.height = "100%";
+        seg.style.backgroundColor = p.color;
+        seg.style.display = "flex";
+        seg.style.alignItems = "center";
+        seg.style.justifyContent = "center";
+        seg.style.overflow = "hidden";
+        seg.style.boxSizing = "border-box";
+        seg.title = p.name + ": " + p.seats + " seats";
+
+        if (pct > 0.035) {
+            var label = document.createElement("span");
+            label.style.fontSize = "10px";
+            label.style.fontWeight = "bold";
+            label.style.color = "#fff";
+            label.style.textShadow = "0 0 2px #000, 0 0 2px #000";
+            label.style.whiteSpace = "nowrap";
+            label.style.pointerEvents = "none";
+            label.textContent = p.name + " " + Math.round(pct * 100) + "%";
+            seg.appendChild(label);
+        }
+
+        bar.appendChild(seg);
+    });
+}
+!}
 
 = Nationalrat Results — [+ year +]
 
@@ -485,19 +561,78 @@ Q.results_dnsap      = dnsap_formed ? fmt('dnsap') : '—';
 [? if austria_crisis : **The Republic is in crisis.** Fascist and Communist extremes dominate the chamber. ?]
 [? if austria_democratic_stable : The democratic forces hold the centre. ?]
 
-[+ parliament_svg +]
+= Election results
 
-**Results:**
+{!<svg id="nationalrat" style="width: 600px; height: 300px;"> </svg>
+<div id="party-color-bar"></div>!}
 
-[+ results_sdapo +]
-[+ results_cs +]
-[+ results_gdvp +]
-[+ results_lb +]
-[+ results_heimatblock +]
-[? if dnsap_formed : [+ results_dnsap +] ?]
-[+ results_kpo +]
-[+ results_jewish +]
+{!<table style="width:100%; border-collapse: collapse;">!}
+<tr style="border-bottom: 2px solid #333;">
+    <td style="padding: 8px; font-weight: bold;">Party</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Votes</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Seats</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Change</td>
+</tr>
+<tr class="row-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#8B0000; display:inline-block; margin-right:8px;'> </div>KPÖ</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpo_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ kpo_seats +]</td>
+    <td style="padding: 8px; text-align: right;">[+ chg_kpo +]</td>
+</tr>
+<tr class="row-left row-spd">
+    <td style="padding: 8px;"><div class="box" style='background-color:#C0392B; display:inline-block; margin-right:8px;'> </div><strong>SDAPÖ</strong></td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sdapo_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ sdapo_seats +]</td>
+    <td style="padding: 8px; text-align: right;"><strong>[+ chg_sdapo +]</strong></td>
+</tr>
+[? if jewish_seats > 0 :
+<tr class="row-center">
+    <td style="padding: 8px;"><div class="box" style='background-color:#D4AF37; display:inline-block; margin-right:8px;'> </div>Jewish List</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ jewish_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ jewish_seats +]</td>
+    <td style="padding: 8px; text-align: right;">[+ chg_jewish +]</td>
+</tr>
+?]
+[? if lb_seats > 0 :
+<tr class="row-neutral">
+    <td style="padding: 8px;"><div class="box" style='background-color:#8B6914; display:inline-block; margin-right:8px;'> </div>Landbund</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ lb_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ lb_seats +]</td>
+    <td style="padding: 8px; text-align: right;">[+ chg_lb +]</td>
+</tr>
+?]
+<tr class="row-liberal">
+    <td style="padding: 8px;"><div class="box" style='background-color:#2E4F9E; display:inline-block; margin-right:8px;'> </div><strong>CS</strong></td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cs_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ cs_seats +]</td>
+    <td style="padding: 8px; text-align: right;"><strong>[+ chg_cs +]</strong></td>
+</tr>
+[? if gdvp_seats > 0 :
+<tr class="row-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#1A6B4A; display:inline-block; margin-right:8px;'> </div>GDVP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ gdvp_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ gdvp_seats +]</td>
+    <td style="padding: 8px; text-align: right;">[+ chg_gdvp +]</td>
+</tr>
+?]
+[? if heimatblock_seats > 0 :
+<tr class="row-far-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#7D3C98; display:inline-block; margin-right:8px;'> </div>Heimatblock</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ heimatblock_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ heimatblock_seats +]</td>
+    <td style="padding: 8px; text-align: right;">[+ chg_heimatblock +]</td>
+</tr>
+?]
+[? if dnsap_formed :
+<tr class="row-far-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#2C2C2C; display:inline-block; margin-right:8px;'> </div>DNSAP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dnsap_vote +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ dnsap_seats +]</td>
+    <td style="padding: 8px; text-align: right;">[+ chg_dnsap +]</td>
+</tr>
+?]
 
+{!</table>!}
 **Blocs:**
 Left (SDAPÖ + KPÖ): [+ aus_left_bloc +]% · [+ aus_left_seats +] seats
 Center-Right (CS + GDVP + LB): [+ aus_center_bloc +]% · [+ aus_cr_seats +] seats
