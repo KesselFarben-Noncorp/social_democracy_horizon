@@ -414,6 +414,18 @@ const SuperEvent = (() => {
     _leftPanel.style.display  = left  ? '' : 'none';
     _rightPanel.style.display = right ? '' : 'none';
 
+    // inside trigger(), after _leftPanel:
+    document.getElementById('super-event-title').textContent = title ?? '';
+    document.getElementById('super-event-title').style.display = title ? '' : 'none';
+
+    _rightPanel.querySelector('.super-event-right-body').innerHTML = right;
+    _rightPanel.querySelector('.super-event-quote').innerHTML =
+      quote ? `${quote}<cite>${quoteCite ?? ''}</cite>` : '';
+    _rightPanel.querySelector('.super-event-quote').style.display = quote ? '' : 'none';
+
+// wire skip button
+    document.getElementById('super-event-skip').onclick = () => skip(onClose);
+
     /* Load video */
     _video.querySelector('source').src = videoSrc;
     _video.load();
