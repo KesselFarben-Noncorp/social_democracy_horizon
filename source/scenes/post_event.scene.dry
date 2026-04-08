@@ -1641,11 +1641,12 @@ for (var rel of relations) {
 
 
     
-    // ============================================================
+// ============================================================
 // OPINION DYNAMICS
 // Rule: a party in power takes credit/blame for the economy.
 //       A party in opposition gains when its rivals are blamed.
 //       Phase-aware: Q.phase modulates which pressures bite hardest.
+//       TSE-aware: transformed_socialist_economy shifts baselines.
 // ============================================================
 
 // --- Helpers ---
@@ -1653,22 +1654,21 @@ function scale(value, low, high) {
     return Math.max(0, Math.min(1, (value - low) / (high - low)));
 }
 
+var tse = Q.transformed_socialist_economy ? 1 : 0;
+
 // --- Base economic stress/relief signals ---
-var unemp_stress  = scale(Q.unemployed, 8, 25);
-var unemp_relief  = 1 - scale(Q.unemployed, 3, 10);
+var unemp_stress     = scale(Q.unemployed, 8, 25);
+var unemp_relief     = 1 - scale(Q.unemployed, 3, 10);
 var inflation_stress = scale(Q.inflation, 5, 15);
 var inflation_stable = 1 - scale(Math.abs(Q.inflation), 3, 8);
-var growth_boost  = scale(Q.economic_growth, 1, 6);
-var growth_penalty = scale(-Q.economic_growth, 1, 10);
+var growth_boost     = scale(Q.economic_growth, 1, 6);
+var growth_penalty   = scale(-Q.economic_growth, 1, 10);
 
 // --- Phase multipliers ---
-// Each phase amplifies the pressures most associated with it historically.
-// Depression: unemployment dominates. Hyperinflation: inflation dominates.
-// Stagflation: both hurt, centrists uniquely exposed. Overheating: optimism.
-var phase_unemp_mult    = 1.0;
-var phase_inflation_mult = 1.0;
-var phase_growth_mult   = 1.0;
-var phase_centrist_penalty = 0.0; // extra drain on republic when centrists hold bag
+var phase_unemp_mult       = 1.0;
+var phase_inflation_mult   = 1.0;
+var phase_growth_mult      = 1.0;
+var phase_centrist_penalty = 0.0;
 
 switch (Q.phase) {
     case "growth":
@@ -1682,10 +1682,9 @@ switch (Q.phase) {
         phase_growth_mult   = 1.2;
         break;
     case "hyperinflation":
-        // Inflation crisis: nationalists gain most, republic bleeds fast
-        phase_unemp_mult    = 0.9;
-        phase_inflation_mult = 2.2;
-        phase_growth_mult   = 1.0;
+        phase_unemp_mult       = 0.9;
+        phase_inflation_mult   = 2.2;
+        phase_growth_mult      = 1.0;
         phase_centrist_penalty = 0.8;
         break;
     case "correction":
@@ -1694,31 +1693,33 @@ switch (Q.phase) {
         phase_growth_mult   = 1.3;
         break;
     case "depression":
-        // Unemployment crisis: socialism and nationalism both surge
-        phase_unemp_mult    = 2.0;
-        phase_inflation_mult = 0.7;
-        phase_growth_mult   = 1.6;
+        phase_unemp_mult       = 2.0;
+        phase_inflation_mult   = 0.7;
+        phase_growth_mult      = 1.6;
         phase_centrist_penalty = 1.0;
         break;
     case "stagflation":
-        // Both pressures active, neither resolves — uniquely punishes centrists
-        phase_unemp_mult    = 1.4;
-        phase_inflation_mult = 1.4;
-        phase_growth_mult   = 1.2;
+        phase_unemp_mult       = 1.4;
+        phase_inflation_mult   = 1.4;
+        phase_growth_mult      = 1.2;
         phase_centrist_penalty = 1.4;
         break;
 }
 
-// Apply phase scaling to base signals
-var eff_unemp_stress   = unemp_stress   * phase_unemp_mult;
-var eff_unemp_relief   = unemp_relief   * (2.0 - phase_unemp_mult); // relief shrinks when phase amplifies stress
+// --- Apply phase scaling ---
+// TSE amplifies unemployment signals in both directions —
+// full employment is the transformation's core promise.
+var tse_unemp_stress_mult  = tse ? 1.4 : 1.0;
+var tse_unemp_relief_mult  = tse ? 1.3 : 1.0;
+
+var eff_unemp_stress     = unemp_stress   * phase_unemp_mult    * tse_unemp_stress_mult;
+var eff_unemp_relief     = unemp_relief   * (2.0 - phase_unemp_mult) * tse_unemp_relief_mult;
 var eff_inflation_stress = inflation_stress * phase_inflation_mult;
 var eff_inflation_stable = inflation_stable * (2.0 - phase_inflation_mult);
-var eff_growth_boost   = growth_boost   * phase_growth_mult;
-var eff_growth_penalty = growth_penalty * phase_growth_mult;
+var eff_growth_boost     = growth_boost   * phase_growth_mult;
+var eff_growth_penalty   = growth_penalty * phase_growth_mult;
 
-// Clamp effective values so multipliers don't push past [0,1] range on base signals
-eff_unemp_relief    = Math.max(0, Math.min(1, eff_unemp_relief));
+eff_unemp_relief     = Math.max(0, Math.min(1, eff_unemp_relief));
 eff_inflation_stable = Math.max(0, Math.min(1, eff_inflation_stable));
 
 // --- Economy state flags ---
@@ -1726,9 +1727,17 @@ var economy_good  = (Q.unemployed < 8 && Q.inflation > -2 && Q.inflation < 6 && 
 var economy_bad   = (Q.unemployed > 15 || Math.abs(Q.inflation) > 8 || Q.economic_growth < -2);
 var economy_mixed = !economy_good && !economy_bad;
 
+// Under TSE, the bar for "good" on unemployment is higher —
+// the transformation promised structural full employment.
+// If TSE is active, economy_good requires unemployment below 6, not 8.
+if (tse && Q.unemployed >= 6 && Q.unemployed < 8) {
+    economy_good = false;
+    economy_mixed = true;
+}
+
 // --- Party bloc counts and influence ---
-var socialist_party_count  = 0;
-var centrist_party_count   = 0;
+var socialist_party_count   = 0;
+var centrist_party_count    = 0;
 var nationalist_party_count = 0;
 
 if (Q.ideology === "left" && Q.spd_in_government) socialist_party_count++;
@@ -1747,12 +1756,11 @@ if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
 if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
 if (Q.cnbl_in_government)  nationalist_party_count++;
 if (Q.nsdap_in_government) nationalist_party_count++;
-if (Q.dvfp_in_government) nationalist_party_count++;
+if (Q.dvfp_in_government)  nationalist_party_count++;
 if (Q.dvp_in_government && (Q.dvp_right_shift || 0) >= 1) nationalist_party_count++;
 
-// 1 party = 0.35, 2 = 0.70, 3+ = 1.0
-var socialist_influence  = Math.min(socialist_party_count  * 0.35, 1.0);
-var centrist_influence   = Math.min(centrist_party_count   * 0.25, 1.0);
+var socialist_influence   = Math.min(socialist_party_count   * 0.35, 1.0);
+var centrist_influence    = Math.min(centrist_party_count    * 0.25, 1.0);
 var nationalist_influence = Math.min(nationalist_party_count * 0.35, 1.0);
 
 var socialist_in_power   = socialist_party_count > 0;
@@ -1762,11 +1770,6 @@ var nationalist_in_power = nationalist_party_count > 0;
 // ============================================================
 // PRO_REPUBLIC
 // ============================================================
-// Republic is tied to economic stability, not ideology.
-// Good economy helps it regardless of who governs.
-// Bad economy hurts it, especially without a strong anchor party.
-// Phase centrist_penalty bleeds republic when the moderate bloc
-// is left holding an unsolvable crisis (depression, stagflation).
 
 var pr_push = 0;
 var pr_pull = 0;
@@ -1778,21 +1781,34 @@ if (economy_good) {
 if (economy_bad) {
     pr_pull += (eff_unemp_stress * 3.5) + (eff_inflation_stress * 1.5) + (eff_growth_penalty * 3.0);
 
-    // Weak government anchor accelerates republic decline
     if (!Q.spd_in_government && !Q.z_in_government) {
         pr_pull += 1.0;
     }
 
-    // Centrist-only government in an unsolvable crisis bleeds republic
-    // (they're blamed for inaction on problems ideology can't fix)
     if (centrist_in_power && !socialist_in_power && !nationalist_in_power) {
         pr_pull += phase_centrist_penalty * centrist_influence;
     }
 }
 
+// TSE structural effects on republic legitimacy.
+// Transformation is initially destabilizing — the republic is being
+// fundamentally restructured, which creates anxiety regardless of outcome.
+// If it succeeds it becomes a vindication; if it fails, a constitutional crisis.
+if (tse) {
+    if (economy_good) {
+        // Transformation + good economy: "the republic can deliver" narrative
+        pr_push += 0.6 * socialist_influence;
+    } else if (economy_bad) {
+        // Transformation + crisis: constitutional crisis territory
+        pr_pull += 1.5 * socialist_influence;
+    } else {
+        // Mixed: structural anxiety dominates during uncertain transformation
+        pr_pull += 0.5 * socialist_influence;
+    }
+}
+
 var pr_delta = (pr_push - pr_pull) * 0.65;
 
-// Soft ceiling/floor — diminishing returns near extremes
 if (pr_delta > 0 && Q.pro_republic > 70) pr_delta *= (1 - scale(Q.pro_republic, 70, 90));
 if (pr_delta < 0 && Q.pro_republic < 25) pr_delta *= (1 - scale(25 - Q.pro_republic, 0, 15));
 
@@ -1801,11 +1817,6 @@ Q.pro_republic += pr_delta;
 // ============================================================
 // NATIONALISM
 // ============================================================
-// Gains from economic pain when NOT in power.
-// Gains credit when IN power during good times.
-// Takes blame when IN power during bad times.
-// Hyperinflation phase specifically boosts nationalism (scapegoating, foreign blame).
-// Depression phase also boosts it but more gradually (unemployment-driven).
 
 var nat_push = 0;
 var nat_pull = 0;
@@ -1814,12 +1825,10 @@ if (economy_bad) {
     nat_push += (eff_unemp_stress * 4.0) + (eff_inflation_stress * 1.5) + (eff_growth_penalty * 3.0);
 
     if (nationalist_in_power) {
-        // In power during crisis: takes proportional blame
         nat_pull += 2.0 * nationalist_influence;
     }
 
     if (socialist_in_power || centrist_in_power) {
-        // Rivals are in power during crisis: nationalism gains as opposition
         var other_influence = Math.max(socialist_influence, centrist_influence);
         nat_push += 1.5 * other_influence;
     }
@@ -1829,13 +1838,26 @@ if (economy_good) {
     nat_pull += (eff_unemp_relief * 1.5) + (eff_inflation_stable * 1.0);
 
     if (nationalist_in_power) {
-        // In power during good times: takes credit
         nat_push += 1.5 * nationalist_influence;
     }
 
     if (socialist_in_power) {
-        // Left in power during good times: nationalism loses ground
         nat_pull += 1.0 * socialist_influence;
+    }
+}
+
+// TSE opposition effect on nationalism.
+// Failed transformation is nationalism's best recruiting tool.
+// Successful transformation is an ideological threat — it proves
+// the left can govern, which nationalism needs to deny.
+if (tse) {
+    if (economy_bad && !nationalist_in_power) {
+        // "We told you so" — failed transformation vindicates nationalist critique
+        nat_push += 1.2 * (1 - socialist_influence);
+    }
+    if (economy_good && !nationalist_in_power) {
+        // Successful transformation threatens nationalist identity politics
+        nat_pull += 0.5 * socialist_influence;
     }
 }
 
@@ -1849,10 +1871,6 @@ Q.nationalism += nat_delta;
 // ============================================================
 // SOCIALISM
 // ============================================================
-// Mirror of nationalism logic but on the left axis.
-// Depression phase hits unemp_stress hardest — socialism's natural terrain.
-// Gains when nationalists or centrists hold power during a crisis.
-// Takes blame when in power during a crisis.
 
 var soc_push = 0;
 var soc_pull = 0;
@@ -1861,11 +1879,13 @@ if (economy_bad) {
     soc_push += (eff_unemp_stress * 4.0) + (eff_inflation_stress * 1.2) + (eff_growth_penalty * 2.5);
 
     if (socialist_in_power) {
-        soc_pull += 2.0 * socialist_influence;
+        // TSE reduces blame absorption — crisis can be framed as sabotage,
+        // external pressure, or the cost of transition. Not zero blame, but muted.
+        var soc_blame_mult = tse ? 0.6 : 1.0;
+        soc_pull += 2.0 * socialist_influence * soc_blame_mult;
     }
 
     if (nationalist_in_power && !Q.in_grand_coalition) {
-        // Right in power during crisis: socialism gains as opposition
         soc_push += 1.5 * nationalist_influence;
     }
 }
@@ -1878,8 +1898,20 @@ if (economy_good) {
     }
 
     if (nationalist_in_power && !socialist_in_power) {
-        // Right in power during good times: socialism loses ground
         soc_pull += 1.0 * nationalist_influence;
+    }
+}
+
+// TSE structural legitimacy bonus for socialism.
+// The transformation itself generates ongoing ideological momentum —
+// it is a proof of concept that socialist governance is possible.
+if (tse && socialist_in_power) {
+    // Baseline legitimacy from the transformation existing at all
+    soc_push += 0.4 * socialist_influence;
+
+    if (economy_good) {
+        // Transformation + good economy = vindication narrative
+        soc_push += 0.6 * socialist_influence;
     }
 }
 
@@ -1892,10 +1924,6 @@ Q.socialism += soc_delta;
 
 // ============================================================
 // COMPETENCE COUNTERS
-// Tracks sustained good/bad performance to build or destroy legitimacy.
-// FIX: Previously soc_pull/nat_pull were modified AFTER soc_delta/nat_delta
-// were already computed, so those multiplications did nothing.
-// Now legitimacy bonuses apply directly to the opinion variable.
 // ============================================================
 
 if (Q.socialist_govt_success_counter  === undefined) Q.socialist_govt_success_counter  = 0;
@@ -1904,7 +1932,6 @@ if (Q.nationalist_govt_success_counter === undefined) Q.nationalist_govt_success
 if (economy_good && socialist_in_power) {
     Q.socialist_govt_success_counter += socialist_influence;
     if (Q.socialist_govt_success_counter > 4) {
-        // Sustained good performance builds genuine legitimacy
         Q.socialism += 0.15 * socialist_influence;
     }
 } else if (economy_bad && socialist_in_power) {
@@ -1924,33 +1951,29 @@ if (economy_good && nationalist_in_power) {
 
 // ============================================================
 // CROSS-PRESSURE
-// When an extreme rises, republic bleeds proportionally.
-// If both rise simultaneously, effects are additive — no cap.
-// The losing extreme also nudges the other down (they compete for the same
-// alienated voter pool, so one dominating crowds out the other).
+// TSE amplifies polarization — both extremes react more sharply
+// to each other's movements when the economy is being fundamentally
+// restructured. The stakes feel higher, so swings are wider.
 // ============================================================
+
+var cross_pressure_mult = tse ? 1.4 : 1.0;
 
 if (Q.nationalism > 40 || Q.socialism > 40) {
 
-    // Republic bleeds from each rising extreme independently
     if (nat_delta > 0) {
-        Q.pro_republic -= nat_delta * 0.25;
+        Q.pro_republic -= nat_delta * 0.25 * cross_pressure_mult;
     }
     if (soc_delta > 0) {
-        Q.pro_republic -= soc_delta * 0.25;
+        Q.pro_republic -= soc_delta * 0.25 * cross_pressure_mult;
     }
 
-    // Extremes compete: whichever gained less gets nudged down
-    // (they're drawing from the same pool of republic-skeptic voters)
     if (nat_delta > 0 && soc_delta > 0) {
-        // Both rising: smaller one gets crowded out
         if (nat_delta > soc_delta) {
             Q.socialism -= (nat_delta - soc_delta) * 0.15;
         } else if (soc_delta > nat_delta) {
             Q.nationalism -= (soc_delta - nat_delta) * 0.15;
         }
     } else if (nat_delta > 0 && soc_delta <= 0) {
-        // Only nationalism rising: nudges socialism down (and vice versa)
         Q.socialism -= nat_delta * 0.15;
     } else if (soc_delta > 0 && nat_delta <= 0) {
         Q.nationalism -= soc_delta * 0.15;
@@ -1959,24 +1982,28 @@ if (Q.nationalism > 40 || Q.socialism > 40) {
 
 // ============================================================
 // BROKEN PROMISES
-// Parties in power during severe crises take ideology-specific damage.
+// TSE raises the unemployment betrayal threshold significantly —
+// the transformation explicitly promised structural full employment.
+// Failure at a lower unemployment rate is therefore a sharper betrayal.
 // ============================================================
 
 if (economy_bad) {
-    // Socialists: unemployment is their core promise — high unemployment is a betrayal
-    if (socialist_in_power && Q.unemployed > 20) {
-        Q.socialism    -= 0.5  * socialist_influence;
-        Q.pro_republic -= 0.15 * socialist_influence;
+    if (socialist_in_power) {
+        var unemp_threshold  = tse ? 12 : 20;
+        var betrayal_magnitude = tse ? 0.9 : 0.5;
+        var republic_bleed   = tse ? 0.3 : 0.15;
+
+        if (Q.unemployed > unemp_threshold) {
+            Q.socialism    -= betrayal_magnitude * socialist_influence;
+            Q.pro_republic -= republic_bleed     * socialist_influence;
+        }
     }
 
-    // Nationalists: inflation and collapse are their core failure modes
     if (nationalist_in_power && (Q.inflation > 15 || Q.economic_growth < -5)) {
         Q.nationalism  -= 0.5  * nationalist_influence;
         Q.pro_republic -= 0.15 * nationalist_influence;
     }
 
-    // Centrist-only government: neither extreme takes blame, so both gain
-    // and the republic pays the price for having no strong anchor
     if (!socialist_in_power && !nationalist_in_power && centrist_in_power) {
         Q.socialism    += 0.3 * centrist_influence;
         Q.nationalism  += 0.3 * centrist_influence;
@@ -1985,9 +2012,51 @@ if (economy_bad) {
 }
 
 // ============================================================
-// HISTORICAL PRECEDENT (scaled version)
-// Past crisis victories/failures compound over time, scaled by
-// how many parties of that bloc are currently in government.
+// TSE PHASE INTERACTIONS
+// Specific phase + TSE combinations produce historically-grounded
+// divergent outcomes. These fire after all standard logic so they
+// layer on top rather than interfere with existing calculations.
+// ============================================================
+
+if (tse) {
+    if (Q.phase === "depression") {
+        // Depression vindicates the transformation's premise —
+        // "capitalism failed, the alternative was right all along."
+        // But the counter-reaction also surges: fear of red revolution.
+        Q.socialism    += 0.5 * socialist_influence;
+        Q.nationalism  += 0.3;
+        Q.pro_republic -= 0.4;
+    }
+
+    if (Q.phase === "hyperinflation") {
+        // Hyperinflation under socialist transformation is devastating —
+        // the transformation gets blamed for monetary instability,
+        // and nationalism gains its strongest possible recruitment narrative.
+        Q.socialism    -= 0.8 * socialist_influence;
+        Q.nationalism  += 0.6;
+        Q.pro_republic -= 0.6;
+    }
+
+    if (Q.phase === "stagflation") {
+        // Stagflation under TSE: neither the transformation's tools
+        // (employment policy) nor standard tools (monetary tightening)
+        // resolve it cleanly. Both extremes gain, republic bleeds.
+        Q.socialism    -= 0.3 * socialist_influence;
+        Q.nationalism  += 0.4;
+        Q.pro_republic -= 0.5;
+    }
+
+    if (Q.phase === "growth") {
+        // Sustained growth under transformation: vindication is compounding.
+        // Nationalism loses ground because its core critique is falsified.
+        Q.socialism    += 0.4 * socialist_influence;
+        Q.nationalism  -= 0.3 * socialist_influence;
+        Q.pro_republic += 0.2 * socialist_influence;
+    }
+}
+
+// ============================================================
+// HISTORICAL PRECEDENT
 // ============================================================
 
 if (Q.spd_crisis_victories && Q.spd_crisis_victories > 0
@@ -2007,8 +2076,6 @@ if (Q.nationalist_crisis_failures && Q.nationalist_crisis_failures > 0
 Q.pro_republic = Math.round(Math.max(0, Math.min(100, Q.pro_republic)) * 10) / 10;
 Q.nationalism  = Math.round(Math.max(0, Math.min(100, Q.nationalism))  * 10) / 10;
 Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 10;
-
-
 
 
 
