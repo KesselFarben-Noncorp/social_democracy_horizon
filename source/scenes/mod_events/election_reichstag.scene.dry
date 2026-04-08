@@ -242,6 +242,11 @@ var partyData = [
     { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: true },
     { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: true },
     { id: "dvfp",name: "DVFP",      color: "#1A0F00", seats: Q.dvfp_seats,show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
+    { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
+    { id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r && Q.hl_r > 0) },
+    { id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r && Q.sl_r > 0) },
+    { id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r && Q.kpo_r > 0) },
+    { id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r && Q.vnr_r > 0) },
 ];
 
 var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
@@ -330,6 +335,24 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ kpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kpd_r > 0 : color: green; ?][? if change_kpd_r < 0 : color: red; ?]">[+ str_change_kpd +]</td>
 </tr>
+<tr class="row-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#005B96; display:inline-block; margin-right:8px;'> </div>SL</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sl_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ sl_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_sl_r > 0 : color: green; ?][? if change_sl_r < 0 : color: red; ?]">[+ str_change_sl +]</td>
+</tr>
+<tr class="row-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#B22222; display:inline-block; margin-right:8px;'> </div>ASPD</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ aspd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ aspd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_aspd_r > 0 : color: green; ?][? if change_aspd_r < 0 : color: red; ?]">[+ str_change_aspd +]</td>
+</tr>
+<tr class="row-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#990000; display:inline-block; margin-right:8px;'> </div>KPO</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpo_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ kpo_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_kpo_r > 0 : color: green; ?][? if change_kpo_r < 0 : color: red; ?]">[+ str_change_kpo +]</td>
+</tr>
 [? if sapd_formed = 1 : 
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#C40000; display:inline-block; margin-right:8px;'> </div>SAPD</td>
@@ -369,6 +392,12 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bb_r_disp +]%</td>
     <td style="padding: 8px; text-align: right;">[+ bb_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bb_r > 0 : color: green; ?][? if change_bb_r < 0 : color: red; ?]">[+ str_change_bb +]</td>
+</tr>
+<tr class="row-liberal">
+    <td style="padding: 8px;"><div class="box" style='background-color:#2E8B57; display:inline-block; margin-right:8px;'> </div>HL</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ hl_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ hl_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_hl_r > 0 : color: green; ?][? if change_hl_r < 0 : color: red; ?]">[+ str_change_hl +]</td>
 </tr>
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BVP</td>
@@ -416,6 +445,12 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cnbl_r_disp +]%</td>
     <td style="padding: 8px; text-align: right;">[+ cnbl_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_cnbl_r > 0 : color: green; ?][? if change_cnbl_r < 0 : color: red; ?]">[+ str_change_cnbl +]</td>
+</tr>
+<tr class="row-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#4B5320; display:inline-block; margin-right:8px;'> </div>VNR</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ vnr_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right;">[+ vnr_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_vnr_r > 0 : color: green; ?][? if change_vnr_r < 0 : color: red; ?]">[+ str_change_vnr +]</td>
 </tr>
 ?]
 [? if csvd_flee:
@@ -494,6 +529,12 @@ if (Q.kvp_flee  && Q.kvp_r  && Q.kvp_r  > 0) Q.party_votes.push({party: 'KVP',  
 if (Q.bb_r  && Q.bb_r  > 0) Q.party_votes.push({party: 'BB',  votes: Q.bb_r});
 if (Q.dhp_r && Q.dhp_r > 0) Q.party_votes.push({party: 'DHP', votes: Q.dhp_r});
 if (Q.dvfp_r > 0) Q.party_votes.push({party: 'DVFP', votes: Q.dvfp_r});
+if (Q.aspd_r && Q.aspd_r > 0) Q.party_votes.push({party: 'ASPD', votes: Q.aspd_r});
+if (Q.hl_r   && Q.hl_r   > 0) Q.party_votes.push({party: 'HL',   votes: Q.hl_r});
+if (Q.sl_r   && Q.sl_r   > 0) Q.party_votes.push({party: 'SL',   votes: Q.sl_r});
+if (Q.kpo_r  && Q.kpo_r  > 0) Q.party_votes.push({party: 'KPO',  votes: Q.kpo_r});
+if (Q.vnr_r  && Q.vnr_r  > 0) Q.party_votes.push({party: 'VNR',  votes: Q.vnr_r});
+
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 
@@ -1212,6 +1253,12 @@ function classify_coalition(parties) {
     var has_bb = parties.indexOf('BB') >= 0;
     var has_dhp = parties.indexOf('DHP') >= 0;
     var has_dvfp = parties.indexOf('DVFP') >= 0;
+    var has_aspd = parties.indexOf('ASPD') >= 0;
+    var has_hl = parties.indexOf('HL') >= 0;
+    var has_sl = parties.indexOf('SL') >= 0;
+    var has_kpo = parties.indexOf('KPO') >= 0;
+    var has_vnr = parties.indexOf('VNR') >= 0;
+
     
     // Left coalitions
     if (has_spd && has_kpd && !has_z) return 'left_front';
