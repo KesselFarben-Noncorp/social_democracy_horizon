@@ -1,7 +1,7 @@
 title: [+ year +] Party Congress of the SPD
 tags: event
 max-visits: 1
-view-if: developer_mode = 1
+view-if: sandbox = 1
 on-arrival: {!
 
 var FRACTIONS = [
