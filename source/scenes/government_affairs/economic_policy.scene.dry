@@ -2,7 +2,7 @@ title: Economic Policy
 new-page: true
 is-card: true
 tags: govt_affairs, cabinet
-on-arrival: economic_policy_timer += 12; month_actions += 1; nationalize_budget = 4; nationalize_budget -= 1 if works_councils >= 2; nationalize_budget -= 1 if works_councils >= 3; nationalize_budget -= 1 if socializations + nationalization_progress >= 2; wtb_budget = 4; wtb_budget -= 1 if works_councils >= 2 or socializations >= 1 or pro_labor >= 2
+on-arrival: economic_policy_timer += 12; month_actions += 1; nationalize_budget = 4; nationalize_budget -= 1 if works_councils >= 2; nationalize_budget -= 1 if works_councils >= 3; nationalize_budget -= 1 if socialization + nationalization_progress >= 2; wtb_budget = 4; wtb_budget -= 1 if works_councils >= 2 or socialization >= 1 or pro_labor >= 2
 view-if: spd_in_government = 1 and (economic_minister_party == "SPD" or finance_minister_party == "SPD") and economic_policy_timer <= 0 and economic_plan > 0
 card-image: img/portraits/SchmidtRobert.jpg
 
@@ -215,11 +215,11 @@ achievement: wirtschaftspolitik
     [? if in_popular_front or in_left_front: The KPD opposes the WTB plan, seeing it as a rescue of capitalism rather than a step towards real socialism. ?]
 
 
-####################### left economic policies (socializations)
+####################### left economic policies (socialization)
 
 @nationalize_1
 title: Implement the Left plan for the transformation of the economy.
-subtitle: -[+ nationalize_budget +] budget. [? if works_councils >= 3 : Our works councils have reduced the budget necessary for this program. ?] [? if socializations >= 2: Our existing socialization policies have reduced the budget necessary for this program. ?]
+subtitle: -[+ nationalize_budget +] budget. [? if works_councils >= 3 : Our works councils have reduced the budget necessary for this program. ?] [? if socialization >= 2: Our existing socialization policies have reduced the budget necessary for this program. ?]
 view-if: left_adopted = 1 and nationalization_progress == 0
 go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_deficit if budget >= nationalize_budget
 
@@ -289,7 +289,7 @@ achievement: wirtschaftspolitik
 
 @nationalize_2
 title: Continue the Left plan for the transformation of the economy.
-subtitle: -[+ nationalize_budget +] budget. [? if works_councils >= 3 : Our works councils have reduced the budget necessary for this program. ?] [? if socializations + nationalization_progress >= 2: Our existing socialization policies have reduced the budget necessary for this program. ?]
+subtitle: -[+ nationalize_budget +] budget. [? if works_councils >= 3 : Our works councils have reduced the budget necessary for this program. ?] [? if socialization + nationalization_progress >= 2: Our existing socialization policies have reduced the budget necessary for this program. ?]
 view-if: left_adopted = 1 and nationalization_progress >= 1
 go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_deficit if budget >= nationalize_budget
 

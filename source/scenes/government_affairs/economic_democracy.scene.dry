@@ -20,9 +20,21 @@ As we control the Labor [? if economic_minister_party == "SPD" : and Economic ?]
 - @cooperatives_1
 - @cooperative_commonwealth
 - @public_contracts
+- @transformation_economy: Transformation of the economy.
 - @return: Do not enact any policies for now.
 - @easy_discard
 - @cancel_advisor_action
+
+@transformation_economy
+subtitle: This action is irreversible.
+on-arrival: transformed_socialist_economy = 1
+view-if: left_adopted = 1 or socialization > 1
+choose-if: (nationalization_progress > 2 or economic_democracy > 10 or socialization + nationalization_progress > 5) and (ideology = "left" or ideology = "center")
+unavailable-subtitle: [? if nationalization_progress < 2 or (socialization + nationalization_progress) < 5: Economy is not transformed enough to enact this policy. ?] [? if ideology != "left" or ideology != "center": Our ideological stance is not socialist oriented (left or center) ?]
+
+Our progress in transforming the economy has come to the point where now bourgeois do not yield as much power anymore. Perhaps, the future has come? There will be no more upper high class uzurpers, though socialist reforms have foggy future.
+
+Capital strikes and business confidence decrease will no longer happen anymore.
 
 @expand_councils
 title: Support works councils.
@@ -57,7 +69,7 @@ Sectorial works councils can now negotiate wage and price policies for entire ec
 @nationalize_1
 title: Begin to socialize key industries.
 subtitle: -1 budget - we should buy out industries and govern them together with workers and consumers.
-on-arrival: economic_democracy += 1; capital_strike_progress += 1; budget -= 1; socializations += 1; workers_spd += 6*(1-dissent); unemployedc_spd += 3*(1-dissent); coalition_dissent += 1 if in_grand_coalition; capital_strike_progress += 1 if black_thursday_seen; unemployed -= 1 if unemployed > 9; economic_growth += 0.2 if economic_growth < 5; general_strike_progress -= 3
+on-arrival: economic_democracy += 1; capital_strike_progress += 1; budget -= 1; socialization += 1; workers_spd += 6*(1-dissent); unemployedc_spd += 3*(1-dissent); coalition_dissent += 1 if in_grand_coalition; capital_strike_progress += 1 if black_thursday_seen; unemployed -= 1 if unemployed > 9; economic_growth += 0.2 if economic_growth < 5; general_strike_progress -= 3
 choose-if: budget >= 1
 max-visits: 3
 
