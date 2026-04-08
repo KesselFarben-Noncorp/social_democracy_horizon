@@ -43,7 +43,7 @@ Q.random_factor = function(f, variance = 0.65) {
 const ALL_PARTIES = [
     'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
     'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
-    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp'
+    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr'
 ];
 
 // === MASTER CHANCELLOR LIST ===
@@ -1743,6 +1743,8 @@ var nationalist_party_count = 0;
 if (Q.ideology === "left" && Q.spd_in_government) socialist_party_count++;
 if (Q.kpd_in_government)  socialist_party_count++;
 if (Q.sapd_in_government) socialist_party_count++;
+if (Q.sl_in_government) socialist_party_count++;
+if (Q.kpo_in_government) socialist_party_count++;
 
 if (Q.spd_in_government && Q.ideology !== "left") centrist_party_count++;
 if (Q.z_in_government)    centrist_party_count++;
@@ -1752,7 +1754,11 @@ if (Q.srpd_in_government) centrist_party_count++;
 if (Q.wp_in_government)   centrist_party_count++;
 if (Q.bvp_in_government)  centrist_party_count++;
 if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
+if (Q.aspd_in_government)  centrist_party_count++;
+if (Q.vnr_in_government)  centrist_party_count++;
+if (Q.hl_in_government)  centrist_party_count++;
 
+if (Q.vnr_in_government)  nationalist_party_count++;
 if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
 if (Q.cnbl_in_government)  nationalist_party_count++;
 if (Q.nsdap_in_government) nationalist_party_count++;
@@ -3336,6 +3342,76 @@ Q.identity_modifier = {
     new_middle: 0.20,
     rural:      2.10,  // Highest rural cap of any party
     unemployedc: 0.35,  // Catholic but not clericalist
+    },
+
+    aspd: {
+    base: Q.aspd_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat = Q.nationalism_factor;
+        let soc = Q.socialism_factor;
+        return (rep * 3 + nat * 5 + soc * 10) * Q.identity_modifier.bb;
+    })(),
+    workers:    0.50,
+    old_middle: 0.5,
+    new_middle: 0.2,
+    rural:      0.55,  // Highest rural cap of any party
+    unemployedc: 0.25,  // Catholic but not clericalist
+    },
+
+    hl: {
+    base: Q.hl_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat = Q.nationalism_factor;
+        let soc = Q.socialism_factor;
+        return (rep * 3 + nat * 5 + soc * 10) * Q.identity_modifier.bb;
+    })(),
+    workers:    0.50,
+    old_middle: 0.5,
+    new_middle: 0.2,
+    rural:      0.55,  // Highest rural cap of any party
+    unemployedc: 0.25,  // Catholic but not clericalist
+    },
+
+    sl: {
+    base: Q.aspd_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat = Q.nationalism_factor;
+        let soc = Q.socialism_factor;
+        return (rep * 3 + nat * 5 + soc * 10) * Q.identity_modifier.bb;
+    })(),
+    workers:    0.50,
+    old_middle: 0.5,
+    new_middle: 0.2,
+    rural:      0.55,  // Highest rural cap of any party
+    unemployedc: 0.25,  // Catholic but not clericalist
+    },
+
+    kpo: {
+    base: Q.aspd_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat = Q.nationalism_factor;
+        let soc = Q.socialism_factor;
+        return (rep * 3 + nat * 5 + soc * 20) * Q.identity_modifier.bb;
+    })(),
+    workers:    0.50,
+    old_middle: 0.5,
+    new_middle: 0.2,
+    rural:      0.55,  // Highest rural cap of any party
+    unemployedc: 0.25,  // Catholic but not clericalist
+    },
+
+    vnr: {
+    base: Q.aspd_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat = Q.nationalism_factor;
+        let soc = Q.socialism_factor;
+        return (rep * 3 + nat * 5 + soc * 10) * Q.identity_modifier.bb;
+    })(),
+    workers:    0.50,
+    old_middle: 0.5,
+    new_middle: 0.2,
+    rural:      0.55,  // Highest rural cap of any party
+    unemployedc: 0.25,  // Catholic but not clericalist
     },
 
     default: {
