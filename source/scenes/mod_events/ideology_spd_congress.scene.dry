@@ -1,9 +1,27 @@
 title: [+ year +] Party Congress of the SPD
-view-if: developer_mode = 1
+view-if: developer_mode = 1 and month = spd_congress_next_month and year = spd_congress_next_year
 tags: event
 new-page: true
 max-visits: 1
 on-arrival: {!
+
+// ============================================
+// CONGRESS TIMER — next congress in 12 months
+// ============================================
+
+var _cm = Q.month || 1;
+var _cy = Q.year  || 1928;
+
+var _next_month = _cm + 12;
+var _next_year  = _cy;
+
+if (_next_month > 12) {
+    _next_month -= 12;
+    _next_year  += 1;
+}
+
+Q.spd_congress_next_month = _next_month;
+Q.spd_congress_next_year  = _next_year;
 
 var FRACTIONS = [
     { key: 'left',           label: 'Left',           ideo: 2 },
@@ -40,13 +58,14 @@ for (var i = 0; i < _active.length; i++) {
     });
 }
 
-var _keep_merging = true;
-while (_keep_merging && _blocs.length > 1) {
-    var _has_majority = false;
+var _running = true;
+while (_running && _blocs.length > 1) {
+    // Check majority BEFORE merging
+    var _majority_holder = -1;
     for (var i = 0; i < _blocs.length; i++) {
-        if (_blocs[i].str > _majority) { _has_majority = true; break; }
+        if (_blocs[i].str > _majority) { _majority_holder = i; break; }
     }
-    if (_has_majority) break;
+    if (_majority_holder >= 0) { _running = false; break; }
 
     // Find adjacent pair with smallest ideo gap
     var _best_gap = 999;
@@ -60,15 +79,12 @@ while (_keep_merging && _blocs.length > 1) {
 
     var _a = _blocs[_best_idx];
     var _b = _blocs[_best_idx + 1];
-    var _merged_bloc = {
+    _blocs.splice(_best_idx, 2, {
         fractions: _a.fractions.concat(_b.fractions),
         labels:    _a.labels.concat(_b.labels),
         str:       _a.str + _b.str,
         ideo_sum:  _a.ideo_sum + _b.ideo_sum,
-    };
-    _blocs.splice(_best_idx, 2, _merged_bloc);
-
-    if (_merged_bloc.str > _majority) { _keep_merging = false; }
+    });
 }
 
 // Find winning bloc — majority holder, else largest
@@ -76,6 +92,7 @@ var _winner_idx = 0;
 var _winner_str = 0;
 for (var i = 0; i < _blocs.length; i++) {
     if (_blocs[i].str > _winner_str) { _winner_str = _blocs[i].str; _winner_idx = i; }
+
 }
 var _winner_bloc = _blocs[_winner_idx];
 
