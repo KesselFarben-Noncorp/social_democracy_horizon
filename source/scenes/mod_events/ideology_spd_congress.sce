@@ -1,5 +1,6 @@
 title: [+ year +] Party Congress of the SPD
 tags: event
+new-page: true
 max-visits: 1
 view-if: sandbox = 1
 on-arrival: {!
