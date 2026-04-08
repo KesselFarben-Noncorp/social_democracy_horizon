@@ -224,6 +224,8 @@ on-display: {!
 var partyData = [
     { id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: true },
     { id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
+    { id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r && Q.sl_r > 0) },
+    { id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r && Q.kpo_r > 0) },
     { id: "spd",  name: "SPD",        color: "#E3000F", seats: Q.spd_seats,  show: true },
     { id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
     { id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: true },
@@ -231,10 +233,13 @@ var partyData = [
     { id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: true },
     { id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: true },
     { id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: true },
+    { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
     { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r && Q.dhp_r > 0) },
     { id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: true },
     { id: "vrp",  name: "VRP",        color: "#8B7355", seats: Q.vrp_seats,  show: !!(Q.vrp_r && Q.vrp_r > 0) },
     { id: "wp",   name: "WP",         color: "#424242", seats: Q.wp_seats,   show: !!(Q.wp_r && Q.wp_r > 0) },
+    { id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r && Q.hl_r > 0) },
+    { id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r && Q.vnr_r > 0) },
     { id: "cnbl", name: "CNBL",       color: "#5D4E37", seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
     { id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!Q.csvd_flee },
     { id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!Q.kvp_flee },
@@ -242,11 +247,6 @@ var partyData = [
     { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: true },
     { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: true },
     { id: "dvfp",name: "DVFP",      color: "#1A0F00", seats: Q.dvfp_seats,show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
-    { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
-    { id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r && Q.hl_r > 0) },
-    { id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r && Q.sl_r > 0) },
-    { id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r && Q.kpo_r > 0) },
-    { id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r && Q.vnr_r > 0) },
 ];
 
 var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
@@ -336,7 +336,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_kpd_r > 0 : color: green; ?][? if change_kpd_r < 0 : color: red; ?]">[+ str_change_kpd +]</td>
 </tr>
 <tr class="row-left">
-    <td style="padding: 8px;"><div class="box" style='background-color:#005B96; display:inline-block; margin-right:8px;'> </div>SL</td>
+    <td style="padding: 8px;"><div class="box" style='background-colo:#B22222; display:inline-block; margin-right:8px;'> </div>SL</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sl_r_disp +]%</td>
     <td style="padding: 8px; text-align: right;">[+ sl_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_sl_r > 0 : color: green; ?][? if change_sl_r < 0 : color: red; ?]">[+ str_change_sl +]</td>
