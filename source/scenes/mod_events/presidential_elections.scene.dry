@@ -1016,6 +1016,86 @@ on-arrival: {!
         }
     }
 
+    // ========================================
+    // KPO (COMMUNIST OPPOSITION)
+    // ========================================
+    if (Q.kpo_r > 0) {
+        if (Q.kpd_party_leader === "Conciliators" && !Q.kpd_banned) {
+            // Support KPD if moderate leadership is in control
+            Q.kpo_candidate = Q.kpd_candidate;
+        } else if (Q.sapd_formed && Q.sapd_candidate) {
+            // Otherwise follow fellow left-socialists
+            Q.kpo_candidate = Q.sapd_candidate;
+        } else {
+            // Independent revolutionary run
+            Q.kpo_candidate = "Münzenberg";
+        }
+    }
+
+    // ========================================
+    // SL (SCHLESWIG-HOLSTEINISCHE LANDESPARTEI)
+    // ========================================
+    if (Q.sl_r > 0) {
+        // Socialist/Regionalist - anti-Prussian left
+        if (Q.sapd_candidate) {
+            Q.sl_candidate = Q.sapd_candidate;
+        } else if (Q.spd_candidate) {
+            Q.sl_candidate = Q.spd_candidate;
+        } else {
+            Q.sl_candidate = "Rosenfeld";
+        }
+    }
+
+    // ========================================
+    // ASPD (OLD SOCIAL DEMOCRATS)
+    // ========================================
+    if (Q.aspd_r > 0) {
+        // National Socialists (Original) - Right-wing SPD split
+        if (Q.dvp_candidate && Q.dvp_right_shift >= 1) {
+            // Lean towards national liberals if they are right-shifting
+            Q.aspd_candidate = Q.dvp_candidate;
+        } else if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // Support conservative unity against "Marxism"
+            Q.aspd_candidate = Q.z_dnvp_joint_candidate;
+        } else {
+            // Independent run - nationalist-socialist figure
+            Q.aspd_candidate = "Noske";
+        }
+    }
+
+    // ========================================
+    // VNR (VOLKSNATIONALE REICHSVEREINIGUNG)
+    // ========================================
+    if (Q.vnr_r > 0) {
+        // National Liberals - Moderate nationalist/liberal split
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate && Q.dnvp_line !== 3) {
+            // Join moderate conservative unity
+            Q.vnr_candidate = Q.z_dnvp_joint_candidate;
+        } else if (Q.dvp_candidate) {
+            // Follow the main national liberal body
+            Q.vnr_candidate = Q.dvp_candidate;
+        } else {
+            Q.vnr_candidate = "Gessler";
+        }
+    }
+
+    // ========================================
+    // HL (HANSE)
+    // ========================================
+    if (Q.hl_r > 0) {
+        // Equivalent to DHP - Regionalist/Protestant conservative
+        if (Q.dhp_candidate) {
+            // Regionalist solidarity
+            Q.hl_candidate = Q.dhp_candidate;
+        } else if (Q.cnbl_candidate) {
+            // Agrarian solidarity
+            Q.hl_candidate = Q.cnbl_candidate;
+        } else {
+            Q.hl_candidate = "Hamkens";
+        }
+    }
+
+
 !}
 
 The parties are preparing their candidates:
@@ -1059,6 +1139,16 @@ BB: [+ bb_candidate +]
 DHP: [+ dhp_candidate +]
 
 [? if kvp_votes > 0: KVP: [+ kvp_candidate +] ?]
+
+[? if vnr_r > 0 : - VNR: [+ vnr_candidate +] ?]
+​
+[? if kpo_r > 0 : - KPO: [+ kpo_candidate +] ?]
+
+​[? if sl_r > 0 : - SL: [+ sl_candidate +] ?]
+​
+​[? if aspd_r > 0 : ASPD: [+ aspd_candidate +] ?]
+
+​[? if hl_r > 0 : HL: [+ hl_candidate +] ?]
 
 **SPD:**
 We must choose our candidate and strategy.
@@ -1434,7 +1524,8 @@ on-arrival: {!
 if (Q.hindenburg_dead) {
     Q.hindenburg_running = 0;
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                       'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp' ,'other'];
+                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp',
+                   'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
     for (var i = 0; i < all_parties.length; i++) {
         if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
             Q[all_parties[i] + '_candidate'] = null;
@@ -1761,6 +1852,81 @@ if (Q.hindenburg_dead) {
         Q.dvfp_candidate = Q.dvfp_default_candidate;
     }
 
+       // ========================================
+    // KPO - Finalize
+    // ========================================
+    if (Q.kpo_r > 0) {
+        if (Q.spd_candidate === Q.kpd_candidate && !Q.kpd_banned) {
+            // United Front - KPO joins the left bloc
+            Q.kpo_candidate = Q.kpd_candidate;
+        } else if (Q.sapd_candidate === Q.spd_candidate) {
+            // If SAPD joins SPD, KPO remains independent or with KPD
+            Q.kpo_candidate = Q.kpd_candidate || "Münzenberg";
+        }
+    }
+
+    // ========================================
+    // SL - Finalize
+    // ========================================
+    if (Q.sl_r > 0) {
+        if (Q.spd_candidate === Q.kpd_candidate) {
+            // If SPD goes communist, SL retreats to independent left
+            Q.sl_candidate = "Rosenfeld";
+        } else if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate) {
+            // Follow democratic unity
+            Q.sl_candidate = Q.spd_candidate;
+        }
+    }
+
+    // ========================================
+    // ASPD - Finalize
+    // ========================================
+    if (Q.aspd_r > 0) {
+        if (Q.spd_candidate === Q.kpd_candidate) {
+            // Never support "Social Fascist" / Communist alliance
+            Q.aspd_candidate = Q.z_dnvp_joint_candidate || Q.dvp_candidate || "Noske";
+        } else if (Q.is_unity_candidate && Q.dvp_candidate === Q.spd_candidate) {
+            // Join unity if national liberals are in
+            Q.aspd_candidate = Q.spd_candidate;
+        }
+    }
+
+    // ========================================
+    // VNR - Finalize
+    // ========================================
+    if (Q.vnr_r > 0) {
+        if (Q.spd_candidate === Q.kpd_candidate) {
+            // Shift to conservative/liberal anchor
+            Q.vnr_candidate = Q.dvp_candidate || Q.z_candidate || "Gessler";
+        } else if (Q.dvp_candidate === Q.spd_candidate) {
+            // Stay with DVP
+            Q.vnr_candidate = Q.spd_candidate;
+        }
+    }
+
+    // ========================================
+    // HL - Finalize
+    // ========================================
+    if (Q.hl_r > 0) {
+        if (Q.dhp_candidate) {
+            Q.hl_candidate = Q.dhp_candidate;
+        } else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) {
+            Q.hl_candidate = Q.z_candidate;
+        }
+    }
+
+    // ========================================
+    // 1932 HINDENBURG LOGIC
+    // ========================================
+    if (!Q.hindenburg_dead && Q.year >= 1932) {
+        if (Q.kpo_r > 0) Q.kpo_candidate = Q.kpd_candidate; // KPO opposes Hindenburg
+        if (Q.sl_r > 0) Q.sl_candidate = "Hindenburg";     // Regionalist stability
+        if (Q.aspd_r > 0) Q.aspd_candidate = "Hindenburg"; // Nationalist-Socialist support
+        if (Q.vnr_r > 0) Q.vnr_candidate = "Hindenburg";   // National Liberal support
+        if (Q.hl_r > 0) Q.hl_candidate = "Hindenburg";     // Regionalist support
+    }
+
+
 
     // ========================================
     // HINDENBURG (INDEPENDENT) - 1932 only
@@ -2033,8 +2199,9 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 
-                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhp', 'bb', 'dvfp', 'other'];
+    var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp',
+                   'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2151,6 +2318,7 @@ var partyColors = {
     dvp:"#D5AC27", wp:"#424242",  cnbl:"#5D4E37", csvd:"#3f7bc1",
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
+    aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320"
 };
 
 var partyLabels = {
@@ -2158,11 +2326,12 @@ var partyLabels = {
     csrp:"CSRP", ddp:Q.ddp_name||"DDP", dvp:"DVP", wp:"WP",
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
+    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR"
 };
 
 var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp','other'];
+                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -2478,9 +2647,27 @@ on-arrival: {!
 
     Q.other_candidate = pickClosestFinalist(Q.other_candidate, [far_right, center_right, center]);
 
+        if (Q.kpo_r > 0) {
+        Q.kpo_candidate = pickClosestFinalist(Q.kpo_candidate, [far_left, left, cultural]);
+    }
+    if (Q.sl_r > 0) {
+        Q.sl_candidate = pickClosestFinalist(Q.sl_candidate, [left, far_left, cultural, center_left]);
+    }
+    if (Q.aspd_r > 0) {
+        Q.aspd_candidate = pickClosestFinalist(Q.aspd_candidate, [center_right, center, center_left, far_right, left]);
+    }
+    if (Q.vnr_r > 0) {
+        Q.vnr_candidate = pickClosestFinalist(Q.vnr_candidate, [center_left, center, center_right, far_right]);
+    }
+    if (Q.hl_r > 0) {
+        Q.hl_candidate = pickClosestFinalist(Q.hl_candidate, [center_right, center, far_right, center_left, left]);
+    }
+
+
     if (!Q.round2_has_third) {
         var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp','other'];
+                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
         for (var i = 0; i < parties_r2.length; i++) {
             var p = parties_r2[i];
             var cand = Q[p + '_candidate'];
@@ -2535,7 +2722,9 @@ on-arrival: {!
     Q.third_stays = 0;
     // Redistribute their party support
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp', 'other'];
+                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
@@ -2576,7 +2765,9 @@ on-arrival: {!
     Q.round2_has_third = 0;
     Q.third_stays = 0;
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                      'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp', 'other'];
+                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
@@ -2715,8 +2906,9 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd', 'z', 'bvp', 'ddp', 'dvp', 'kpd', 'nsdap', 'dnvp', 
-                   'cnbl', 'sapd', 'csvd', 'srpd', 'csrp', 'wp', 'kvp', 'dhp', 'bb', 'dvfp', 'vrp', 'other'];
+    var parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp',
+                   'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -2835,6 +3027,7 @@ var partyColors = {
     dvp:"#D5AC27", wp:"#424242",  cnbl:"#5D4E37", csvd:"#3f7bc1",
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
+    aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320"
 };
 
 var partyLabels = {
@@ -2842,11 +3035,13 @@ var partyLabels = {
     csrp:"CSRP", ddp:Q.ddp_name||"DDP", dvp:"DVP", wp:"WP",
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
+    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR"
 };
 
-var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+var allParties = ['spd','z','bvp','ddp','dvp', 'kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp','other'];
+                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
