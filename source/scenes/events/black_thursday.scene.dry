@@ -6,6 +6,14 @@ tags: event
 view-if: year = 1929 and month >= 10
 max-visits: 1
 face-image: img/bankrun.jpg
+on-departure: {! 
+  SuperEvent.trigger({
+    videoSrc: 'img/events/black_thursday.mp4',
+    left:  '<h2>October 1929</h2><p>Wall Street collapses. Billions wiped out in hours.</p><p>The ticker tape cannot keep up with the carnage.</p>',
+    right: '<h2>For Germany</h2><p>Credit lines will dry up. American loans will be recalled. What little stability remained may not survive the winter.</p>',
+    onClose: () => engine.continue()
+  });
+!}
 
 = Black Thursday
 
