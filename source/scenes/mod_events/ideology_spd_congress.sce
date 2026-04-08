@@ -1,8 +1,8 @@
 title: [+ year +] Party Congress of the SPD
+view-if: sandbox = 1 or developer_mode = 1 or month = 1
 tags: event
 new-page: true
 max-visits: 1
-view-if: sandbox = 1
 on-arrival: {!
 
 var FRACTIONS = [
