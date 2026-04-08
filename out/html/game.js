@@ -349,14 +349,15 @@ const SuperEvent = (() => {
   let _rightPanel = null;
   let _endHandler = null;
 
-  /* ── Build DOM once, reuse ── */
   function _init() {
     if (document.getElementById('super-event-overlay')) return;
 
     const overlay = document.createElement('div');
     overlay.id = 'super-event-overlay';
 
+    // ── FIX 1: innerHTML now includes title, right-body, quote, skip button
     overlay.innerHTML = `
+      <div id="super-event-title"></div>
       <div id="super-event-frame">
         <div class="super-event-left"></div>
         <div id="super-event-video-wrap">
@@ -364,8 +365,12 @@ const SuperEvent = (() => {
             <source src="" type="video/mp4">
           </video>
         </div>
-        <div class="super-event-right"></div>
+        <div class="super-event-right">
+          <div class="super-event-right-body"></div>
+          <blockquote class="super-event-quote"></blockquote>
+        </div>
       </div>
+      <button id="super-event-skip">Skip</button>
     `;
 
     document.body.appendChild(overlay);
@@ -376,11 +381,9 @@ const SuperEvent = (() => {
     _rightPanel = overlay.querySelector('.super-event-right');
   }
 
-  /* ── Close + cleanup ── */
   function _close() {
     if (!_overlay) return;
 
-    /* Remove stale ended listener if close() called early */
     if (_endHandler) {
       _video.removeEventListener('ended', _endHandler);
       _endHandler = null;
@@ -393,54 +396,44 @@ const SuperEvent = (() => {
 
     setTimeout(() => {
       _overlay.classList.remove('active', 'fading');
-    }, 600); /* matches CSS transition duration */
+    }, 600);
   }
 
-  /* ── Public: trigger a super event ──
-     Options:
-       videoSrc   {string}  — path/URL to .mp4
-       left       {string}  — HTML string for left panel  (optional)
-       right      {string}  — HTML string for right panel (optional)
-       onClose    {function}— callback after overlay gone (optional)
-  ── */
-  function trigger({ videoSrc, left = '', right = '', onClose = null } = {}) {
+  // ── FIX 2: trigger() signature now includes title, quote, quoteCite
+  function trigger({ videoSrc, title = '', left = '', right = '', quote = '', quoteCite = '', onClose = null } = {}) {
     _init();
 
-    /* Populate panels */
-    _leftPanel.innerHTML  = left;
-    _rightPanel.innerHTML = right;
+    // ── FIX 3: title element populated before any querySelector calls
+    const titleEl = document.getElementById('super-event-title');
+    titleEl.textContent  = title;
+    titleEl.style.display = title ? '' : 'none';
 
-    /* Hide side panels if no content */
-    _leftPanel.style.display  = left  ? '' : 'none';
+    // ── FIX 4: left panel set directly, not duplicated
+    _leftPanel.innerHTML  = left;
+    _leftPanel.style.display = left ? '' : 'none';
+
+    // ── FIX 5: right panel targets inner divs, not _rightPanel itself
+    _rightPanel.querySelector('.super-event-right-body').innerHTML = right;
     _rightPanel.style.display = right ? '' : 'none';
 
-    // inside trigger(), after _leftPanel:
-    document.getElementById('super-event-title').textContent = title ?? '';
-    document.getElementById('super-event-title').style.display = title ? '' : 'none';
+    const quoteEl = _rightPanel.querySelector('.super-event-quote');
+    quoteEl.innerHTML     = quote ? `${quote}<cite>${quoteCite}</cite>` : '';
+    quoteEl.style.display = quote ? '' : 'none';
 
-    _rightPanel.querySelector('.super-event-right-body').innerHTML = right;
-    _rightPanel.querySelector('.super-event-quote').innerHTML =
-      quote ? `${quote}<cite>${quoteCite ?? ''}</cite>` : '';
-    _rightPanel.querySelector('.super-event-quote').style.display = quote ? '' : 'none';
-
-// wire skip button
+    // ── FIX 6: skip wired after _init() guarantees the element exists
     document.getElementById('super-event-skip').onclick = () => skip(onClose);
 
-    /* Load video */
     _video.querySelector('source').src = videoSrc;
     _video.load();
 
-    /* Show overlay */
     _overlay.classList.remove('fading');
     _overlay.classList.add('active');
 
-    /* Play — with fallback for browsers that block autoplay */
     _video.play().catch(() => {
       console.warn('SuperEvent: autoplay blocked. Waiting for user gesture.');
       _overlay.addEventListener('click', () => _video.play(), { once: true });
     });
 
-    /* Wire ended → 1s delay → close */
     _endHandler = () => {
       setTimeout(() => {
         _close();
@@ -451,7 +444,6 @@ const SuperEvent = (() => {
     _video.addEventListener('ended', _endHandler, { once: true });
   }
 
-  /* ── Public: force-close early (e.g. skip button) ── */
   function skip(onClose = null) {
     _close();
     if (typeof onClose === 'function') {
