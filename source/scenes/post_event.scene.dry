@@ -2,18 +2,39 @@ title: Post Event
 new-page: true
 on-arrival: {!
 
+// === ACHIEVEMENT CHECKS (tick scene, on-arrival) ===
+
 // Conservative Revolution
-if (Q.dnvp_votes >= 20) {
+if (Q.dnvp_votes >= 20 && !Q._ach_konservolution_shown) {
     this.achieve('konservolution');
+    Q._ach_konservolution_shown = 1;
+    Q._pending_achievement = JSON.stringify({
+        title: 'Conservative Revolution',
+        description: 'DNVP reached 20% of the vote.',
+        color: '#3F7BC1'
+    });
 }
 
 // National Breakthrough
-if (Q.nsdap_votes >= 30) {
+if (Q.nsdap_votes >= 30 && !Q._ach_durchbruch_shown) {
     this.achieve('durchbruch');
+    Q._ach_durchbruch_shown = 1;
+    Q._pending_achievement = JSON.stringify({
+        title: 'Nationaler Durchbruch',
+        description: 'The NSDAP broke 30% of the vote.',
+        color: '#954B00'
+    });
 }
 
-if (Q.kpd_votes >= 28) {
+// KPD surge
+if (Q.kpd_votes >= 28 && !Q._ach_oktobersturm_shown) {
     this.achieve('oktobersturm');
+    Q._ach_oktobersturm_shown = 1;
+    Q._pending_achievement = JSON.stringify({
+        title: 'Oktobersturm',
+        description: 'KPD broke 28% of the vote.',
+        color: '#8B0000'
+    });
 }
 
 function _mkrng(seed) {
@@ -5960,6 +5981,14 @@ if (typeof window !== "undefined" && window.generateBar) {
 }
 !}
 on-departure: {!
+if (Q._pending_achievement) {
+    try {
+        var ach = JSON.parse(Q._pending_achievement);
+        window.AchievementToast.show(ach);
+    } catch(e) {}
+    Q._pending_achievement = null;
+}
+
   window.checkAchievement('konservolution',
     'Conservative Revolution',
     'DNVP reached 20% of the vote.',
