@@ -347,9 +347,10 @@
     if (window.dendryUI.crt_mode)   document.body.classList.add('crt-mode');
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per x turns.";
     window.updateSandboxLink();
-    var savedBg = localStorage.getItem('Social Fascism: An Alternate Horizon_Gaufenspelt_custom_bg');
+    var savedBg = localStorage.getItem(_BGKEY);
     if (savedBg) {
-      document.body.style.backgroundImage = 'url(' + savedBg + ')';
+      $('#bg1').css('background-image', 'url("' + savedBg + '")');
+      $('#bg2').css('background-image', 'url("' + savedBg + '")');
     }
   };
 
@@ -484,7 +485,8 @@ window.importCustomBg = function(input) {
   var reader = new FileReader();
   reader.onload = function(e) {
     localStorage.setItem(_BGKEY, e.target.result);
-    document.body.style.backgroundImage = 'url(' + e.target.result + ')';
+    $('#bg1').css('background-image', 'url("' + e.target.result + '")');
+    $('#bg2').css('background-image', 'url("' + e.target.result + '")');
     window.dendryUI.disable_bg = false;
     window.dendryUI.saveSettings();
   };
@@ -516,9 +518,10 @@ var _bgPatchInterval = setInterval(function() {
 
   var _originalSetBg = window.dendryUI.setBg.bind(window.dendryUI);
   window.dendryUI.setBg = function(img) {
-    var customBg = localStorage.getItem('Social Fascism: An Alternate Horizon_Gaufenspelt_custom_bg');
+    var customBg = localStorage.getItem(_BGKEY);
     if (customBg) {
-      document.body.style.backgroundImage = 'url(' + customBg + ')';
+      $('#bg1').css('background-image', 'url("' + customBg + '")');
+      $('#bg2').css('background-image', 'url("' + customBg + '")');
     } else {
       _originalSetBg(img);
     }
