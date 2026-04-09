@@ -1729,6 +1729,7 @@ Choose your challenges!
 > *Dice: [? if dice_challenge = 1: ON ?][? if dice_challenge != 1: OFF ?]*
 > *Duel: [? if duel_challenge = 1: ON ?][? if duel_challenge != 1: OFF ?]*
 > *Hindenburg: [? if hindenburg_challenge = 1: ON ?][? if hindenburg_challenge != 1: OFF ?]*
+> *FPTH: [? if fptp_variable = 1: ON ?] [? if fptp_variable = 0: OFF ?]*
 > *Base Gamemode Trust Me: [? if april_challenge = 1: ON ?][? if april_challenge != 1: OFF ?]*
 
 - @spartacus: Spartacist Victory!
@@ -1742,8 +1743,32 @@ Choose your challenges!
 - @duel: Duel gamemode.
 - @vanilla: Vanilla-esque gamemode.
 - @dice: Dice Gamemode
+- @fptp: First Past the Hell
 - @april: Vanilla Superesque Normal Gamemode of First of Fourth.
 - @start_2: Back
+
+@fptp
+
+= First Past the Hell
+
+Do you love being %@lested by this worst system of electoral representation only british people could still keep to this day on democratic occasion?
+
+- @f_2: True
+- @f_3: False
+- @challenge: Back.
+
+@f_2
+view-if: fptp_variable = 0
+on-arrival: fptp_variable = 1
+go-to: fptp
+
+Turned on!
+
+@f_3
+view-if: fptp_variable = 1
+on-arrival: fptp_variable = 0
+go-to: fptp
+
 
 @april
 
