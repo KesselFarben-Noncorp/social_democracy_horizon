@@ -3042,21 +3042,21 @@ Q.identity_modifier = {
             }
 
             // CAMPAIGN BONUS TO BASE CAP
-             let campaign_boost = 1.0;
+             let campaign_boost = 2.5;
              if (Q.campaign_focus === 'workers' && ci > 0)
-                 campaign_boost += ci * 0.54;
+                 campaign_boost += ci * 0.75;
              if (Q.campaign_focus === 'new_middle' && ci > 0)
-                 campaign_boost += ci * 0.42;
+                 campaign_boost += ci * 0.65;
              if (Q.campaign_focus === 'old_middle' && ci > 0)
-                 campaign_boost += ci * 0.36;
+                 campaign_boost += ci * 0.55;
              if (Q.campaign_focus === 'rural' && ci > 0)
-                 campaign_boost += ci * 0.39;
+                 campaign_boost += ci * 0.55;
              if (Q.campaign_focus === 'unemployed' && ci > 0)
-                 campaign_boost += ci * 0.45;
+                 campaign_boost += ci * 0.65;
              if (Q.campaign_focus === 'women' && ci > 0)
-                 campaign_boost += ci * 0.30; // spread across classes
+                 campaign_boost += ci * 0.45; // spread across classes
              if (Q.campaign_focus === 'middle' && ci > 0)
-                 campaign_boost += ci * 0.33;
+                 campaign_boost += ci * 0.45;
 
              return (rep * 105 + soc * 54) * Q.identity_modifier.spd * campaign_boost;
          })(),
@@ -3987,6 +3987,29 @@ Q.identity_modifier = {
             
 
         Q.delta = Q.drift_base * Q.ideology_factor * Q.class_influences[Q.c] / 6;
+
+        // === SPD CAMPAIGN DELTA BOOST ===
+        if (Q.party === 'spd' && Q.campaign_focus && ci > 0) {
+            let campaign_delta_mult = 1.0;
+            if (Q.campaign_focus === 'workers'    && Q.c === 'workers')     campaign_delta_mult += ci * 0.12;
+            if (Q.campaign_focus === 'unemployed' && Q.c === 'unemployedc') campaign_delta_mult += ci * 0.15;
+            if (Q.campaign_focus === 'new_middle' && Q.c === 'new_middle')  campaign_delta_mult += ci * 0.10;
+            if (Q.campaign_focus === 'old_middle' && Q.c === 'old_middle')  campaign_delta_mult += ci * 0.09;
+            if (Q.campaign_focus === 'rural'      && Q.c === 'rural')       campaign_delta_mult += ci * 0.10;
+            if (Q.campaign_focus === 'women') {
+                // Women spread across all classes
+                campaign_delta_mult += ci * 0.06;
+            }
+            if (Q.campaign_focus === 'middle') {
+                if (Q.c === 'old_middle' || Q.c === 'new_middle') campaign_delta_mult += ci * 0.08;
+            }
+            if (Q.campaign_focus === 'catholics' && ci > 0) {
+                if (Q.c === 'old_middle') campaign_delta_mult += ci * 0.07 * (Q.catholics / 35);
+                if (Q.c === 'rural')      campaign_delta_mult += ci * 0.06 * (Q.catholics / 35);
+            }
+            Q.delta *= campaign_delta_mult;
+        }
+
         Q.delta *= (0.7 + _r() * 0.6);
 
         // CRITICAL: If party is banned, prevent ALL positive drift
