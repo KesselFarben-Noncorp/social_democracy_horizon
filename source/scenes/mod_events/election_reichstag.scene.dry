@@ -38,6 +38,7 @@ var new_party_sum = 0;
 // Calculate election results
 for (var party of Q.parties) {
     Q['old_' + party + '_r'] = Q[party + '_r'] ?? 0;
+    Q['old_' + party + '_seat_pct'] = Q[party + '_seat_pct'] ?? 0;
     
     // Handle banned parties - set support to 0
     if (Q[party + '_banned']) {
@@ -226,6 +227,9 @@ for (var party of Q.parties) {
         // Display string
         Q[party + '_seats_disp'] = Q[party + '_seats'].toString();
         Q[party + '_seat_pct_disp'] = Q[party + '_seat_pct'].toFixed(1);
+        Q['change_' + party + '_seat_pct'] = Q[party + '_seat_pct'] - Q['old_' + party + '_seat_pct'];
+        Q['str_change_' + party + '_seats'] = (Q['change_' + party + '_seat_pct'] >= 0 ? '+' : '') +
+        (Math.round(Q['change_' + party + '_seat_pct'] * 10) / 10).toFixed(1);
     } else {
         Q[party + '_seat_pct'] = Q.impossible_percentage(Q[party + '_seats'] / Q.total_seats_filled * 100);
         Q[party + '_seats_disp'] = Q.impossible_add(Q[party + '_seats'], 0).toString();
@@ -385,8 +389,9 @@ go-to: coalition_formation_start
 <tr style="border-bottom: 2px solid #333;">
     <td style="padding: 8px; font-weight: bold;">Party</td>
     <td style="padding: 8px; font-weight: bold; text-align: right;">Votes</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Δ Votes</td>
     <td style="padding: 8px; font-weight: bold; text-align: right;">Seats</td>
-    <td style="padding: 8px; font-weight: bold; text-align: right;">Change</td>
+    <td style="padding: 8px; font-weight: bold; text-align: right;">Δ Seats</td>
 </tr>
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B0000; display:inline-block; margin-right:8px;'> </div>KPD</td>
@@ -425,6 +430,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ spd_r_disp +]%</td>
     <td style="padding: 8px; text-align: right;">[+ spd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_spd_r > 0 : color: green; ?][? if change_spd_r < 0 : color: red; ?]"><strong>[+ str_change_spd +]</strong></td>
+    <td style="padding: 8px; text-align: right; [? if change_spd_seat_pct > 0 : color: green; ?][? if change_spd_seat_pct < 0 : color: red; ?]">[+ str_change_spd_seats +]</td>
 </tr>
 [? if srpd_formed = 1 :
 <tr class="row-left">
