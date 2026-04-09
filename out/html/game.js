@@ -335,6 +335,10 @@
     if (window.dendryUI.crt_mode)   document.body.classList.add('crt-mode');
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per x turns.";
     window.updateSandboxLink();
+    var savedBg = localStorage.getItem(TITLE + '_custom_bg');
+    if (savedBg) {
+      document.body.style.backgroundImage = 'url(' + savedBg + ')';
+    }
   };
 
  }());
@@ -486,6 +490,25 @@ window.importCustomBg = function() {
 window.clearCustomBg = function() {
   localStorage.removeItem(TITLE + '_custom_bg');
   // Fall back to the game's normal bg system
+  window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
+  window.dendryUI.saveSettings();
+};
+
+window.importCustomBg = function(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    localStorage.setItem(TITLE + '_custom_bg', e.target.result);
+    document.body.style.backgroundImage = 'url(' + e.target.result + ')';
+    window.dendryUI.disable_bg = false;
+    window.dendryUI.saveSettings();
+  };
+  reader.readAsDataURL(file);
+};
+
+window.clearCustomBg = function() {
+  localStorage.removeItem(TITLE + '_custom_bg');
   window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
   window.dendryUI.saveSettings();
 };
