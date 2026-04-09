@@ -347,7 +347,7 @@
     if (window.dendryUI.crt_mode)   document.body.classList.add('crt-mode');
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per x turns.";
     window.updateSandboxLink();
-    var savedBg = localStorage.getItem(TITLE + '_custom_bg');
+    var savedBg = localStorage.getItem('Social Fascism: An Alternate Horizon_Gaufenspelt_custom_bg');
     if (savedBg) {
       document.body.style.backgroundImage = 'url(' + savedBg + ')';
     }
@@ -476,13 +476,14 @@ const SuperEvent = (() => {
 
 
 
+var _BGKEY = 'Social Fascism: An Alternate Horizon_Gaufenspelt_custom_bg';
+
 window.importCustomBg = function(input) {
-  var title = (typeof TITLE !== 'undefined') ? TITLE : 'Social Fascism: An Alternate Horizon_Gaufenspelt';
   var file = input.files[0];
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    localStorage.setItem(title + '_custom_bg', e.target.result);
+    localStorage.setItem(_BGKEY, e.target.result);
     document.body.style.backgroundImage = 'url(' + e.target.result + ')';
     window.dendryUI.disable_bg = false;
     window.dendryUI.saveSettings();
@@ -491,8 +492,7 @@ window.importCustomBg = function(input) {
 };
 
 window.clearCustomBg = function() {
-  var title = (typeof TITLE !== 'undefined') ? TITLE : 'Social Fascism: An Alternate Horizon_Gaufenspelt';
-  localStorage.removeItem(title + '_custom_bg');
+  localStorage.removeItem(_BGKEY);
   var currentBg = window.dendryUI.dendryEngine.state.bg;
   if (currentBg) {
     window.dendryUI.setBg(currentBg);
@@ -501,3 +501,26 @@ window.clearCustomBg = function() {
   }
   window.dendryUI.saveSettings();
 };
+
+
+
+
+
+
+
+
+// Wait for dendryUI to exist, then patch setBg at the prototype level
+var _bgPatchInterval = setInterval(function() {
+  if (!window.dendryUI || !window.dendryUI.dendryEngine) return;
+  clearInterval(_bgPatchInterval);
+
+  var _originalSetBg = window.dendryUI.setBg.bind(window.dendryUI);
+  window.dendryUI.setBg = function(img) {
+    var customBg = localStorage.getItem('Social Fascism: An Alternate Horizon_Gaufenspelt_custom_bg');
+    if (customBg) {
+      document.body.style.backgroundImage = 'url(' + customBg + ')';
+    } else {
+      _originalSetBg(img);
+    }
+  };
+}, 100);
