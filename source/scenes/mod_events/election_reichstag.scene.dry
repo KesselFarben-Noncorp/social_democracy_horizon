@@ -1618,12 +1618,18 @@ We have chosen not to form a government at this time.
 on-arrival: {!
 // Pre-calculate display if coalition exists
 if (Q.coalition_formed) {
-    Q.coalition_partners_list = "";
-    for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
-        var party = Q.chosen_coalition.parties[i];
-        var votes = Q[party.toLowerCase() + '_r'];
-        Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
-    }
+    var seat_total = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    seat_total += Q[Q.parties[i] + '_seats'] || 0;
+}
+if (seat_total === 0) seat_total = 1;
+
+Q.coalition_partners_list = "";
+for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+    var party = Q.chosen_coalition.parties[i];
+    var seat_pct = ((Q[party.toLowerCase() + '_seats'] || 0) / seat_total) * 100;
+    Q.coalition_partners_list += "- " + party + " (" + Math.round(seat_pct * 10) / 10 + "%)\n";
+}
     Q.coalition_total_votes = Q.chosen_coalition.votes;
     Q.coalition_is_minority = Q.chosen_coalition.toleration ? 1 : 0;
     Q.coalition_toleration_display = "";
@@ -1631,8 +1637,8 @@ if (Q.coalition_formed) {
         Q.coalition_toleration_display = "\n**External Toleration (not in cabinet):**\n";
         var tols = Q.chosen_coalition.tolerating_parties;
         for (var i = 0; i < tols.length; i++) {
-            var tvotes = Q[tols[i].toLowerCase() + '_r'];
-            Q.coalition_toleration_display += "- " + tols[i] + " (" + Math.round(tvotes * 10) / 10 + "%) — tolerating\n";
+    var tpct = ((Q[tols[i].toLowerCase() + '_seats'] || 0) / seat_total) * 100;
+    Q.coalition_toleration_display += "- " + tols[i] + " (" + Math.round(tpct * 10) / 10 + "%) — tolerating\n";
         }
         Q.coalition_effective_votes = Q.chosen_coalition.effective_votes;
     }
@@ -1699,14 +1705,19 @@ Q.chosen_coalition.parties = Q.chosen_coalition.parties.filter(function(p) {
 });
 
 // Recalculate coalition votes
+var seat_total = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    seat_total += Q[Q.parties[i] + '_seats'] || 0;
+}
+if (seat_total === 0) seat_total = 1;
+
 var new_votes = 0;
 for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
     var party = Q.chosen_coalition.parties[i];
-    new_votes += Q[party.toLowerCase() + '_r'];
+    new_votes += ((Q[party.toLowerCase() + '_seats'] || 0) / seat_total) * 100;
 }
 Q.chosen_coalition.votes = new_votes;
 
-// Check if coalition still viable
 Q.coalition_formed = new_votes >= 50;
 Q.spd_in_chosen_coalition = 0;
 Q.spd_accepted_coalition = 0;
@@ -1722,11 +1733,11 @@ if (Q.coalition_formed) {
     
     // Rebuild display list
     Q.coalition_partners_list = "";
-    for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
-        var party = Q.chosen_coalition.parties[i];
-        var votes = Q[party.toLowerCase() + '_r'];
-        Q.coalition_partners_list += "- " + party + " (" + Math.round(votes * 10) / 10 + "%)\n";
-    }
+for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
+    var party = Q.chosen_coalition.parties[i];
+    var seat_pct = ((Q[party.toLowerCase() + '_seats'] || 0) / seat_total) * 100;
+    Q.coalition_partners_list += "- " + party + " (" + Math.round(seat_pct * 10) / 10 + "%)\n";
+}
 }
 !}
 go-to: coalition_formed_without_spd if coalition_formed; coalition_failure if not coalition_formed
