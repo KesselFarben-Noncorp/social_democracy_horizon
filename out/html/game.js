@@ -457,3 +457,35 @@ const SuperEvent = (() => {
   return { trigger, skip };
 
 })();
+
+
+
+
+
+window.importCustomBg = function() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      var dataUrl = evt.target.result;
+      window.dendryUI.disable_bg = false;
+      // Store in localStorage so it persists across sessions
+      localStorage.setItem(TITLE + '_custom_bg', dataUrl);
+      document.body.style.backgroundImage = 'url(' + dataUrl + ')';
+      window.dendryUI.saveSettings();
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+};
+
+window.clearCustomBg = function() {
+  localStorage.removeItem(TITLE + '_custom_bg');
+  // Fall back to the game's normal bg system
+  window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
+  window.dendryUI.saveSettings();
+};
