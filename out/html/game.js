@@ -524,7 +524,15 @@ window.importCustomMusic = function(input) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    localStorage.setItem(_MUSICKEY, e.target.result);
+    var request = indexedDB.open('gaufenspelt_db', 1);
+    request.onupgradeneeded = function(e) {
+      e.target.result.createObjectStore('assets');
+    };
+    request.onsuccess = function(e) {
+      var db = e.target.result;
+      var tx = db.transaction('assets', 'readwrite');
+      tx.objectStore('assets').put(e.target.result, 'custom_music');
+    };
     // Stop whatever is playing
     if (window.dendryUI.currentAudio) {
       window.dendryUI.currentAudio.pause();
