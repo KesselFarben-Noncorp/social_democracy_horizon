@@ -352,6 +352,15 @@
       $('#bg1').css('background-image', 'url("' + savedBg + '")');
       $('#bg2').css('background-image', 'url("' + savedBg + '")');
     }
+    var savedMusic = localStorage.getItem(_MUSICKEY);
+    if (savedMusic) {
+      var audio = new Audio(savedMusic);
+      audio.loop = true;
+      audio.volume = 1;
+      audio.play();
+      window.dendryUI.currentAudio = audio;
+      window.dendryUI.currentAudioURL = savedMusic;
+    }
   };
 
  }());
@@ -508,6 +517,43 @@ window.clearCustomBg = function() {
 
 
 
+var _MUSICKEY = 'Social Fascism: An Alternate Horizon_Gaufenspelt_custom_music';
+
+window.importCustomMusic = function(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    localStorage.setItem(_MUSICKEY, e.target.result);
+    // Stop whatever is playing
+    if (window.dendryUI.currentAudio) {
+      window.dendryUI.currentAudio.pause();
+    }
+    // Start custom track
+    var audio = new Audio(e.target.result);
+    audio.loop = true;
+    audio.volume = 1;
+    audio.play();
+    window.dendryUI.currentAudio = audio;
+    window.dendryUI.currentAudioURL = e.target.result;
+    window.dendryUI.saveSettings();
+  };
+  reader.readAsDataURL(file);
+};
+
+window.clearCustomMusic = function() {
+  localStorage.removeItem(_MUSICKEY);
+  if (window.dendryUI.currentAudio) {
+    window.dendryUI.currentAudio.pause();
+    window.dendryUI.currentAudio = null;
+  }
+  window.dendryUI.saveSettings();
+};
+
+
+
+
+
 
 
 
@@ -526,4 +572,11 @@ var _bgPatchInterval = setInterval(function() {
       _originalSetBg(img);
     }
   };
+
+  var _originalAudio = window.dendryUI.audio.bind(window.dendryUI);
+  window.dendryUI.audio = function(audioStr) {
+      var customMusic = localStorage.getItem(_MUSICKEY);
+      if (customMusic) return; // ignore scene-driven audio changes
+      _originalAudio(audioStr);
+    };
 }, 100);
