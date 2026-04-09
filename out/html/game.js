@@ -330,7 +330,10 @@
     if (window.dendryUI.dark_mode) {
         document.body.classList.add('dark-mode');
     }
-    window.pinnedCardsDescription = "Advisor cards - actions are only usable once per 6 months.";
+    if (window.dendryUI.dark_mode)  document.body.classList.add('dark-mode');
+    if (window.dendryUI.retro_mode) document.body.classList.add('retro-mode');
+    if (window.dendryUI.crt_mode)   document.body.classList.add('crt-mode');
+    window.pinnedCardsDescription = "Advisor cards - actions are only usable once per x turns.";
     window.updateSandboxLink();
   };
 
