@@ -477,11 +477,12 @@ const SuperEvent = (() => {
 
 
 window.importCustomBg = function(input) {
+  var title = (typeof TITLE !== 'undefined') ? TITLE : 'Social Fascism: An Alternate Horizon_Gaufenspelt';
   var file = input.files[0];
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
-    localStorage.setItem(TITLE + '_custom_bg', e.target.result);
+    localStorage.setItem(title + '_custom_bg', e.target.result);
     document.body.style.backgroundImage = 'url(' + e.target.result + ')';
     window.dendryUI.disable_bg = false;
     window.dendryUI.saveSettings();
@@ -490,7 +491,8 @@ window.importCustomBg = function(input) {
 };
 
 window.clearCustomBg = function() {
-  localStorage.removeItem(TITLE + '_custom_bg');
+  var title = (typeof TITLE !== 'undefined') ? TITLE : 'Social Fascism: An Alternate Horizon_Gaufenspelt';
+  localStorage.removeItem(title + '_custom_bg');
   var currentBg = window.dendryUI.dendryEngine.state.bg;
   if (currentBg) {
     window.dendryUI.setBg(currentBg);
@@ -499,4 +501,3 @@ window.clearCustomBg = function() {
   }
   window.dendryUI.saveSettings();
 };
-
