@@ -834,9 +834,13 @@ on-arrival: {!
 // ============================================
 
 var formateur = Q.formateur;
-var formateur_votes = Q[formateur.toLowerCase() + '_r'];
+var seat_total = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    seat_total += Q[Q.parties[i] + '_seats'] || 0;
+}
+if (seat_total === 0) seat_total = 1;
+var formateur_votes = ((Q[formateur.toLowerCase() + '_seats'] || 0) / seat_total) * 100;
 var threshold = 50;
-
 Q.formation_attempts.push(formateur);
 
 // ============================================
@@ -944,10 +948,15 @@ function coalition_compatibility(parties) {
     return count > 0 ? total_rel / count : 0;
 }
 
-// Get other parties (exclude formateur and NSDAP unless special conditions)
+var plausible_majority =
+    spd_pct + z_pct + ddp_pct >= 50 ||
+    spd_pct + z_pct + dvp_pct >= 50 ||
+    dnvp_pct + nsdap_pct + dvp_pct >= 50;
+
+var nsdap_seat_pct = ((Q.nsdap_seats || 0) / seat_total) * 100;
 var other_parties = Q.party_votes.filter(function(p) {
     if (p.party === formateur) return false;
-    if (p.party === 'NSDAP' && Q.nsdap_r < 30) return false;
+    if (p.party === 'NSDAP' && nsdap_seat_pct < 30) return false;
     return true;
 });
 
