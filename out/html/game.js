@@ -13,6 +13,18 @@
     ui = dendryUI;
     game = ui.game;
 
+    // ORIGINAL BG SET FOR CUSTOM MFS
+
+    var _originalSetBg = window.dendryUI.setBg.bind(window.dendryUI);
+    window.dendryUI.setBg = function(img) {
+      var customBg = localStorage.getItem(TITLE + '_custom_bg');
+      if (customBg) {
+        document.body.style.backgroundImage = 'url(' + customBg + ')';
+      } else {
+        _originalSetBg(img);
+      }
+    };
+
     // Add your custom code here.
   };
 
@@ -464,36 +476,6 @@ const SuperEvent = (() => {
 
 
 
-
-
-window.importCustomBg = function() {
-  var input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-      var dataUrl = evt.target.result;
-      window.dendryUI.disable_bg = false;
-      // Store in localStorage so it persists across sessions
-      localStorage.setItem(TITLE + '_custom_bg', dataUrl);
-      document.body.style.backgroundImage = 'url(' + dataUrl + ')';
-      window.dendryUI.saveSettings();
-    };
-    reader.readAsDataURL(file);
-  };
-  input.click();
-};
-
-window.clearCustomBg = function() {
-  localStorage.removeItem(TITLE + '_custom_bg');
-  // Fall back to the game's normal bg system
-  window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
-  window.dendryUI.saveSettings();
-};
-
 window.importCustomBg = function(input) {
   var file = input.files[0];
   if (!file) return;
@@ -509,6 +491,12 @@ window.importCustomBg = function(input) {
 
 window.clearCustomBg = function() {
   localStorage.removeItem(TITLE + '_custom_bg');
-  window.dendryUI.setBg(window.dendryUI.dendryEngine.state.bg);
+  var currentBg = window.dendryUI.dendryEngine.state.bg;
+  if (currentBg) {
+    window.dendryUI.setBg(currentBg);
+  } else {
+    document.body.style.backgroundImage = 'none';
+  }
   window.dendryUI.saveSettings();
 };
+
