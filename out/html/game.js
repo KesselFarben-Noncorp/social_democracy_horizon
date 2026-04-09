@@ -457,3 +457,63 @@ const SuperEvent = (() => {
   return { trigger, skip };
 
 })();
+
+
+
+/* =====================================================================
+   ACHIEVEMENT TOAST
+   ===================================================================== */
+const AchievementToast = (() => {
+
+  function _init() {
+    if (document.getElementById('achievement-toast-container')) return;
+    const container = document.createElement('div');
+    container.id = 'achievement-toast-container';
+    document.body.appendChild(container);
+  }
+
+  function show({ title, description, color = '#E3000F', icon = null } = {}) {
+    _init();
+
+    const container = document.getElementById('achievement-toast-container');
+
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.style.setProperty('--achievement-color', color);
+
+    toast.innerHTML = `
+      <div class="achievement-toast-icon">
+        ${icon ? `<img src="${icon}" alt="">` : '<span class="achievement-toast-dot"></span>'}
+      </div>
+      <div class="achievement-toast-text">
+        <div class="achievement-toast-label">Achievement Unlocked</div>
+        <div class="achievement-toast-title">${title}</div>
+        ${description ? `<div class="achievement-toast-desc">${description}</div>` : ''}
+      </div>
+    `;
+
+    container.appendChild(toast);
+
+    /* Animate in */
+    requestAnimationFrame(() => toast.classList.add('visible'));
+
+    /* Auto-dismiss after 4s */
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+    }, 4000);
+  }
+
+  /* ── Called from on-arrival blocks ──
+     Pass the quality name as string. Only shows toast if
+     it was 0 before and is 1 now.                         */
+  window.checkAchievement = function(qualityName, title, description, color, icon) {
+    const Q = window.dendryUI.dendryEngine.state.qualities;
+    if (Q[qualityName] === 1) {
+      show({ title, description, color, icon });
+    }
+  };
+
+  return { show };
+
+})();
