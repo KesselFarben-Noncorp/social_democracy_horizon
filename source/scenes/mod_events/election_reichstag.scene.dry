@@ -147,11 +147,60 @@ for (var party of Q.parties) {
 // Reichstag had 577 base seats (we use *6 multiplier from display, so 600 total)
 Q.total_seats = 600;
 
-for (var party of Q.parties) {
-    if (!Q.math_broken) {
-        Q[party + '_seats'] = Math.round(Q[party + '_r'] * 6);
-    } else {
-        Q[party + '_seats'] = Math.round(Q.impossible_multiply(Q[party + '_r'], 6));
+Q.election_system_name = Q.fptp_variable === 1 ? 'First Past the Post' : 'Proportional Representation';
+
+if (Q.fptp_variable === 1) {
+    var fptp_votes = {};
+    var fptp_sum = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        var party = Q.parties[i];
+        var v = Q[party + '_r'] || 0;
+        if (v >= 5 && !Q[party + '_banned']) {
+            fptp_votes[party] = v;
+            fptp_sum += v;
+        } else {
+            fptp_votes[party] = 0;
+        }
+    }
+    var fptp_normalised = {};
+    for (var party in fptp_votes) {
+        fptp_normalised[party] = fptp_sum > 0 ? (fptp_votes[party] / fptp_sum) * 100 : 0;
+    }
+    var cube_sum = 0;
+    var cubes = {};
+    for (var party in fptp_normalised) {
+        var v = fptp_normalised[party] / 100;
+        cubes[party] = v * v * v;
+        cube_sum += cubes[party];
+    }
+    for (var i = 0; i < Q.parties.length; i++) {
+        var party = Q.parties[i];
+        Q[party + '_seats'] = (cube_sum > 0 && cubes[party] > 0)
+            ? Math.round((cubes[party] / cube_sum) * Q.total_seats)
+            : 0;
+    }
+    // Fix rounding error on largest party
+    var fptp_seat_total = 0;
+    var largest_fptp_party = null;
+    var largest_fptp_seats = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        var party = Q.parties[i];
+        fptp_seat_total += Q[party + '_seats'];
+        if (Q[party + '_seats'] > largest_fptp_seats) {
+            largest_fptp_seats = Q[party + '_seats'];
+            largest_fptp_party = party;
+        }
+    }
+    if (largest_fptp_party) {
+        Q[largest_fptp_party + '_seats'] += Q.total_seats - fptp_seat_total;
+    }
+} else {
+    for (var party of Q.parties) {
+        if (!Q.math_broken) {
+            Q[party + '_seats'] = Math.round(Q[party + '_r'] * 6);
+        } else {
+            Q[party + '_seats'] = Math.round(Q.impossible_multiply(Q[party + '_r'], 6));
+        }
     }
 }
 
@@ -318,6 +367,8 @@ if (window && d3) {
 go-to: coalition_formation_start
 
 = Election results
+
+[? if fptp_variable = 1 : <p style="font-size:0.8em; color:#888; font-style:italic;">⚑ First Past the Post seat allocation — cube rule with 5% threshold</p> ?]
 
 {!<svg id="reichstag" style="width: 600px; height: 300px;"> </svg>
 <div id="party-color-bar"></div>!}
