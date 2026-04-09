@@ -155,31 +155,39 @@ if (Q.fptp_variable === 1) {
     for (var i = 0; i < Q.parties.length; i++) {
         var party = Q.parties[i];
         var v = Q[party + '_r'] || 0;
-        if (v >= 5 && !Q[party + '_banned']) {
+        if (v >= 3 && !Q[party + '_banned']) {  // 3% threshold, softer than 5%
             fptp_votes[party] = v;
             fptp_sum += v;
         } else {
             fptp_votes[party] = 0;
         }
     }
+
+    // Normalise
     var fptp_normalised = {};
     for (var party in fptp_votes) {
-        fptp_normalised[party] = fptp_sum > 0 ? (fptp_votes[party] / fptp_sum) * 100 : 0;
+        fptp_normalised[party] = fptp_sum > 0
+            ? (fptp_votes[party] / fptp_sum) * 100 : 0;
     }
-    var cube_sum = 0;
-    var cubes = {};
+
+    // Squared rule instead of cube — less brutal amplification
+    // s = v² / Σv²
+    var sq_sum = 0;
+    var squares = {};
     for (var party in fptp_normalised) {
         var v = fptp_normalised[party] / 100;
-        cubes[party] = v * v * v;
-        cube_sum += cubes[party];
+        squares[party] = v * v;
+        sq_sum += squares[party];
     }
+
     for (var i = 0; i < Q.parties.length; i++) {
         var party = Q.parties[i];
-        Q[party + '_seats'] = (cube_sum > 0 && cubes[party] > 0)
-            ? Math.round((cubes[party] / cube_sum) * Q.total_seats)
+        Q[party + '_seats'] = (sq_sum > 0 && squares[party] > 0)
+            ? Math.round((squares[party] / sq_sum) * Q.total_seats)
             : 0;
     }
-    // Fix rounding error on largest party
+
+    // Fix rounding on largest party
     var fptp_seat_total = 0;
     var largest_fptp_party = null;
     var largest_fptp_seats = 0;
@@ -558,37 +566,45 @@ on-arrival: {!
 // BUILD LIST OF PARTIES BY VOTE SHARE
 // ============================================
 
+var seat_total = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    seat_total += Q[Q.parties[i] + '_seats'] || 0;
+}
+if (seat_total === 0) seat_total = 1; // guard against division by zero
+
 Q.party_votes = [
-    {party: 'KPD',   votes: Q.kpd_r},
-    {party: 'SPD',   votes: Q.spd_r},
-    {party: 'Z',     votes: Q.z_r},
-    {party: 'NSDAP', votes: Q.nsdap_r},
-    {party: 'DNVP',  votes: Q.dnvp_r},
-    {party: 'DVP',   votes: Q.dvp_r},
-    {party: 'DDP',   votes: Q.ddp_r},
-    {party: 'BVP',   votes: Q.bvp_r}
+    {party: 'KPD',   votes: ((Q.kpd_seats  || 0) / seat_total) * 100},
+    {party: 'SPD',   votes: ((Q.spd_seats  || 0) / seat_total) * 100},
+    {party: 'Z',     votes: ((Q.z_seats    || 0) / seat_total) * 100},
+    {party: 'NSDAP', votes: ((Q.nsdap_seats|| 0) / seat_total) * 100},
+    {party: 'DNVP',  votes: ((Q.dnvp_seats || 0) / seat_total) * 100},
+    {party: 'DVP',   votes: ((Q.dvp_seats  || 0) / seat_total) * 100},
+    {party: 'DDP',   votes: ((Q.ddp_seats  || 0) / seat_total) * 100},
+    {party: 'BVP',   votes: ((Q.bvp_seats  || 0) / seat_total) * 100},
+    {party: 'BB',    votes: ((Q.bb_seats   || 0) / seat_total) * 100},
+    {party: 'WP',    votes: ((Q.wp_seats   || 0) / seat_total) * 100},
+    {party: 'CNBL',  votes: ((Q.cnbl_seats || 0) / seat_total) * 100},
+    {party: 'CSRP',  votes: ((Q.csrp_seats || 0) / seat_total) * 100},
+    {party: 'other', votes: ((Q.other_seats|| 0) / seat_total) * 100},
 ].filter(function(p) { return p.votes > 0; });
 
-if (Q.sapd_formed && Q.sapd_r > 0) Q.party_votes.push({party: 'SAPD', votes: Q.sapd_r});
-if (Q.srpd_formed && Q.srpd_r > 0) Q.party_votes.push({party: 'SRPD', votes: Q.srpd_r});
-if (Q.vrp_r  && Q.vrp_r  > 0) Q.party_votes.push({party: 'VRP',  votes: Q.vrp_r});
-if (Q.wp_r   && Q.wp_r   > 0) Q.party_votes.push({party: 'WP',   votes: Q.wp_r});
-if (Q.cnbl_r && Q.cnbl_r > 0) Q.party_votes.push({party: 'CNBL', votes: Q.cnbl_r});
-if (Q.csrp_r && Q.csrp_r > 0) Q.party_votes.push({party: 'CSRP', votes: Q.csrp_r});
-if (Q.csvd_flee && Q.csvd_r && Q.csvd_r > 0) Q.party_votes.push({party: 'CSVD', votes: Q.csvd_r});
-if (Q.kvp_flee  && Q.kvp_r  && Q.kvp_r  > 0) Q.party_votes.push({party: 'KVP',  votes: Q.kvp_r});
-if (Q.bb_r  && Q.bb_r  > 0) Q.party_votes.push({party: 'BB',  votes: Q.bb_r});
-if (Q.dhp_r && Q.dhp_r > 0) Q.party_votes.push({party: 'DHP', votes: Q.dhp_r});
-if (Q.dvfp_r > 0) Q.party_votes.push({party: 'DVFP', votes: Q.dvfp_r});
-if (Q.aspd_r && Q.aspd_r > 0) Q.party_votes.push({party: 'ASPD', votes: Q.aspd_r});
-if (Q.hl_r   && Q.hl_r   > 0) Q.party_votes.push({party: 'HL',   votes: Q.hl_r});
-if (Q.sl_r   && Q.sl_r   > 0) Q.party_votes.push({party: 'SL',   votes: Q.sl_r});
-if (Q.kpo_r  && Q.kpo_r  > 0) Q.party_votes.push({party: 'KPO',  votes: Q.kpo_r});
-if (Q.vnr_r  && Q.vnr_r  > 0) Q.party_votes.push({party: 'VNR',  votes: Q.vnr_r});
-
+// Conditional additions for optional parties
+if (Q.sapd_formed && Q.sapd_seats > 0)
+    Q.party_votes.push({party: 'SAPD', votes: (Q.sapd_seats / seat_total) * 100});
+if (Q.srpd_formed && Q.srpd_seats > 0)
+    Q.party_votes.push({party: 'SRPD', votes: (Q.srpd_seats / seat_total) * 100});
+if (Q.vrp_seats  > 0) Q.party_votes.push({party: 'VRP',  votes: (Q.vrp_seats  / seat_total) * 100});
+if (Q.csvd_flee && Q.csvd_seats > 0) Q.party_votes.push({party: 'CSVD', votes: (Q.csvd_seats / seat_total) * 100});
+if (Q.kvp_flee  && Q.kvp_seats  > 0) Q.party_votes.push({party: 'KVP',  votes: (Q.kvp_seats  / seat_total) * 100});
+if (Q.dhp_seats  > 0) Q.party_votes.push({party: 'DHP',  votes: (Q.dhp_seats  / seat_total) * 100});
+if (Q.dvfp_seats > 0) Q.party_votes.push({party: 'DVFP', votes: (Q.dvfp_seats / seat_total) * 100});
+if (Q.aspd_seats > 0) Q.party_votes.push({party: 'ASPD', votes: (Q.aspd_seats / seat_total) * 100});
+if (Q.hl_seats   > 0) Q.party_votes.push({party: 'HL',   votes: (Q.hl_seats   / seat_total) * 100});
+if (Q.sl_seats   > 0) Q.party_votes.push({party: 'SL',   votes: (Q.sl_seats   / seat_total) * 100});
+if (Q.kpo_seats  > 0) Q.party_votes.push({party: 'KPO',  votes: (Q.kpo_seats  / seat_total) * 100});
+if (Q.vnr_seats  > 0) Q.party_votes.push({party: 'VNR',  votes: (Q.vnr_seats  / seat_total) * 100});
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
-
 // ============================================================
 // PRESIDENTIAL FORMATEUR SELECTION
 // Uses camarilla chancellor scores + presidential trust values.
