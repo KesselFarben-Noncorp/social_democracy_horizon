@@ -948,6 +948,13 @@ function coalition_compatibility(parties) {
     return count > 0 ? total_rel / count : 0;
 }
 
+var spd_pct   = ((Q.spd_seats   || 0) / seat_total) * 100;
+var z_pct     = ((Q.z_seats     || 0) / seat_total) * 100;
+var ddp_pct   = ((Q.ddp_seats   || 0) / seat_total) * 100;
+var dvp_pct   = ((Q.dvp_seats   || 0) / seat_total) * 100;
+var dnvp_pct  = ((Q.dnvp_seats  || 0) / seat_total) * 100;
+var nsdap_pct = ((Q.nsdap_seats || 0) / seat_total) * 100;
+
 var plausible_majority =
     spd_pct + z_pct + ddp_pct >= 50 ||
     spd_pct + z_pct + dvp_pct >= 50 ||
@@ -1803,11 +1810,17 @@ Q.coalition_type = Q.chosen_coalition.type;
 
 // Replace the coalition_partners_list building block in @coalition_success:
 
+var seat_total_cs = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    seat_total_cs += Q[Q.parties[i] + '_seats'] || 0;
+}
+if (seat_total_cs === 0) seat_total_cs = 1;
+
 Q.coalition_partners_list = "";
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
-    var votes = Q[party.toLowerCase() + '_r'];
-    Q.coalition_partners_list += "- **" + party + "**: " + Math.round(votes * 10) / 10 + "%\n";
+    var seat_pct = ((Q[party.toLowerCase() + '_seats'] || 0) / seat_total_cs) * 100;
+    Q.coalition_partners_list += "- **" + party + "**: " + Math.round(seat_pct * 10) / 10 + "%\n";
 }
 
 if (Q.chosen_coalition.toleration) {
@@ -1815,8 +1828,8 @@ if (Q.chosen_coalition.toleration) {
     var tol_parties = Q.chosen_coalition.tolerating_parties;
     for (var i = 0; i < tol_parties.length; i++) {
         var tparty = tol_parties[i];
-        var tvotes = Q[tparty.toLowerCase() + '_r'];
-        Q.coalition_partners_list += "- **" + tparty + "**: " + Math.round(tvotes * 10) / 10 + "% *(tolerating)*\n";
+        var tpct = ((Q[tparty.toLowerCase() + '_seats'] || 0) / seat_total_cs) * 100;
+        Q.coalition_partners_list += "- **" + tparty + "**: " + Math.round(tpct * 10) / 10 + "% *(tolerating)*\n";
     }
     Q.coalition_votes_display = Math.round(Q.chosen_coalition.votes * 10) / 10 + "% (effective: " + Math.round(Q.chosen_coalition.effective_votes * 10) / 10 + "%)";
 } else {
@@ -2947,7 +2960,10 @@ Q.no_majority_elections = Q.no_majority_elections || 0;
 Q.failed_formateur = Q.formateur;
 
 // Pre-calculate current formateur votes for display
-Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r'];
+var _ft = 0;
+for (var i = 0; i < Q.parties.length; i++) { _ft += Q[Q.parties[i] + '_seats'] || 0; }
+if (_ft === 0) _ft = 1;
+Q.formateur_votes = Math.round(((Q[Q.formateur.toLowerCase() + '_seats'] || 0) / _ft) * 1000) / 10;
 
 // Find next viable formateur
 Q.next_formateur_found = 0;
@@ -2961,7 +2977,10 @@ for (var i = Q.formation_round - 1; i < Q.party_votes.length; i++) {
     if (Q.formation_attempts.indexOf(candidate) >= 0) continue; // Already tried
     
     Q.formateur = candidate;
-    Q.formateur_votes = Q[Q.formateur.toLowerCase() + '_r']; // Update votes for new formateur
+    var _ft = 0;
+for (var i = 0; i < Q.parties.length; i++) { _ft += Q[Q.parties[i] + '_seats'] || 0; }
+if (_ft === 0) _ft = 1;
+Q.formateur_votes = Math.round(((Q[Q.formateur.toLowerCase() + '_seats'] || 0) / _ft) * 1000) / 10;
     Q.next_formateur_found = 1;
     break;
 }
