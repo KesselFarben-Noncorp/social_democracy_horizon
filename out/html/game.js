@@ -361,6 +361,20 @@
       window.dendryUI.currentAudio = audio;
       window.dendryUI.currentAudioURL = savedMusic;
     }
+    // Restore custom styles
+  (function() {
+  var saved = window.csLoad ? window.csLoad() : {};
+  var colorVars = ['--bg-color','--content-bg-color','--text-color',
+                   '--link-color','--border-color','--tab-bg-color'];
+  colorVars.forEach(function(v) {
+    if (saved[v]) document.body.style.setProperty(v, saved[v]);
+  });
+  if (saved.fontSize)   document.body.style.fontSize   = saved.fontSize + '%';
+  if (saved.fontFamily) document.body.style.fontFamily = saved.fontFamily;
+  if (saved.maxWidth)   document.getElementById('page').style.maxWidth = saved.maxWidth + 'px';
+  if (saved.overlayOpacity) window._csApplyOverlayOpacityRaw(saved.overlayOpacity);
+  if (saved.rawCSS)     window._csInjectRaw(saved.rawCSS);
+  })();
   };
 
  }());
@@ -588,3 +602,249 @@ var _bgPatchInterval = setInterval(function() {
       _originalAudio(audioStr);
     };
 }, 100);
+
+
+
+
+
+
+
+
+var _CS_KEY = 'Social Fascism: An Alternate Horizon_Gaufenspelt_custom_style';
+
+var _csDefaults = {
+  '--bg-color':          null,
+  '--content-bg-color':  null,
+  '--text-color':        null,
+  '--link-color':        null,
+  '--border-color':      null,
+  '--tab-bg-color':      null,
+  fontSize:              null,
+  fontFamily:            null,
+  overlayOpacity:        null,
+  maxWidth:              null,
+  rawCSS:                null,
+};
+
+// Reads a CSS variable from the current body style
+var _csGetVar = function(varName) {
+  return getComputedStyle(document.body).getPropertyValue(varName).trim();
+};
+
+window.showCustomStyle = function() {
+  window.csPopulate();
+  document.getElementById('custom-style').style.display = 'block';
+  var el = document.getElementById('custom-style');
+  if (!el.onclick) {
+    el.onclick = function(evt) {
+      if (evt.target === el) window.hideCustomStyle();
+    };
+  }
+};
+
+window.hideCustomStyle = function() {
+  document.getElementById('custom-style').style.display = 'none';
+};
+
+window.csPopulate = function() {
+  var saved = window.csLoad();
+  // Color pickers — fall back to computed value if not saved
+  var colorMap = {
+    'cs_bg_color':      '--bg-color',
+    'cs_content_bg':    '--content-bg-color',
+    'cs_text_color':    '--text-color',
+    'cs_link_color':    '--link-color',
+    'cs_border_color':  '--border-color',
+    'cs_tab_color':     '--tab-bg-color',
+  };
+  for (var id in colorMap) {
+    var varName = colorMap[id];
+    var el = document.getElementById(id);
+    if (!el) continue;
+    var val = saved[varName] || _csGetVar(varName);
+    // color inputs need #rrggbb format
+    if (val && !val.startsWith('#')) {
+      // skip non-hex values (rgba etc) — leave picker at default
+    } else if (val) {
+      el.value = val;
+    }
+    el.onchange = (function(v) {
+      return function(e) { window.csApplyVar(v, e.target.value); };
+    })(varName);
+  }
+  // Font size
+  if (saved.fontSize) {
+    document.getElementById('cs_font_size').value = saved.fontSize;
+    document.getElementById('cs_font_size_label').textContent = saved.fontSize + '%';
+    document.body.style.fontSize = saved.fontSize + '%';
+  }
+  // Font family
+  if (saved.fontFamily) {
+    document.getElementById('cs_font').value = saved.fontFamily;
+    document.body.style.fontFamily = saved.fontFamily;
+  }
+  // Overlay opacity
+  if (saved.overlayOpacity) {
+    document.getElementById('cs_overlay_opacity').value = saved.overlayOpacity;
+    document.getElementById('cs_overlay_opacity_label').textContent = saved.overlayOpacity + '%';
+    window._csApplyOverlayOpacityRaw(saved.overlayOpacity);
+  }
+  // Max width
+  if (saved.maxWidth) {
+    document.getElementById('cs_max_width').value = saved.maxWidth;
+    document.getElementById('cs_max_width_label').textContent = saved.maxWidth + 'px';
+    document.getElementById('page').style.maxWidth = saved.maxWidth + 'px';
+  }
+  // Raw CSS
+  if (saved.rawCSS) {
+    document.getElementById('cs_raw_css').value = saved.rawCSS;
+    window._csInjectRaw(saved.rawCSS);
+  }
+};
+
+window.csApplyVar = function(varName, value) {
+  document.body.style.setProperty(varName, value);
+  var saved = window.csLoad();
+  saved[varName] = value;
+  window.csSave(saved);
+};
+
+window.csReset = function(varName) {
+  document.body.style.removeProperty(varName);
+  var saved = window.csLoad();
+  delete saved[varName];
+  window.csSave(saved);
+  window.csPopulate();
+};
+
+window.csApplyFontSize = function(val) {
+  document.getElementById('cs_font_size_label').textContent = val + '%';
+  document.body.style.fontSize = val + '%';
+  var saved = window.csLoad();
+  saved.fontSize = val;
+  window.csSave(saved);
+};
+
+window.csResetFontSize = function() {
+  document.body.style.fontSize = '';
+  document.getElementById('cs_font_size').value = 100;
+  document.getElementById('cs_font_size_label').textContent = '100%';
+  var saved = window.csLoad();
+  delete saved.fontSize;
+  window.csSave(saved);
+};
+
+window.csApplyFont = function(val) {
+  document.body.style.fontFamily = val || '';
+  var saved = window.csLoad();
+  saved.fontFamily = val;
+  window.csSave(saved);
+};
+
+window.csResetFont = function() {
+  document.body.style.fontFamily = '';
+  document.getElementById('cs_font').value = '';
+  var saved = window.csLoad();
+  delete saved.fontFamily;
+  window.csSave(saved);
+};
+
+window._csApplyOverlayOpacityRaw = function(val) {
+  var opacity = val / 100;
+  var style = document.getElementById('cs-overlay-opacity-style');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'cs-overlay-opacity-style';
+    document.head.appendChild(style);
+  }
+  style.textContent = '.overlay { background: rgba(0,0,0,' + opacity + ') !important; }';
+};
+
+window.csApplyOverlayOpacity = function(val) {
+  document.getElementById('cs_overlay_opacity_label').textContent = val + '%';
+  window._csApplyOverlayOpacityRaw(val);
+  var saved = window.csLoad();
+  saved.overlayOpacity = val;
+  window.csSave(saved);
+};
+
+window.csResetOverlayOpacity = function() {
+  var style = document.getElementById('cs-overlay-opacity-style');
+  if (style) style.textContent = '';
+  document.getElementById('cs_overlay_opacity').value = 88;
+  document.getElementById('cs_overlay_opacity_label').textContent = '88%';
+  var saved = window.csLoad();
+  delete saved.overlayOpacity;
+  window.csSave(saved);
+};
+
+window.csApplyMaxWidth = function(val) {
+  document.getElementById('cs_max_width_label').textContent = val + 'px';
+  document.getElementById('page').style.maxWidth = val + 'px';
+  var saved = window.csLoad();
+  saved.maxWidth = val;
+  window.csSave(saved);
+};
+
+window.csResetMaxWidth = function() {
+  document.getElementById('page').style.maxWidth = '';
+  document.getElementById('cs_max_width').value = 1150;
+  document.getElementById('cs_max_width_label').textContent = '1150px';
+  var saved = window.csLoad();
+  delete saved.maxWidth;
+  window.csSave(saved);
+};
+
+window._csInjectRaw = function(css) {
+  var style = document.getElementById('cs-raw-style');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'cs-raw-style';
+    document.head.appendChild(style);
+  }
+  style.textContent = css;
+};
+
+window.csApplyRaw = function() {
+  var css = document.getElementById('cs_raw_css').value;
+  window._csInjectRaw(css);
+  var saved = window.csLoad();
+  saved.rawCSS = css;
+  window.csSave(saved);
+};
+
+window.csResetRaw = function() {
+  window._csInjectRaw('');
+  document.getElementById('cs_raw_css').value = '';
+  var saved = window.csLoad();
+  delete saved.rawCSS;
+  window.csSave(saved);
+};
+
+window.csResetAll = function() {
+  localStorage.removeItem(_CS_KEY);
+  // Remove inline styles
+  ['--bg-color','--content-bg-color','--text-color',
+   '--link-color','--border-color','--tab-bg-color'].forEach(function(v) {
+    document.body.style.removeProperty(v);
+  });
+  document.body.style.fontSize   = '';
+  document.body.style.fontFamily = '';
+  document.getElementById('page').style.maxWidth = '';
+  var s1 = document.getElementById('cs-raw-style');
+  if (s1) s1.textContent = '';
+  var s2 = document.getElementById('cs-overlay-opacity-style');
+  if (s2) s2.textContent = '';
+  window.csPopulate();
+};
+
+window.csSave = function(data) {
+  try { localStorage.setItem(_CS_KEY, JSON.stringify(data)); } catch(e) {}
+};
+
+window.csLoad = function() {
+  try {
+    var raw = localStorage.getItem(_CS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+};
