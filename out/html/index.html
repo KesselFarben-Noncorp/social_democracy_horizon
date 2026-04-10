@@ -90,108 +90,64 @@
       </div>
     </div>
     <!-- Custom CSS overlay -->
-<div id="custom-style" class="overlay" style="display: none;">
-  <div class="overlay_top" style="max-width: 640px;">
-    <h2 style="margin-top:0; ">Custom Style</h2>
-    <table>
-      <tr>
-        <td colspan="2"><strong>Colors</strong></td>
-      </tr>
-      <tr>
-        <td><label>Background</label></td>
-        <td><input type="color" id="cs_bg_color"> <button onclick="window.csReset('--bg-color')">↺</button></td>
-      </tr>
-      <tr>
-        <td><label>Content BG</label></td>
-        <td><input type="color" id="cs_content_bg"> <button onclick="window.csReset('--content-bg-color')">↺</button></td>
-      </tr>
-      <tr>
-        <td><label>Text</label></td>
-        <td><input type="color" id="cs_text_color"> <button onclick="window.csReset('--text-color')">↺</button></td>
-      </tr>
-      <tr>
-        <td><label>Links</label></td>
-        <td><input type="color" id="cs_link_color"> <button onclick="window.csReset('--link-color')">↺</button></td>
-      </tr>
-      <tr>
-        <td><label>Borders</label></td>
-        <td><input type="color" id="cs_border_color"> <button onclick="window.csReset('--border-color')">↺</button></td>
-      </tr>
-      <tr>
-        <td><label>Tab BG</label></td>
-        <td><input type="color" id="cs_tab_color"> <button onclick="window.csReset('--tab-bg-color')">↺</button></td>
-      </tr>
-      <tr><td colspan="2"><hr></td></tr>
-      <tr>
-        <td colspan="2"><strong>Typography</strong></td>
-      </tr>
-      <tr>
-        <td><label>Font size</label></td>
-        <td>
-          <input type="range" id="cs_font_size" min="80" max="130" value="100"
-                 oninput="window.csApplyFontSize(this.value)">
-          <span id="cs_font_size_label">100%</span>
-          <button onclick="window.csResetFontSize()">↺</button>
-        </td>
-      </tr>
-      <tr>
-        <td><label>Font family</label></td>
-        <td>
-          <select id="cs_font" onchange="window.csApplyFont(this.value)">
-            <option value="">Default (Crimson Text)</option>
-            <option value="Georgia, serif">Georgia</option>
-            <option value="'Times New Roman', serif">Times New Roman</option>
-            <option value="'Courier New', monospace">Courier New</option>
-            <option value="Arial, sans-serif">Arial</option>
-            <option value="'VT323', monospace">VT323</option>
-          </select>
-          <button onclick="window.csResetFont()">↺</button>
-        </td>
-      </tr>
-      <tr><td colspan="2"><hr></td></tr>
-      <tr>
-        <td colspan="2"><strong>Layout</strong></td>
-      </tr>
-      <tr>
-        <td><label>Overlay opacity</label></td>
-        <td>
-          <input type="range" id="cs_overlay_opacity" min="0" max="100" value="88"
-                 oninput="window.csApplyOverlayOpacity(this.value)">
-          <span id="cs_overlay_opacity_label">88%</span>
-          <button onclick="window.csResetOverlayOpacity()">↺</button>
-        </td>
-      </tr>
-      <tr>
-        <td><label>Content width</label></td>
-        <td>
-          <input type="range" id="cs_max_width" min="800" max="1400" value="1150" step="50"
-                 oninput="window.csApplyMaxWidth(this.value)">
-          <span id="cs_max_width_label">1150px</span>
-          <button onclick="window.csResetMaxWidth()">↺</button>
-        </td>
-      </tr>
-      <tr><td colspan="2"><hr></td></tr>
-      <tr>
-        <td colspan="2"><strong>Raw CSS</strong></td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <textarea id="cs_raw_css" rows="6" style="width:100%; font-family: monospace; font-size:0.85em; background: var(--content-bg-color); color: var(--text-color); border: 1px solid var(--border-color);" placeholder="/* Any extra CSS here */"></textarea>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <button onclick="window.csApplyRaw()">Apply CSS</button>
-          <button onclick="window.csResetRaw()">↺</button>
-        </td>
-        <td style="text-align:right;">
-          <button onclick="window.csResetAll()">Reset All</button>
-          <button onclick="window.hideCustomStyle()">Close</button>
-        </td>
-      </tr>
-    </table>
-  </div>
-</div>
+    <div id="custom-style" class="overlay" style="display:none;">
+      <div class="overlay_top">
+        <h2>Custom Style</h2>
+
+        <table>
+          <tr><td>Background</td>
+              <td><input type="color" id="cs_bg_color"></td>
+              <td><button onclick="window.csReset('--bg-color')">Reset</button></td></tr>
+          <tr><td>Content BG</td>
+              <td><input type="color" id="cs_content_bg"></td>
+              <td><button onclick="window.csReset('--content-bg-color')">Reset</button></td></tr>
+          <tr><td>Text</td>
+              <td><input type="color" id="cs_text_color"></td>
+              <td><button onclick="window.csReset('--text-color')">Reset</button></td></tr>
+          <tr><td>Links</td>
+              <td><input type="color" id="cs_link_color"></td>
+              <td><button onclick="window.csReset('--link-color')">Reset</button></td></tr>
+          <tr><td>Border</td>
+              <td><input type="color" id="cs_border_color"></td>
+              <td><button onclick="window.csReset('--border-color')">Reset</button></td></tr>
+          <tr><td>Tab BG</td>
+              <td><input type="color" id="cs_tab_color"></td>
+              <td><button onclick="window.csReset('--tab-bg-color')">Reset</button></td></tr>
+
+          <tr><td>Font size</td>
+              <td><input type="range" id="cs_font_size" min="70" max="150" value="100"
+               oninput="window.csApplyFontSize(this.value)">
+              <span id="cs_font_size_label">100%</span></td>
+          <td><button onclick="window.csResetFontSize()">Reset</button></td></tr>
+
+          <tr><td>Font family</td>
+              <td><input type="text" id="cs_font" placeholder="e.g. Georgia, serif"
+                   onchange="window.csApplyFont(this.value)"></td>
+              <td><button onclick="window.csResetFont()">Reset</button></td></tr>
+
+          <tr><td>Overlay opacity</td>
+              <td><input type="range" id="cs_overlay_opacity" min="0" max="100" value="88"
+                   oninput="window.csApplyOverlayOpacity(this.value)">
+                  <span id="cs_overlay_opacity_label">88%</span></td>
+              <td><button onclick="window.csResetOverlayOpacity()">Reset</button></td></tr>
+
+          <tr><td>Max width</td>
+              <td><input type="range" id="cs_max_width" min="600" max="1800" value="1150"
+                   oninput="window.csApplyMaxWidth(this.value)">
+                  <span id="cs_max_width_label">1150px</span></td>
+              <td><button onclick="window.csResetMaxWidth()">Reset</button></td></tr>
+        </table>
+
+        <p>Raw CSS injection:</p>
+        <textarea id="cs_raw_css" rows="5" style="width:100%;box-sizing:border-box;"></textarea>
+        <button onclick="window.csApplyRaw()">Apply</button>
+        <button onclick="window.csResetRaw()">Clear</button>
+
+        <hr>
+        <button onclick="window.csResetAll()">Reset all</button>
+        <button onclick="window.hideCustomStyle()">Close</button>
+      </div>
+    </div>
 
     <!-- Save/Load overlay -->
     <div id="save" class="overlay saves" style="display: none;">
