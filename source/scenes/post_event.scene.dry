@@ -2580,7 +2580,7 @@ Q.identity_modifier = {
     
     // --- Begin Reworked Randomized Monthly Party Drift ---
 
-    Q.drift_base = 1.13;
+    Q.drift_base = 1.11;
 
     // Dynamic factors with randomness
     if (Q.inflation >= 0) {
@@ -3086,11 +3086,21 @@ Q.identity_modifier = {
             if (Q.peoples_party === 1) m *= 0.88;
             if (Q.ideology === 'left')      m *= 1.12;
             if (Q.ideology === 'reformist') m *= 0.92;
-            if (Q.campaign_focus === 'workers' && ci > 0) m += ci * 0.20;
-            if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.08;
+            if (Q.campaign_focus === 'workers' && ci > 0) m += ci * 0.45;
+            if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.12;
             if (Q.dues_workers > 0) m -= Q.dues_workers * 0.086;
             if (Q.wtb_timer > 0) m += (Q.workers / 100) * 0.75;
             if (Q.unions_independent === 1) m *= 0.50;
+            if (Q.pro_consumer > 0) m += Q.land_reform * 0.23;
+            if (Q.state_buyer > 0) m += Q.state_buyer * 0.25;
+            if (Q.welfare > 0) m += Q.welfare * 0.11;
+            if (Q.working_hours > 0) m += Q.working_hours * 0.08;
+            if (Q.workers_safety > 0) m += Q.workers_safety * 0.05;
+            if (Q.commonwealth_cooperation > 0) m += Q.commonwealth_cooperation * 0.55;
+            if (Q.works_councils > 0) m += Q.works_councils * 0.05;
+            if (Q.economic_democracy > 0) m += Q.economic_democracy * 0.02;
+            if (Q.cooperatives > 0) m += Q.cooperatives * 0.10
+            if (Q.lower_tax_rates > 0) m -= Q.lower_tax_rates * 0.25;
             return m;
         })(),
         old_middle: (() => {
@@ -3104,6 +3114,7 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'women' && ci > 0) m += ci * 0.07;
             if (Q.campaign_focus === 'catholics' && ci > 0) m += ci * 0.12 * (Q.catholics / 35);
             if (Q.dues_old_middle > 0) m -= Q.dues_old_middle * 0.12;
+            if (Q.land_reform > 0) m -= Q.land_reform * 0.15
             return m;
         })(),
         new_middle: (() => {
@@ -3127,6 +3138,10 @@ Q.identity_modifier = {
             if (Q.campaign_focus === 'rural' && ci > 0) m += ci * 0.20;
             if (Q.campaign_focus === 'catholics' && ci > 0) m += ci * 0.13 * (Q.catholics / 35);
             if (Q.dues_rural > 0) m -= Q.dues_rural * 0.11;
+            if (Q.land_reform > 0) m += Q.land_reform * 0.32;
+            if (Q.agricultural_finance > 0) m += Q.agricultural_finance * 0.22;
+            if (Q.pro_consumer > 0) m += Q.land_reform * 0.03;
+            if (Q.state_buyer > 0) m += Q.state_buyer * 0.45;
             return m;
         })(),
         unemployedc: (() => {
@@ -3140,6 +3155,9 @@ Q.identity_modifier = {
             if (Q.wtb_timer > 0) m += (Q.unemployedc / 100) * 1.03;
             if (Q.hitler_spd === 1) m * 1.08;
             if (Q.left_split === 1) m *= 0.50;
+            if (Q.pro_consumer > 0) m += Q.land_reform * 0.13;
+            if (Q.state_buyer > 0) m += Q.state_buyer * 0.15;
+            if (Q.welfare > 0) m += Q.welfare * 0.06;
             return m;
         })(),
     },
