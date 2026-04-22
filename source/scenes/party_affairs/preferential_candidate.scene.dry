@@ -9,21 +9,15 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 
 **Available SPD Chancellor Candidates:**
 
-[? if not muller_dead : **Hermann Müller** - Potential chancellor, experienced in coalition management, moderate reformist, respected across party lines. ?]
+[? if not muller_dead and social_fascism_adopted <= 0 : **Hermann Müller** - Potential chancellor, experienced in coalition management, moderate reformist, respected across party lines. ?]
 
 **Otto Wels** - Party Chairman since 1919, staunch republican, strong anti-Nazi credentials, represents party orthodoxy.
 
-**Otto Braun** - Minister-President of Prussia, executive experience, pragmatic administrator, controls largest state government.
+[? if social_fascism_adopted <= 0: **Otto Braun** - Minister-President of Prussia, executive experience, pragmatic administrator, controls largest state government. ?]
 
-[? if spd_toleration = 0 : **Rudolf Hilferding** - Leading Marxist economist, intellectual heavyweight, appeals to left wing, controversial with bourgeois parties. ?]
+[? if spd_toleration = 0 and social_fascism_adopted <= 0: **Rudolf Hilferding** - Leading Marxist economist, intellectual heavyweight, appeals to left wing, controversial with bourgeois parties. ?]
 
-[? if social_fascism_adopted = 1 : **August Winnig** - The "Worker-Statesman" of the National-Labor wing. He offers a "German Socialism" that bridges the gap between unions and the nationalist Right.
-
-**Otto Hörsing** - The "Iron Guard" Commander. As architect of the Reichsbanner, he promises a Chancellorship of state security and disciplined order.
-
-**Albert Südekum** - The Corporatist Architect. He focuses on a state-managed command economy and total industrial mobilization to ensure national survival.
-
-**Heinrich Cunow** - The State-Socialist Theorist. He envisions the Chancellorship as a powerful pedagogical weapon to mold the people into a unified national unit.  ?]
+[? if social_fascism_adopted = 1 : **August Winnig** - The "Worker-Statesman" of the National-Labor wing. He offers a "German Socialism" that bridges the gap between unions and the nationalist Right. <br> <br> **Otto Hörsing** - The "Iron Guard" Commander. As architect of the Reichsbanner, he promises a Chancellorship of state security and disciplined order. <br> <br> **Albert Südekum** - The Corporatist Architect. He focuses on a state-managed command economy and total industrial mobilization to ensure national survival. <br> <br> **Heinrich Cunow** - The State-Socialist Theorist. He envisions the Chancellorship as a powerful pedagogical weapon to mold the people into a unified national unit.  ?]
 
 **Who should the SPD put forward?**
 
@@ -32,7 +26,7 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 - @prefer_braun: Otto Braun - Executive competence
 - @prefer_hilferding: Rudolf Hilferding - Left credibility
 - @prefer_breitscheid: Breitscheid - International expet
-- @prefer_winnig: August Winnig - National Unity and Labor
+- @prefer_winnig: August [? if social_fascism_adopted = Winnig - National Unity and Labor
 - @prefer_horsing: Otto Hörsing - Security and Discipline
 - @prefer_sudukum: Albert Südekum - Economic Efficiency
 - @prefer_cunow: Heinrich Cunow - The Supremacy of the State
