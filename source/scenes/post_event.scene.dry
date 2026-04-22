@@ -2716,7 +2716,7 @@ Q.identity_modifier = {
         let nat_floor = Q.nationalism_factor * 25;
 
         let u = Math.max(0, Q.unrest_factor - 0.6);
-        let crisis_ramp = 100 / (1 + Math.exp(-1.4 * (u - 1.8)));
+        let crisis_ramp = 90 / (1 + Math.exp(-1.4 * (u - 1.8)));
 
         // Hard ceiling on the combined base before identity modifier
         let raw = nat_floor + crisis_ramp
@@ -2735,12 +2735,12 @@ Q.identity_modifier = {
             return m;
         })(),
         new_middle: (() => {
-            let m = 0.67;
+            let m = 0.77;
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
         rural: (() => {
-            let m = 1.69;
+            let m = 1.79;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.22);
             if (Q.peoples_party === 1) m *= 0.95;
@@ -2906,7 +2906,8 @@ Q.identity_modifier = {
         base: Q.kpd_banned ? 0 : (() => {
             let soc = Q.socialism_factor;
             let unr = Q.unrest_factor;
-            return soc * 45 * 2.0 * (1 + unr * 0.13) * Q.identity_modifier.kpd;
+            let kpd_socfac_buff = Q.april_challenge == 1 ? 1.25 : 1;
+            return soc * 45 * 2.0 * (1 + unr * 0.13) * kpd_socfac_buff * Q.identity_modifier.kpd;
         })(),
         workers: (() => {
             let m = 1.50;
@@ -2939,7 +2940,8 @@ Q.identity_modifier = {
         base: Q.sapd_banned ? 0 : (() => {
             let soc = Q.socialism_factor;
             let unr = Q.unrest_factor;
-            return soc * 30 * 2.0 * (1 + unr * 0.12) * Q.identity_modifier.sapd;
+            let sapd_socfac_buff = Q.april_challenge == 1 ? 2.50 : 1;
+            return soc * 30 * 2.0 * (1 + unr * 0.12) * sapd_socfac_buff * Q.identity_modifier.sapd;
         })(),
         workers: (() => {
             let m = 1.30;
@@ -3413,10 +3415,11 @@ Q.identity_modifier = {
 
     sl: {
     base: Q.aspd_banned ? 0 : (() => {
+        let sl_socfac_buff = Q.april_challenge == 1 ? 4.50 : 1;
         let rep = Q.pro_republic_factor;
         let nat = Q.nationalism_factor;
         let soc = Q.socialism_factor;
-        return (rep * 3 + nat * 5 + soc * 10) * Q.identity_modifier.bb;
+        return (rep * 3 + nat * 5 + soc * 10) * sl_socfac_buff * Q.identity_modifier.bb;
     })(),
     workers:    0.50,
     old_middle: 0.5,
