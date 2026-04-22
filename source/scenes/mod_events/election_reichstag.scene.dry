@@ -39,6 +39,7 @@ var new_party_sum = 0;
 for (var party of Q.parties) {
     Q['old_' + party + '_r'] = Q[party + '_r'] ?? 0;
     Q['old_' + party + '_seat_pct'] = Q[party + '_seat_pct'] ?? 0;
+    Q['old_' + party + '_seats'] = Q[party + '_seats'] ?? 0;
     
     // Handle banned parties - set support to 0
     if (Q[party + '_banned']) {
@@ -221,19 +222,19 @@ for (var party of Q.parties) {
 
 for (var party of Q.parties) {
     if (!Q.math_broken) {
-        Q[party + '_seat_pct'] = Q.total_seats_filled > 0 
-            ? Math.round((Q[party + '_seats'] / Q.total_seats_filled) * 1000) / 10 
-            : 0;
-        // Display string
-        Q[party + '_seats_disp'] = Q[party + '_seats'].toString();
-        Q[party + '_seat_pct_disp'] = Q[party + '_seat_pct'].toFixed(1);
-        Q['change_' + party + '_seat_pct'] = Q[party + '_seat_pct'] - Q['old_' + party + '_seat_pct'];
-        Q['str_change_' + party + '_seats'] = (Q['change_' + party + '_seat_pct'] >= 0 ? '+' : '') +
+    Q[party + '_seat_pct'] = Q.total_seats_filled > 0 
+        ? Math.round((Q[party + '_seats'] / Q.total_seats_filled) * 1000) / 10 
+        : 0;
+    // Display string
+    Q[party + '_seats_disp'] = Q[party + '_seats'].toString();
+    Q[party + '_seat_pct_disp'] = Q[party + '_seat_pct'].toFixed(1);
+    Q['change_' + party + '_seat_pct'] = Q[party + '_seat_pct'] - Q['old_' + party + '_seat_pct'];
+    Q['str_change_' + party + '_seats'] = (Q['change_' + party + '_seat_pct'] >= 0 ? '+' : '') +
         (Math.round(Q['change_' + party + '_seat_pct'] * 10) / 10).toFixed(1);
-    } else {
-        Q[party + '_seat_pct'] = Q.impossible_percentage(Q[party + '_seats'] / Q.total_seats_filled * 100);
-        Q[party + '_seats_disp'] = Q.impossible_add(Q[party + '_seats'], 0).toString();
-        Q[party + '_seat_pct_disp'] = Q.impossible_percentage(Q[party + '_seat_pct']).toFixed(1);
+    // NEW: number-based seat delta
+    Q['change_' + party + '_seats_num'] = Q[party + '_seats'] - Q['old_' + party + '_seats'];
+    Q['str_change_' + party + '_seats_num'] = (Q['change_' + party + '_seats_num'] >= 0 ? '+' : '') +
+        Q['change_' + party + '_seats_num'].toString();
     }
 }
 
@@ -386,179 +387,211 @@ go-to: coalition_formation_start
 <div id="party-color-bar"></div>!}
 
 {!<table style="width:100%; border-collapse: collapse;">!}
-<tr style="border-bottom: 2px solid #333;">
-    <td style="padding: 8px; font-weight: bold;">Party</td>
-    <td style="padding: 8px; font-weight: bold; text-align: right;">Votes</td>
-    <td style="padding: 8px; font-weight: bold; text-align: right;">Δ Votes</td>
-    <td style="padding: 8px; font-weight: bold; text-align: right;">Seats</td>
-    <td style="padding: 8px; font-weight: bold; text-align: right;">Δ Seats</td>
-</tr>
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B0000; display:inline-block; margin-right:8px;'> </div>KPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpd_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ kpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kpd_r > 0 : color: green; ?][? if change_kpd_r < 0 : color: red; ?]">[+ str_change_kpd +]</td>
+    <td style="padding: 8px; text-align: right;">[+ kpd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_kpd_seats_num > 0 : color: green; ?][? if change_kpd_seats_num < 0 : color: red; ?]">[+ str_change_kpd_seats_num +]</td>
 </tr>
+[? if sl_votes > 0 :
 <tr class="row-left">
-    <td style="padding: 8px;"><div class="box" style='background-colo:#B22222; display:inline-block; margin-right:8px;'> </div>SL</td>
+    <td style="padding: 8px;"><div class="box" style='background-color:#005B96; display:inline-block; margin-right:8px;'> </div>SL</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sl_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ sl_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_sl_r > 0 : color: green; ?][? if change_sl_r < 0 : color: red; ?]">[+ str_change_sl +]</td>
+    <td style="padding: 8px; text-align: right;">[+ sl_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_sl_seats_num > 0 : color: green; ?][? if change_sl_seats_num < 0 : color: red; ?]">[+ str_change_sl_seats_num +]</td>
 </tr>
+?]
+[? if aspd_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#B22222; display:inline-block; margin-right:8px;'> </div>ASPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ aspd_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ aspd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_aspd_r > 0 : color: green; ?][? if change_aspd_r < 0 : color: red; ?]">[+ str_change_aspd +]</td>
+    <td style="padding: 8px; text-align: right;">[+ aspd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_aspd_seats_num > 0 : color: green; ?][? if change_aspd_seats_num < 0 : color: red; ?]">[+ str_change_aspd_seats_num +]</td>
 </tr>
+?]
+[? if kpo_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#990000; display:inline-block; margin-right:8px;'> </div>KPO</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpo_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ kpo_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kpo_r > 0 : color: green; ?][? if change_kpo_r < 0 : color: red; ?]">[+ str_change_kpo +]</td>
+    <td style="padding: 8px; text-align: right;">[+ kpo_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_kpo_seats_num > 0 : color: green; ?][? if change_kpo_seats_num < 0 : color: red; ?]">[+ str_change_kpo_seats_num +]</td>
 </tr>
-[? if sapd_formed = 1 : 
+?]
+[? if sapd_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#C40000; display:inline-block; margin-right:8px;'> </div>SAPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ sapd_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ sapd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_sapd_r > 0 : color: green; ?][? if change_sapd_r < 0 : color: red; ?]">[+ str_change_sapd +]</td>
+    <td style="padding: 8px; text-align: right;">[+ sapd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_sapd_seats_num > 0 : color: green; ?][? if change_sapd_seats_num < 0 : color: red; ?]">[+ str_change_sapd_seats_num +]</td>
 </tr>
 ?]
 <tr class="row-left row-spd">
     <td style="padding: 8px;"><div class="box" style='background-color:#E3000F; display:inline-block; margin-right:8px;'> </div><strong>SPD</strong></td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ spd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_spd_r > 0 : color: green; ?][? if change_spd_r < 0 : color: red; ?]">[+ str_change_spd +]</td>
     <td style="padding: 8px; text-align: right;">[+ spd_seats +]</td>
-    <td style="padding: 8px; text-align: right; [? if change_spd_r > 0 : color: green; ?][? if change_spd_r < 0 : color: red; ?]"><strong>[+ str_change_spd +]</strong></td>
-    <td style="padding: 8px; text-align: right; [? if change_spd_seat_pct > 0 : color: green; ?][? if change_spd_seat_pct < 0 : color: red; ?]">[+ str_change_spd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_spd_seats_num > 0 : color: green; ?][? if change_spd_seats_num < 0 : color: red; ?]">[+ str_change_spd_seats_num +]</td>
 </tr>
-[? if srpd_formed = 1 :
+[? if srpd_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#FF6B6B; display:inline-block; margin-right:8px;'> </div>SRPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ srpd_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ srpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_srpd_r > 0 : color: green; ?][? if change_srpd_r < 0 : color: red; ?]">[+ str_change_srpd +]</td>
+    <td style="padding: 8px; text-align: right;">[+ srpd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_srpd_seats_num > 0 : color: green; ?][? if change_srpd_seats_num < 0 : color: red; ?]">[+ str_change_srpd_seats_num +]</td>
 </tr>
 ?]
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#DCCA4A; display:inline-block; margin-right:8px;'> </div>[+ ddp_name +]</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ ddp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ ddp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_ddp_r > 0 : color: green; ?][? if change_ddp_r < 0 : color: red; ?]">[+ str_change_ddp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ ddp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_ddp_seats_num > 0 : color: green; ?][? if change_ddp_seats_num < 0 : color: red; ?]">[+ str_change_ddp_seats_num +]</td>
 </tr>
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#000; display:inline-block; margin-right:8px;'> </div>Z (Center)</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ z_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ z_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_z_r > 0 : color: green; ?][? if change_z_r < 0 : color: red; ?]">[+ str_change_z +]</td>
+    <td style="padding: 8px; text-align: right;">[+ z_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_z_seats_num > 0 : color: green; ?][? if change_z_seats_num < 0 : color: red; ?]">[+ str_change_z_seats_num +]</td>
 </tr>
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BB</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bb_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ bb_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bb_r > 0 : color: green; ?][? if change_bb_r < 0 : color: red; ?]">[+ str_change_bb +]</td>
+    <td style="padding: 8px; text-align: right;">[+ bb_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_bb_seats_num > 0 : color: green; ?][? if change_bb_seats_num < 0 : color: red; ?]">[+ str_change_bb_seats_num +]</td>
 </tr>
+[? if hl_votes > 0 :
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#2E8B57; display:inline-block; margin-right:8px;'> </div>HL</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ hl_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ hl_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_hl_r > 0 : color: green; ?][? if change_hl_r < 0 : color: red; ?]">[+ str_change_hl +]</td>
+    <td style="padding: 8px; text-align: right;">[+ hl_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_hl_seats_num > 0 : color: green; ?][? if change_hl_seats_num < 0 : color: red; ?]">[+ str_change_hl_seats_num +]</td>
 </tr>
+?]
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bvp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ bvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bvp_r > 0 : color: green; ?][? if change_bvp_r < 0 : color: red; ?]">[+ str_change_bvp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ bvp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_bvp_seats_num > 0 : color: green; ?][? if change_bvp_seats_num < 0 : color: red; ?]">[+ str_change_bvp_seats_num +]</td>
 </tr>
+[? if csrp_votes > 0 :
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#FFCCFF; display:inline-block; margin-right:8px;'> </div>CSRP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ csrp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ csrp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_csrp_r > 0 : color: green; ?][? if change_csrp_r < 0 : color: red; ?]">[+ str_change_csrp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ csrp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_csrp_seats_num > 0 : color: green; ?][? if change_csrp_seats_num < 0 : color: red; ?]">[+ str_change_csrp_seats_num +]</td>
 </tr>
+?]
+[? if dhp_votes > 0 :
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>DHP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dhp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ dhp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dhp_r > 0 : color: green; ?][? if change_dhp_r < 0 : color: red; ?]">[+ str_change_dhp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dhp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dhp_seats_num > 0 : color: green; ?][? if change_dhp_seats_num < 0 : color: red; ?]">[+ str_change_dhp_seats_num +]</td>
 </tr>
+?]
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#D5AC27; display:inline-block; margin-right:8px;'> </div>DVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ dvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dvp_r > 0 : color: green; ?][? if change_dvp_r < 0 : color: red; ?]">[+ str_change_dvp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dvp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dvp_seats_num > 0 : color: green; ?][? if change_dvp_seats_num < 0 : color: red; ?]">[+ str_change_dvp_seats_num +]</td>
 </tr>
-[? if vrp_r > 0: 
+[? if vrp_votes > 0 :
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B7355; display:inline-block; margin-right:8px;'> </div>VRP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ vrp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ vrp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_vrp_r > 0 : color: green; ?][? if change_vrp_r < 0 : color: red; ?]">[+ str_change_vrp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ vrp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_vrp_seats_num > 0 : color: green; ?][? if change_vrp_seats_num < 0 : color: red; ?]">[+ str_change_vrp_seats_num +]</td>
 </tr>
 ?]
-[? if wp_r > 0 :
+[? if wp_votes > 0 :
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#424242; display:inline-block; margin-right:8px;'> </div>WP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ wp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ wp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_wp_r > 0 : color: green; ?][? if change_wp_r < 0 : color: red; ?]">[+ str_change_wp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ wp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_wp_seats_num > 0 : color: green; ?][? if change_wp_seats_num < 0 : color: red; ?]">[+ str_change_wp_seats_num +]</td>
 </tr>
 ?]
-[? if cnbl_r > 0 :
+[? if cnbl_votes > 0 :
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#5D4E37; display:inline-block; margin-right:8px;'> </div>CNBL</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cnbl_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ cnbl_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_cnbl_r > 0 : color: green; ?][? if change_cnbl_r < 0 : color: red; ?]">[+ str_change_cnbl +]</td>
+    <td style="padding: 8px; text-align: right;">[+ cnbl_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_cnbl_seats_num > 0 : color: green; ?][? if change_cnbl_seats_num < 0 : color: red; ?]">[+ str_change_cnbl_seats_num +]</td>
 </tr>
+?]
+[? if vnr_votes > 0 :
 <tr class="row-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#4B5320; display:inline-block; margin-right:8px;'> </div>VNR</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ vnr_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ vnr_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_vnr_r > 0 : color: green; ?][? if change_vnr_r < 0 : color: red; ?]">[+ str_change_vnr +]</td>
+    <td style="padding: 8px; text-align: right;">[+ vnr_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_vnr_seats_num > 0 : color: green; ?][? if change_vnr_seats_num < 0 : color: red; ?]">[+ str_change_vnr_seats_num +]</td>
 </tr>
 ?]
-[? if csvd_flee:
+[? if csvd_votes > 0 :
 <tr class="row-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#3f7bc1; display:inline-block; margin-right:8px;'> </div>CSVD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ csvd_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ csvd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_csvd_r > 0 : color: green; ?][? if change_csvd_r < 0 : color: red; ?]">[+ str_change_csvd +]</td>
+    <td style="padding: 8px; text-align: right;">[+ csvd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_csvd_seats_num > 0 : color: green; ?][? if change_csvd_seats_num < 0 : color: red; ?]">[+ str_change_csvd_seats_num +]</td>
 </tr>
 ?]
-[? if kvp_flee:
+[? if kvp_votes > 0 :
 <tr class="row-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#3f7bc1; display:inline-block; margin-right:8px;'> </div>KVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kvp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ kvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kvp_r > 0 : color: green; ?][? if change_kvp_r < 0 : color: red; ?]">[+ str_change_kvp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ kvp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_kvp_seats_num > 0 : color: green; ?][? if change_kvp_seats_num < 0 : color: red; ?]">[+ str_change_kvp_seats_num +]</td>
 </tr>
 ?]
 <tr class="row-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#3f7bc1; display:inline-block; margin-right:8px;'> </div>DNVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dnvp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ dnvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dnvp_r > 0 : color: green; ?][? if change_dnvp_r < 0 : color: red; ?]">[+ str_change_dnvp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dnvp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dnvp_seats_num > 0 : color: green; ?][? if change_dnvp_seats_num < 0 : color: red; ?]">[+ str_change_dnvp_seats_num +]</td>
 </tr>
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#a0a0a0; display:inline-block; margin-right:8px;'> </div>Others</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ other_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ other_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_other_r > 0 : color: green; ?][? if change_other_r < 0 : color: red; ?]">[+ str_change_other +]</td>
+    <td style="padding: 8px; text-align: right;">[+ other_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_other_seats_num > 0 : color: green; ?][? if change_other_seats_num < 0 : color: red; ?]">[+ str_change_other_seats_num +]</td>
 </tr>
 <tr class="row-far-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#954B00; display:inline-block; margin-right:8px;'> </div>NSDAP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ nsdap_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ nsdap_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_nsdap_r > 0 : color: green; ?][? if change_nsdap_r < 0 : color: red; ?]">[+ str_change_nsdap +]</td>
+    <td style="padding: 8px; text-align: right;">[+ nsdap_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_nsdap_seats_num > 0 : color: green; ?][? if change_nsdap_seats_num < 0 : color: red; ?]">[+ str_change_nsdap_seats_num +]</td>
 </tr>
+[? if dvfp_votes > 0 :
 <tr class="row-far-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#1B1B1B; display:inline-block; margin-right:8px;'> </div>DVFP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvfp_r_disp +]%</td>
-    <td style="padding: 8px; text-align: right;">[+ dvfp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dvfp_r > 0 : color: green; ?][? if change_dvfp_r < 0 : color: red; ?]">[+ str_change_dvfp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dvfp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dvfp_seats_num > 0 : color: green; ?][? if change_dvfp_seats_num < 0 : color: red; ?]">[+ str_change_dvfp_seats_num +]</td>
 </tr>
-
+?]
 {!</table>!}
 
 
