@@ -3963,6 +3963,73 @@ Q.identity_modifier = {
                     if (Q.c === 'rural')      Q.ideology_factor *= 1.60;
                     if (Q.c === 'workers' || Q.c === 'unemployed') Q.ideology_factor *= 0.25;
                     break;
+                 case 'aspd':
+    // Old SPD - conservative rump, pro-republic but anti-radical
+    // Weaker than SPD, draws from same pool but less dynamic
+    Q.ideology_factor = Q.random_factor(
+        (Q.pro_republic_factor * 0.35 + Q.socialism_factor * 0.10)
+        * Math.max(0.5, 1 - Q.unrest_factor * 0.12),
+        0.15
+    );
+    if (Q.c === 'workers')     Q.ideology_factor *= 1.05;
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 1.10; // older, more cautious voters
+    if (Q.c === 'unemployedc') Q.ideology_factor *= 0.70; // unemployed drift away to KPD/SPD
+    break;
+
+                 case 'hl':
+    // Hanseatic League - mercantile, Hamburg/Bremen liberal-conservative
+    // Cares about trade, stability, deeply suspicious of both socialism and radical nationalism
+    Q.ideology_factor = Q.random_factor(
+        Q.pro_republic_factor * 0.18
+        * Math.max(0.4, 1 - Math.abs(Q.inflation - 1.5) / 10)  // trade confidence
+        * Math.max(0.5, 1 - Q.unrest_factor * 0.10),
+        0.15
+    );
+    if (Q.c === 'new_middle')  Q.ideology_factor *= 1.20; // merchants, professionals
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 1.10;
+    if (Q.c === 'workers')     Q.ideology_factor *= 0.50;
+    if (Q.c === 'rural')       Q.ideology_factor *= 0.40; // essentially no rural base
+    break;
+                 case 'kpo':
+    // KPO - Communist Party Opposition, left-communist splinter
+    Q.ideology_factor = Q.random_factor(
+        Q.socialism_factor * 0.22 * (1 + Q.unrest_factor * 0.10),
+        0.25
+    );
+    if (Q.c === 'workers')    Q.ideology_factor *= 1.15;
+    if (Q.c === 'unemployedc') Q.ideology_factor *= 1.10;
+    if (Q.c === 'old_middle') Q.ideology_factor *= 0.50;
+    break;
+
+
+                 case 'sl':
+    // Socialist League - left-socialist, more radical than SPD, less Marxist than KPD
+    Q.ideology_factor = Q.random_factor(
+        (Q.socialism_factor * 0.28 + Q.pro_republic_factor * 0.10)
+        * (1 + Q.unrest_factor * 0.09),
+        0.20
+    );
+    if (Q.c === 'workers')     Q.ideology_factor *= 1.15;
+    if (Q.c === 'unemployedc') Q.ideology_factor *= 1.10;
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 0.60;
+    if (Q.c === 'rural')       Q.ideology_factor *= 0.65;
+    break;
+
+                 case 'vnr':
+    // Jungdo (Young German Order) party - nationalist but anti-NSDAP,
+    // republican-adjacent, petit-bourgeois idealist base
+    // Squeezed hard when NSDAP rises - same voter pool but less radical offer
+    let jungdo_squeeze = Math.max(0.4, 1 - (Q.nsdap_votes || 0) / 60);
+    Q.ideology_factor = Q.random_factor(
+        (Q.nationalism_factor * 0.22 + Q.pro_republic_factor * 0.10)
+        * jungdo_squeeze,
+        0.20
+    );
+    if (Q.c === 'new_middle')  Q.ideology_factor *= 1.20; // their core base
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 1.05;
+    if (Q.c === 'workers')     Q.ideology_factor *= 0.55;
+    if (Q.c === 'rural')       Q.ideology_factor *= 0.80;
+    break;
                 default:
                     Q.ideology_factor = Q.random_factor(1, 0.1);
             }
