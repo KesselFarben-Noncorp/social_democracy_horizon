@@ -17,6 +17,17 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 
 [? if spd_toleration = 0 : **Rudolf Hilferding** - Leading Marxist economist, intellectual heavyweight, appeals to left wing, controversial with bourgeois parties. ?]
 
+[? if social_fascism_adopted = 1 : 
+
+**August Winnig** - The "Worker-Statesman" of the National-Labor wing. He offers a "German Socialism" that bridges the gap between unions and the nationalist Right.
+
+**Otto Hörsing** - The "Iron Guard" Commander. As architect of the Reichsbanner, he promises a Chancellorship of state security and disciplined order.
+
+**Albert Südekum** - The Corporatist Architect. He focuses on a state-managed command economy and total industrial mobilization to ensure national survival.
+
+**Heinrich Cunow** - The State-Socialist Theorist. He envisions the Chancellorship as a powerful pedagogical weapon to mold the people into a unified national unit. 
+?]
+
 **Who should the SPD put forward?**
 
 - @prefer_mueller: Hermann Müller - Experience and moderation
@@ -24,9 +35,77 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 - @prefer_braun: Otto Braun - Executive competence
 - @prefer_hilferding: Rudolf Hilferding - Left credibility
 - @prefer_breitscheid: Breitscheid - International expet
+- @prefer_winnig: August Winnig - National Unity and Labor
+- @prefer_horsing: Otto Hörsing - Security and Discipline
+- @prefer_sudukum: Albert Südekum - Economic Efficiency
+- @prefer_cunow: Heinrich Cunow - The Supremacy of the State
+
+@prefer_winnig
+view-if: social_fascism_adopted = 1
+on-arrival: {!
+Q.spd_chancellor_preference = "winnig";
+for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+    if (Q.chancellor_candidates[i].name === "Winnig") {
+        Q.chancellor_candidates[i].weight = 130;
+        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.3;
+    }
+}
+Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.nationalism += 5;
+!}
+
+Winnig's appointment signals the final synthesis of Labor and Nation.
+
+@prefer_horsing
+view-if: social_fascism_adopted = 1
+on-arrival: {!
+Q.spd_chancellor_preference = "horsing";
+for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+    if (Q.chancellor_candidates[i].name === "Hörsing") {
+        Q.chancellor_candidates[i].weight = 130;
+        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.3;
+    }
+}
+Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.reichswehr_loyalty += 0.05;
+!}
+
+With Hörsing, the Chancellery becomes the headquarters of the Republic's defense.
+
+@prefer_sudukum
+view-if: social_fascism_adopted = 1
+on-arrival: {!
+Q.spd_chancellor_preference = "sudukum";
+for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+    if (Q.chancellor_candidates[i].name === "Südekum") {
+        Q.chancellor_candidates[i].weight = 130;
+        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.3;
+    }
+}
+Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.budget += 1;
+!}
+
+Südekum promises a Socialism of production and state-led prosperity.
+
+@prefer_cunow
+view-if: social_fascism_adopted = 1
+on-arrival: {!
+Q.spd_chancellor_preference = "cunow";
+for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+    if (Q.chancellor_candidates[i].name === "Cunow") {
+        Q.chancellor_candidates[i].weight = 130;
+        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.3;
+    }
+}
+Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.pro_republic += 5; // The "Strong State" Republic
+!}
+
+Cunow provides the intellectual steel required for the new revolutionary order.
 
 @prefer_mueller
-view-if: not muller_dead
+view-if: not muller_dead and not social_fascism_adopted
 on-arrival: {!
 Q.spd_chancellor_preference = "mueller";
 // Boost Müller's weight in candidate list
@@ -57,6 +136,7 @@ Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
 Wels as party chairman brings legitimacy and unity to our coalition offer.
 
 @prefer_braun
+view-if: not social_fascism_adopted
 on-arrival: {!
 Q.spd_chancellor_preference = "braun";
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
@@ -71,7 +151,7 @@ Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
 Braun's proven administrative record in Prussia demonstrates he can lead effectively.
 
 @prefer_hilferding
-view-if: spd_toleration = 0
+view-if: spd_toleration = 0 and not social_fascism_adopted
 on-arrival: {!
 Q.spd_chancellor_preference = "hilferding";
 for (var i = 0; i < Q.chancellor_candidates.length; i++) {
@@ -88,6 +168,7 @@ Q.left_dissent -= 5;
 Hilferding's intellectual credentials and left-wing appeal strengthen our socialist credibility.
 
 @prefer_breitscheid
+view-if: not social_fascism_adopted
 on-arrival: {!
 Q.spd_chancellor_preference = "breitscheid";
 // Boost Müller's weight in candidate list
