@@ -1,0 +1,19 @@
+title: Left Wing Consolidation
+subtitle: Left Wing organizations consolidate...
+view-if: social_fascism_adopted and year >= 1932 and sapd_formed and sapd_votes > 0 and kpd_relation < 50 and april_challenge
+tags: event
+new-page: true
+on-arrival: {!
+Q.parties = Q.parties.filter(p => p !== 'sapd');
+Q.sapd_formed = 1;
+Q.sapd_banned = 1;
+// Transfer votes/demographics to KPD
+['votes', 'rural', 'new_middle', 'old_middle', 'workers', 'unemployedc'].forEach(attr => {
+    Q[`${attr}_kpd`] += Q[`${attr}_sapd`];
+    Q[`${attr}_sapd`] = 0; // Nullify the original SAPD value
+});
+!}
+
+= SAPD joins the KPD
+
+SAPD joins the KPD in order to consolidate the votes.
