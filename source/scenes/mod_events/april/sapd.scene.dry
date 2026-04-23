@@ -5,13 +5,17 @@ tags: event
 max-visits: 1
 new-page: true
 on-arrival: {!
-Q.parties = Q.parties.filter(p => p !== 'sapd');
 Q.sapd_formed = 0;
 Q.sapd_banned = 1;
 // Transfer votes/demographics to KPD
-['votes', 'rural', 'new_middle', 'old_middle', 'workers', 'unemployedc'].forEach(attr => {
-    Q[`${attr}_kpd`] += Q[`${attr}_sapd`];
-    Q[`${attr}_sapd`] = 0; // Nullify the original SAPD value
+// Vote share transfer
+Q.kpd_votes = (Q.kpd_votes || 0) + (Q.sapd_votes || 0);
+Q.sapd_votes = 0;
+
+// Demographic transfers
+['rural', 'new_middle', 'old_middle', 'workers', 'unemployedc'].forEach(attr => {
+    Q[`${attr}_kpd`] = (Q[`${attr}_kpd`] || 0) + (Q[`${attr}_sapd`] || 0);
+    Q[`${attr}_sapd`] = 0;
 });
 Q.rfb_strength += 50;
 !}
