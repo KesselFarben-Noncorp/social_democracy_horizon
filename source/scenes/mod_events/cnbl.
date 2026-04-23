@@ -1,0 +1,53 @@
+title: Agricultural crisis' culmination...
+subtitle: Small farmers and rurals are preparing for splitting away...
+new-page: true
+tags: event
+view-if: year >= 1928 and month = 3 and weeks >= 1
+on-arrival: {!
+  const conditions = [
+  Q.commercialized_media >= 1,
+  Q.radio >= 1,
+  Q.rural_spd >= 10,
+  Q.local_rally >= 1,
+  Q.nationalism > 10,
+  Q.pro_republic <= 80,
+  Q.enemies = "DNVP"
+];
+
+const triggered = conditions.filter(Boolean).length;
+if (triggered >= 2) Q.cnbl_crisis = 1;
+!}
+= Rural Crisis
+
+The deepening economic distress in the German countryside has transitioned from a localized grievance into a significant national challenge for the Fourth Marx Cabinet. Persistent crop failures in Schleswig-Holstein, coupled with the maturation of high-interest foreign loans and an influx of cheap imports from Poland, have pushed many small and medium-sized holdings to the brink of foreclosure. While the National Rural League has attempted to advocate for higher tariffs, its effectiveness remains hampered by internal divisions and the conflicting priorities of large estate owners and smaller family farmers.
+
+This deteriorating situation has fueled a profound disillusionment with the parliamentary system, manifesting in large-scale demonstrations that threaten to spread across Northern Germany. For the formerly governing DNVP, these developments present an urgent political dilemma: the party must provide tangible relief to its agrarian base or risk a total collapse of its rural influence. The potential emergence of specialized agrarian parties looms as a direct consequence of government inaction, as farmers increasingly seek radical alternatives to the traditional conservative leadership.
+
+- @outcome_cnbl: What's to come from this situation? Let's observe.
+
+@outcome_cnbl
+go-to: cnbl_formed if cnbl_crisis = 1; cnbl_failed if cnbl_crisis = 0
+  
+@cnbl_formed
+face-image: img/cnblp.png
+on-arrival: {!
+Q.parties.push('cnbl');
+Q.rural_cnbl += 8;
+Q.rural_dnvp -= 5;
+Q.rural_dvp -= 3;
+Q.dnvp_r -= 5;
+!}
+
+= Thuringian and Hesseian Rural Leagues secede from RLB...
+
+In the Thuringian capital of Weimar, the long-standing alliance between the traditional conservative parties and the agrarian middle class has officially reached its breaking point. Leaders from the Thuringian and Hessian Landbunds have formally announced their secession from the DNVP to establish the Christian-National Peasants and Farmers’ Party. This organizational split follows months of mounting frustration over falling commodity prices and the perceived failure of the Marx cabinet to provide adequate tariff protections. By organizing independently, these regional agrarian leaders aim to provide small and medium-sized farmers with a direct political voice untainted by the interests of the large eastern estates. The movement represents a significant shift from broad nationalist cooperation toward a strategy of specialized economic interest representation. This fragmentation fundamentally alters the electoral landscape of the German countryside just as the spring 1928 campaign begins in earnest.
+  
+@cnbl_failed
+on-arrival: {!
+Q.rural_dnvp += 3; // They have nowhere else to go
+Q.nationalism += 5; // The rhetoric had to get more extreme to keep them
+!}
+
+= The Rural Mutiny Collapses
+
+The expected schism in the German countryside has failed to materialize, as the regional Landbund leaders ultimately blinked in the face of national pressure. Intense backroom negotiations and eleventh-hour concessions by the DNVP leadership have successfully convinced Karl Hepp and his associates to maintain a united conservative front. While the immediate threat of a new party has vanished, the underlying bitterness among the Thuringian and Hessian farmers remains a volatile force. The rural population is left with no choice but to stay within the traditional party folds, though their loyalty is now dictated by exhaustion rather than genuine conviction. For now, the "Nationalist" giants have preserved their monopoly on the rural vote, narrowly avoiding a catastrophic fracture before the spring elections. However, this enforced unity acts only as a temporary lid on a pressure cooker that continues to simmer across the German heartland.
