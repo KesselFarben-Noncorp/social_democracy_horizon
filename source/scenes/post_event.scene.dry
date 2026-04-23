@@ -2772,38 +2772,39 @@ Q.identity_modifier = {
             return (nat * 40) + polarization + crisis_bonus * Q.identity_modifier.dnvp;
         } else {
             let chaos_penalty = u > 0.7 ? (u * 1) : 0;
-            return ((nat * 54) + (rep * 10) - chaos_penalty) * Q.identity_modifier.dnvp;
+            return ((nat * 54) + (rep * 21) - chaos_penalty) * Q.identity_modifier.dnvp;
         }
     })(),
         workers: (() => {
-            let m = 0.30;
-            if (Q.peoples_party === 1) m *= 0.90;
+            let m = 0.42;
+            if (Q.peoples_party === 1) m *= 1.05;
             return m;
         })(),
         old_middle: (() => {
-            let m = 1.40;
+            let m = 1.49;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.28);
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
         new_middle: (() => {
-            let m = 0.90;
+            let m = 0.88;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.18);
             if (Q.peoples_party === 1) m *= 0.95;
             return m;
         })(),
         rural: (() => {
-            let m = 1.60;
+            let m = 1.58;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.30);
             if (Q.peoples_party === 1) m *= 0.95;
+            if (Q.parties.includes('cnbl')) m *= 0.83;
             return m;
         })(),
         unemployedc: (() => {
             let m = 0.50;
-            if (Q.peoples_party === 1) m *= 0.92;
+            if (Q.peoples_party === 1) m *= 1.02;
             return m;
         })(),
     },
@@ -2892,7 +2893,7 @@ Q.identity_modifier = {
             let rep = Q.pro_republic_factor;
             let nat = Q.nationalism_factor;
             // Rural population baked into base
-            return (rep * 20 + nat * 21) * (1 + Q.rural * 0.010) * Q.identity_modifier.cnbl;
+            return (rep * 11 + nat * 19) * (1 + Q.rural * 0.009) * Q.identity_modifier.cnbl;
         })(),
         workers: 0.25,
         old_middle: 0.60,
