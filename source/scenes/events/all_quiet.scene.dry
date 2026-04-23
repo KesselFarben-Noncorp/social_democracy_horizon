@@ -1,6 +1,6 @@
 title: All Quiet on the Western Front
 subtitle: Censorship and violence over a movie...
-view-if: year = 1930 and month = 12 and spd_prussia
+view-if: year = 1930 and month = 12 and spd_prussia and nsdap_votes >= 10 and not nsdap_banned
 max-visits: 1
 tags: event
 new-page: true
@@ -18,26 +18,26 @@ As an anti-war film, it is the target of major protest by far-right actors, espe
 - @everyone: In fact, everyone needs to learn the lessons of this film. Give free tickets to students and government employees.
 
 @ban
-on-arrival: old_middle_nsdap += 5; new_middle_nsdap += 4; workers_nsdap += 2; unemployed_nsdap += 2; sa_strength += 50; nationalism += 6; pro_republic -= 5
+on-arrival: old_middle_nsdap += 5; new_middle_nsdap += 4; workers_nsdap += 2; unemployed_nsdap += 2; sa_strength += 50; nationalism += 6; pro_republic -= 3
 
 When we ban the film, the Nazis immediately celebrate it as a major victory; they claim that even the red Marxists agree with them! It is a major boost to their morale.
 
 
 @allow
-on-arrival: nationalism += 3; old_middle_nsdap += 4; new_middle_nsdap += 3; workers_nsdap += 1; sa_strength += 15; pro_republic -= 3; strife += 1
+on-arrival: nationalism += 3; old_middle_nsdap += 4; new_middle_nsdap += 3; workers_nsdap += 1; sa_strength += 15; workers_kpd += 2; workers_nsdap += 2; pro_republic -= 5; strife += 1
 
 While we allow the film, showings are marred by violence. Showings of the film eventually stop, and the Nazis claim victory.
 
 
 @allow_protect
-choose-if: prussian_police_loyalty >= 0.65
+choose-if: prussian_police_loyalty >= 0.70
 unavailable-subtitle: The police are not willing to protect the film.
 on-arrival: nationalism -= 4; pro_republic += 4*(1-dissent); strife += 1
 
 Under the protection of the police, the people are allowed to watch the film in peace. Nazi disturbances are kept to a minimum.
 
 @everyone
-choose-if: prussian_police_loyalty >= 0.75
+choose-if: prussian_police_loyalty >= 0.80
 unavailable-subtitle: The police are unable to guarantee the safety of all the attendees.
 on-arrival: nationalism -= 5; pro_republic += 5*(1-dissent); workers_nsdap -= 3; unemployed_nsdap -= 3; new_middle_nsdap -= 3
 
