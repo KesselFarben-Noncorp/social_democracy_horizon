@@ -95,7 +95,16 @@ Here.
 - @forces: Forces
 - @advisor: Advisor Action Timer
 - @fastforward: Skip two weeks
+- @bypasshistoricalsaves: Historical mode saves removed
 - @sandbox_menu: Back
+
+@bypasshistoricalsaves
+view-if: historical_mode = 1 and developer_mode = 1
+on-arrival: {!
+window.dendryUI.dendryEngine.state.disableSaves = false;
+!}
+
+Bypassed
 
 @fastforward
 on-arrival: month_actions += 1
