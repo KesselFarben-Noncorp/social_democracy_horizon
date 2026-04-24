@@ -17,7 +17,7 @@ on-arrival: {!
 Q.pro_lambach = 0;
 Q.anti_lambach = 0;
 
-Q.pro_lambach += Q.workers_dnvp + Q.new_middle_dnvp;
+Q.pro_lambach += Q.workers_dnvp + Q.new_middle_dnvp + Q.unemployedc_dnvp;
 Q.anti_lambach += (Q.rural_dnvp / 2) + (Q.old_middle_dnvp / 1.5);
 
 if (Q.cnbl_crisis == 0) {Q.pro_lambach += Q.rural_dnvp / 10}
@@ -31,7 +31,7 @@ Q.anti_lambach += Q.nationalism + (Q.socialism / 2);
 
 // Should CNBL forming concentrate radical votes or should CNBL leaving leave dnvp desperate enough for radicals?
 if (Q.cnbl_crisis == 1) {Q.anti_lambach += 5}
-else {Q.pro_lambach += 5}
+else {Q.pro_lambach += 10}
 
 if (Q.pro_republic > 80 && Q.nationalism < 16) {Q.pro_lambach += 10}
 else if (Q.pro_republic > 80 && Q.nationalism > 16) {Q.anti_lambach += 5}
@@ -42,10 +42,12 @@ else {Q.anti_lambach += 20}
 if (Q.unions_independent) {Q.pro_lambach += 30}
 else if (Q.labor_dissent > 30) {Q.pro_lambach += Q.labor_dissent / 5}
 
+if (Q.month > 6) {Q.pro_lambach += 10}
+
 //Will add as time goes on.
 
 // Binary Signal Equalizer
-if (Q.pro_lambach > Q.anti_lambach) {
+if (Q.pro_lambach >= Q.anti_lambach) {
     Q.lambach_exile = 0;
     Q.lambach_momentum = 1; // Moderate/Worker path
 } else {
