@@ -3,7 +3,7 @@ subtitle: Monarchismus, People's Conservatism and Hindenburg's tower.
 tags: event
 new-page: true
 on-arrival: lambach_article_seen = 1
-view-if: year >= 1928 and month >= 6 and weeks >= 2 and month <= 7 and dnvp_votes < 14.5 and lambach_article_seen = 0
+view-if: year >= 1928 and month >= 6 and weeks >= 2 and month <= 7 and dnvp_votes < 15.5 and lambach_article_seen = 0
 face-image: img/portraits/LambachWalther.jpg
 
 The publication of Walther Lambach’s latest treatise in the Politische Wochenschrift has sent a seismic shock through the foundations of the German National People’s Party. By suggesting that the shadow of the deposed Kaiser has finally been eclipsed by the towering prestige of President von Hindenburg, Lambach has dared to speak an unspoken truth: that the monarchist cause is no longer the primary engine of the German right. His call for a Volkskonservatismus—a popular conservatism—seeks to bridge the chasm between traditional elites and the burgeoning nationalist youth, advocating for a party that embraces the reality of the Republic to better subvert its socialist tendencies.
@@ -20,7 +20,7 @@ Q.anti_lambach = 0;
 Q.pro_lambach += Q.workers_dnvp + Q.new_middle_dnvp + Q.unemployedc_dnvp;
 Q.anti_lambach += (Q.rural_dnvp / 1.95) + (Q.old_middle_dnvp / 1.5);
 
-Q.pro_lambach += (Q.radio * 5) + (Q.commercialized_media * 10)
+Q.pro_lambach += (Q.radio * 7) + (Q.commercialized_media * 10);
 
 if (Q.cnbl_crisis == 0) {Q.pro_lambach += Q.rural_dnvp / 10}
 
@@ -29,12 +29,15 @@ else if (Q.dnvp_votes > 14) {Q.anti_lambach += 5}
 else {Q.anti_lambach += 15};
 
 Q.pro_lambach += Q.pro_republic / 3.5;
-Q.anti_lambach += Q.nationalism
-if (Q.socialism < 20) {Q.anti_lambach += (Q.socialism / 2)}
+Q.anti_lambach += Q.nationalism;
+if (Q.socialism < 20) {Q.anti_lambach += (Q.socialism / 2.5)}
 
 // Should CNBL forming concentrate radical votes or should CNBL leaving leave dnvp desperate enough for radicals?
-if (Q.cnbl_crisis == 1) {Q.anti_lambach += 5}
-else {Q.pro_lambach += 10}
+if (Q.cnbl_crisis == 1) {
+    Q.anti_lambach += 5
+} else {
+    Q.pro_lambach += 10
+}
 
 if (Q.pro_republic > 80 && Q.nationalism < 16) {Q.pro_lambach += 10}
 else if (Q.pro_republic > 80 && Q.nationalism > 16) {Q.anti_lambach += 5}
