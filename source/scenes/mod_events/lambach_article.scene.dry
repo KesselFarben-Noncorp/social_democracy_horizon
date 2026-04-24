@@ -18,7 +18,9 @@ Q.pro_lambach = 0;
 Q.anti_lambach = 0;
 
 Q.pro_lambach += Q.workers_dnvp + Q.new_middle_dnvp + Q.unemployedc_dnvp;
-Q.anti_lambach += (Q.rural_dnvp / 2) + (Q.old_middle_dnvp / 1.5);
+Q.anti_lambach += (Q.rural_dnvp / 1.95) + (Q.old_middle_dnvp / 1.5);
+
+Q.pro_lambach += (Q.radio * 5) + (Q.commercialized_media * 10)
 
 if (Q.cnbl_crisis == 0) {Q.pro_lambach += Q.rural_dnvp / 10}
 
@@ -27,7 +29,8 @@ else if (Q.dnvp_votes > 14) {Q.anti_lambach += 5}
 else {Q.anti_lambach += 15};
 
 Q.pro_lambach += Q.pro_republic / 3.5;
-Q.anti_lambach += Q.nationalism + (Q.socialism / 2);
+Q.anti_lambach += Q.nationalism
+if (Q.socialism < 20) {Q.anti_lambach += (Q.socialism / 2)}
 
 // Should CNBL forming concentrate radical votes or should CNBL leaving leave dnvp desperate enough for radicals?
 if (Q.cnbl_crisis == 1) {Q.anti_lambach += 5}
@@ -41,6 +44,8 @@ else {Q.anti_lambach += 20}
 
 if (Q.unions_independent) {Q.pro_lambach += 30}
 else if (Q.labor_dissent > 30) {Q.pro_lambach += Q.labor_dissent / 5}
+
+// Lambach gains momentum to finish his article and prepare for case
 
 if (Q.month > 6) {Q.pro_lambach += 10}
 
