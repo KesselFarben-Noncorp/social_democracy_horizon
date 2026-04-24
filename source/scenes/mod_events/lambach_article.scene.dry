@@ -3,7 +3,7 @@ subtitle: Monarchismus, People's Conservatism and Hindenburg's tower.
 tags: event
 new-page: true
 on-arrival: lambach_article_seen = 1
-view-if: year >= 1928 and month >= 6 and weeks >= 0 and month <= 7 and dnvp_votes < 14.5 and lambach_article_seen = 0
+view-if: year >= 1928 and month >= 6 and weeks >= 2 and month <= 7 and dnvp_votes < 14.5 and lambach_article_seen = 0
 face-image: img/portraits/LambachWalther.jpg
 
 ---
@@ -12,4 +12,67 @@ The publication of Walther Lambach’s latest treatise in the Politische Wochens
 
 ​However, this intellectual pivot has ignited a firestorm within the Reichstag delegation and the regional associations. To the old guard and the radical ideologues orbiting Alfred Hugenberg, Lambach’s thesis is not merely a tactical suggestion but a profanation of the party’s "Block of Stone" identity. They view his attempt to integrate nationalist republicans as the beginning of a "mishmash" (Brei) that threatens to dissolve the DNVP’s reactionary purity into the muddy waters of parliamentary compromise. As the regional executive committees sharpen their knives, the party stands at a crossroads: it must decide if it is a rigid guardian of the past or a dynamic contender for the future.
 
-WIP im tired.
+- @lambachfate: What will vindicate him now...?
+
+@lambachfate
+on-arrival: {! 
+Q.pro_lambach = 0;
+Q.anti_lambach = 0;
+
+Q.pro_lambach += Q.workers_dnvp + Q.new_middle_dnvp;
+Q.anti_lambach += (Q.rural_dnvp / 2) + (Q.old_middle_dnvp / 1.5);
+
+if (Q.cnbl_crisis == 0) {Q.pro_lambach += Q.rural_dnvp / 10}
+
+if (Q.dnvp_votes > 15) {Q.pro_lambach += 10}
+else if (Q.dnvp_votes > 14) {Q.anti_lambach += 5}
+else {Q.anti_lambach += 15};
+
+Q.pro_lambach += Q.pro_republic / 3.5;
+Q.anti_lambach += Q.nationalism + (Q.socialism / 2);
+
+// Should CNBL forming concentrate radical votes or should CNBL leaving leave dnvp desperate enough for radicals?
+if (Q.cnbl_crisis == 1) {Q.anti_lambach += 5}
+else {Q.pro_lambach += 5}
+
+if (Q.pro_republic > 80 && Q.nationalism < 16) {Q.pro_lambach += 10}
+else if (Q.pro_republic > 80 && Q.nationalism > 16) {Q.anti_lambach += 5}
+else if (Q.nationalism > 20) {Q.anti_lambach += 10}
+else if (Q.socialism > 20) {Q.pro_lambach += 10}
+else {Q.anti_lambach += 20}
+
+if (Q.unions_independent) {Q.pro_lambach += 30}
+else if (Q.labor_dissent > 30) {Q.pro_lambach += Q.labor_dissent / 5}
+
+//Will add as time goes on.
+
+// Binary Signal Equalizer
+if (Q.pro_lambach > Q.anti_lambach) {
+    Q.lambach_exile = 0;
+    Q.lambach_momentum = 1; // Moderate/Worker path
+} else {
+    Q.lambach_exile = 1;
+    Q.lambach_momentum = 0; // Radical/Hugenberg path
+}
+
+
+!}
+go-to: lambach_leaves if lambach_exile = 1; lambach_stays if lambach_exile = 0
+
+@lambach leaves
+
+= Lambach is expulsed!
+
+The verdict from the regional associations is swift and merciless. Under the stern gaze of General von Dommes and the shadow of Hugenberg’s media empire, the "recalcitrant group" of fifteen provincial organizations finds its voice. They do not see a reformer; they see a "liquidator" of the Hohenzollern legacy who has traded the party’s soul for the fleeting approval of the republican masses.
+
+​The local Potsdam association leads the charge, formally expelling Lambach for violating the party canons. While the moderate leadership under Westarp pleads for unity, the sheer weight of industrial and agrarian radicalism collapses the center. Lambach is cast out, and with him, the dream of a Volkskonservatismus withers. The DNVP hardens its heart, transforming from a broad coalition into a rigid, reactionary "Block of Stone."
+
+@lambach stays
+
+= Lambach survives the case!
+
+In a surprising display of resilience, the "community of interests" holds firm against the radical onslaught. The Party Court renders a verdict of acquittal, declaring that Lambach’s intention was not to destroy the monarchy, but to preserve the nation’s future through healthy debate.
+
+​[? if Q.unions_independent : The surging independence of the trade unions has made Lambach's presence a tactical necessity that even the Junkers cannot ignore. ?] [? if Q.socialism > 20 : A growing social consciousness within the ranks has provided the 'Christian Social' faction with the leverage needed to shield their leader. ?]
+
+​Lambach remains, his position as the voice of the workers' wing significantly fortified. However, this victory is a bitter one; Hugenberg and his Pan-German allies withdraw into a state of "excellent fighting mood," preparing a final, decisive coup for the October Congress.
