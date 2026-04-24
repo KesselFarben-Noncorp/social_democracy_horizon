@@ -223,7 +223,7 @@ if (Q.total_moderate_power > Q.hugenberg_momentum && Q.congress_path != "capitul
 }
 
 !}
-on-departure: {!
+on-display: {!
 
 // --- DNVP CONGRESS DELEGATE DATA ---
 var factionData = [
@@ -294,7 +294,7 @@ if (window && d3) {
         height = Math.round(width / 2);
     }
 
-    var svg = document.getElementById("reichstag");
+    var svg = document.getElementById("dnvp-congress");
     svg.style.width = width + "px";
     svg.style.height = height + "px";
 
@@ -302,11 +302,11 @@ if (window && d3) {
     parliament.width(width).height(height).innerRadiusCoef(0.4);
     parliament.enter.fromCenter(true).smallToBig(true);
     parliament.exit.toCenter(false).bigToSmall(true);
-    d3.select("#reichstag").datum(data).call(parliament);
+    d3.select("#dnvp-congress").datum(data).call(parliament);
 
     // Apply colored outlines to dots by faction
     visibleFactions.forEach(function(f) {
-        d3.selectAll("#reichstag circle")
+        d3.selectAll("#dnvp-congress circle")
             .filter(function(d) { return d && d.data && d.data.id === f.id; })
             .style("stroke", f.outline)
             .style("stroke-width", "2px")
