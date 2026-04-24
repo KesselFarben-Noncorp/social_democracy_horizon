@@ -17,50 +17,93 @@ on-arrival: {!
     Q.pro_lambach = 0;
     Q.anti_lambach = 0;
 
+    // [1] Base demographic contributions
     Q.pro_lambach += Q.workers_dnvp + Q.new_middle_dnvp + Q.unemployedc_dnvp;
+    console.log("[1] pro_lambach after worker/middle/unemployed base:", Q.pro_lambach);
+
     Q.anti_lambach += (Q.rural_dnvp / 2.0) + (Q.old_middle_dnvp / 1.5);
+    console.log("[2] anti_lambach after rural/old middle base:", Q.anti_lambach);
 
+    // [3] Media influence
     Q.pro_lambach += (Q.radio * 7) + (Q.commercialized_media * 10);
+    console.log("[3] pro_lambach after media boost:", Q.pro_lambach);
 
-    if (Q.cnbl_crisis == 0) { Q.pro_lambach += Q.rural_dnvp / 10 };
+    // [4] CNBL crisis rural modifier
+    if (Q.cnbl_crisis == 0) {
+        Q.pro_lambach += Q.rural_dnvp / 10;
+    };
+    console.log("[4] pro_lambach after cnbl_crisis rural check:", Q.pro_lambach);
 
-    if (Q.dnvp_votes > 15) { Q.pro_lambach += 10 }
-    else if (Q.dnvp_votes > 14) { Q.anti_lambach += 5 }
-    else { Q.anti_lambach += 15 };
+    // [5] DNVP vote threshold modifier
+    if (Q.dnvp_votes > 15) {
+        Q.pro_lambach += 10;
+    } else if (Q.dnvp_votes > 14) {
+        Q.anti_lambach += 5;
+    } else {
+        Q.anti_lambach += 15;
+    };
+    console.log("[5] pro_lambach:", Q.pro_lambach, "| anti_lambach:", Q.anti_lambach, "| after dnvp_votes check");
 
+    // [6] Republic/nationalism/socialism modifiers
     Q.pro_lambach += Q.pro_republic / 3.5;
-    Q.anti_lambach += Q.nationalism;
-    if (Q.socialism < 20) { Q.anti_lambach += (Q.socialism / 2.5) };
+    console.log("[6] pro_lambach after pro_republic modifier:", Q.pro_lambach);
 
-    // Should CNBL forming concentrate radical votes or should CNBL leaving leave dnvp desperate enough for radicals?
+    Q.anti_lambach += Q.nationalism;
+    console.log("[7] anti_lambach after nationalism:", Q.anti_lambach);
+
+    if (Q.socialism < 20) {
+        Q.anti_lambach += (Q.socialism / 2.5);
+    };
+    console.log("[8] anti_lambach after socialism check:", Q.anti_lambach);
+
+    // [9] CNBL crisis bloc modifier
     if (Q.cnbl_crisis == 1) {
         Q.anti_lambach += 5;
     } else {
         Q.pro_lambach += 10;
     };
+    console.log("[9] pro_lambach:", Q.pro_lambach, "| anti_lambach:", Q.anti_lambach, "| after cnbl_crisis bloc check");
 
-    if (Q.pro_republic > 80 && Q.nationalism < 16) { Q.pro_lambach += 10 }
-    else if (Q.pro_republic > 80 && Q.nationalism > 16) { Q.anti_lambach += 5 }
-    else if (Q.nationalism > 20) { Q.anti_lambach += 10 }
-    else if (Q.socialism > 20) { Q.pro_lambach += 10 }
-    else { Q.anti_lambach += 20 };
+    // [10] Combined republic/nationalism/socialism condition
+    if (Q.pro_republic > 80 && Q.nationalism < 16) {
+        Q.pro_lambach += 10;
+    } else if (Q.pro_republic > 80 && Q.nationalism > 16) {
+        Q.anti_lambach += 5;
+    } else if (Q.nationalism > 20) {
+        Q.anti_lambach += 10;
+    } else if (Q.socialism > 20) {
+        Q.pro_lambach += 10;
+    } else {
+        Q.anti_lambach += 20;
+    };
+    console.log("[10] pro_lambach:", Q.pro_lambach, "| anti_lambach:", Q.anti_lambach, "| after combined republic/nationalism/socialism block");
 
-    if (Q.unions_independent) { Q.pro_lambach += 30 }
-    else if (Q.labor_dissent > 30) { Q.pro_lambach += Q.labor_dissent / 5 };
+    // [11] Union/labor dissent modifier
+    if (Q.unions_independent) {
+        Q.pro_lambach += 30;
+    } else if (Q.labor_dissent > 30) {
+        Q.pro_lambach += Q.labor_dissent / 5;
+    };
+    console.log("[11] pro_lambach after union/labor dissent check:", Q.pro_lambach);
 
-    // Lambach gains momentum to finish his article and prepare for case
-    if (Q.month > 6) { Q.pro_lambach += 10 };
+    // [12] Late-month momentum
+    if (Q.month > 6) {
+        Q.pro_lambach += 10;
+    };
+    console.log("[12] pro_lambach after month momentum check:", Q.pro_lambach);
 
-    // Will add as time goes on.
+    // [13] Final totals before binary signal
+    console.log("[13] FINAL — pro_lambach:", Q.pro_lambach, "| anti_lambach:", Q.anti_lambach);
 
-    // Binary Signal Equalizer
+    // [14] Binary Signal Equalizer
     if (Q.pro_lambach >= Q.anti_lambach) {
         Q.lambach_exile = 0;
-        Q.lambach_momentum = 1; // Moderate/Worker path
+        Q.lambach_momentum = 1;
     } else {
         Q.lambach_exile = 1;
-        Q.lambach_momentum = 0; // Radical/Hugenberg path
+        Q.lambach_momentum = 0;
     };
+    console.log("[14] lambach_exile:", Q.lambach_exile, "| lambach_momentum:", Q.lambach_momentum);
 
 !}
 go-to: lambach_leaves if lambach_exile = 1; lambach_stays if lambach_exile = 0
