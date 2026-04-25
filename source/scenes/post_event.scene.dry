@@ -2788,6 +2788,8 @@ Q.identity_modifier = {
         workers: (() => {
             let m = 0.59;
             if (Q.peoples_party === 1) m *= 1.05;
+            if (Q.lambach_reinstated && Q.year < 1929) m *= 1.05;
+            if (Q.lambach_momentum && Q.year < 1929) m *= 1.55;
             return m;
         })(),
         old_middle: (() => {
@@ -2802,6 +2804,8 @@ Q.identity_modifier = {
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.18);
             if (Q.peoples_party === 1) m *= 0.95;
+            if (Q.lambach_reinstated && Q.year < 1929) m *= 1.05;
+            if (Q.lambach_momentum && Q.year < 1929) m *= 1.55;
             return m;
         })(),
         rural: (() => {
