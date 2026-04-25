@@ -4283,21 +4283,37 @@ Q.identity_modifier = {
 
         Q.delta *= (0.7 + _r() * 0.6);
 
-        // CRITICAL: If party is banned, prevent ALL positive drift
-        const party_banned = Q.party + '_banned';
-        if (Q[party_banned]) {
-            Q.delta = Math.min(Q.delta, 0);
-        }
-
-        // === APPLY CLASS-SPECIFIC CAP ===
+        // With this:
         const cap_data = Q.ideology_caps[Q.party];
         let final_cap = Infinity;
-        
+
         if (cap_data) {
             const class_multiplier = cap_data[Q.c] || 1.0;
-            final_cap = cap_data.base * class_multiplier;
+            const raw_cap = cap_data.base * class_multiplier;
+            const band = raw_cap < 3.0 ? 0.15 : 0.10;
+            const variance = 1.0 + ((_r() * 2 - 1) * band);
+            final_cap = raw_cap * variance;
         }
-        
+
+        const proposed = Q.base + Q.delta;
+
+        // === CAP-AWARE DRIFT SCALING ===
+        // Rescale delta so natural drift equilibrium sits ~80% of cap
+        // This bridges the gap between the old drift system and new cap system
+        if (final_cap !== Infinity && final_cap > 0) {
+            const target_equilibrium = final_cap * 0.80;
+    
+            if (Q.base < target_equilibrium) {
+                // Below 80%: drift at full strength, slight boost to pull toward target
+                const pull_boost = 1.0 + Math.max(0, (target_equilibrium - Q.base) / target_equilibrium) * 0.20;
+                Q.delta *= pull_boost;
+            } else if (Q.base > target_equilibrium) {
+                // Above 80%: dampen drift proportionally to how far over target we are
+                const overage = (Q.base - target_equilibrium) / (final_cap - target_equilibrium);
+                Q.delta *= Math.max(0.20, 1.0 - overage * 0.80);
+            }
+        }
+
         const proposed = Q.base + Q.delta;
         Q[Q.c+'_'+Q.party] = softCap(proposed, final_cap);
 
