@@ -1307,7 +1307,7 @@ if (Q.phase === "stagflation")
     Q.dUnemployment += Q.supply_cost_drag * 0.4;
 
 if (Q.inflation < 0) {
-    const dm = Math.abs(Q.inflation), damp = 0.7;
+    const dm = Math.abs(Q.inflation), damp = 0.5;
     Q.dUnemployment += Math.min((0.03 * dm / (1 + dm * damp))
         * (1 - Math.exp(-Q.unemployed / 20)), 0.6);
     if (Q.inflation < -5)
@@ -1398,10 +1398,10 @@ if (Q.economic_growth < -9) {
     Q.demand_impulse = (Q.demand_impulse||0) + 0.15;
 }
 
-if (Q.unemployed > 18) {
+if (Q.unemployed > 24) {
     Q.dUnemployment -= 0.10 * Math.min(1, (Q.unemployed - 18) / 7);
 }
-if (Q.unemployed > 25) {
+if (Q.unemployed > 32) {
     Q.dUnemployment += -(Q.unemployed - 35) * 0.08;
 }
 
@@ -1460,8 +1460,8 @@ if (Q.inflation >= 30) {
     Q.dUnemployment      += 0.10 + inf_severity * 0.40;
 }
 
-// --- UNEMPLOYMENT GUARDS (30%+) ---
-if (Q.unemployed >= 30) {
+// --- UNEMPLOYMENT GUARDS (40%+) ---
+if (Q.unemployed >= 40) {
 
     const unemp_severity = Math.min(1, (Q.unemployed - 30) / 69);
 
@@ -1510,7 +1510,7 @@ if (!Q.math_broken) {
     Q.economic_growth    = Math.max(-15, Math.min(20, Q.economic_growth));
     Q.inflation_expectations = Math.max(-9, Math.min(99, Q.inflation_expectations));
     Q.budget             = Math.max(-50, Math.min(50, Q.budget));
-    Q.capital_pressure   = Math.max(0,   Math.min(1.0, Q.capital_pressure));
+    Q.capital_pressure   = Math.max(0,   Math.min(1.2, Q.capital_pressure));
     Q.credit_expansion   = Math.max(0,   Math.min(0.8, Q.credit_expansion));
     Q.supply_cost_drag   = Math.max(0,   Math.min(0.5, Q.supply_cost_drag));
 } else {
