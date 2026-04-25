@@ -6,16 +6,6 @@ tags: event
 view-if: year = 1929 and month >= 10
 max-visits: 1
 face-image: img/bankrun.jpg
-on-departure: {! 
-  SuperEvent.trigger({
-  videoSrc: 'img/events/end.mp4',
-  title: 'Black Thursday',
-  left:  '<h2>October 1929</h2><p>Wall Street collapses. Billions wiped out in hours.</p>',
-  right: '<p>Credit lines will dry up. American loans will be recalled. The tomorrow has begun, truly sinking case.</p>',
-  quote: '"The fundamental business of the country is on a sound and prosperous basis."',
-  quoteCite: '— Herbert Hoover, October 25 1929',
-  onClose: () => engine.continue()
-});
 !}
 
 = Black Thursday
@@ -29,12 +19,14 @@ The stock market in America has had its biggest crash in history. It is too earl
 
 @cap
 set-bg: img/bt.jpg
+go-to: economic_set
 
 Perhaps this is simply one of the periodic crises of capitalism. Perhaps this moment will simply pass.
 
 @do_something
 on-arrival: crisis_urgency += 1
 set-bg: img/bt.jpg
+go-to: economic_set
 
 What can we do to staunch the workers' suffering? It is becoming a hotly debated question.
 
@@ -61,3 +53,14 @@ Now I know how it feels to sense entropy decaying.
 Those thoughts encircled me.
 
 However it may be, happening has ended.
+
+@economic_set
+on-arrival: {!
+Q.capital_pressure += 0.30;
+Q.trade_pressure += 0.24;
+Q.demand_impulse -= 0.20;
+Q.investment_chill += 0.40;
+Q.price_pressure -= 0.20;
+Q.supply_impulse -= 0.15;
+Q.shock_residual += 0.40;
+!}
