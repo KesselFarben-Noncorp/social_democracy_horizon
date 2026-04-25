@@ -1104,9 +1104,11 @@ Q.productivity_trend = 0.01 * Q.dt * (1 - (Q.capital_pressure || 0) * 0.2);
 Q.labor_churn = 0;
 if (Q.unemployed > Q.NAIRU) {
     const u_gap = Q.unemployed - Q.NAIRU;
-    Q.labor_churn = -0.02 * u_gap * (1 + Math.max(0, u_gap - 10) * 0.15) * Q.dt;
-} else {
-    Q.labor_churn = 0.015 * (Q.NAIRU - Q.unemployed) * Q.dt;
+    const churn_damper = (Q.phase === "depression" || Q.phase === "correction")
+        ? Math.max(0, 1 - (u_gap / 8))   // fades to zero by u_gap=8, goes negative above
+        : 1.0;
+    Q.labor_churn = -0.02 * u_gap * (1 + Math.max(0, u_gap - 10) * 0.15) 
+                    * Q.dt * churn_damper;  // ADD churn_damper
 }
 
 Q.inflation_momentum = 0.005 * Q.inflation * Q.dt;
@@ -1306,14 +1308,15 @@ Q.dUnemployment += Q.labor_churn;
 if (Q.phase === "stagflation")
     Q.dUnemployment += Q.supply_cost_drag * 0.4;
 
+// Section 10 — deflation coefficients, remove the heavy damping at high dm
 if (Q.inflation < 0) {
-    const dm = Math.abs(Q.inflation), damp = 0.5;
-    Q.dUnemployment += Math.min((0.03 * dm / (1 + dm * damp))
-        * (1 - Math.exp(-Q.unemployed / 20)), 0.6);
+    const dm = Math.abs(Q.inflation), damp = 0.3;  // was 0.7
+    Q.dUnemployment += Math.min((0.05 * dm / (1 + dm * damp))   // was 0.03
+        * (1 - Math.exp(-Q.unemployed / 15)), 1.0);
     if (Q.inflation < -5)
-        Q.dUnemployment += Math.min(0.05 * (dm-5) / (1 + (dm-5) * damp), 0.4);
+        Q.dUnemployment += Math.min(0.07 * (dm-5) / (1 + (dm-5) * damp), 0.6);
     if (Q.inflation < -8)
-        Q.dUnemployment += Math.min(0.07 * (dm-8) / (1 + (dm-8) * damp), 0.3);
+        Q.dUnemployment += Math.min(0.09 * (dm-8) / (1 + (dm-8) * damp), 0.5);
 }
 
 Q.dUnemployment += (Math.random() - 0.5) * 2 * 0.01;
