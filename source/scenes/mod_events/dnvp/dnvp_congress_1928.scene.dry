@@ -19,7 +19,43 @@ As the delegates prepare to meet in Berlin, the question is no longer just about
 @check
 on-arrival: {!
 
-// 1. Initial Delegate Support Logic
+
+// === CANDIDATE SELECTION ===
+
+// Faction A Leader (Coalitionists)
+if (Q.rural_dnvp + Q.old_middle_dnvp / 3 > 40 && Q.cnbl_crisis == 0) {
+    Q.leader_a = "Friedrich Winckler";
+    Q.leader_a_title = "Leader of the Prussian Landtag Delegation";
+} else {
+    Q.leader_a = "Oskar Hergt";
+    Q.leader_a_title = "Former Party Chairman";
+}
+
+// Faction B Leader (Aristocrats)
+if (Q.lambach_reinstated == 1) {
+    Q.leader_b = "Kuno von Westarp";
+    Q.leader_b_title = "Incumbent Party Chairman";
+} else {
+    Q.leader_b = "Walter von Keudell";
+    Q.leader_b_title = "Former Reich Interior Minister";
+    if (Q.pro_republic >= 89) {
+        Q.leader_b = "Siegfried von Kardorff";
+        Q.leader_b_title = "Liberal-Conservative Delegate";
+    }
+}
+
+// Faction C Leader (Labor Wing)
+if (Q.lambach_exile == 0) {
+    Q.leader_c = "Walther Lambach";
+    Q.leader_c_title = "Leader of the DHV wing";
+} else {
+    Q.leader_c = "Emil Hartwig";
+    Q.leader_c_title = "Christian-Social Delegate";
+}
+
+// === DELEGATE CALCULATIONS ===
+
+// 1. Base scores
 Q.faction_a_score = 20;
 Q.faction_b_score = 20;
 Q.faction_c_score = 15;
@@ -29,7 +65,7 @@ Q.delegate_power_b = Q.faction_b_score;
 Q.delegate_power_c = Q.faction_c_score;
 Q.hugenberg_momentum = Q.hugenberg_score;
 
-// 2. The "Lambach Fallout" Adjustments
+// 2. Lambach Fallout
 if (Q.lambach_exile == 1) {
     Q.hugenberg_momentum += 15;
     Q.delegate_power_c -= 10;
@@ -40,17 +76,17 @@ if (Q.lambach_exile == 1) {
 } else if (Q.lambach_exile == 0) {
     Q.delegate_power_c += 15;
 } else {
-    Q.hugenberg_momentum += 10
+    Q.hugenberg_momentum += 10;
 }
 
-// 3. The "Dommes Factor" (Regional Associations)
+// 3. Dommes Factor
 if (Q.cnbl_crisis == 1) {
     Q.hugenberg_momentum += 20;
 } else {
     Q.delegate_power_b += 10;
 }
 
-// 5. CLASS INFLUENCE ON CONGRESS DELEGATES
+// 4. Class Influence
 Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.2);
 Q.hugenberg_momentum += (Q.rural_dnvp * 0.8);
 
@@ -62,13 +98,13 @@ Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
 
 Q.delegate_power_c += (Q.workers_dnvp * 2.0 + Q.new_middle_dnvp * 0.7);
 
-// 6. IDEOLOGICAL REINFORCEMENTS
+// 5. Ideological Reinforcements
 Q.hugenberg_momentum += Q.nationalism * 1.0;
 Q.delegate_power_b += Q.nationalism * 0.5;
 Q.delegate_power_a += Q.pro_republic * 0.3;
 Q.delegate_power_c += Q.socialism * 1.2 + Q.pro_republic * 0.2;
 
-// 7. THE "FAILURE PENALTY"
+// 6. Failure Penalty
 if (Q.dnvp_votes < 13) {
     Q.delegate_power_a -= 10;
     Q.delegate_power_b -= 10;
@@ -80,33 +116,15 @@ if (Q.dnvp_votes < 13) {
     Q.delegate_power_c += 5;
 }
 
-// 4. Determining the Leading Challenger
-Q.top_moderate_score = Math.max(Q.delegate_power_a, Q.delegate_power_b, Q.delegate_power_c);
-
-if (Q.top_moderate_score == Q.delegate_power_a) { Q.leading_challenger = Q.leader_a; }
-else if (Q.top_moderate_score == Q.delegate_power_b) { Q.leading_challenger = Q.leader_b; }
-else { Q.leading_challenger = Q.leader_c; }
-
-// 8. MODERATE UNITY CHECK
-// Factions are NOT zeroed or redistributed — all three scores stay intact for display.
-// We only check whether their raw combined weight exceeds Hugenberg.
-// Individual congress_path is still determined by whichever single moderate faction leads,
-// but can_push_triumvirate unlocks if the three together outweigh the radical bloc.
-Q.top_moderate_score = Math.max(Q.delegate_power_a, Q.delegate_power_b, Q.delegate_power_c);
-Q.total_moderate_power = Q.delegate_power_a + Q.delegate_power_b + Q.delegate_power_c;
-
-Q.can_push_triumvirate = 0;
-if (Q.total_moderate_power > Q.hugenberg_momentum && Q.congress_path != "capitulation") {
-    Q.can_push_triumvirate = 1;
-}
-
-// 9. FINAL SELECTION LOGIC
+// 7. Finalize vote totals
 Q.hugenberg_final_votes = Math.round(Q.hugenberg_momentum);
 Q.moderate_a_final_votes = Math.round(Q.delegate_power_a);
 Q.moderate_b_final_votes = Math.round(Q.delegate_power_b);
 Q.moderate_c_final_votes = Math.round(Q.delegate_power_c);
 Q.total_moderate_final_votes = Q.moderate_a_final_votes + Q.moderate_b_final_votes + Q.moderate_c_final_votes;
 
+// 8. Congress path — determined by leading individual faction
+Q.top_moderate_score = Math.max(Q.delegate_power_a, Q.delegate_power_b, Q.delegate_power_c);
 Q.hugenberg_margin = Q.hugenberg_final_votes - Math.round(Q.top_moderate_score);
 
 if (Q.delegate_power_a >= Q.delegate_power_b && Q.delegate_power_a >= Q.delegate_power_c) {
@@ -118,6 +136,19 @@ if (Q.delegate_power_a >= Q.delegate_power_b && Q.delegate_power_a >= Q.delegate
 } else {
     Q.leading_challenger = Q.leader_c;
     Q.congress_path = "social_nationalists";
+}
+
+// Capitulation override
+if (Q.hugenberg_momentum > Q.top_moderate_score * 1.5) {
+    Q.congress_path = "capitulation";
+    Q.leading_challenger = "";
+}
+
+// 9. Triumvirate check — AFTER congress_path is set
+Q.total_moderate_power = Q.delegate_power_a + Q.delegate_power_b + Q.delegate_power_c;
+Q.can_push_triumvirate = 0;
+if (Q.total_moderate_power > Q.hugenberg_momentum && Q.congress_path != "capitulation") {
+    Q.can_push_triumvirate = 1;
 }
 
 if (Q.hugenberg_momentum > Q.top_moderate_score * 1.5) {
