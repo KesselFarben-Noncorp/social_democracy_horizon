@@ -58,7 +58,7 @@ if (Q.lambach_exile == 0) {
 // 1. Base scores
 Q.faction_a_score = 20;
 Q.faction_b_score = 20;
-Q.faction_c_score = 15;
+Q.faction_c_score = 17;
 Q.hugenberg_score = 25;
 Q.delegate_power_a = Q.faction_a_score;
 Q.delegate_power_b = Q.faction_b_score;
@@ -91,6 +91,12 @@ if (Q.commercialized_media >= 1 || Q.radio >= 1) {
     Q.hugenberg_momentum -= 10;
 }
 
+// 3c. Land Reform Threat
+
+if (Q.land_reform > 0) {
+    Q.hugenberg_momentum += 15 * Q.land_reform;
+}
+
 // 4. Class Influence
 Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.2);
 Q.hugenberg_momentum += (Q.rural_dnvp * 0.8);
@@ -105,8 +111,8 @@ Q.delegate_power_c += (Q.workers_dnvp * 2.0 + Q.new_middle_dnvp * 0.7);
 
 // 5. Ideological Reinforcements
 Q.hugenberg_momentum += Q.nationalism * 1.0;
-Q.delegate_power_b += Q.nationalism * 0.5;
-Q.delegate_power_a += Q.pro_republic * 0.3;
+Q.delegate_power_b += Q.nationalism * 0.55;
+Q.delegate_power_a += Q.pro_republic * 0.6;
 Q.delegate_power_c += Q.socialism * 1.2 + Q.pro_republic * 0.2;
 
 // 6. Failure Penalty
