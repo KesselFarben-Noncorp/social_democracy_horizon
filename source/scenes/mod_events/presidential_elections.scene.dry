@@ -1095,6 +1095,53 @@ on-arrival: {!
         }
     }
 
+if (Q.dtsp_r > 0) {
+    if (Q.nsdap_banned) {
+        Q.dtsp_candidate = "Kunze";
+    } else if (Q.dvfp_formed && Q.dvfp_candidate) {
+        Q.dtsp_candidate = Q.dvfp_candidate;
+    } else {
+        Q.dtsp_candidate = Q.nsdap_candidate;
+    }
+}
+
+if (Q.sls_r > 0) {
+    if (Q.spd_candidate) {
+        Q.sls_candidate = Q.spd_candidate;
+    } else if (Q.ddp_candidate) {
+        Q.sls_candidate = Q.ddp_candidate;
+    } else {
+        Q.sls_candidate = Q.z_default_candidate;
+    }
+}
+
+if (Q.cvp_r > 0) {
+    if (Q.z_in_government && Q.spd_in_government) {
+        // Their entire reason for existing — refuse Z candidate
+        Q.cvp_candidate = Q.bvp_default_candidate || "Schäffer";
+    } else {
+        Q.cvp_candidate = Q.z_default_candidate;
+    }
+}
+
+if (Q.rdp_r > 0) {
+    if (Q.ddp_relation >= 45) {
+        Q.rdp_candidate = Q.ddp_candidate || Q.ddp_default_candidate;
+    } else if (Q.spd_relation >= 50) {
+        Q.rdp_candidate = Q.spd_candidate;
+    } else {
+        Q.rdp_candidate = "Quidde"; // Ludwig Quidde, Nobel Peace Prize pacifist
+    }
+}
+
+if (Q.lb_r > 0) {
+    if (Q.kpd_banned || Q.kpd_candidate === "Thälmann") {
+        Q.lb_candidate = Q.sapd_candidate || Q.spd_candidate || null;
+    } else {
+        Q.lb_candidate = Q.kpd_candidate;
+    }
+}
+
 
 !}
 
@@ -1109,8 +1156,12 @@ The parties are preparing their candidates:
 
 [? if not dvfp_banned and dvfp_formed: - DVFP: [+ dvfp_candidate +] ?]
 
+[? if dtsp_r > 0 : - DtsP: [+ dtsp_candidate +] ?]
+
 **Left:**
 [? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
+
+[? if lb_r > 0 : - LB: [+ lb_candidate +] ?]
 
 [? if sapd_candidate and sapd_candidate != kpd_candidate : - SAPD: [+ sapd_candidate +] ?]
 
@@ -1118,9 +1169,13 @@ The parties are preparing their candidates:
 
  Center (Z): [+ z_candidate +]
 
+[? if cvp_r > 0 : CVP: [+ cvp_candidate +] ?]
+
  BVP: [+ bvp_candidate +]
 
  [+ ddp_name +]: [+ ddp_candidate +]
+
+[? if rdp_r > 0 : RDP: [+ rdp_candidate +] ?]
 
  DVP: [+ dvp_candidate +]
 
@@ -1147,6 +1202,8 @@ DHP: [+ dhp_candidate +]
 ​[? if sl_r > 0 : - SL: [+ sl_candidate +] ?]
 ​
 ​[? if aspd_r > 0 : ASPD: [+ aspd_candidate +] ?]
+
+[? if sls_r > 0 : SLS: [+ sls_candidate +] ?]
 
 ​[? if hl_r > 0 : HL: [+ hl_candidate +] ?]
 
@@ -1524,8 +1581,9 @@ on-arrival: {!
 if (Q.hindenburg_dead) {
     Q.hindenburg_running = 0;
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp',
-                   'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+               'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
+               'aspd','hl','sl','kpo','vnr','other',
+               'lb','rdp','cvp','sls','dtsp'];
     for (var i = 0; i < all_parties.length; i++) {
         if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
             Q[all_parties[i] + '_candidate'] = null;
@@ -1916,6 +1974,79 @@ if (Q.hindenburg_dead) {
     }
 
     // ========================================
+// LB - Finalize
+// ========================================
+if (Q.lb_r > 0) {
+    if (Q.kpd_banned || Q.kpd_candidate === "Thälmann") {
+        Q.lb_candidate = Q.sapd_candidate || Q.spd_candidate || null;
+    } else {
+        Q.lb_candidate = Q.kpd_candidate;
+    }
+}
+
+// ========================================
+// RDP - Finalize
+// ========================================
+if (Q.rdp_r > 0) {
+    if (Q.spd_candidate === Q.kpd_candidate) {
+        // Far left SPD — RDP breaks away entirely
+        Q.rdp_candidate = Q.ddp_candidate !== Q.kpd_candidate
+            ? Q.ddp_candidate || "Quidde"
+            : "Quidde";
+    } else if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate) {
+        Q.rdp_candidate = Q.spd_candidate;
+    } else if (Q.ddp_relation >= 45) {
+        Q.rdp_candidate = Q.ddp_candidate || "Quidde";
+    } else if (Q.spd_relation >= 50) {
+        Q.rdp_candidate = Q.spd_candidate;
+    } else {
+        Q.rdp_candidate = "Quidde";
+    }
+}
+
+// ========================================
+// CVP - Finalize
+// ========================================
+if (Q.cvp_r > 0) {
+    if (Q.z_in_government && Q.spd_in_government) {
+        // Their founding grievance — refuse to follow Z if it supports SPD
+        Q.cvp_candidate = Q.bvp_candidate !== Q.spd_candidate
+            ? Q.bvp_candidate || "Schäffer"
+            : "Schäffer";
+    } else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) {
+        Q.cvp_candidate = Q.z_candidate;
+    } else {
+        Q.cvp_candidate = Q.bvp_default_candidate || "Schäffer";
+    }
+}
+
+// ========================================
+// SLS - Finalize
+// ========================================
+if (Q.sls_r > 0) {
+    if (Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate) {
+        Q.sls_candidate = Q.spd_candidate;
+    } else if (Q.ddp_candidate && Q.ddp_candidate !== Q.kpd_candidate) {
+        Q.sls_candidate = Q.ddp_candidate;
+    } else {
+        Q.sls_candidate = Q.z_candidate || null;
+    }
+}
+
+// ========================================
+// DtsP - Finalize
+// ========================================
+if (Q.dtsp_r > 0) {
+    if (Q.nsdap_banned) {
+        Q.dtsp_candidate = Q.dvfp_candidate || "Kunze";
+    } else if (Q.dvfp_formed && Q.dvfp_candidate && Q.dvfp_candidate !== "Hindenburg") {
+        Q.dtsp_candidate = Q.dvfp_candidate;
+    } else {
+        Q.dtsp_candidate = Q.nsdap_candidate;
+    }
+}
+
+    // ========================================
     // 1932 HINDENBURG LOGIC
     // ========================================
     if (!Q.hindenburg_dead && Q.year >= 1932) {
@@ -2001,6 +2132,31 @@ if (Q.hindenburg_dead) {
             Q.dvfp_default_candidate = "Hindenburg";
         }
     }
+
+// RDP - pacifists broadly back Hindenburg as constitutional bulwark
+if (Q.rdp_r > 0) {
+    Q.rdp_candidate = "Hindenburg";
+}
+
+// CVP - Catholic conservatives back Hindenburg automatically
+if (Q.cvp_r > 0) {
+    Q.cvp_candidate = "Hindenburg";
+    Q.cvp_default_candidate = "Hindenburg";
+}
+
+// SLS - minority protection, backs stability
+if (Q.sls_r > 0) {
+    Q.sls_candidate = "Hindenburg";
+}
+
+// LB - Trotskyists will never back Hindenburg
+// (no override — keeps KPD/left candidate from finalize block)
+
+// DtsP - joins radical right opposition to Hindenburg
+if (Q.dtsp_r > 0) {
+    Q.dtsp_candidate = Q.nsdap_candidate || Q.dvfp_candidate || "Kunze";
+    Q.dtsp_default_candidate = Q.dtsp_candidate;
+}
 
 }
 !}
@@ -2200,8 +2356,9 @@ on-arrival: {!
     // Aggregate votes
     var candidate_votes = {};
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp',
-                   'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+               'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
+               'aspd','hl','sl','kpo','vnr','other',
+               'lb','rdp','cvp','sls','dtsp'];
     
     for (var i = 0; i < all_parties.length; i++) {
         var party = all_parties[i];
@@ -2318,7 +2475,8 @@ var partyColors = {
     dvp:"#D5AC27", wp:"#424242",  cnbl:"#5D4E37", csvd:"#3f7bc1",
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
-    aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320"
+    aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00"
 };
 
 var partyLabels = {
@@ -2326,12 +2484,14 @@ var partyLabels = {
     csrp:"CSRP", ddp:Q.ddp_name||"DDP", dvp:"DVP", wp:"WP",
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
-    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR"
+    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP"
 };
 
 var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+                  'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
+                  'lb','rdp','cvp','sls','dtsp'];
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -2663,11 +2823,27 @@ on-arrival: {!
         Q.hl_candidate = pickClosestFinalist(Q.hl_candidate, [center_right, center, far_right, center_left, left]);
     }
 
+if (Q.lb_r > 0) {
+    Q.lb_candidate = pickClosestFinalist(Q.lb_candidate, [far_left, left, cultural, center_left]);
+}
+if (Q.rdp_r > 0) {
+    Q.rdp_candidate = pickClosestFinalist(Q.rdp_candidate, [center_left, center, left, cultural]);
+}
+if (Q.cvp_r > 0) {
+    Q.cvp_candidate = pickClosestFinalist(Q.cvp_candidate, [center_right, center, far_right, center_left]);
+}
+if (Q.sls_r > 0) {
+    Q.sls_candidate = pickClosestFinalist(Q.sls_candidate, [center_left, center, left, cultural]);
+}
+if (Q.dtsp_r > 0) {
+    Q.dtsp_candidate = pickClosestFinalist(Q.dtsp_candidate, [far_right, center_right, center]);
+}
 
     if (!Q.round2_has_third) {
         var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+          'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
+          'lb','rdp','cvp','sls','dtsp'];
         for (var i = 0; i < parties_r2.length; i++) {
             var p = parties_r2[i];
             var cand = Q[p + '_candidate'];
@@ -2722,8 +2898,9 @@ on-arrival: {!
     Q.third_stays = 0;
     // Redistribute their party support
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+          'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
+          'lb','rdp','cvp','sls','dtsp'];
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
@@ -2765,8 +2942,9 @@ on-arrival: {!
     Q.round2_has_third = 0;
     Q.third_stays = 0;
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
+          'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
+          'lb','rdp','cvp','sls','dtsp'];
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
@@ -2907,8 +3085,9 @@ on-arrival: {!
     
     var candidate_votes = {};
     var parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp', 'dvfp',
-                   'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+               'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
+               'aspd','hl','sl','kpo','vnr','other',
+               'lb','rdp','cvp','sls','dtsp'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -3021,13 +3200,15 @@ on-arrival: {!
     Q.winner_desc = candidate_descs[Q.winner];
 !}
 on-display: {!
+
 var partyColors = {
     spd:"#E3000F", kpd:"#8B0000", sapd:"#C40000", srpd:"#FF6B6B",
     z:"#000000",   bvp:"#69A2BE", csrp:"#FFCCFF", ddp:"#DCCA4A",
     dvp:"#D5AC27", wp:"#424242",  cnbl:"#5D4E37", csvd:"#3f7bc1",
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
-    aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320"
+    aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00"
 };
 
 var partyLabels = {
@@ -3035,12 +3216,14 @@ var partyLabels = {
     csrp:"CSRP", ddp:Q.ddp_name||"DDP", dvp:"DVP", wp:"WP",
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
-    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR"
+    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP"
 };
 
-var allParties = ['spd','z','bvp','ddp','dvp', 'kpd','nsdap','dnvp',
+var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'other'];
+                  'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
+                  'lb','rdp','cvp','sls','dtsp'];
 
 
 var displayNames = {
