@@ -410,7 +410,7 @@ Q.dvfp_ideology = "Völkisch Nationalism"
 
 Q.party_relations = {
 
-        // === KPD ===
+    // === KPD ===
     KPD: {
         SAPD:  40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0),
         SPD:   Q.kpd_relation,
@@ -424,12 +424,17 @@ Q.party_relations = {
         CNBL:  2,
         CSVD:  0,
         DNVP:  0,
-        VRP:   3,   // Savers' party = petty bourgeois class enemies, but negligible
+        VRP:   3,
         NSDAP: 0,
         KVP:  0,
         DHP:  0,
         BB:   2,
         DVFP: 0,
+        LB:   55,
+        RDP:  3,
+        CVP:  0,
+        SLS:  5,
+        DTSP: 0,
     },
 
     // === SAPD ===
@@ -446,12 +451,17 @@ Q.party_relations = {
         CNBL:  8,
         CSVD:  12,
         DNVP:  3,
-        VRP:   5,   // Inflation victims get some sympathy but VRP is still bourgeois
+        VRP:   5,
         NSDAP: 0,
         KVP:  5,
         DHP:  8,
         BB:   10,
         DVFP: 0,
+        LB:   60,
+        RDP:  15,
+        CVP:  5,
+        SLS:  10,
+        DTSP: 0,
     },
 
     // === SPD ===
@@ -468,12 +478,17 @@ Q.party_relations = {
         CNBL:  Q.cnbl_relation ?? 20,
         CSVD:  Q.csvd_relation ?? 35,
         DNVP:  Q.dnvp_relation,
-        VRP:   Q.vrp_relation ?? 20,  // SPD is blamed by VRP for inflationary policy; mutual coolness
+        VRP:   Q.vrp_relation ?? 20,
         NSDAP: Q.nsdap_relation,
         KVP:  Q.kvp_relation,
         DHP:  Q.dhp_relation,
         BB:   Q.bb_relation,
         DVFP: Q.dvfp_relation,
+        LB:   30,
+        RDP:  55,
+        CVP:  Q.z_in_government && Q.spd_in_government ? 10 : 30,
+        SLS:  65,
+        DTSP: 0,
     },
 
     // === SRPD ===
@@ -490,12 +505,17 @@ Q.party_relations = {
         CNBL:  (Q.cnbl_relation ?? 20) + 5,
         CSVD:  (Q.csvd_relation ?? 35) + 5,
         DNVP:  Q.dnvp_line === 3 ? 0 : Q.dnvp_relation - 10,
-        VRP:   20,  // Same as SPD; SRPD inherits the blame
+        VRP:   20,
         NSDAP: 0,
         KVP:  30,
         DHP:  25,
         BB:   25,
         DVFP: 0,
+        LB:   35,
+        RDP:  55,
+        CVP:  25,
+        SLS:  60,
+        DTSP: 0,
     },
 
     // === DDP ===
@@ -512,13 +532,17 @@ Q.party_relations = {
         CNBL:  35,
         CSVD:  60,
         DNVP:  Q.dnvp_line === 3 ? 5 : 30,
-        VRP:   55, // Shared liberal Mittelstand base; DDP sympathetic to revaluation demands
-                   // but VRP's single-issue grievance politics limits the warmth
+        VRP:   55,
         NSDAP: 0,
         KVP:  55,
         DHP:  40,
         BB:   30,
         DVFP: 0,
+        LB:   3,
+        RDP:  70,
+        CVP:  35,
+        SLS:  60,
+        DTSP: 0,
     },
 
     // === Z ===
@@ -535,13 +559,17 @@ Q.party_relations = {
         CNBL:  35,
         CSVD:  50,
         DNVP:  (Q.dnvp_line === 3 ? 20 : 50) + (Q.z_party_leader === "Kaas" ? 15 : -10),
-        VRP:   35, // Z passed the 1925 revaluation measures VRP found inadequate;
-                   // Catholic savers exist but Z won't restructure policy around them
+        VRP:   35,
         NSDAP: Q.nazi_urgency >= 7 ? 0 : Math.max(0, 25 - Q.nazi_urgency * 5),
         KVP:  45,
         DHP:  30,
         BB:   45,
         DVFP: 5,
+        LB:   0,
+        RDP:  45,
+        CVP:  45,
+        SLS:  50,
+        DTSP: 0,
     },
 
     // === CSRP ===
@@ -558,13 +586,17 @@ Q.party_relations = {
         CNBL:  20,
         CSVD:  30,
         DNVP:  10,
-        VRP:   30, // Some sympathy for small saver; CSRP has a social justice streak,
-                   // but VRP's liberal economics clash with Christian social doctrine
+        VRP:   30,
         NSDAP: 0,
         KVP:  35,
         DHP:  25,
         BB:   30,
         DVFP: 0,
+        LB:   0,
+        RDP:  40,
+        CVP:  50,
+        SLS:  45,
+        DTSP: 0,
     },
 
     // === BVP ===
@@ -581,18 +613,20 @@ Q.party_relations = {
         CNBL:  65,
         CSVD:  45,
         DNVP:  50,
-        VRP:   35, // Bavaria had many small savers; BVP modestly sympathetic
-                   // but won't prioritise revaluation over confessional politics
+        VRP:   35,
         NSDAP: Math.max(0, 15 - Q.nazi_urgency * 3),
         KVP:  40,
         DHP:  25,
         BB:   60,
         DVFP: 10,
+        LB:   0,
+        RDP:  35,
+        CVP:  65,
+        SLS:  40,
+        DTSP: 0,
     },
 
     // === DVP ===
-    // Heavy industry benefited from inflation wiping out debt — VRP views DVP
-    // as an arch-enemy representing those who prospered at savers' expense.
     DVP: {
         KPD:   3,
         SAPD:  10,
@@ -606,19 +640,20 @@ Q.party_relations = {
         CNBL:  30,
         CSVD:  50,
         DNVP:  50 + (Q.dvp_right_shift ?? 0) * 15,
-        VRP:   20, // DVP represents the inflation profiteers in VRP's worldview;
-                   // mutual coolness; some overlap on anti-socialism
+        VRP:   20,
         NSDAP: 20 + (Q.capital_strike_progress * 6) + (Q.dvp_right_shift ?? 0) * 12,
         KVP:  55,
         DHP:  40,
         BB:   25,
         DVFP: 5,
+        LB:   0,
+        RDP:  40,
+        CVP:  35,
+        SLS:  30,
+        DTSP: 5,
     },
 
     // === WP ===
-    // WP represents property owners who did WELL from inflation — VRP's direct rival
-    // and ideological nemesis within the Mittelstand. Historically they competed
-    // directly for the same social stratum with opposite grievances.
     WP: {
         KPD:   3,
         SAPD:  10,
@@ -632,13 +667,17 @@ Q.party_relations = {
         CNBL:  40,
         CSVD:  50,
         DNVP:  45,
-        VRP:   15, // Direct rivals — WP = inflation winners, VRP = inflation losers.
-                   // They fight over the same Mittelstand identity with opposite memories
+        VRP:   15,
         NSDAP: 35 + (Q.capital_strike_progress * 4),
         KVP:  40,
         DHP:  35,
         BB:   30,
         DVFP: 8,
+        LB:   0,
+        RDP:  30,
+        CVP:  30,
+        SLS:  25,
+        DTSP: 5,
     },
 
     // === CNBL ===
@@ -655,13 +694,17 @@ Q.party_relations = {
         WP:    40,
         CSVD:  40,
         DNVP:  45,
-        VRP:   25, // Some rural savers align with VRP's revaluation demands;
-                   // but Landbund prioritises agricultural tariffs over savings policy
+        VRP:   25,
         NSDAP: 30 + (Q.capital_strike_progress * 4) + (Q.year >= 1930 ? 10 : 0),
         KVP:  45,
         DHP:  55,
         BB:   55,
         DVFP: 30,
+        LB:   0,
+        RDP:  15,
+        CVP:  40,
+        SLS:  20,
+        DTSP: 20,
     },
 
     // === CSVD ===
@@ -678,13 +721,17 @@ Q.party_relations = {
         WP:    45,
         CNBL:  40,
         DNVP:  Q.dnvp_line === 3 ? 5 : 55,
-        VRP:   45, // CSVD has Protestant pietist small-saver constituents who overlap
-                   // with VRP's base; both anti-Hugenberg, both pro-republic
+        VRP:   45,
         NSDAP: 8,
         KVP:  65,
         DHP:  45,
         BB:   30,
         DVFP: 20,
+        LB:   0,
+        RDP:  35,
+        CVP:  40,
+        SLS:  30,
+        DTSP: 0,
     },
 
     // === DNVP ===
@@ -701,13 +748,17 @@ Q.party_relations = {
         WP:    45,
         CNBL:  45,
         CSVD:  Q.dnvp_line === 3 ? 5 : 55,
-        VRP:   30, // DNVP rhetorically sympathised with revaluation but did little;
-                   // Hugenberg-era DNVP is too volkisch for VRP's legal-liberal savers
+        VRP:   30,
         NSDAP: Q.dnvp_line === 3 ? 70 : 40,
         KVP:  Q.dnvp_line === 3 ? 5 : 60,
         DHP:  Q.dnvp_line === 3 ? 15 : 55,
         BB:   35,
         DVFP: 30,
+        LB:   0,
+        RDP:  Q.dnvp_line === 3 ? 0 : 10,
+        CVP:  Q.dnvp_line === 3 ? 5 : 35,
+        SLS:  Q.dnvp_line === 3 ? 0 : 20,
+        DTSP: Q.dnvp_line === 3 ? 45 : 20,
     },
 
     // === NSDAP ===
@@ -726,13 +777,15 @@ Q.party_relations = {
         CSVD:  8,
         DNVP:  Q.dnvp_line === 3 ? 70 : 40,
         VRP:   25 + (Q.capital_strike_progress * 3),
-        // VRP voters are NSDAP's prime recruitment pool — the cheated saver
-        // is a central Nazi propaganda figure ("November criminals," "Jewish finance").
-        // NSDAP actively courted this demographic.
         KVP:  5,
         DHP:  15,
         BB:   20,
         DVFP: 25,
+        LB:   0,
+        RDP:  0,
+        CVP:  0,
+        SLS:  0,
+        DTSP: 55,
     },
 
     // === DVFP ===
@@ -750,43 +803,45 @@ Q.party_relations = {
         CNBL:  37,
         CSVD:  23,
         DNVP:  35,
-        VRP:   20,   // Savers' party = petty bourgeois class enemies, but negligible
+        VRP:   20,
         NSDAP: 30,
         KVP:  30,
         DHP:  20,
         BB:   15,
+        LB:   0,
+        RDP:  0,
+        CVP:  0,
+        SLS:  0,
+        DTSP: 40,
     },
 
-    // === VRP (Volksrechtpartei / People's Justice Party) ===
-    // Founded 1926 by the Sparerbund für das Deutsche Reich.
-    // Represents small savers, pensioners, and bondholders wiped out by 1923 hyperinflation.
-    // Demands full revaluation of savings. Sees WP (inflation property-owners) as rivals.
-    // Sees DVP (heavy industry, inflation profiteers) as enemies.
-    // Politically: right-liberal, anti-socialist, pro-Rechtsstaat, single-issue grievance.
-    // Demographic: elderly rentiers, widows, civil servants, small depositors.
-    // Danger: as revaluation hopes fade, this electorate drifts toward NSDAP rapidly.
+    // === VRP ===
     VRP: {
         KPD:   3,
         SAPD:  5,
-        SPD:   Q.vrp_relation,  // SPD blamed for inflationary Weimar finance policy
+        SPD:   Q.vrp_relation,
         SRPD:  20,
-        DDP:   55,  // Natural liberal ally; shared Mittelstand base
-        Z:     35,  // Z passed inadequate 1925 measures; disappointment, not hostility
+        DDP:   55,
+        Z:     35,
         BVP:   35,
         CSRP:  30,
-        DVP:   20,  // DVP = big industry = inflation profiteers in VRP's worldview
-        WP:    15,  // Direct rival — WP represents those who GAINED from inflation
+        DVP:   20,
+        WP:    15,
         CNBL:  25,
-        CSVD:  45,  // Good overlap: Protestant small-saver base, anti-Hugenberg, pro-republic
-        DNVP:  Q.dnvp_line === 3 ? 10 : 35, // DNVP talked revaluation but didn't deliver;
-                                              // Hugenberg era is too radical for VRP
-        NSDAP: 0,    // VRP is a legal party demanding justice through courts and parliament;
-                    // but its voters are the Nazis' #1 recruitment target as hope fades
+        CSVD:  45,
+        DNVP:  Q.dnvp_line === 3 ? 10 : 35,
+        NSDAP: 0,
         KVP:  35,
         DHP:  30,
         BB:   25,
         DVFP: 10,
+        LB:   0,
+        RDP:  30,
+        CVP:  25,
+        SLS:  20,
+        DTSP: 0,
     },
+
     // === KVP ===
     KVP: {
         KPD:   0,
@@ -807,9 +862,14 @@ Q.party_relations = {
         DHP:   50,
         BB:    35,
         DVFP: 23,
+        LB:   0,
+        RDP:  30,
+        CVP:  40,
+        SLS:  25,
+        DTSP: 0,
     },
 
-    // === DHP (German Hannover Party) ===
+    // === DHP ===
     DHP: {
         KPD:   0,
         SAPD:  5,
@@ -821,7 +881,7 @@ Q.party_relations = {
         CSRP:  25,
         DVP:   40,
         WP:    35,
-        CNBL:  55,  // Agrarian overlap
+        CNBL:  55,
         CSVD:  45,
         DNVP:  Q.dnvp_line === 3 ? 15 : 55,
         VRP:   30,
@@ -829,9 +889,14 @@ Q.party_relations = {
         KVP:   50,
         BB:    40,
         DVFP: 18,
+        LB:   0,
+        RDP:  20,
+        CVP:  25,
+        SLS:  15,
+        DTSP: 10,
     },
 
-    // === BB (Bavarian Peasants Party) ===
+    // === BB ===
     BB: {
         KPD:   0,
         SAPD:  5,
@@ -839,21 +904,26 @@ Q.party_relations = {
         SRPD:  25,
         DDP:   30,
         Z:     45,
-        BVP:   60,  // Natural Bavarian Catholic overlap but rivals
+        BVP:   60,
         CSRP:  30,
         DVP:   25,
         WP:    30,
-        CNBL:  55,  // Agrarian solidarity
+        CNBL:  55,
         CSVD:  30,
         DNVP:  35,
         VRP:   25,
-        NSDAP: 20,  // Agrarian grievance overlap — danger zone
+        NSDAP: 20,
         KVP:   35,
         DHP:   40,
         DVFP: 11,
+        LB:   0,
+        RDP:  10,
+        CVP:  50,
+        SLS:  15,
+        DTSP: 15,
     },
 
-        // === KPO ===
+    // === KPO ===
     KPO: {
         KPD:   65 + (Q.kpd_party_leader === "Conciliators" ? 15 : 0),
         SAPD:  75,
@@ -878,6 +948,11 @@ Q.party_relations = {
         SL:    50,
         HL:    0,
         VNR:   0,
+        LB:   70,
+        RDP:  8,
+        CVP:  0,
+        SLS:  8,
+        DTSP: 0,
     },
 
     // === SL ===
@@ -905,6 +980,11 @@ Q.party_relations = {
         ASPD:  55,
         HL:    20,
         VNR:   10,
+        LB:   50,
+        RDP:  40,
+        CVP:  10,
+        SLS:  30,
+        DTSP: 0,
     },
 
     // === ASPD ===
@@ -932,6 +1012,11 @@ Q.party_relations = {
         SL:    50,
         HL:    30,
         VNR:   40,
+        LB:   25,
+        RDP:  45,
+        CVP:  20,
+        SLS:  35,
+        DTSP: 0,
     },
 
     // === VNR ===
@@ -959,6 +1044,11 @@ Q.party_relations = {
         SL:    10,
         ASPD:  35,
         HL:    45,
+        LB:   0,
+        RDP:  20,
+        CVP:  25,
+        SLS:  15,
+        DTSP: 10,
     },
 
     // === HL ===
@@ -985,6 +1075,171 @@ Q.party_relations = {
         SL:    25,
         ASPD:  25,
         VNR:   45,
+        LB:   0,
+        RDP:  25,
+        CVP:  20,
+        SLS:  15,
+        DTSP: 0,
+    },
+
+    // === LB ===
+    LB: {
+        KPD:   55 + (Q.kpd_party_leader === "Conciliators" ? 15 : 0),
+        SAPD:  65,
+        SPD:   30,
+        SRPD:  40,
+        KPO:   70,
+        SL:    50,
+        DDP:   3,
+        Z:     0,
+        BVP:   0,
+        CSRP:  0,
+        DVP:   0,
+        WP:    0,
+        CNBL:  0,
+        CSVD:  0,
+        DNVP:  0,
+        VRP:   0,
+        NSDAP: 0,
+        DVFP:  0,
+        KVP:   0,
+        DHP:   0,
+        BB:    0,
+        ASPD:  25,
+        VNR:   0,
+        HL:    0,
+        RDP:   5,
+        CVP:   0,
+        SLS:   10,
+        DTSP:  0,
+    },
+
+    // === RDP ===
+    RDP: {
+        KPD:   5,
+        SAPD:  15,
+        SPD:   55,
+        SRPD:  60,
+        LB:    5,
+        DDP:   70,
+        Z:     45,
+        BVP:   35,
+        CSRP:  40,
+        DVP:   40,
+        WP:    30,
+        CNBL:  15,
+        CSVD:  35,
+        DNVP:  Q.dnvp_line === 3 ? 0 : 10,
+        VRP:   30,
+        NSDAP: 0,
+        DVFP:  0,
+        KVP:   30,
+        DHP:   20,
+        BB:    10,
+        ASPD:  45,
+        SL:    40,
+        HL:    25,
+        VNR:   20,
+        KPO:   8,
+        CVP:   15,
+        SLS:   40,
+        DTSP:  0,
+    },
+
+    // === CVP ===
+    CVP: {
+        KPD:   0,
+        SAPD:  5,
+        SPD:   Q.z_in_government && Q.spd_in_government ? 10 : 30,
+        SRPD:  25,
+        DDP:   35,
+        Z:     45,
+        BVP:   65,
+        CSRP:  50,
+        DVP:   35,
+        WP:    30,
+        CNBL:  40,
+        CSVD:  40,
+        DNVP:  Q.dnvp_line === 3 ? 5 : 35,
+        VRP:   25,
+        NSDAP: 0,
+        DVFP:  0,
+        KVP:   40,
+        DHP:   25,
+        BB:    50,
+        LB:    0,
+        RDP:   15,
+        SLS:   20,
+        DTSP:  0,
+        ASPD:  20,
+        SL:    10,
+        HL:    20,
+        VNR:   25,
+        KPO:   0,
+    },
+
+    // === SLS ===
+    SLS: {
+        KPD:   10,
+        SAPD:  20,
+        SPD:   65,
+        SRPD:  60,
+        DDP:   60,
+        Z:     50,
+        BVP:   40,
+        CSRP:  45,
+        DVP:   30,
+        WP:    25,
+        CNBL:  20,
+        CSVD:  30,
+        DNVP:  Q.dnvp_line === 3 ? 0 : 20,
+        VRP:   20,
+        NSDAP: 0,
+        DVFP:  0,
+        KVP:   25,
+        DHP:   15,
+        BB:    15,
+        LB:    10,
+        RDP:   40,
+        CVP:   20,
+        DTSP:  0,
+        ASPD:  35,
+        SL:    30,
+        HL:    15,
+        VNR:   15,
+        KPO:   8,
+    },
+
+    // === DTSP ===
+    DTSP: {
+        KPD:   0,
+        SAPD:  0,
+        SPD:   0,
+        SRPD:  0,
+        DDP:   0,
+        Z:     0,
+        BVP:   0,
+        CSRP:  0,
+        DVP:   5,
+        WP:    5,
+        CNBL:  20,
+        CSVD:  0,
+        DNVP:  Q.dnvp_line === 3 ? 45 : 20,
+        VRP:   10,
+        NSDAP: 55,
+        DVFP:  40,
+        KVP:   0,
+        DHP:   10,
+        BB:    15,
+        LB:    0,
+        RDP:   0,
+        CVP:   0,
+        SLS:   0,
+        ASPD:  0,
+        SL:    0,
+        HL:    0,
+        VNR:   10,
+        KPO:   0,
     },
 };
 
@@ -1108,6 +1363,53 @@ Q.coalition_blocks = {
     BB_NSDAP: Q.nazi_urgency >= 7,   // Agrarian grievance makes them soft on NSDAP longest
     BB_WP:    false,  // No hard block — both small, both grievance parties
     BB_DVP:   true,   // Big industry vs peasants
+
+// --- LB ---
+LB_KPD:    false,  // Ideological kin despite tensions
+LB_SPD:    Q.lb_relation < 30,
+LB_NSDAP:  true,
+LB_DNVP:   true,
+LB_DVP:    true,
+LB_WP:     true,
+LB_CNBL:   true,
+LB_DVFP:   true,
+LB_DTSP:   true,
+
+// --- RDP ---
+RDP_KPD:   true,
+RDP_NSDAP: true,
+RDP_DVFP:  true,
+RDP_DTSP:  true,
+RDP_DNVP:  Q.dnvp_line === 3,
+
+// --- CVP ---
+CVP_KPD:   true,
+CVP_SAPD:  true,
+CVP_NSDAP: true,
+CVP_DVFP:  true,
+CVP_DTSP:  true,
+CVP_SPD:   Q.z_in_government && Q.spd_in_government,  // Their founding grievance
+
+// --- SLS ---
+SLS_KPD:   true,
+SLS_NSDAP: true,
+SLS_DVFP:  true,
+SLS_DTSP:  true,
+SLS_DNVP:  Q.dnvp_line === 3,
+
+// --- DTSP ---
+DTSP_KPD:   true,
+DTSP_SAPD:  true,
+DTSP_SPD:   true,
+DTSP_SRPD:  true,
+DTSP_DDP:   true,
+DTSP_Z:     true,
+DTSP_BVP:   true,
+DTSP_CSRP:  true,
+DTSP_LB:    true,
+DTSP_RDP:   true,
+DTSP_SLS:   true,
+DTSP_CVP:   true,
     };
 
 
