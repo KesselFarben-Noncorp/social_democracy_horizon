@@ -2073,8 +2073,29 @@ Choose your challenges!
 - @vanilla: Vanilla-esque gamemode.
 - @dice: Dice Gamemode
 - @fptp: First Past the Hell
+- @modern: 5% threshold. Alr
 - @april: Vanilla Superesque Normal Gamemode of First of Fourth.
 - @start_2: Back
+
+@modern
+
+Do you love being thresholded by 4.8% like BSW did? alr.
+
+- @mo_2: True
+- @mo_3: False
+- @challenge: Back.
+
+@mo_2
+view-if: modern_variable = 0
+on-arrival: modern_variable = 1
+go-to: modern
+
+Turned on!
+
+@mo_3
+view-if: modern_variable = 1
+on-arrival: modern_variable = 0
+go-to: modern
 
 @fptp
 
@@ -2519,6 +2540,10 @@ if (Q.vn_challenge === 1) {
 if (Q.dem_challenge === 1) {
     Q.nsdap_banned = 1;
     Q.kpd_banned = 1;
+}
+
+if (Q.modern_variable === 1) {
+    Q.electoral_threshold = 5;
 }
 
 if (Q.cmr_challenge === 1) {
