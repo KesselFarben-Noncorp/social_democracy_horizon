@@ -286,15 +286,19 @@ on-display: {!
 var partyData = [
     { id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: true },
     { id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
+    { id: "lb",   name: "LB",   color: "#6B0000", seats: Q.lb_seats,   show: !!(Q.lb_r   && Q.lb_r   > 0) },  // after KPO
     { id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r && Q.sl_r > 0) },
     { id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r && Q.kpo_r > 0) },
     { id: "spd",  name: "SPD",        color: "#E3000F", seats: Q.spd_seats,  show: true },
     { id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
+    { id: "rdp",  name: "RDP",  color: "#B8B000", seats: Q.rdp_seats,  show: !!(Q.rdp_r  && Q.rdp_r  > 0) },
     { id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: true },
+    { id: "cvp",  name: "CVP",  color: "#1A1A1A", seats: Q.cvp_seats,  show: !!(Q.cvp_r  && Q.cvp_r  > 0) },
     { id: "z",    name: "Center",     color: "#000000", seats: Q.z_seats,    show: true },
     { id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: true },
     { id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: true },
     { id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: true },
+    { id: "sls",  name: "SLS",  color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) }, 
     { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
     { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r && Q.dhp_r > 0) },
     { id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: true },
@@ -308,6 +312,7 @@ var partyData = [
     { id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: true },
     { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: true },
     { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: true },
+    { id: "dtsp", name: "DtsP", color: "#3B1A00", seats: Q.dtsp_seats, show: !!(Q.dtsp_r && Q.dtsp_r > 0) },
     { id: "dvfp",name: "DVFP",      color: "#1A0F00", seats: Q.dvfp_seats,show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
 ];
 
@@ -401,6 +406,15 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ kpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kpd_seats_num > 0 : color: green; ?][? if change_kpd_seats_num < 0 : color: red; ?]">[+ str_change_kpd_seats_num +]</td>
 </tr>
+[? if lb_votes > 0 :
+<tr class="row-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#6B0000; display:inline-block; margin-right:8px;'> </div>LB</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ lb_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_lb_r > 0 : color: green; ?][? if change_lb_r < 0 : color: red; ?]">[+ str_change_lb +]</td>
+    <td style="padding: 8px; text-align: right;">[+ lb_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_lb_seats_num > 0 : color: green; ?][? if change_lb_seats_num < 0 : color: red; ?]">[+ str_change_lb_seats_num +]</td>
+</tr>
+?]
 [? if sl_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#005B96; display:inline-block; margin-right:8px;'> </div>SL</td>
@@ -453,6 +467,15 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_srpd_seats_num > 0 : color: green; ?][? if change_srpd_seats_num < 0 : color: red; ?]">[+ str_change_srpd_seats_num +]</td>
 </tr>
 ?]
+[? if rdp_votes > 0 :
+<tr class="row-center">
+    <td style="padding: 8px;"><div class="box" style='background-color:#B8B000; display:inline-block; margin-right:8px;'> </div>RDP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ rdp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_rdp_r > 0 : color: green; ?][? if change_rdp_r < 0 : color: red; ?]">[+ str_change_rdp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ rdp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_rdp_seats_num > 0 : color: green; ?][? if change_rdp_seats_num < 0 : color: red; ?]">[+ str_change_rdp_seats_num +]</td>
+</tr>
+?]
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#DCCA4A; display:inline-block; margin-right:8px;'> </div>[+ ddp_name +]</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ ddp_r_disp +]%</td>
@@ -467,6 +490,15 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ z_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_z_seats_num > 0 : color: green; ?][? if change_z_seats_num < 0 : color: red; ?]">[+ str_change_z_seats_num +]</td>
 </tr>
+[? if cvp_votes > 0 :
+<tr class="row-liberal">
+    <td style="padding: 8px;"><div class="box" style='background-color:#1A1A1A; display:inline-block; margin-right:8px;'> </div>CVP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cvp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_cvp_r > 0 : color: green; ?][? if change_cvp_r < 0 : color: red; ?]">[+ str_change_cvp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ cvp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_cvp_seats_num > 0 : color: green; ?][? if change_cvp_seats_num < 0 : color: red; ?]">[+ str_change_cvp_seats_num +]</td>
+</tr>
+?]
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BB</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bb_r_disp +]%</td>
@@ -590,6 +622,15 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ nsdap_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_nsdap_seats_num > 0 : color: green; ?][? if change_nsdap_seats_num < 0 : color: red; ?]">[+ str_change_nsdap_seats_num +]</td>
 </tr>
+[? if dtsp_votes > 0 :
+<tr class="row-far-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#3B1A00; display:inline-block; margin-right:8px;'> </div>DtsP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dtsp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_dtsp_r > 0 : color: green; ?][? if change_dtsp_r < 0 : color: red; ?]">[+ str_change_dtsp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dtsp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dtsp_seats_num > 0 : color: green; ?][? if change_dtsp_seats_num < 0 : color: red; ?]">[+ str_change_dtsp_seats_num +]</td>
+</tr>
+?]
 [? if dvfp_votes > 0 :
 <tr class="row-far-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#1B1B1B; display:inline-block; margin-right:8px;'> </div>DVFP</td>
@@ -649,6 +690,11 @@ if (Q.hl_seats   > 0) Q.party_votes.push({party: 'HL',   votes: (Q.hl_seats   / 
 if (Q.sl_seats   > 0) Q.party_votes.push({party: 'SL',   votes: (Q.sl_seats   / seat_total) * 100});
 if (Q.kpo_seats  > 0) Q.party_votes.push({party: 'KPO',  votes: (Q.kpo_seats  / seat_total) * 100});
 if (Q.vnr_seats  > 0) Q.party_votes.push({party: 'VNR',  votes: (Q.vnr_seats  / seat_total) * 100});
+if (Q.lb_seats   > 0) Q.party_votes.push({party: 'LB',   votes: (Q.lb_seats   / seat_total) * 100});
+if (Q.rdp_seats  > 0) Q.party_votes.push({party: 'RDP',  votes: (Q.rdp_seats  / seat_total) * 100});
+if (Q.cvp_seats  > 0) Q.party_votes.push({party: 'CVP',  votes: (Q.cvp_seats  / seat_total) * 100});
+if (Q.sls_seats  > 0) Q.party_votes.push({party: 'SLS',  votes: (Q.sls_seats  / seat_total) * 100});
+if (Q.dtsp_seats > 0) Q.party_votes.push({party: 'DtsP', votes: (Q.dtsp_seats / seat_total) * 100});
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 // ============================================================
