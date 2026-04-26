@@ -64,7 +64,7 @@ Q.random_factor = function(f, variance = 0.65) {
 const ALL_PARTIES = [
     'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
     'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
-    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr'
+    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'rdp', 'cvp', 'sls', 'lb', 'dtsp'
 ];
 
 // === MASTER CHANCELLOR LIST ===
@@ -532,6 +532,11 @@ const MINISTRY_PRIORITIES = {
     DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
     NSDAP:['interior', 'economic', 'foreign', 'finance', 'agriculture', 'justice', 'labor', 'transport'],
     CSRP: ['labor', 'justice', 'interior', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
+    DTSP: ['interior', 'justice', 'economic', 'finance', 'agriculture', 'foreign', 'labor', 'transport'],
+SLS:  ['interior', 'justice', 'labor', 'agriculture', 'economic', 'finance', 'foreign', 'transport'],
+RDP:  ['justice', 'interior', 'labor', 'foreign', 'economic', 'finance', 'agriculture', 'transport'],
+CVP:  ['interior', 'agriculture', 'justice', 'finance', 'labor', 'economic', 'foreign', 'transport'],
+LB:   ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
 };
 
 // ========================================
@@ -1867,6 +1872,7 @@ if (Q.kpd_in_government)  socialist_party_count++;
 if (Q.sapd_in_government) socialist_party_count++;
 if (Q.sl_in_government)   socialist_party_count++;
 if (Q.kpo_in_government)  socialist_party_count++;
+if (Q.lb_in_government) socialist_party_count++;
 
 if (Q.spd_in_government && Q.ideology !== "left") centrist_party_count++;
 if (Q.z_in_government)    centrist_party_count++;
@@ -1879,8 +1885,12 @@ if (Q.dnvp_in_government && Q.dnvp_line === 1) centrist_party_count++;
 if (Q.aspd_in_government) centrist_party_count++;
 if (Q.vnr_in_government)  centrist_party_count++;
 if (Q.hl_in_government)   centrist_party_count++;
+if (Q.sls_in_government)   centrist_party_count++;
+if (Q.cvp_in_government)   centrist_party_count++;
+if (Q.rdp_in_government)   centrist_party_count++;
 
 if (Q.vnr_in_government)  nationalist_party_count++;
+if (Q.dtsp_in_government)  nationalist_party_count++;
 if (Q.dnvp_in_government && Q.dnvp_line !== 1) nationalist_party_count++;
 if (Q.cnbl_in_government) nationalist_party_count++;
 if (Q.nsdap_in_government) nationalist_party_count++;
@@ -2715,6 +2725,16 @@ Q.identity_modifier = {
 
     // KVP: Protestant moderate conservative
     kvp:   1 + (prot_share * 0.12) - (youth_share * 0.15),
+
+dtsp:  1 + (prot_share * 0.28) + (youth_share * 0.20) - (cath_share * 0.35) - (sec_share * 0.08),
+
+sls:   1 + (sec_share * 0.08) - (cath_share * 0.05),
+
+rdp:   1 + (sec_share * 0.30) + (prot_share * 0.05) - (cath_share * 0.20) - (youth_share * 0.18),
+
+cvp:   1 + (cath_share * 0.55) - (sec_share * 0.28) - (youth_share * 0.12),
+
+lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
 
     // OTHER: catch-all, slight youth boost (protest votes)
     other: 1 + (youth_share * 0.10)
@@ -3617,6 +3637,69 @@ Q.identity_modifier = {
     unemployedc: 0.25,  // Catholic but not clericalist
     },
 
+    dtsp: {
+    base: Q.dtsp_banned ? 0 : (() => {
+        let nat = Q.nationalism_factor;
+        let unr = Q.unrest_factor;
+        return nat * 8 * (1 + unr * 0.10) * Q.identity_modifier.dtsp;
+    })(),
+    workers:     0.15,
+    old_middle:  0.90,
+    new_middle:  0.70,
+    rural:       0.80,
+    unemployedc: 0.20,
+},
+
+sls: {
+    base: Q.sls_banned ? 0 : (() => {
+        return Q.pro_republic_factor * 4 * Q.identity_modifier.sls;
+    })(),
+    workers:     0.30,
+    old_middle:  0.40,
+    new_middle:  0.25,
+    rural:       0.60,
+    unemployedc: 0.20,
+},
+
+rdp: {
+    base: Q.rdp_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let nat_pen = (Q.nationalism / 100) * 0.20;
+        return rep * 6 * (1.0 - nat_pen) * Q.identity_modifier.rdp;
+    })(),
+    workers:     0.25,
+    old_middle:  0.30,
+    new_middle:  0.85,
+    rural:       0.15,
+    unemployedc: 0.20,
+},
+
+cvp: {
+    base: Q.cvp_banned ? 0 : (() => {
+        let rep = Q.pro_republic_factor;
+        let cath_bonus = Q.catholics / 18;
+        return (rep * 5 + cath_bonus) * Q.identity_modifier.cvp;
+    })(),
+    workers:     0.40,
+    old_middle:  0.80,
+    new_middle:  0.50,
+    rural:       0.70,
+    unemployedc: 0.30,
+},
+
+lb: {
+    base: Q.lb_banned ? 0 : (() => {
+        let soc = Q.socialism_factor;
+        let unr = Q.unrest_factor;
+        return soc * 7 * (1 + unr * 0.08) * Q.identity_modifier.lb;
+    })(),
+    workers:     0.55,
+    old_middle:  0.10,
+    new_middle:  0.20,
+    rural:       0.10,
+    unemployedc: 0.45,
+},
+
     default: {
         base: Q.other_banned ? 0 : (() => {
             return (Q.nationalism_factor + Q.pro_republic_factor) * 6 * Q.identity_modifier.other;
@@ -4197,6 +4280,77 @@ Q.identity_modifier = {
     if (Q.c === 'old_middle')  Q.ideology_factor *= 1.05;
     if (Q.c === 'workers')     Q.ideology_factor *= 0.55;
     if (Q.c === 'rural')       Q.ideology_factor *= 0.80;
+    break;
+
+    case 'dtsp':
+    // Violently antisemitic far-right precursor — nationalism-driven like NSDAP
+    // but weaker organization and squeezed out as NSDAP absorbs its base
+    let nsdap_squeeze = Math.max(0.3, 1 - (Q.nsdap_votes || 0) / 45);
+    Q.ideology_factor = Q.random_factor(
+        (Q.nationalism_factor * 0.55 + Math.max(0, Q.unrest_factor - 0.4) * 0.30)
+        * nsdap_squeeze,
+        0.25
+    );
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 1.15;
+    if (Q.c === 'rural')       Q.ideology_factor *= 1.10;
+    if (Q.c === 'workers')     Q.ideology_factor *= 0.60;
+    if (Q.c === 'unemployedc') Q.ideology_factor *= 0.55;
+    break;
+
+case 'sls':
+    // Sorbian minority party — flat, stable, no crisis sensitivity
+    // Purely pro-republic, no class dynamics beyond slight rural weight
+    Q.ideology_factor = Q.random_factor(
+        Q.pro_republic_factor * 0.12,
+        0.10
+    );
+    if (Q.c === 'rural')      Q.ideology_factor *= 1.20;
+    if (Q.c === 'workers')    Q.ideology_factor *= 0.90;
+    if (Q.c === 'new_middle') Q.ideology_factor *= 0.80;
+    break;
+
+case 'rdp':
+    // Radical pacifist-secularist — collapses under street pressure and nationalism
+    // Intellectual new middle class base, deeply squeezed by crisis
+    Q.ideology_factor = Q.random_factor(
+        Q.pro_republic_factor * 0.14
+        * Math.max(0.3, 1 - Q.street_pressure_factor * 0.40)
+        * Math.max(0.4, 1 - (Q.nationalism / 100) * 0.35),
+        0.15
+    );
+    if (Q.c === 'new_middle')  Q.ideology_factor *= 1.30;
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 0.75;
+    if (Q.c === 'workers')     Q.ideology_factor *= 0.55;
+    if (Q.c === 'rural')       Q.ideology_factor *= 0.35;
+    break;
+
+case 'cvp':
+    // Catholic Rhineland conservative breakaway from Z
+    // Catholic bonus like Z/BVP but no government modifier and no worker appeal
+    Q.catholic_bonus = Math.min(0.45, Q.catholics / 100);
+    Q.ideology_factor = Q.random_factor(
+        Q.pro_republic_factor * 0.45 * (1 + Q.catholic_bonus),
+        0.15
+    );
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 1.15;
+    if (Q.c === 'rural')       Q.ideology_factor *= 1.10;
+    if (Q.c === 'workers')     Q.ideology_factor *= 0.80;
+    if (Q.c === 'new_middle')  Q.ideology_factor *= 0.70;
+    if (Q.c === 'unemployedc') Q.ideology_factor *= 0.55;
+    break;
+
+case 'lb':
+    // Leninbund — Trotskyist/Left Opposition, theoretically oriented
+    // Less street-volatile than KPD, more dependent on intellectual socialism_factor
+    Q.ideology_factor = Q.random_factor(
+        Q.socialism_factor * 0.18 * (1 + Q.unrest_factor * 0.08),
+        0.22
+    );
+    if (Q.c === 'workers')     Q.ideology_factor *= 1.15;
+    if (Q.c === 'unemployedc') Q.ideology_factor *= 1.05;
+    if (Q.c === 'new_middle')  Q.ideology_factor *= 0.85; // intellectual sympathy
+    if (Q.c === 'old_middle')  Q.ideology_factor *= 0.40;
+    if (Q.c === 'rural')       Q.ideology_factor *= 0.30;
     break;
                 default:
                     Q.ideology_factor = Q.random_factor(1, 0.1);
