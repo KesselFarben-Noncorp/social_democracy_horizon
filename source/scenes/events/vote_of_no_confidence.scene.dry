@@ -2,37 +2,25 @@ title: Vote of No Confidence
 new-page: true
 tags: event
 priority: 5
-view-if: spd_in_government = 1 and (z_dissent >= 5 or ddp_dissent >= 5 or dvp_dissent >= 5 or bvp_dissent >= 5 or kpd_dissent >= 5 or sapd_dissent >= 5 or srpd_dissent >= 5 or cnbl_dissent >= 5 or csvd_dissent >= 5 or csrp_dissent >= 5 or wp_dissent >= 5 or dnvp_dissent >= 5 or vrp_dissent >= 5)
+view-if: spd_in_government = 1 and max_coalition_dissent >= 5
 on-arrival: {!
 
-// ============================================
-// FIND THE CALLER - highest dissent among
-// coalition partners (or tolerating parties)
-// ============================================
+var candidates = Q.parties.map(function(p) {
+    var key = p.toLowerCase();
+    return {
+        name:       p.toUpperCase(),
+        dissent:    Q[key + '_dissent']       || 0,
+        votes:      Q[key + '_r']             || 0,
+        in_gov:     Q[key + '_in_government'] || 0,
+        tolerating: Q[key + '_tolerating']    || 0
+    };
+});
 
-var candidates = [
-    {name: 'Z',    dissent: Q.z_dissent,    votes: Q.z_r,    in_gov: Q.z_in_government,    tolerating: Q.z_tolerating},
-    {name: 'DDP',  dissent: Q.ddp_dissent,  votes: Q.ddp_r,  in_gov: Q.ddp_in_government,  tolerating: Q.ddp_tolerating},
-    {name: 'DVP',  dissent: Q.dvp_dissent,  votes: Q.dvp_r,  in_gov: Q.dvp_in_government,  tolerating: Q.dvp_tolerating},
-    {name: 'BVP',  dissent: Q.bvp_dissent,  votes: Q.bvp_r,  in_gov: Q.bvp_in_government,  tolerating: Q.bvp_tolerating},
-    {name: 'KPD',  dissent: Q.kpd_dissent,  votes: Q.kpd_r,  in_gov: Q.kpd_in_government,  tolerating: Q.kpd_tolerating},
-    {name: 'SAPD', dissent: Q.sapd_dissent, votes: Q.sapd_r, in_gov: Q.sapd_in_government, tolerating: Q.sapd_tolerating},
-    {name: 'SRPD', dissent: Q.srpd_dissent, votes: Q.srpd_r, in_gov: Q.srpd_in_government, tolerating: Q.srpd_tolerating},
-    {name: 'CNBL', dissent: Q.cnbl_dissent, votes: Q.cnbl_r, in_gov: Q.cnbl_in_government, tolerating: Q.cnbl_tolerating},
-    {name: 'CSVD', dissent: Q.csvd_dissent, votes: Q.csvd_r, in_gov: Q.csvd_in_government, tolerating: Q.csvd_tolerating},
-    {name: 'CSRP', dissent: Q.csrp_dissent, votes: Q.csrp_r, in_gov: Q.csrp_in_government, tolerating: Q.csrp_tolerating},
-    {name: 'WP',   dissent: Q.wp_dissent,   votes: Q.wp_r,   in_gov: Q.wp_in_government,   tolerating: Q.wp_tolerating},
-    {name: 'DNVP', dissent: Q.dnvp_dissent, votes: Q.dnvp_r, in_gov: Q.dnvp_in_government, tolerating: Q.dnvp_tolerating},
-    {name: 'VRP',  dissent: Q.vrp_dissent,  votes: Q.vrp_r,  in_gov: Q.vrp_in_government,  tolerating: Q.vrp_tolerating},
-];
-
-// Only parties actually in coalition or tolerating can call VoNC
 var relevant = candidates.filter(function(c) {
     return (c.in_gov || c.tolerating) && c.dissent >= 5;
 });
 
 if (relevant.length === 0) {
-    // Fallback: highest dissent overall among partners
     relevant = candidates.filter(function(c) { return c.in_gov || c.tolerating; });
 }
 
@@ -43,53 +31,30 @@ relevant.sort(function(a, b) {
 
 var caller = relevant.length > 0 ? relevant[0] : {name: 'DVP', dissent: 5, votes: 5, in_gov: 1, tolerating: 0};
 
-Q.vonc_caller = caller.name;
-Q.vonc_caller_dissent = caller.dissent;
-Q.vonc_caller_votes = caller.votes;
-Q.vonc_caller_in_gov = caller.in_gov;
+Q.vonc_caller            = caller.name;
+Q.vonc_caller_dissent    = caller.dissent;
+Q.vonc_caller_votes      = caller.votes;
 Q.vonc_caller_tolerating = caller.tolerating ? 1 : 0;
-
-// ============================================
-// FIND CO-CALLERS - other parties also at high dissent
-// ============================================
 
 var co_callers = relevant.filter(function(c) {
     return c.name !== Q.vonc_caller && c.dissent >= 4;
 });
 
-Q.vonc_co_callers = co_callers.map(function(c) { return c.name; });
-Q.vonc_has_co_callers = co_callers.length > 0 ? 1 : 0;
+Q.vonc_co_callers      = co_callers.map(function(c) { return c.name; });
+Q.vonc_has_co_callers  = co_callers.length > 0 ? 1 : 0;
 Q.vonc_co_caller_votes = co_callers.reduce(function(sum, c) { return sum + c.votes; }, 0);
 
-// ============================================
-// CALCULATE VOTE MATH
-// ============================================
-
-// Government baseline
-Q.government_votes = Math.round(Q.coalition_votes * 10) / 10;
-
-// Votes lost: caller + co-callers defect
-Q.defecting_votes = Math.round((Q.vonc_caller_votes + Q.vonc_co_caller_votes) * 10) / 10;
+Q.government_votes      = Math.round(Q.coalition_votes * 10) / 10;
+Q.defecting_votes       = Math.round((Q.vonc_caller_votes + Q.vonc_co_caller_votes) * 10) / 10;
 Q.votes_after_defection = Math.round((Q.coalition_votes - Q.defecting_votes) * 10) / 10;
 
-// Also lose toleration votes if tolerating party is the caller
 if (Q.vonc_caller_tolerating && Q.spd_toleration) {
     Q.votes_after_defection = Math.round((Q.votes_after_defection - Q.vonc_caller_votes) * 10) / 10;
 }
 
 Q.vonc_government_survives_easily = Q.votes_after_defection >= 53 ? 1 : 0;
-Q.vonc_close_vote = (Q.votes_after_defection >= 49 && Q.votes_after_defection < 53) ? 1 : 0;
-Q.vonc_likely_falls = Q.votes_after_defection < 49 ? 1 : 0;
-
-// ============================================
-// WHAT CAN WE OFFER THE CALLER?
-// Purely mechanical - based on what they hold
-// ============================================
-
-Q.can_offer_ministry = Q.vonc_caller_in_gov ? 0 : 1; // Can offer ministry if not already in cabinet
-Q.can_offer_resign_ministry = Q.vonc_caller_in_gov ? 1 : 0; // Can give up one of their rivals' ministries
-Q.can_offer_relation_boost = 1; // Always
-Q.can_offer_dissent_reset = 1; // Always costs resources
+Q.vonc_close_vote                 = (Q.votes_after_defection >= 49 && Q.votes_after_defection < 53) ? 1 : 0;
+Q.vonc_likely_falls               = Q.votes_after_defection < 49 ? 1 : 0;
 
 !}
 go-to: vonc_intro
@@ -117,238 +82,8 @@ go-to: vonc_intro
 [? if vonc_close_vote : We are on the edge. Any further defections will bring us down. ?]
 [? if vonc_likely_falls : We do not have the numbers. The government will fall unless we act. ?]
 
-- @vonc_options: Consider our response
-- @vonc_let_it_happen: Accept defeat
-
-@vonc_options
-
-= Our Options
-
-- @vonc_talk_to_caller: Talk directly to [+ vonc_caller +]
-- @vonc_shore_up_others: Shore up other partners
-- @vonc_offer_ministry_to_caller: Offer [+ vonc_caller +] a ministry
-- @vonc_strip_rival_ministry: Strip a rival ministry to please [+ vonc_caller +]
 - @vonc_spend_resources: Use party resources (costs 3)
-- @vonc_let_it_happen: Accept the fall
-
-@vonc_talk_to_caller
-on-arrival: {!
-// Direct talks - reduce dissent based on current level
-// Harder the higher the dissent
-var dissent = Q.vonc_caller_dissent;
-var reduction = 0;
-
-if (dissent >= 8) {
-    reduction = 1; // Barely budges
-} else if (dissent >= 6) {
-    reduction = 2;
-} else {
-    reduction = 3;
-}
-
-var caller_lower = Q.vonc_caller.toLowerCase();
-Q[caller_lower + '_dissent'] = Math.max(0, Q[caller_lower + '_dissent'] - reduction);
-Q[caller_lower + '_relation'] = Math.min(100, (Q[caller_lower + '_relation'] || 50) + 5);
-
-Q.vonc_talks_reduction = reduction;
-Q.vonc_caller_dissent_after = Q[caller_lower + '_dissent'];
-Q.vonc_resolved = Q.vonc_caller_dissent_after < 5 ? 1 : 0;
-!}
-
-= Direct Talks with [+ vonc_caller +]
-
-We sit down with their leadership. Grievances are aired. Promises are made.
-
-**Their dissent drops by [+ vonc_talks_reduction +]** (now at [+ vonc_caller_dissent_after +]).
-
-[? if vonc_resolved : That is enough. [+ vonc_caller +] withdraws the vote. The crisis passes — for now. ?]
-[? if not vonc_resolved : They are not satisfied. The vote will still proceed unless we do more. ?]
-
-go-to; vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
-
-@vonc_shore_up_others
-on-arrival: {!
-// Lock in wavering partners so they don't join the caller
-var party_list = ['Z','DDP','DVP','BVP','KPD','SAPD','SRPD','CNBL','CSVD','CSRP','WP','DNVP','VRP'];
-var secured_votes = 0;
-var secured_names = [];
-
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i];
-    if (p === Q.vonc_caller) continue;
-    if (!Q[p.toLowerCase() + '_in_government'] && !Q[p.toLowerCase() + '_tolerating']) continue;
-    
-    var dissent = Q[p.toLowerCase() + '_dissent'] || 0;
-    var rel = Q[p.toLowerCase() + '_relation'] || 50;
-    
-    // Wavering: dissent 3-4
-    if (dissent >= 3 && dissent < 5) {
-        // Boost relation slightly, reduce dissent
-        Q[p.toLowerCase() + '_relation'] = Math.min(100, rel + 4);
-        Q[p.toLowerCase() + '_dissent'] = Math.max(0, dissent - 1);
-        secured_votes += Q[p.toLowerCase() + '_r'] || 0;
-        secured_names.push(p);
-    }
-}
-
-Q.vonc_secured_votes = Math.round(secured_votes * 10) / 10;
-Q.vonc_secured_names = secured_names;
-Q.vonc_secured_any = secured_names.length > 0 ? 1 : 0;
-
-// Recalculate survival
-var new_support = Q.votes_after_defection + secured_votes;
-Q.vonc_resolved = new_support >= 50 ? 1 : 0;
-Q.vonc_final_support = Math.round(new_support * 10) / 10;
-!}
-go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
-
-= Shoring Up the Coalition
-
-We work the phones. Private assurances are exchanged with wavering partners.
-
-[? if vonc_secured_any : **Secured:** [+ vonc_secured_names +] hold firm (+[+ vonc_secured_votes +]%). ?]
-[? if not vonc_secured_any : No one was wavering badly enough to be pulled back. We gain nothing here. ?]
-
-**Effective support: [+ vonc_final_support +]%**
-
-[? if vonc_resolved : It is enough. The vote fails even with [+ vonc_caller +] against us. ?]
-[? if not vonc_resolved : Still not enough. We need to deal with [+ vonc_caller +] directly. ?]
-
-@vonc_offer_ministry_to_caller
-view-if: vonc_caller_in_gov = 0
-on-arrival: {!
-// Caller is outside cabinet - offer them a seat at the table
-var caller_lower = Q.vonc_caller.toLowerCase();
-
-// Find a ministry currently held by a party with lower leverage
-// Give them labor or interior as SPD would offer
-var offered = 'transport'; // default low-cost
-
-// Simple logic: offer the least contentious available ministry
-if (Q.labor_minister_party !== 'SPD' && Q.labor_minister_party !== Q.vonc_caller) {
-    offered = 'labor';
-} else if (Q.justice_minister_party !== 'SPD' && Q.justice_minister_party !== Q.vonc_caller) {
-    offered = 'justice';
-} else if (Q.agriculture_minister_party !== 'SPD') {
-    offered = 'agriculture';
-}
-
-Q.vonc_offered_ministry = offered;
-
-// Apply: give them the ministry
-var previous_holder = Q[offered + '_minister_party'];
-Q[offered + '_minister_party'] = Q.vonc_caller;
-Q[caller_lower + '_in_government'] = 1;
-Q[caller_lower + '_tolerating'] = 0;
-
-// Reduce their dissent significantly
-Q[caller_lower + '_dissent'] = Math.max(0, Q[caller_lower + '_dissent'] - 4);
-Q[caller_lower + '_relation'] = Math.min(100, (Q[caller_lower + '_relation'] || 50) + 15);
-
-// Previous holder is annoyed
-if (previous_holder && previous_holder !== 'I') {
-    var prev_lower = previous_holder.toLowerCase();
-    Q[prev_lower + '_dissent'] = (Q[prev_lower + '_dissent'] || 0) + 2;
-    Q[prev_lower + '_relation'] = Math.max(0, (Q[prev_lower + '_relation'] || 50) - 8);
-}
-
-Q.vonc_ministry_prev_holder = previous_holder;
-Q.vonc_resolved = 1;
-!}
-
-= Ministry Offered to [+ vonc_caller +]
-
-We offer [+ vonc_caller +] the **[+ vonc_offered_ministry +] ministry**.
-
-A seat at the table is more persuasive than any argument.
-
-[? if vonc_ministry_prev_holder != "I" : [+ vonc_ministry_prev_holder +] loses that ministry and is not pleased. ?]
-
-**[+ vonc_caller +] withdraws the vote and joins the cabinet.**
-
-Their dissent drops sharply. But we have expanded the coalition — and complicated it.
-
-- @vonc_aftermath
-
-@vonc_strip_rival_ministry
-view-if: vonc_caller_in_gov = 1
-on-arrival: {!
-// Caller is IN government but unhappy
-// They want a rival's ministry stripped or their own influence expanded
-// Find which coalition partner the caller dislikes most
-
-var caller_lower = Q.vonc_caller.toLowerCase();
-var caller_relations = Q.party_relations[Q.vonc_caller] || {};
-
-var party_list = ['Z','DDP','DVP','BVP','KPD','SAPD','SRPD','CNBL','CSVD','CSRP','WP','DNVP'];
-var worst_partner = null;
-var worst_rel = 999;
-
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i];
-    if (p === Q.vonc_caller) continue;
-    if (!Q[p.toLowerCase() + '_in_government']) continue;
-    
-    var rel = caller_relations[p] || 50;
-    if (rel < worst_rel) {
-        worst_rel = rel;
-        worst_partner = p;
-    }
-}
-
-if (!worst_partner) {
-    // Fallback: just reduce their dissent via symbolic concession
-    Q[caller_lower + '_dissent'] = Math.max(0, Q[caller_lower + '_dissent'] - 2);
-    Q.vonc_stripped_party = 'none';
-    Q.vonc_stripped_ministry = 'none';
-    Q.vonc_resolved = Q[caller_lower + '_dissent'] < 5 ? 1 : 0;
-} else {
-    // Find a ministry held by the rival
-    var ministries = ['labor','interior','justice','finance','economic','foreign','agriculture','transport'];
-    var stripped = null;
-    
-    for (var i = 0; i < ministries.length; i++) {
-        var m = ministries[i];
-        if (Q[m + '_minister_party'] === worst_partner) {
-            stripped = m;
-            break;
-        }
-    }
-    
-    if (stripped) {
-        // Give it to SPD (neutral) or the caller
-        Q[stripped + '_minister_party'] = 'SPD';
-        
-        // Rival loses ministry — gains dissent
-        Q[worst_partner.toLowerCase() + '_dissent'] = (Q[worst_partner.toLowerCase() + '_dissent'] || 0) + 3;
-        Q[worst_partner.toLowerCase() + '_relation'] = Math.max(0, (Q[worst_partner.toLowerCase() + '_relation'] || 50) - 10);
-        
-        // Caller is appeased
-        Q[caller_lower + '_dissent'] = Math.max(0, Q[caller_lower + '_dissent'] - 3);
-        Q[caller_lower + '_relation'] = Math.min(100, (Q[caller_lower + '_relation'] || 50) + 10);
-        
-        Q.vonc_stripped_party = worst_partner;
-        Q.vonc_stripped_ministry = stripped;
-        Q.vonc_resolved = Q[caller_lower + '_dissent'] < 5 ? 1 : 0;
-    } else {
-        Q.vonc_stripped_party = 'none';
-        Q.vonc_stripped_ministry = 'none';
-        Q[caller_lower + '_dissent'] = Math.max(0, Q[caller_lower + '_dissent'] - 1);
-        Q.vonc_resolved = 0;
-    }
-}
-!}
-go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
-
-= Internal Reshuffle
-
-[? if vonc_stripped_party != "none" : We strip **[+ vonc_stripped_party +]** of the **[+ vonc_stripped_ministry +] ministry**. ?]
-[? if vonc_stripped_party = "none" : We make a symbolic gesture — not a full reshuffle, but a signal that we hear [+ vonc_caller +]. ?]
-
-[? if vonc_stripped_party != "none" : [+ vonc_stripped_party +] is furious. [+ vonc_caller +] is satisfied — for now. ?]
-
-[? if vonc_resolved : [+ vonc_caller +] withdraws the vote. ?]
-[? if not vonc_resolved : Their dissent has eased but not enough. The vote proceeds. ?]
+- @vonc_let_it_happen: Accept defeat
 
 @vonc_spend_resources
 choose-if: resources >= 3
@@ -357,10 +92,9 @@ on-arrival: {!
 Q.resources -= 3;
 
 var caller_lower = Q.vonc_caller.toLowerCase();
-Q[caller_lower + '_dissent'] = Math.max(0, Q[caller_lower + '_dissent'] - 3);
+Q[caller_lower + '_dissent']  = Math.max(0, Q[caller_lower + '_dissent'] - 3);
 Q[caller_lower + '_relation'] = Math.min(100, (Q[caller_lower + '_relation'] || 50) + 10);
 
-// Also slightly reduce co-caller dissent
 for (var i = 0; i < Q.vonc_co_callers.length; i++) {
     var p = Q.vonc_co_callers[i].toLowerCase();
     Q[p + '_dissent'] = Math.max(0, (Q[p + '_dissent'] || 0) - 1);
@@ -368,7 +102,7 @@ for (var i = 0; i < Q.vonc_co_callers.length; i++) {
 
 Q.vonc_resolved = Q[caller_lower + '_dissent'] < 5 ? 1 : 0;
 !}
-go-to: vonc_aftermath if vonc_resolved; vonc_options if not vonc_resolved
+go-to: vonc_aftermath if vonc_resolved; vonc_vote_proceeds if not vonc_resolved
 
 = Resources Spent
 
@@ -383,19 +117,17 @@ go-to: vonc_vote_proceeds
 
 @vonc_vote_proceeds
 on-arrival: {!
-// Check if additional partners defect during the actual vote
-var party_list = ['Z','DDP','DVP','BVP','KPD','SAPD','SRPD','CNBL','CSVD','CSRP','WP','DNVP','VRP'];
+var party_list = Q.parties.map(function(p) { return p.toUpperCase(); });
 var additional_defect_votes = 0;
-var additional_defectors = [];
+var additional_defectors    = [];
 
 for (var i = 0; i < party_list.length; i++) {
     var p = party_list[i];
     if (p === Q.vonc_caller) continue;
     if (!Q[p.toLowerCase() + '_in_government'] && !Q[p.toLowerCase() + '_tolerating']) continue;
-    
+
     var dissent = Q[p.toLowerCase() + '_dissent'] || 0;
-    
-    // Dissent 4-5: chance of defecting during the vote itself
+
     if (dissent >= 4) {
         var defect_chance = (dissent - 3) * 0.2;
         if (Math.random() < defect_chance) {
@@ -406,12 +138,12 @@ for (var i = 0; i < party_list.length; i++) {
     }
 }
 
-Q.vonc_additional_defectors = additional_defectors;
+Q.vonc_additional_defectors     = additional_defectors;
 Q.vonc_has_additional_defectors = additional_defectors.length > 0 ? 1 : 0;
 
-var final_support = Q.votes_after_defection - additional_defect_votes;
+var final_support    = Q.votes_after_defection - additional_defect_votes;
 Q.vonc_final_support = Math.round(final_support * 10) / 10;
-Q.vonc_resolved = final_support >= 50 ? 1 : 0;
+Q.vonc_resolved      = final_support >= 50 ? 1 : 0;
 !}
 
 = The Vote
@@ -431,37 +163,32 @@ The Reichstag assembles. Every seat filled.
 title: Aftermath...
 on-arrival: {!
 if (Q.vonc_resolved) {
-    // Survived — but caller's dissent lingers
-    var caller_lower = Q.vonc_caller.toLowerCase();
     Q.pro_republic += 2;
-    // Don't reset their dissent fully — they're still unhappy
 } else {
-    // Government falls
-    Q.spd_in_government = 0;
-    Q.in_weimar_coalition = 0;
-    Q.in_grand_coalition = 0;
-    Q.in_left_front = 0;
-    Q.in_popular_front = 0;
+    Q.spd_in_government      = 0;
+    Q.in_weimar_coalition    = 0;
+    Q.in_grand_coalition     = 0;
+    Q.in_left_front          = 0;
+    Q.in_popular_front       = 0;
     Q.in_minority_government = 0;
-    Q.in_unity_government = 0;
-    Q.spd_toleration = 0;
-    Q.coalition_dissent = 0;
-    Q.pro_republic -= 5;
-    Q.coup_progress += 1;
+    Q.in_unity_government    = 0;
+    Q.spd_toleration         = 0;
+    Q.coalition_dissent      = 0;
+    Q.pro_republic          -= 5;
 
-    Q.next_election_time = Q.time + 3;
+    Q.next_election_time  = Q.time + 3;
     Q.next_election_month = Q.month + 3;
-    Q.next_election_year = Q.year;
+    Q.next_election_year  = Q.year;
     if (Q.next_election_month > 12) {
         Q.next_election_month -= 12;
-        Q.next_election_year += 1;
+        Q.next_election_year  += 1;
     }
 
-    var party_list = ['KPD','SAPD','SPD','SRPD','Z','DDP','DVP','BVP','WP','CNBL','CSRP','CSVD','DNVP','VRP','NSDAP'];
+    var party_list = Q.parties.map(function(p) { return p.toUpperCase(); });
     for (var i = 0; i < party_list.length; i++) {
         var p = party_list[i].toLowerCase();
         Q[p + '_in_government'] = 0;
-        Q[p + '_tolerating'] = 0;
+        Q[p + '_tolerating']    = 0;
     }
 }
 !}
