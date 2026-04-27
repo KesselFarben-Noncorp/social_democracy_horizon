@@ -23,7 +23,7 @@ on-arrival: {!
 // === CANDIDATE SELECTION ===
 
 // Faction A Leader (Coalitionists)
-if (Q.rural_dnvp + Q.old_middle_dnvp / 3 > 35 && Q.cnbl_crisis == 0) {
+if ((Q.rural_dnvp + Q.old_middle_dnvp / 3) > 34 && Q.cnbl_crisis == 0) {
     Q.leader_a = "Friedrich Winckler";
     Q.leader_a_title = "Leader of the Prussian Landtag Delegation";
 } else {
@@ -105,7 +105,7 @@ if (Q.dnvp_in_government) {
 }
 
 // 4. Class Influence
-Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.2);
+Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.25);
 Q.hugenberg_momentum += (Q.rural_dnvp * 0.8);
 
 Q.delegate_power_a += (Q.new_middle_dnvp * 1.5);
@@ -183,7 +183,6 @@ if (Q.hugenberg_momentum > Q.top_moderate_score * 1.5) {
 go-to: natcon_win if congress_path = "capitulation"; pragcon_win if congress_path = "traditionalists"; authcon_win if congress_path = "coalitionists"; laborcon_win if congress_path = "social_nationalists"
 
 @natcon_win
-go-to: triumvirate if can_push_triumvirate = 1
 on-display: {!
 var factionData = [
     { id: "faction_c", name: Q.leader_c, subtitle: Q.leader_c_title,
