@@ -97,6 +97,13 @@ if (Q.land_reform > 0) {
     Q.hugenberg_momentum += 15 * Q.land_reform;
 }
 
+// 3d 
+if (Q.dnvp_in_government) {
+    Q.delegate_power_a += 50;
+    Q.delegate_power_b += 25;
+    Q.delegate_power_c += 10;
+}
+
 // 4. Class Influence
 Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.2);
 Q.hugenberg_momentum += (Q.rural_dnvp * 0.8);
@@ -107,11 +114,11 @@ Q.delegate_power_a += (Q.old_middle_dnvp * 0.55);
 Q.delegate_power_b += (Q.rural_dnvp * 1.24);
 Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
 
-Q.delegate_power_c += (Q.workers_dnvp * 2.0 + Q.new_middle_dnvp * 0.7);
+Q.delegate_power_c += (Q.workers_dnvp * 2.2 + Q.new_middle_dnvp * 0.73);
 
 // 5. Ideological Reinforcements
-Q.hugenberg_momentum += Q.nationalism * 1.0;
-Q.delegate_power_b += Q.nationalism * 0.55;
+Q.hugenberg_momentum += Q.nationalism * 1.5;
+Q.delegate_power_b += Q.nationalism * 0.65 * Q.pro_republic * 0.1;
 Q.delegate_power_a += Q.pro_republic * 0.6;
 Q.delegate_power_c += Q.socialism * 1.2 + Q.pro_republic * 0.2;
 
