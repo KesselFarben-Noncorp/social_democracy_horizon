@@ -2,7 +2,7 @@ title: Young Plan
 new-page: true
 subtitle: A new agreement on reparations
 tags: event
-view-if: (year = 1929 and month >= 7 and in_right_coalition = 0 and young_plan_seen = 0) or (year = 1929 and month >= 7 and in_right_coalition = 1 and young_plan_seen = 0 and dnvp_line != 3)
+view-if: (year = 1929 and month >= 7 and in_right_coalition = 0 and young_plan_seen = 0 and young_delayed = 0) or (year = 1929 and month >= 7 and in_right_coalition = 1 and young_plan_seen = 0 and dnvp_line != 3 and young_delayed = 0) or (year = 1929 and month >= 9 and young_plan_seen = 0 and young_delayed = 1)
 max-visits: 1
 
 = Young Plan
@@ -17,8 +17,11 @@ While this seems to be a positive development for the country, the Right is camp
 - @resist: Young Plan collapses due to non referendum reasonings.
 
 @pro_plan
-on-arrival: camarilla_strength += 10
-view-if: ruhr_labor = 0 and young_plan_catastrophy = 0 and nationalism <= 60
+on-arrival: camarilla_strength += 10; resources -= 3
+subtitle: - 3 resources
+choose-if: resources >= 3
+unavailable-subtitle: Not enough resources!
+view-if: ruhr_labor = 0 and young_plan_collapse = 0 and nationalism <= 60
 
 How should we campaign in favor of the Plan?
 
@@ -38,13 +41,21 @@ The referendum easily fails, with only around 15% of voters supporting it. It se
 
 
 @no_plan
-view-if: ruhr_labor = 0 and young_plan_catastrophy = 0
-on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8
+view-if: ruhr_labor = 0 and young_plan_collapse = 0
+on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes) > 20; 
+go-to: young_1_national if (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes) > 20; young_2_national if (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes) < 20; 
 
-The referendum easily fails with or without our presence in the campaign, with only around 15% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
+@young_1_national
+
+The referendum easily fails with or without our presence in the campaign, with only around [+ young_opposition +]% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
+
+@young_2_national
+on-arrival: nationalism += 20; socialism += 5; pro_republic -= 5; workers_spd += 2; old_middle_dnvp += 4; rural_dnvp += 5; nsdap_unemployedc += 5; kpd_workers += 7; rural_dvp -= 2; workers_ddp -= 2; workers_csvd += 2; new_middle_kvp += 3
+
+The referendum easily fails without our presence, however with [+ young_opposition +] or above gained turnout for the Liberty Law, there is inflamation even amongst non national societies, as some right wing members of usual parties begin speaking out against the Plan. Right wing parties in their order gained the foot to begin heavy and stable opposition.
 
 @collapse
-view-if: ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_catastrophy = 1))
+view-if: ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_collapse = 1))
 on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1; camarilla_strength += 5; hindenburg_patience /= 2; hindenburg_patience -= 15
 achievement: ruhrland
 
