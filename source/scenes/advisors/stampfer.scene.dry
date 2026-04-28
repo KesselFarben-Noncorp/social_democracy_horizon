@@ -37,6 +37,11 @@ Which faction should we support?
 - @support_labor: Labor
 - @support_reform: Reformists
 - @support_neorev: Neorevisionists
+- @back_stampfer: Back
+
+@back_stampfer
+on-arrival: resources += 1
+go-to: stampfer
 
 @support_left
 on-arrival: left_dissent -= 10; left_strength += 10
@@ -69,6 +74,6 @@ title: Cooperation with the KPD
 subtitle: Could we build closer ties with the KPD?
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 choose-if: advisor_action_timer = 0
-on-arrival: advisor_action_timer = 6; left_strength += 2; kpd_relation += 4*(1-dissent); reformist_dissent += 2
+on-arrival: advisor_action_timer = 6; left_strength += 2; kpd_relation += 4*(1-dissent); reformist_dissent += 2; communist_coalition += 1 if communist_coalition <= 3
 
 Stampfer works towards closer ties with the KPD through our media.

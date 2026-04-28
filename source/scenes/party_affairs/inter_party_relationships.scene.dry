@@ -23,6 +23,7 @@ The SPD cannot govern alone yet. Lacking an electoral majority, we need support 
 @kpd
 subtitle: <span style="color:#FF3333;">-1 resources</span>
 choose-if: resources >= 1
+view-if: not social_fascism_adopted
 unavailable-subtitle: Not enough resources.
 on-arrival: resources -= 1; kpd_inter_party_seen += 1
 go-to: kpd_blutmai if blutmai = 1; kpd_1 if blutmai = 0 and kpd_coalition_success = 0 and (kpd_relation < 40 or kpd_rectified_history = 1); kpd_rectification_of_history if kpd_relation >= 40 and kpd_rectified_history = 0; kpd_2 if kpd_coalition_success = 1 and kpd_rectified_history = 1
@@ -152,7 +153,7 @@ The liberal parties (both <span style="color:#66CCFF;"><b>[+ ddp_name +]</b></sp
 subtitle: <span style="color:#000000;">-1 resources</span>
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources
-on-arrival: resources -= 1; dnvp_relation += 3*(1 - dissent); dnvp_relation += 1 if dnvp_line = 1
+on-arrival: resources -= 1; dnvp_relation += 3*(1 - dissent); dnvp_relation += 1 if dnvp_line = 1; dnvp_relation += 5 if social_fascism_adopted
 
 We attempted reconciliation with the <span style="color:#000000;"><b>DNVP</b></span>, staying distant on core issues due to inherent contradictions.
 
