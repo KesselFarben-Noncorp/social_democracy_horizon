@@ -43,13 +43,139 @@ The referendum easily fails, with only around 15% of voters supporting it. It se
 view-if: ruhr_labor = 0 and young_plan_collapse = 0
 on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes) > 20; 
 go-to: young_1_national if young_opposition = 1; young_2_national if young_opposition = 0
+on-display: {!
+var youngOpposition = ["dnvp", "kvp", "csvd", "dvfp", "nsdap", "dtsp", "cnbl"];
+
+var forParties = [], againstParties = [];
+Q.parties.forEach(function(p) {
+    var votes = Q[p + "_votes"] || 0;
+    if (votes <= 0) return;
+    (youngOpposition.indexOf(p) >= 0 ? againstParties : forParties).push({ id: p, votes: votes });
+});
+
+var forTotal = forParties.reduce(function(s, p) { return s + p.votes; }, 0);
+var againstTotal = againstParties.reduce(function(s, p) { return s + p.votes; }, 0);
+var grandTotal = forTotal + againstTotal;
+
+var youngChart = document.getElementById("young-plan-chart");
+if (youngChart) {
+    youngChart.innerHTML = "";
+    youngChart.style.fontFamily = "Georgia, serif";
+    youngChart.style.marginTop = "18px";
+
+    // Title
+    var title = document.createElement("div");
+    title.style.fontWeight = "bold";
+    title.style.fontSize = "0.95em";
+    title.style.marginBottom = "8px";
+    title.style.color = "#ccc";
+    title.textContent = "Young Plan — Reichstag Alignment";
+    youngChart.appendChild(title);
+
+    // Split bar
+    var barWrap = document.createElement("div");
+    barWrap.style.display = "flex";
+    barWrap.style.height = "22px";
+    barWrap.style.borderRadius = "3px";
+    barWrap.style.overflow = "hidden";
+    barWrap.style.marginBottom = "6px";
+
+    var forPct = grandTotal > 0 ? (forTotal / grandTotal * 100) : 50;
+    var againstPct = 100 - forPct;
+
+    var forBar = document.createElement("div");
+    forBar.style.width = forPct + "%";
+    forBar.style.backgroundColor = "#1a5c2a";
+    forBar.style.transition = "width 0.6s ease";
+
+    var againstBar = document.createElement("div");
+    againstBar.style.width = againstPct + "%";
+    againstBar.style.backgroundColor = "#5c1a1a";
+    againstBar.style.transition = "width 0.6s ease";
+
+    barWrap.appendChild(forBar);
+    barWrap.appendChild(againstBar);
+    youngChart.appendChild(barWrap);
+
+    // Labels
+    var labels = document.createElement("div");
+    labels.style.display = "flex";
+    labels.style.justifyContent = "space-between";
+    labels.style.fontSize = "0.82em";
+    labels.style.color = "#aaa";
+    labels.style.marginBottom = "12px";
+
+    var forLabel = document.createElement("span");
+    forLabel.style.color = "#44cc66";
+    forLabel.textContent = "✔ For: " + forTotal + " seats (" + forPct.toFixed(1) + "%)";
+
+    var againstLabel = document.createElement("span");
+    againstLabel.style.color = "#cc4444";
+    againstLabel.textContent = "✘ Against: " + againstTotal + " seats (" + againstPct.toFixed(1) + "%)";
+
+    labels.appendChild(forLabel);
+    labels.appendChild(againstLabel);
+    youngChart.appendChild(labels);
+
+    // Per-party rows
+    [{ list: forParties, color: "#1a5c2a", outline: "#00cc44", label: "For" },
+     { list: againstParties, color: "#5c1a1a", outline: "#cc0000", label: "Against" }]
+    .forEach(function(group) {
+        group.list.forEach(function(p) {
+            var pct = grandTotal > 0 ? (p.votes / grandTotal * 100) : 0;
+
+            var row = document.createElement("div");
+            row.style.marginBottom = "6px";
+
+            var rowHeader = document.createElement("div");
+            rowHeader.style.display = "flex";
+            rowHeader.style.justifyContent = "space-between";
+            rowHeader.style.fontSize = "0.8em";
+            rowHeader.style.color = "#bbb";
+            rowHeader.style.marginBottom = "2px";
+
+            var nameEl = document.createElement("span");
+            nameEl.textContent = p.id.toUpperCase();
+            nameEl.style.color = group.outline;
+
+            var countEl = document.createElement("span");
+            countEl.textContent = p.votes + " seats";
+
+            rowHeader.appendChild(nameEl);
+            rowHeader.appendChild(countEl);
+
+            var track = document.createElement("div");
+            track.style.width = "100%";
+            track.style.height = "10px";
+            track.style.backgroundColor = "#2a2a2a";
+            track.style.borderRadius = "2px";
+            track.style.overflow = "hidden";
+            track.style.border = "1px solid " + group.outline;
+
+            var fill = document.createElement("div");
+            fill.style.width = pct + "%";
+            fill.style.height = "100%";
+            fill.style.backgroundColor = group.color;
+
+            track.appendChild(fill);
+            row.appendChild(rowHeader);
+            row.appendChild(track);
+            youngChart.appendChild(row);
+        });
+    });
+}
+!}
 
 @young_1_national
+
+{!<div id="young-plan-chart"></div>!}
 
 The referendum easily fails with or without our presence in the campaign, with only around [+ young_opposition +]% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
 
 @young_2_national
 on-arrival: nationalism += 20; socialism += 5; pro_republic -= 5; workers_spd += 2; old_middle_dnvp += 4; rural_dnvp += 5; nsdap_unemployedc += 5; kpd_workers += 7; rural_dvp -= 2; workers_ddp -= 2; workers_csvd += 2; new_middle_kvp += 3
+
+{!<div id="young-plan-chart"></div>!}
 
 The referendum easily fails without our presence, however with [+ young_opposition +] or above gained turnout for the Liberty Law, there is inflamation even amongst non national societies, as some right wing members of usual parties begin speaking out against the Plan. Right wing parties in their order gained the foot to begin heavy and stable opposition.
 
