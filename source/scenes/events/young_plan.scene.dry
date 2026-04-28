@@ -41,8 +41,8 @@ The referendum easily fails, with only around 15% of voters supporting it. It se
 
 @no_plan
 view-if: ruhr_labor = 0 and young_plan_collapse = 0
-on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes) > 20; 
-go-to: young_1_national if young_opposition = 1; young_2_national if young_opposition = 0
+on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes)
+go-to: young_1_national if young_opposition < 20; young_2_national if young_opposition > 20
 on-display: {!
 var youngOpposition = ["dnvp", "kvp", "csvd", "dvfp", "nsdap", "dtsp", "cnbl"];
 
@@ -166,9 +166,9 @@ if (youngChart) {
 }
 !}
 
-@young_1_national
-
 {!<div id="young-plan-chart"></div>!}
+
+@young_1_national
 
 The referendum easily fails with or without our presence in the campaign, with only around [+ young_opposition +]% of voters supporting it. However, nationalist sentiment is inflammed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
 
