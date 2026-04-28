@@ -2871,7 +2871,7 @@ lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
     if (growth <= soft_cap_threshold) {
         raw = growth;
     } else {
-        raw = soft_cap_threshold + (target_max - soft_cap_threshold) * (1 - Math.exp(-(growth - soft_cap_threshold) / 20));
+        raw = soft_cap_threshold + (target_max - soft_cap_threshold) * (1 - Math.exp(-(growth - soft_cap_threshold) / 17));
     }
 
     return raw * Q.identity_modifier.nsdap;
@@ -2985,7 +2985,7 @@ lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
             return m;
         })(),
         new_middle: (() => {
-            let m = 0.94;
+            let m = 0.95;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.18);
             if (Q.peoples_party === 1) m *= 0.95;
@@ -2994,11 +2994,11 @@ lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
             return m;
         })(),
         rural: (() => {
-            let m = 1.58;
+            let m = 1.68;
             let nat = Math.min(Q.nationalism / 100, 1);
             m *= (1 + nat * 0.30);
             if (Q.peoples_party === 1) m *= 0.95;
-            if (Q.parties.includes('cnbl')) m *= 0.83;
+            if (Q.parties.includes('cnbl')) m *= 0.7953;
             return m;
         })(),
         unemployedc: (() => {
