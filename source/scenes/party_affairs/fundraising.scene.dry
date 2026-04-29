@@ -1,6 +1,6 @@
 title: Fundraising
 new-page: true
-view-if: (collect_timer <= 0 or drive_timer <= 0 or austerity_timer <= 0 or donors_timer <= 0) and (not historical_mode)
+view-if: (collect_timer <= 0 or austerity_timer <= 0 or donors_timer <= 0) and (not historical_mode)
 on-arrival: {!
     // Initialize dues rates if not set
     if (!Q.dues_workers) { Q.dues_workers = 1; }
@@ -14,11 +14,11 @@ on-arrival: {!
     Q.bonus_dues_unemployedc = Q.bonus_dues_unemployedc || 0;
     
     // Calculate base income
-    Q.workers_income = Math.round((Q.workers_spd * Q.dues_workers * 0.03 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_workers * 2));
-    Q.unemployedc_income = Math.round((Q.unemployedc_spd * Q.dues_unemployedc * 0.02 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_unemployedc * 2));
-    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.08 * (1 - Q.reformist_dissent * 0.005));
-    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.08 * (1 - Q.center_dissent * 0.005));
-    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.03 * (1 - Q.center_dissent * 0.005));
+    Q.workers_income = Math.round((Q.workers_spd * Q.dues_workers * 0.04 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_workers * 2));
+    Q.unemployedc_income = Math.round((Q.unemployedc_spd * Q.dues_unemployedc * 0.03 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_unemployedc * 2));
+    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.09 * (1 - Q.reformist_dissent * 0.005));
+    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.09 * (1 - Q.center_dissent * 0.005));
+    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.04 * (1 - Q.center_dissent * 0.005));
     
     // Total projected income
     Q.total_projected = Q.workers_income + Q.unemployedc_income + Q.new_middle_income + Q.old_middle_income + Q.rural_income;
@@ -61,7 +61,6 @@ What is our fundraising strategy?
 
 - @collect_standard: Collect current dues ([+ total_projected +] resources). [? if collect_timer > 0 : (Available in [+ collect_timer +] months) ?]
 - @adjust_dues: Adjust dues rates by demographic.
-- @fundraising_drive: Special fundraising campaign (variable income). [? if drive_timer > 0 : (Available in [+ drive_timer +] months) ?]
 - @austerity: Party austerity measures (reduce operating costs). [? if austerity_timer > 0 : (Available in [+ austerity_timer +] months) ?]
 - @wealthy_donors: Seek donations from wealthy sympathizers. [? if donors_timer > 0 : (Available in [+ donors_timer +] months) ?]
 - @root: Defer decision.
@@ -71,7 +70,7 @@ What is our fundraising strategy?
 subtitle: +[+ total_projected +] resources
 choose-if: collect_timer <= 0
 unavailable-subtitle: [? if collect_timer > 0 : Cannot collect dues yet. Available in [+ collect_timer +] turns. ?]
-on-arrival: resources += total_projected; collect_timer = 72
+on-arrival: resources += total_projected; collect_timer = 48
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
@@ -233,85 +232,6 @@ on-arrival: dues_rural -= 1; rural_spd += 3; center_dissent -= 2;
 go-to: adjust_dues_menu
 
 Rural dues reduced. This makes the party more accessible to the countryside.
-
-@fundraising_drive
-subtitle: Intensive fundraising campaign
-choose-if: drive_timer <= 0
-unavailable-subtitle: [? if drive_timer > 0 : Cannot launch another drive yet. Available in [+ drive_timer +] two weeks. ?]
-on-arrival: drive_timer = 96;
-go-to: fundraising_drive_roll
-
-We launch a special fundraising drive, appealing to members' commitment and seeking additional voluntary contributions.
-
-@fundraising_drive_roll
-on-arrival: {!
-    // BASE ODDS - Start with a weak foundation
-    var base_odds = 1;
-    base_odds += Q.spd_r * 0.15;
-    
-    // FACTION PENALTIES - Internal chaos hurts your "house edge"
-    var faction_penalty = 0;
-    faction_penalty += Q.labor_dissent * 0.04;
-    faction_penalty += Q.reformist_dissent * 0.04;
-    faction_penalty += Q.left_dissent * 0.04;
-    faction_penalty += Q.center_dissent * 0.04;
-    
-    // ECONOMIC MULTIPLIERS - Devastating when bad
-    var econ_modifier = 1.0;
-    if (Q.unemployed >= 25) econ_modifier = 0.3; // Crisis = nobody donates
-    else if (Q.unemployed >= 20) econ_modifier = 0.5;
-    else if (Q.unemployed >= 15) econ_modifier = 0.7;
-    else if (Q.unemployed < 10) econ_modifier = 1.4; // Good times = generous donors
-    
-    if (Q.inflation >= 12) econ_modifier *= 0.6; // Hyperinflation crushes donations
-    else if (Q.inflation >= 8) econ_modifier *= 0.8;
-    else if (Q.inflation < 4) econ_modifier *= 1.2;
-    
-    // THE ROLL - Wide variance, gambling-style
-    var roll = Math.random() * 12; // 0-12 range for wild swings
-    
-    // CRITICAL SUCCESS/FAILURE (5% each)
-    if (Math.random() < 0.05) {
-        // JACKPOT! Major donor appears
-        Q.bonus_income = Math.round((base_odds * 3) * econ_modifier);
-        Q.resources += Q.bonus_income;
-        Q.fundraising_jackpot = true;
-        Q.fundraising_bust = false;
-    } else if (Math.random() < 0.05) {
-        // BUST! Scandal or donor withdrawal
-        Q.bonus_income = 0;
-        Q.fundraising_bust = true;
-        Q.fundraising_jackpot = false;
-    } else {
-        // Normal roll with high variance
-        var result = (base_odds - faction_penalty + roll) * econ_modifier;
-        Q.bonus_income = Math.round(Math.max(0, result));
-        Q.resources += Q.bonus_income;
-        Q.fundraising_jackpot = false;
-        Q.fundraising_bust = false;
-    }
-    
-    // Store the roll for flavor text
-    Q.fundraising_roll_value = Math.round(roll);
-!}
-
-**Fundraising Drive Results:**
-
-[? if fundraising_jackpot : **JACKPOT!** A wealthy benefactor has made a major donation! The campaign generates [+ bonus_income +] additional resources. ?]
-
-[? if fundraising_bust : **BUST!** A scandal broke just as donations were being collected, or a major donor pulled out. The campaign generates 0 additional resources. ?]
-
-[? if not fundraising_jackpot and not fundraising_bust : The campaign generates [+ bonus_income +] additional resources. ?]
-
-[? if bonus_income >= 15 and not fundraising_jackpot : Exceptional response! Members rallied with impressive generosity. ?]
-[? if bonus_income >= 10 and bonus_income < 15 : Strong showing. The party faithful came through. ?]
-[? if bonus_income >= 5 and bonus_income < 10 : Moderate returns. Members contributed what they could. ?]
-[? if bonus_income > 0 and bonus_income < 5 : Meager results. Economic hardship or dissatisfaction shows in the numbers. ?]
-
-[? if fundraising_roll_value >= 18 : (The fundraising roll was extremely fortunate: [+ fundraising_roll_value +]/20) ?]
-[? if fundraising_roll_value <= 3 : (The fundraising roll was dismal: [+ fundraising_roll_value +]/20) ?]
-
-- @root: Continue.
 
 @austerity
 subtitle: Reduce party operating expenses
