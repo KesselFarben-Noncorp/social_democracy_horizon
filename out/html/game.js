@@ -382,23 +382,33 @@
 
 
 /* =====================================================================
-   SUPER EVENT — JS
+   SUPER EVENT — JS  v2.0
    ===================================================================== */
 
 const SuperEvent = (() => {
-  let _overlay    = null;
-  let _video      = null;
-  let _leftPanel  = null;
-  let _rightPanel = null;
-  let _endHandler = null;
 
+  /* ── Private state ──────────────────────────────────────────────── */
+  let _overlay      = null;
+  let _video        = null;
+  let _leftPanel    = null;
+  let _rightPanel   = null;
+  let _videoWrap    = null;
+  let _endHandler   = null;
+  let _staticCanvas = null;
+  let _staticRAF    = null;
+  let _active       = false;
+
+  /* ── Queue state ────────────────────────────────────────────────── */
+  let _queue        = [];
+  let _queueRunning = false;
+
+  /* ── DOM init ───────────────────────────────────────────────────── */
   function _init() {
     if (document.getElementById('super-event-overlay')) return;
 
     const overlay = document.createElement('div');
     overlay.id = 'super-event-overlay';
 
-    // ── FIX 1: innerHTML now includes title, right-body, quote, skip button
     overlay.innerHTML = `
       <div id="super-event-title"></div>
       <div id="super-event-frame">
@@ -422,10 +432,87 @@ const SuperEvent = (() => {
     _video      = overlay.querySelector('video');
     _leftPanel  = overlay.querySelector('.super-event-left');
     _rightPanel = overlay.querySelector('.super-event-right');
+    _videoWrap  = overlay.querySelector('#super-event-video-wrap');
   }
 
-  function _close() {
-    if (!_overlay) return;
+  /* ── Helpers ────────────────────────────────────────────────────── */
+  function _clearClasses(el, prefix) {
+    [...el.classList].filter(c => c.startsWith(prefix)).forEach(c => el.classList.remove(c));
+  }
+
+  function _setOrHide(el, value, html = false) {
+    if (value) {
+      if (html) el.innerHTML = value;
+      else el.textContent = value;
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  /* ── Static canvas effect ───────────────────────────────────────── */
+  function _startStatic() {
+    if (_staticCanvas) return;
+    const c = document.createElement('canvas');
+    c.id = 'se-static-canvas';
+    c.width  = 320;
+    c.height = 240;
+    _videoWrap.appendChild(c);
+    _staticCanvas = c;
+
+    const ctx = c.getContext('2d');
+    function draw() {
+      const img = ctx.createImageData(c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const v = Math.random() > 0.5 ? 255 : 0;
+        d[i] = d[i+1] = d[i+2] = v;
+        d[i+3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+      _staticRAF = requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  function _stopStatic() {
+    if (_staticRAF) { cancelAnimationFrame(_staticRAF); _staticRAF = null; }
+    if (_staticCanvas) { _staticCanvas.remove(); _staticCanvas = null; }
+  }
+
+  /* ── Shatter effect ─────────────────────────────────────────────── */
+  function _triggerShatter(cb) {
+    const cols = 6, rows = 4;
+    const grid = document.createElement('div');
+    grid.id = 'se-shatter-grid';
+    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    grid.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
+    _videoWrap.appendChild(grid);
+
+    const tiles = [];
+    for (let i = 0; i < cols * rows; i++) {
+      const tile = document.createElement('div');
+      tile.className = 'se-shatter-tile';
+      tile.style.setProperty('--se-tile-rot', `${(Math.random() * 60 - 30).toFixed(1)}deg`);
+      grid.appendChild(tile);
+      tiles.push(tile);
+    }
+
+    // Stagger break
+    tiles.forEach((t, i) => {
+      setTimeout(() => t.classList.add('breaking'), i * 28 + Math.random() * 40);
+    });
+
+    setTimeout(() => {
+      grid.remove();
+      if (typeof cb === 'function') cb();
+    }, 800);
+  }
+
+  /* ── Close ──────────────────────────────────────────────────────── */
+  function _close(effect) {
+    if (!_overlay || !_active) return;
+    _active = false;
 
     if (_endHandler) {
       _video.removeEventListener('ended', _endHandler);
@@ -435,66 +522,264 @@ const SuperEvent = (() => {
     _video.pause();
     _video.currentTime = 0;
 
-    _overlay.classList.add('fading');
-
-    setTimeout(() => {
-      _overlay.classList.remove('active', 'fading');
-    }, 600);
-  }
-
-  // ── FIX 2: trigger() signature now includes title, quote, quoteCite
-  function trigger({ videoSrc, title = '', left = '', right = '', quote = '', quoteCite = '', onClose = null } = {}) {
-    _init();
-
-    // ── FIX 3: title element populated before any querySelector calls
-    const titleEl = document.getElementById('super-event-title');
-    titleEl.textContent  = title;
-    titleEl.style.display = title ? '' : 'none';
-
-    // ── FIX 4: left panel set directly, not duplicated
-    _leftPanel.innerHTML  = left;
-    _leftPanel.style.display = left ? '' : 'none';
-
-    // ── FIX 5: right panel targets inner divs, not _rightPanel itself
-    _rightPanel.querySelector('.super-event-right-body').innerHTML = right;
-    _rightPanel.style.display = right ? '' : 'none';
-
-    const quoteEl = _rightPanel.querySelector('.super-event-quote');
-    quoteEl.innerHTML     = quote ? `${quote}<cite>${quoteCite}</cite>` : '';
-    quoteEl.style.display = quote ? '' : 'none';
-
-    // ── FIX 6: skip wired after _init() guarantees the element exists
-    document.getElementById('super-event-skip').onclick = () => skip(onClose);
-
-    _video.querySelector('source').src = videoSrc;
-    _video.load();
-
-    _overlay.classList.remove('fading');
-    _overlay.classList.add('active');
-
-    _video.play().catch(() => {
-      console.warn('SuperEvent: autoplay blocked. Waiting for user gesture.');
-      _overlay.addEventListener('click', () => _video.play(), { once: true });
-    });
-
-    _endHandler = () => {
+    if (effect === 'shatter') {
+      _triggerShatter(() => {
+        _overlay.classList.add('fading');
+        setTimeout(() => {
+          _overlay.classList.remove('active', 'fading');
+          _stopStatic();
+        }, 600);
+      });
+    } else {
+      _overlay.classList.add('fading');
       setTimeout(() => {
-        _close();
-        if (typeof onClose === 'function') onClose();
-      }, 1000);
-    };
-
-    _video.addEventListener('ended', _endHandler, { once: true });
-  }
-
-  function skip(onClose = null) {
-    _close();
-    if (typeof onClose === 'function') {
-      setTimeout(onClose, 600);
+        _overlay.classList.remove('active', 'fading');
+        _stopStatic();
+      }, 600);
     }
   }
 
-  return { trigger, skip };
+  /* ── Trigger ────────────────────────────────────────────────────── */
+  function trigger(opts = {}) {
+    const {
+      // Media
+      videoSrc    = '',
+      imageSrc    = null,
+      imageCaption = null,
+      posterSrc   = null,
+      leftImage   = null,
+      rightImage  = null,
+
+      // Content
+      title       = '',
+      left        = '',
+      right       = '',
+      quote       = '',
+      quoteCite   = '',
+
+      // Layout
+      size        = 'md',       // 'sm' | 'md' | 'lg' | 'full'
+      layout      = 'default',  // 'default' | 'video-only' | 'left-only' | 'right-only' | 'centered'
+      videoRatio  = '16:9',     // '16:9' | '4:3' | '1:1' | '21:9'
+
+      // Effects
+      effect      = 'none',     // 'none' | 'glitch' | 'cinematic' | 'static' | 'shatter'
+      scanlines   = false,
+      vignette    = false,
+      ambientColor = null,
+
+      // Playback
+      muted       = false,
+      loop        = false,
+      autoClose   = true,
+      startAt     = 0,
+
+      // Visibility
+      showSkip    = true,
+      showTitle   = true,
+      showQuote   = true,
+
+      // Hooks
+      onOpen      = null,
+      onClose     = null,
+      onSkip      = null,
+    } = opts;
+
+    return new Promise(resolve => {
+      _init();
+
+      // Guard: remove stale end handler on rapid re-trigger
+      if (_endHandler) {
+        _video.removeEventListener('ended', _endHandler);
+        _endHandler = null;
+      }
+
+      /* ── Reset overlay classes ──────────────────────────────────── */
+      _clearClasses(_overlay, 'size-');
+      _clearClasses(_overlay, 'layout-');
+      _clearClasses(_overlay, 'effect-');
+      _clearClasses(_overlay, 'ratio-');
+      _overlay.classList.remove('scanlines', 'vignette', 'ambient-glow');
+
+      /* ── Apply config classes ───────────────────────────────────── */
+      _overlay.classList.add(`size-${size}`);
+      if (layout !== 'default') _overlay.classList.add(`layout-${layout}`);
+      if (effect !== 'none')    _overlay.classList.add(`effect-${effect}`);
+      if (scanlines)            _overlay.classList.add('scanlines');
+      if (vignette)             _overlay.classList.add('vignette');
+
+      if (ambientColor) {
+        _overlay.classList.add('ambient-glow');
+        _overlay.style.setProperty('--se-ambient-color', ambientColor);
+      }
+
+      /* ── Ratio ──────────────────────────────────────────────────── */
+      _clearClasses(_videoWrap, 'ratio-');
+      const ratioClass = 'ratio-' + videoRatio.replace(':', '-');
+      _videoWrap.classList.add(ratioClass);
+
+      /* ── Title ──────────────────────────────────────────────────── */
+      const titleEl = document.getElementById('super-event-title');
+      if (showTitle && title) {
+        titleEl.textContent = title;
+        titleEl.style.display = '';
+      } else {
+        titleEl.style.display = 'none';
+      }
+
+      /* ── Media: image or video ──────────────────────────────────── */
+      // Remove any previous injected image
+      const prevImg = _videoWrap.querySelector('img.se-hero-image');
+      if (prevImg) prevImg.remove();
+      const prevCap = _videoWrap.querySelector('.se-image-caption');
+      if (prevCap) prevCap.remove();
+
+      if (imageSrc) {
+        _video.style.display = 'none';
+        const img = document.createElement('img');
+        img.className = 'se-hero-image';
+        img.src = imageSrc;
+        img.alt = title || '';
+        _videoWrap.insertBefore(img, _videoWrap.firstChild);
+
+        if (imageCaption) {
+          const cap = document.createElement('div');
+          cap.className = 'se-image-caption';
+          cap.textContent = imageCaption;
+          _videoWrap.appendChild(cap);
+        }
+      } else {
+        _video.style.display = '';
+        const src = _video.querySelector('source');
+        src.src = videoSrc;
+        if (posterSrc) _video.poster = posterSrc;
+        _video.muted      = muted;
+        _video.loop       = loop;
+        _video.currentTime = 0;
+        _video.load();
+
+        if (startAt > 0) {
+          _video.addEventListener('loadedmetadata', () => {
+            _video.currentTime = startAt;
+          }, { once: true });
+        }
+      }
+
+      /* ── Left panel ─────────────────────────────────────────────── */
+      let leftContent = left;
+      if (leftImage) leftContent = `<img src="${leftImage}" style="width:100%;display:block;margin-bottom:0.5rem;" alt="">` + left;
+      _setOrHide(_leftPanel, leftContent, true);
+
+      /* ── Right panel ────────────────────────────────────────────── */
+      let rightContent = right;
+      if (rightImage) rightContent = `<img src="${rightImage}" style="width:100%;display:block;margin-bottom:0.5rem;" alt="">` + right;
+      _rightPanel.querySelector('.super-event-right-body').innerHTML = rightContent || '';
+      _rightPanel.style.display = (right || rightImage || (showQuote && quote)) ? '' : 'none';
+
+      const quoteEl = _rightPanel.querySelector('.super-event-quote');
+      if (showQuote && quote) {
+        quoteEl.innerHTML = `${quote}<cite>${quoteCite}</cite>`;
+        quoteEl.style.display = '';
+      } else {
+        quoteEl.style.display = 'none';
+      }
+
+      /* ── Skip button ────────────────────────────────────────────── */
+      const skipBtn = document.getElementById('super-event-skip');
+      skipBtn.style.display = showSkip ? '' : 'none';
+      skipBtn.onclick = () => {
+        _close(effect);
+        if (typeof onSkip === 'function') onSkip();
+        setTimeout(() => {
+          if (typeof onClose === 'function') onClose();
+          resolve();
+        }, 600);
+      };
+
+      /* ── Static effect ──────────────────────────────────────────── */
+      _stopStatic();
+      if (effect === 'static') _startStatic();
+
+      /* ── Show overlay ───────────────────────────────────────────── */
+      _overlay.classList.remove('fading');
+      _overlay.classList.add('active');
+      _active = true;
+
+      if (typeof onOpen === 'function') onOpen();
+
+      /* ── Autoplay ───────────────────────────────────────────────── */
+      if (!imageSrc) {
+        _video.play().catch(() => {
+          console.warn('SuperEvent: autoplay blocked — waiting for gesture.');
+          _overlay.addEventListener('click', () => _video.play(), { once: true });
+        });
+      }
+
+      /* ── End handler ────────────────────────────────────────────── */
+      if (!imageSrc && !loop) {
+        _endHandler = () => {
+          if (!autoClose) return;
+          setTimeout(() => {
+            _close(effect);
+            setTimeout(() => {
+              if (typeof onClose === 'function') onClose();
+              resolve();
+            }, 600);
+          }, 1000);
+        };
+        _video.addEventListener('ended', _endHandler, { once: true });
+      }
+
+      // Images resolve after a brief display (no video end event)
+      if (imageSrc) {
+        // Stays open until skip or manual close
+        // resolve() will be called by skip or public close()
+      }
+    });
+  }
+
+  /* ── Queue ──────────────────────────────────────────────────────── */
+  function queue(events = []) {
+    _queue = [...events];
+    if (!_queueRunning) _runQueue();
+  }
+
+  function _runQueue() {
+    if (_queue.length === 0) { _queueRunning = false; return; }
+    _queueRunning = true;
+    const next = _queue.shift();
+    const original = next.onClose;
+    trigger({
+      ...next,
+      onClose: () => {
+        if (typeof original === 'function') original();
+        _runQueue();
+      }
+    });
+  }
+
+  /* ── Skip (public) ──────────────────────────────────────────────── */
+  function skip(onCloseCb = null) {
+    const effect = _overlay
+      ? [..._overlay.classList].find(c => c.startsWith('effect-'))?.replace('effect-', '') || 'none'
+      : 'none';
+    _close(effect);
+    if (typeof onCloseCb === 'function') {
+      setTimeout(onCloseCb, 600);
+    }
+  }
+
+  /* ── Close (public) ─────────────────────────────────────────────── */
+  function close(onCloseCb = null) {
+    skip(onCloseCb);
+  }
+
+  /* ── isActive ───────────────────────────────────────────────────── */
+  function isActive() {
+    return _active;
+  }
+
+  return { trigger, skip, close, queue, isActive };
 
 })();
 
