@@ -82,10 +82,13 @@ Q.total_moderates = Q.final_mod + Q.final_agr + Q.final_soc;
 Q.top_moderate_score = Math.max(Q.final_mod, Q.final_agr, Q.final_soc);
 
 if (Q.final_hug >= Q.total_moderates * 0.9) {
+    Q.dnvp_line = 3;
     Q.congress_path = "purge";
 } else if (Q.final_agr > Q.final_mod && Q.final_agr > Q.final_soc) {
+    Q.dnvp_line = 2;
     Q.congress_path = "compromise";
 } else {
+    Q.dnvp_line = 1;
     Q.congress_path = "rejection";
 }
 
