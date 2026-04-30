@@ -1077,24 +1077,26 @@ Q.possible_coalitions = [];
 // EVALUATE ALL COALITION SIZES (2 to max_size)
 // ============================================
 
-var max_size = 8; // change this to allow larger coalitions
-var max_other = Math.min(other_parties.length, 10); // performance cap
-var trimmed_others = other_parties.slice(0, max_other);
+Q.possible_coalitions = [];
 
-// Generic combination generator
+// ============================================
+// EVALUATE ALL COALITION SIZES (2 to max_size)
+// ============================================
+
+var max_size = 8;
+var max_other = Math.min(other_parties.length, 10);
+var trimmed_others = other_parties.slice(0, max_other);
+var goto_skip = false; // FIX: explicit declaration
+
 function evaluate_coalitions_of_size(size) {
-    // Generate all combinations of (size-1) partners from trimmed_others
-    // (formateur is always included, so we pick size-1 others)
     var n = trimmed_others.length;
     var r = size - 1;
-    if (r > n) return; // not enough parties
+    if (r > n) return;
 
-    // Iterative combination using index array
     var indices = [];
     for (var i = 0; i < r; i++) indices[i] = i;
 
     while (true) {
-        // Build this combination
         var partners = [];
         var partner_votes = 0;
         for (var i = 0; i < r; i++) {
@@ -1105,16 +1107,15 @@ function evaluate_coalitions_of_size(size) {
         var total = formateur_votes + partner_votes;
 
         if (total >= threshold) {
-            // Check all pairs can work together
             var all_parties = [formateur].concat(partners);
             var viable = true;
+            var done = false;
 
-            outer:
-            for (var a = 0; a < all_parties.length; a++) {
-                for (var b = a + 1; b < all_parties.length; b++) {
+            for (var a = 0; a < all_parties.length && !done; a++) {
+                for (var b = a + 1; b < all_parties.length && !done; b++) {
                     if (!can_partner(all_parties[a], all_parties[b])) {
                         viable = false;
-                        break outer;
+                        done = true;
                     }
                 }
             }
@@ -1133,16 +1134,15 @@ function evaluate_coalitions_of_size(size) {
             }
         }
 
-        // Advance to next combination (standard algorithm)
         var pos = r - 1;
         while (pos >= 0 && indices[pos] === n - r + pos) pos--;
-        if (pos < 0) break; // all combinations exhausted
+        if (pos < 0) break;
         indices[pos]++;
         for (var i = pos + 1; i < r; i++) indices[i] = indices[i-1] + 1;
     }
 }
 
-// Sole majority check first
+// Sole majority check
 if (formateur_votes >= threshold) {
     Q.sole_majority_possible = 1;
     Q.sole_majority_party = formateur;
@@ -1165,7 +1165,6 @@ if (formateur_votes >= threshold) {
             type: 'sole_majority'
         };
         Q.spd_in_chosen_coalition = 0;
-        // skip rest
         goto_skip = true;
     }
 } else {
@@ -1174,21 +1173,17 @@ if (formateur_votes >= threshold) {
 }
 
 if (!goto_skip) {
-    // Evaluate coalitions from size 2 up to max_size
     for (var size = 2; size <= max_size; size++) {
-        // Only evaluate larger coalitions if:
-        // - no majority found yet, OR
-        // - unity government is possible/needed
-        var should_evaluate = Q.possible_coalitions.filter(function(c) {
-            return !c.toleration;
-        }).length === 0 || size <= 4 || Q.unity_government_possible;
-
-        if (should_evaluate) {
-            evaluate_coalitions_of_size(size);
+        var non_toleration_count = 0;
+        for (var ci = 0; ci < Q.possible_coalitions.length; ci++) {
+            if (!Q.possible_coalitions[ci].toleration) non_toleration_count++;
         }
+        // FIX: removed the should_evaluate gate — always evaluate all sizes
+        // The old gate was preventing larger coalitions from being found
+        // when smaller ones already existed, but we want all options available
+        evaluate_coalitions_of_size(size);
     }
 }
-
 // ============================================
 // GENERALIZED TOLERATION / EXTERNAL SUPPORT
 // ============================================
