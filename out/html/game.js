@@ -382,7 +382,7 @@
 
 
 /* =====================================================================
-   SUPER EVENT — JS  v2.0
+   SUPER EVENT — JS  v2.1
    ===================================================================== */
 
 const SuperEvent = (() => {
@@ -397,6 +397,8 @@ const SuperEvent = (() => {
   let _staticCanvas = null;
   let _staticRAF    = null;
   let _active       = false;
+  let _audio        = null;
+  let _imageDurTimer = null;
 
   /* ── Queue state ────────────────────────────────────────────────── */
   let _queue        = [];
@@ -480,6 +482,27 @@ const SuperEvent = (() => {
     if (_staticCanvas) { _staticCanvas.remove(); _staticCanvas = null; }
   }
 
+  /* ── Audio helpers ──────────────────────────────────────────────── */
+  function _startAudio({ audioSrc, audioVolume = 1, audioLoop = false }) {
+    _stopAudio();
+    if (!audioSrc) return;
+    _audio = new Audio(audioSrc);
+    _audio.volume = Math.min(1, Math.max(0, audioVolume));
+    _audio.loop   = audioLoop;
+    _audio.play().catch(() => {
+      console.warn('SuperEvent: audio autoplay blocked — waiting for gesture.');
+      _overlay.addEventListener('click', () => _audio?.play(), { once: true });
+    });
+  }
+
+  function _stopAudio() {
+    if (_audio) {
+      _audio.pause();
+      _audio.currentTime = 0;
+      _audio = null;
+    }
+  }
+
   /* ── Shatter effect ─────────────────────────────────────────────── */
   function _triggerShatter(cb) {
     const cols = 6, rows = 4;
@@ -519,6 +542,12 @@ const SuperEvent = (() => {
       _endHandler = null;
     }
 
+    if (_imageDurTimer) {
+      clearTimeout(_imageDurTimer);
+      _imageDurTimer = null;
+    }
+
+    _stopAudio();
     _video.pause();
     _video.currentTime = 0;
 
@@ -573,6 +602,14 @@ const SuperEvent = (() => {
       loop        = false,
       autoClose   = true,
       startAt     = 0,
+
+      // Audio
+      audioSrc    = null,
+      audioVolume = 1,
+      audioLoop   = false,
+
+      // Image duration
+      duration    = null,   // ms — auto-close delay for imageSrc (null = stay open)
 
       // Visibility
       showSkip    = true,
@@ -707,6 +744,9 @@ const SuperEvent = (() => {
 
       if (typeof onOpen === 'function') onOpen();
 
+      /* ── Audio ──────────────────────────────────────────────────── */
+      _startAudio({ audioSrc, audioVolume, audioLoop });
+
       /* ── Autoplay ───────────────────────────────────────────────── */
       if (!imageSrc) {
         _video.play().catch(() => {
@@ -730,10 +770,15 @@ const SuperEvent = (() => {
         _video.addEventListener('ended', _endHandler, { once: true });
       }
 
-      // Images resolve after a brief display (no video end event)
-      if (imageSrc) {
-        // Stays open until skip or manual close
-        // resolve() will be called by skip or public close()
+      // Image: auto-close after duration if set
+      if (imageSrc && autoClose && duration != null) {
+        _imageDurTimer = setTimeout(() => {
+          _close(effect);
+          setTimeout(() => {
+            if (typeof onClose === 'function') onClose();
+            resolve();
+          }, 600);
+        }, duration);
       }
     });
   }
@@ -785,6 +830,27 @@ const SuperEvent = (() => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var _BGKEY = 'Social Fascism: An Alternate Horizon_Gaufenspelt_custom_bg';
 
 window.importCustomBg = function(input) {
@@ -811,6 +877,8 @@ window.clearCustomBg = function() {
   }
   window.dendryUI.saveSettings();
 };
+
+
 
 
 
