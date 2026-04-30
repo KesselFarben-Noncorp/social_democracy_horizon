@@ -3026,6 +3026,7 @@ for (var i = Q.formation_round - 1; i < Q.party_votes.length; i++) {
     var candidate = Q.party_votes[i].party;
     
     // Skip impossible formateurs
+    if (Q.party_votes[i].votes < 1) continue; // Skip parties with less than 1% seats
     if (candidate === 'NSDAP' && Q.nsdap_r < 40) continue;
     if (candidate === 'KPD' && Q.communist_coalition < 3) continue;
     if (Q.formation_attempts.indexOf(candidate) >= 0) continue; // Already tried
