@@ -31,10 +31,10 @@ Q.leader_soc_title = "Young Conservatives / Christian Socials";
 // === DELEGATE CALCULATIONS ===
 
 // 1. Base scores
-Q.delegate_mod = 25; // Westarp's traditional conservatives
-Q.delegate_agr = 20; // Schiele's farmers
-Q.delegate_soc = 15; // Treviranus/Lambach labor and youth wing
-Q.delegate_hug = 30; // Hugenberg's radical base
+Q.delegate_mod = 25;
+Q.delegate_agr = 20;
+Q.delegate_soc = 15;
+Q.delegate_hug = 30;
 
 // 2. Previous Leadership Momentum
 if (Q.dnvp_leader == "Hugenberg" || Q.dnvp_congress_1928 == "capitulation") {
@@ -50,7 +50,7 @@ if (Q.dnvp_leader == "Hugenberg" || Q.dnvp_congress_1928 == "capitulation") {
 if (Q.dnvp_in_government) {
     Q.delegate_mod += 25;
     Q.delegate_agr += 15;
-    Q.delegate_hug -= 20; // Hard to preach total opposition while in cabinet
+    Q.delegate_hug -= 20;
 }
 
 // 4. Class Influence
@@ -61,13 +61,11 @@ Q.delegate_soc += (Q.workers_dnvp * 2.0) + (Q.pro_republic * 0.3);
 
 // 5. Young Plan specific fallout
 if (Q.young_plan_collapse == 1) {
-    // If the plan already collapsed, Hugenberg looks vindicated
     Q.delegate_hug += 20;
 }
 
 // 6. Media Dominance
 if (Q.commercialized_media >= 1 || Q.radio >= 1) {
-    // Hugenberg's press empire is less omnipotent if state radio is strong
     Q.delegate_hug -= 15;
     Q.delegate_mod += 5;
 }
@@ -84,13 +82,10 @@ Q.total_moderates = Q.final_mod + Q.final_agr + Q.final_soc;
 Q.top_moderate_score = Math.max(Q.final_mod, Q.final_agr, Q.final_soc);
 
 if (Q.final_hug >= Q.total_moderates * 0.9) {
-    // Hugenberg dominates the combined opposition
     Q.congress_path = "purge";
 } else if (Q.final_agr > Q.final_mod && Q.final_agr > Q.final_soc) {
-    // Agrarians hold the swing vote and force a compromise
     Q.congress_path = "compromise";
 } else {
-    // Moderates and Socials unite to reject the clause
     Q.congress_path = "rejection";
 }
 
@@ -118,13 +113,13 @@ var factionData = [
 var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
 var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
 
-if (window && d3 && document.getElementById("dnvp-congress")) {
+if (window && d3 && document.getElementById("dnvp-congress-purge")) {
     var width = 600, height = 300;
     var contentEl = document.getElementById('content');
     var screenWidth = contentEl ? contentEl.offsetWidth : 600;
     if (screenWidth < width - 50) { width = screenWidth - 50; height = Math.round(width / 2); }
-    
-    var svg = document.getElementById("dnvp-congress");
+
+    var svg = document.getElementById("dnvp-congress-purge");
     svg.style.width = width + "px"; svg.style.height = height + "px";
 
     var data = visibleFactions.map(function(f) {
@@ -134,16 +129,16 @@ if (window && d3 && document.getElementById("dnvp-congress")) {
     var parliament = d3.parliament().width(width).height(height).innerRadiusCoef(0.4);
     parliament.enter.fromCenter(true).smallToBig(true);
     parliament.exit.toCenter(false).bigToSmall(true);
-    d3.select("#dnvp-congress").datum(data).call(parliament);
+    d3.select("#dnvp-congress-purge").datum(data).call(parliament);
 
     visibleFactions.forEach(function(f) {
-        d3.selectAll("#dnvp-congress circle")
+        d3.selectAll("#dnvp-congress-purge circle")
             .filter(function(d) { return d && d.data && d.data.id === f.id; })
             .style("stroke", f.outline).style("stroke-width", "2px").style("fill", f.color);
     });
 }
 
-var verdict = document.getElementById("dnvp-verdict");
+var verdict = document.getElementById("dnvp-verdict-purge");
 if (verdict) {
     var hugPct = totalVotes > 0 ? (Q.final_hug / totalVotes * 100) : 0;
     verdict.style.marginTop = "14px"; verdict.style.padding = "10px 14px"; verdict.style.borderRadius = "4px";
@@ -154,8 +149,8 @@ if (verdict) {
 !}
 on-arrival: dnvp_split = 1; dnvp_radicalism += 25; nazi_alignment += 20; dnvp_votes *= 0.8; kvp_votes += 5; csvd_votes += 3; nazi_popularity += 5
 
-{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
-{!<div id="dnvp-verdict"></div>!}
+{!<svg id="dnvp-congress-purge" style="width:600px; height:300px;"></svg>!}
+{!<div id="dnvp-verdict-purge"></div>!}
 
 *The final tally of delegate votes:*
 *Hugenberg (Radical Bloc): [+ final_hug +]*
@@ -167,11 +162,10 @@ on-arrival: dnvp_split = 1; dnvp_radicalism += 25; nazi_alignment += 20; dnvp_vo
 
 **The Split:** It is too much for the moderates. Led by Treviranus, Westarp, and the Social Christians, a massive bloc of delegates stands and walks out of the hall in stony silence. They will soon form the Conservative People's Party (KVP) and the CSVD. 
 
-The DNVP is "cleansed." What remains is Hugenberg's rigid "Block of Stone"—smaller, vastly more radicalized, and effectively marching in lockstep with Adolf Hitler’s momentum.
+The DNVP is "cleansed." What remains is Hugenberg's rigid "Block of Stone"—smaller, vastly more radicalized, and effectively marching in lockstep with Adolf Hitler's momentum.
 
 @agrarian_compromise
 on-display: {!
-// [D3 Render Logic - Identical to above block, omitted for brevity but assumed present]
 var factionData = [
     { id: "faction_soc", name: Q.leader_soc, subtitle: Q.leader_soc_title, votes: Q.final_soc, color: "#1a3a5c", outline: "#00cc44", label: "Socials", side: "moderate" },
     { id: "faction_mod", name: Q.leader_mod, subtitle: Q.leader_mod_title, votes: Q.final_mod, color: "#4a7c59", outline: "#00cc44", label: "Constitutionalists", side: "moderate" },
@@ -180,15 +174,15 @@ var factionData = [
 ];
 var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
 var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
-if (window && d3 && document.getElementById("dnvp-congress")) {
+if (window && d3 && document.getElementById("dnvp-congress-compromise")) {
     var width = 600, height = 300; var contentEl = document.getElementById('content');
     var screenWidth = contentEl ? contentEl.offsetWidth : 600; if (screenWidth < width - 50) { width = screenWidth - 50; height = Math.round(width / 2); }
-    var svg = document.getElementById("dnvp-congress"); svg.style.width = width + "px"; svg.style.height = height + "px";
+    var svg = document.getElementById("dnvp-congress-compromise"); svg.style.width = width + "px"; svg.style.height = height + "px";
     var data = visibleFactions.map(function(f) { return { id: f.id, legend: f.label, name: f.label, seats: Math.round(f.votes), color: f.color }; });
-    var parliament = d3.parliament().width(width).height(height).innerRadiusCoef(0.4); parliament.enter.fromCenter(true).smallToBig(true); parliament.exit.toCenter(false).bigToSmall(true); d3.select("#dnvp-congress").datum(data).call(parliament);
-    visibleFactions.forEach(function(f) { d3.selectAll("#dnvp-congress circle").filter(function(d) { return d && d.data && d.data.id === f.id; }).style("stroke", f.outline).style("stroke-width", "2px").style("fill", f.color); });
+    var parliament = d3.parliament().width(width).height(height).innerRadiusCoef(0.4); parliament.enter.fromCenter(true).smallToBig(true); parliament.exit.toCenter(false).bigToSmall(true); d3.select("#dnvp-congress-compromise").datum(data).call(parliament);
+    visibleFactions.forEach(function(f) { d3.selectAll("#dnvp-congress-compromise circle").filter(function(d) { return d && d.data && d.data.id === f.id; }).style("stroke", f.outline).style("stroke-width", "2px").style("fill", f.color); });
 }
-var verdict = document.getElementById("dnvp-verdict");
+var verdict = document.getElementById("dnvp-verdict-compromise");
 if (verdict) {
     var agrPct = totalVotes > 0 ? (Q.final_agr / totalVotes * 100) : 0;
     verdict.style.marginTop = "14px"; verdict.style.padding = "10px 14px"; verdict.style.borderRadius = "4px"; verdict.style.fontSize = "0.88em"; verdict.style.fontStyle = "italic"; verdict.style.fontFamily = "Georgia, serif";
@@ -198,8 +192,8 @@ if (verdict) {
 !}
 on-arrival: dnvp_radicalism += 5; internal_friction += 10; rural_dnvp += 10; young_delayed = 1
 
-{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
-{!<div id="dnvp-verdict"></div>!}
+{!<svg id="dnvp-congress-compromise" style="width:600px; height:300px;"></svg>!}
+{!<div id="dnvp-verdict-compromise"></div>!}
 
 *The final tally of delegate votes:*
 *Hugenberg (Radical Bloc): [+ final_hug +]*
@@ -213,7 +207,6 @@ With the Agrarian wing holding the swing votes, Schiele proposes a masterstroke 
 
 @moderate_rejection
 on-display: {!
-// [D3 Render Logic]
 var factionData = [
     { id: "faction_soc", name: Q.leader_soc, subtitle: Q.leader_soc_title, votes: Q.final_soc, color: "#1a3a5c", outline: "#00cc44", label: "Socials", side: "moderate" },
     { id: "faction_mod", name: Q.leader_mod, subtitle: Q.leader_mod_title, votes: Q.final_mod, color: "#4a7c59", outline: "#00cc44", label: "Constitutionalists", side: "moderate" },
@@ -222,15 +215,15 @@ var factionData = [
 ];
 var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
 var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
-if (window && d3 && document.getElementById("dnvp-congress")) {
+if (window && d3 && document.getElementById("dnvp-congress-rejection")) {
     var width = 600, height = 300; var contentEl = document.getElementById('content');
     var screenWidth = contentEl ? contentEl.offsetWidth : 600; if (screenWidth < width - 50) { width = screenWidth - 50; height = Math.round(width / 2); }
-    var svg = document.getElementById("dnvp-congress"); svg.style.width = width + "px"; svg.style.height = height + "px";
+    var svg = document.getElementById("dnvp-congress-rejection"); svg.style.width = width + "px"; svg.style.height = height + "px";
     var data = visibleFactions.map(function(f) { return { id: f.id, legend: f.label, name: f.label, seats: Math.round(f.votes), color: f.color }; });
-    var parliament = d3.parliament().width(width).height(height).innerRadiusCoef(0.4); parliament.enter.fromCenter(true).smallToBig(true); parliament.exit.toCenter(false).bigToSmall(true); d3.select("#dnvp-congress").datum(data).call(parliament);
-    visibleFactions.forEach(function(f) { d3.selectAll("#dnvp-congress circle").filter(function(d) { return d && d.data && d.data.id === f.id; }).style("stroke", f.outline).style("stroke-width", "2px").style("fill", f.color); });
+    var parliament = d3.parliament().width(width).height(height).innerRadiusCoef(0.4); parliament.enter.fromCenter(true).smallToBig(true); parliament.exit.toCenter(false).bigToSmall(true); d3.select("#dnvp-congress-rejection").datum(data).call(parliament);
+    visibleFactions.forEach(function(f) { d3.selectAll("#dnvp-congress-rejection circle").filter(function(d) { return d && d.data && d.data.id === f.id; }).style("stroke", f.outline).style("stroke-width", "2px").style("fill", f.color); });
 }
-var verdict = document.getElementById("dnvp-verdict");
+var verdict = document.getElementById("dnvp-verdict-rejection");
 if (verdict) {
     var modPct = totalVotes > 0 ? ((Q.final_mod + Q.final_soc) / totalVotes * 100) : 0;
     verdict.style.marginTop = "14px"; verdict.style.padding = "10px 14px"; verdict.style.borderRadius = "4px"; verdict.style.fontSize = "0.88em"; verdict.style.fontStyle = "italic"; verdict.style.fontFamily = "Georgia, serif";
@@ -240,8 +233,8 @@ if (verdict) {
 !}
 on-arrival: dnvp_radicalism -= 15; dnvp_moderation += 20; nazi_alignment -= 20; dnvp_stabilized = 1; industrial_funding -= 20
 
-{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
-{!<div id="dnvp-verdict"></div>!}
+{!<svg id="dnvp-congress-rejection" style="width:600px; height:300px;"></svg>!}
+{!<div id="dnvp-verdict-rejection"></div>!}
 
 *The final tally of delegate votes:*
 *Hugenberg (Radical Bloc): [+ final_hug +]*
