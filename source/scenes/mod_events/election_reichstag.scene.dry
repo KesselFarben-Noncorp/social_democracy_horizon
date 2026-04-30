@@ -934,6 +934,9 @@ on-arrival: {!
 // FORMATEUR EVALUATES POSSIBLE COALITIONS
 // ============================================
 
+Q.rejected_coalitions = [];
+Q.spd_rejection_count = 0;
+
 var formateur = Q.formateur;
 var seat_total = 0;
 for (var i = 0; i < Q.parties.length; i++) {
@@ -1071,151 +1074,117 @@ var other_parties = Q.party_votes.filter(function(p) {
 Q.possible_coalitions = [];
 
 // ============================================
-// ADD SOLE MAJORITY AS OPTION (if possible)
-// ============================================
-if (Q.sole_majority_possible && formateur === 'SPD') {
-    Q.possible_coalitions.push({
-        parties: [formateur],
-        votes: formateur_votes,
-        compatibility: 100,
-        size: 1,
-        type: 'sole_majority'
-    });
-}
-
-// ============================================
-// EVALUATE 2-PARTY COALITIONS
+// EVALUATE ALL COALITION SIZES (2 to max_size)
 // ============================================
 
-for (var i = 0; i < other_parties.length; i++) {
-    var partner = other_parties[i].party;
-    var partner_votes = other_parties[i].votes;
-    var total = formateur_votes + partner_votes;
-    
-    if (total >= threshold && can_partner(formateur, partner)) {
-        var parties_array = [formateur, partner];
-        var compat = coalition_compatibility(parties_array);
-        
-        if (compat >= 0) {
-            Q.possible_coalitions.push({
-                parties: parties_array,
-                votes: total,
-                compatibility: compat,
-                size: 2,
-                type: classify_coalition(parties_array)
-            });
+var max_size = 8; // change this to allow larger coalitions
+var max_other = Math.min(other_parties.length, 10); // performance cap
+var trimmed_others = other_parties.slice(0, max_other);
+
+// Generic combination generator
+function evaluate_coalitions_of_size(size) {
+    // Generate all combinations of (size-1) partners from trimmed_others
+    // (formateur is always included, so we pick size-1 others)
+    var n = trimmed_others.length;
+    var r = size - 1;
+    if (r > n) return; // not enough parties
+
+    // Iterative combination using index array
+    var indices = [];
+    for (var i = 0; i < r; i++) indices[i] = i;
+
+    while (true) {
+        // Build this combination
+        var partners = [];
+        var partner_votes = 0;
+        for (var i = 0; i < r; i++) {
+            partners.push(trimmed_others[indices[i]].party);
+            partner_votes += trimmed_others[indices[i]].votes;
         }
-    }
-}
 
-// ============================================
-// EVALUATE 3-PARTY COALITIONS
-// ============================================
+        var total = formateur_votes + partner_votes;
 
-for (var i = 0; i < other_parties.length; i++) {
-    for (var j = i + 1; j < other_parties.length; j++) {
-        var p1 = other_parties[i].party;
-        var p2 = other_parties[j].party;
-        var v1 = other_parties[i].votes;
-        var v2 = other_parties[j].votes;
-        var total = formateur_votes + v1 + v2;
-        
-        if (total >= threshold && 
-            can_partner(formateur, p1) && 
-            can_partner(formateur, p2) && 
-            can_partner(p1, p2)) {
-            
-            var parties_array = [formateur, p1, p2];
-            var compat = coalition_compatibility(parties_array);
-            
-            if (compat >= 0) {
-                Q.possible_coalitions.push({
-                    parties: parties_array,
-                    votes: total,
-                    compatibility: compat,
-                    size: 3,
-                    type: classify_coalition(parties_array)
-                });
+        if (total >= threshold) {
+            // Check all pairs can work together
+            var all_parties = [formateur].concat(partners);
+            var viable = true;
+
+            outer:
+            for (var a = 0; a < all_parties.length; a++) {
+                for (var b = a + 1; b < all_parties.length; b++) {
+                    if (!can_partner(all_parties[a], all_parties[b])) {
+                        viable = false;
+                        break outer;
+                    }
+                }
             }
-        }
-    }
-}
 
-// ============================================
-// EVALUATE 4-PARTY COALITIONS
-// ============================================
-
-for (var i = 0; i < other_parties.length; i++) {
-    for (var j = i + 1; j < other_parties.length; j++) {
-        for (var k = j + 1; k < other_parties.length; k++) {
-            var p1 = other_parties[i].party;
-            var p2 = other_parties[j].party;
-            var p3 = other_parties[k].party;
-            var v1 = other_parties[i].votes;
-            var v2 = other_parties[j].votes;
-            var v3 = other_parties[k].votes;
-            var total = formateur_votes + v1 + v2 + v3;
-            
-            if (total >= threshold &&
-                can_partner(formateur, p1) && 
-                can_partner(formateur, p2) && 
-                can_partner(formateur, p3) &&
-                can_partner(p1, p2) &&
-                can_partner(p1, p3) &&
-                can_partner(p2, p3)) {
-                
-                var parties_array = [formateur, p1, p2, p3];
-                var compat = coalition_compatibility(parties_array);
-                
+            if (viable) {
+                var compat = coalition_compatibility(all_parties);
                 if (compat >= 0) {
                     Q.possible_coalitions.push({
-                        parties: parties_array,
+                        parties: all_parties,
                         votes: total,
                         compatibility: compat,
-                        size: 4,
-                        type: classify_coalition(parties_array)
+                        size: size,
+                        type: classify_coalition(all_parties)
                     });
                 }
             }
         }
+
+        // Advance to next combination (standard algorithm)
+        var pos = r - 1;
+        while (pos >= 0 && indices[pos] === n - r + pos) pos--;
+        if (pos < 0) break; // all combinations exhausted
+        indices[pos]++;
+        for (var i = pos + 1; i < r; i++) indices[i] = indices[i-1] + 1;
     }
 }
 
-// ============================================
-// EVALUATE 5-PARTY COALITIONS (UNITY GOVERNMENT)
-// ============================================
+// Sole majority check first
+if (formateur_votes >= threshold) {
+    Q.sole_majority_possible = 1;
+    Q.sole_majority_party = formateur;
+    if (formateur === 'SPD') {
+        Q.spd_can_govern_alone = 1;
+        Q.possible_coalitions.push({
+            parties: [formateur],
+            votes: formateur_votes,
+            compatibility: 100,
+            size: 1,
+            type: 'sole_majority'
+        });
+    } else {
+        Q.coalition_formed = 1;
+        Q.chosen_coalition = {
+            parties: [formateur],
+            votes: formateur_votes,
+            compatibility: 100,
+            size: 1,
+            type: 'sole_majority'
+        };
+        Q.spd_in_chosen_coalition = 0;
+        // skip rest
+        goto_skip = true;
+    }
+} else {
+    Q.sole_majority_possible = 0;
+    Q.spd_can_govern_alone = 0;
+}
 
-if (Q.unity_government_possible && Q.possible_coalitions.length === 0) {
-    for (var i = 0; i < other_parties.length; i++) {
-        for (var j = i + 1; j < other_parties.length; j++) {
-            for (var k = j + 1; k < other_parties.length; k++) {
-                for (var m = k + 1; m < other_parties.length; m++) {
-                    var p1 = other_parties[i].party;
-                    var p2 = other_parties[j].party;
-                    var p3 = other_parties[k].party;
-                    var p4 = other_parties[m].party;
-                    var v1 = other_parties[i].votes;
-                    var v2 = other_parties[j].votes;
-                    var v3 = other_parties[k].votes;
-                    var v4 = other_parties[m].votes;
-                    var total = formateur_votes + v1 + v2 + v3 + v4;
+if (!goto_skip) {
+    // Evaluate coalitions from size 2 up to max_size
+    for (var size = 2; size <= max_size; size++) {
+        // Only evaluate larger coalitions if:
+        // - no majority found yet, OR
+        // - unity government is possible/needed
+        var should_evaluate = Q.possible_coalitions.filter(function(c) {
+            return !c.toleration;
+        }).length === 0 || size <= 4 || Q.unity_government_possible;
 
-                    if (total >= threshold) {
-                        var parties_array = [formateur, p1, p2, p3, p4];
-                        var compat = coalition_compatibility(parties_array);
-
-                        if (compat >= 0) {
-                            Q.possible_coalitions.push({
-                                parties: parties_array,
-                                votes: total,
-                                compatibility: compat,
-                                size: 5,
-                                type: 'unity'
-                            });
-                        }
-                    }
-                }
-            }
+        if (should_evaluate) {
+            evaluate_coalitions_of_size(size);
         }
     }
 }
@@ -1800,55 +1769,44 @@ We accept the invitation to join this coalition government.
 
 @confirm_reject_coalition
 on-arrival: {!
-// Worsen relations with formateur
 var formateur_lower = Q.formateur.toLowerCase();
 var relation_var = formateur_lower + '_relation';
 if (Q[relation_var] !== undefined) {
     Q[relation_var] -= 5;
 }
 
-// Remove SPD from coalition
-Q.chosen_coalition.parties = Q.chosen_coalition.parties.filter(function(p) {
-    return p !== 'SPD';
-});
+// Track rejections
+Q.spd_rejection_count = (Q.spd_rejection_count || 0) + 1;
 
-// Recalculate coalition votes
-var seat_total = 0;
-for (var i = 0; i < Q.parties.length; i++) {
-    seat_total += Q[Q.parties[i] + '_seats'] || 0;
+// Mark this coalition as rejected so we skip it
+if (!Q.rejected_coalitions) Q.rejected_coalitions = [];
+Q.rejected_coalitions.push(JSON.stringify(Q.chosen_coalition.parties.slice().sort()));
+
+// Find next viable coalition that hasn't been rejected
+Q.next_coalition_found = 0;
+for (var i = 0; i < Q.possible_coalitions.length; i++) {
+    var coal = Q.possible_coalitions[i];
+    var key = JSON.stringify(coal.parties.slice().sort());
+    var already_rejected = false;
+    for (var j = 0; j < Q.rejected_coalitions.length; j++) {
+        if (Q.rejected_coalitions[j] === key) { already_rejected = true; break; }
+    }
+    if (!already_rejected && coal.parties.indexOf('SPD') >= 0) {
+        Q.chosen_coalition = coal;
+        Q.next_coalition_found = 1;
+        break;
+    }
 }
-if (seat_total === 0) seat_total = 1;
 
-var new_votes = 0;
-for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
-    var party = Q.chosen_coalition.parties[i];
-    new_votes += ((Q[party.toLowerCase() + '_seats'] || 0) / seat_total) * 100;
-}
-Q.chosen_coalition.votes = new_votes;
-
-Q.coalition_formed = new_votes >= 50;
-Q.spd_in_chosen_coalition = 0;
 Q.spd_accepted_coalition = 0;
+Q.spd_in_chosen_coalition = Q.next_coalition_found;
 
 // Political consequences
 Q.left_dissent += 10;
 Q.labor_dissent += 5;
 Q.reformist_dissent -= 3;
-
-// Update coalition info for display
-if (Q.coalition_formed) {
-    Q.coalition_total_votes = new_votes;
-    
-    // Rebuild display list
-    Q.coalition_partners_list = "";
-for (var i = 0; i < Q.chosen_coalition.parties.length; i++) {
-    var party = Q.chosen_coalition.parties[i];
-    var seat_pct = ((Q[party.toLowerCase() + '_seats'] || 0) / seat_total) * 100;
-    Q.coalition_partners_list += "- " + party + " (" + Math.round(seat_pct * 10) / 10 + "%)\n";
-}
-}
 !}
-go-to: coalition_formed_without_spd if coalition_formed; coalition_failure if not coalition_formed
+go-to: player_coalition_review if next_coalition_found and spd_rejection_count < 3; coalition_failure if not next_coalition_found or spd_rejection_count >= 3
 
 @coalition_formed_without_spd
 
