@@ -3,7 +3,11 @@ new-page: true
 is-card: true
 card-image: img/flags.jpg
 frequency: 100
+on-arrival: campaigning_turn = 0
 tags: party_affairs
+go-to: campaigning_scene
+
+@campaigning_scene
 
 = Campaigning
 
@@ -52,6 +56,7 @@ on-arrival: {!
     if (Q.nazi_urgency > 2) ci += 0.05;
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 [? if year < 1940: Our campaign is aimed towards the urban working class, our usual base from whom we gather the most of the votes. Campaign mentions the issues of the social welfare, healthcare, education, wages, union activity and financial stability - our foremost issues regarding this class. ?]
 [? if year >= 1940: Our campaign is aimed towards the urban working class, our usual base from whom we gather the most of the votes. Campaign targets the problems of the social - progressive issues, including rights of the sexual minorities and non traditional gender members, on top of already saturated thematics of the social welfare, internationalist cause and economics/finances. ?]
@@ -80,6 +85,7 @@ on-arrival: {!
     if (Q.upper_tax_rates > 0) ci -= Q.upper_tax_rates * 0.10;
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have increased our campaigning among the new middle class, white collars and servants of the state. Campaign touches the issues of the middle class - middle class protection - targetted against higher classes, minimum wages, democratic practices, education and science funding.
 
@@ -105,6 +111,7 @@ on-arrival: {!
     ci -= Q.nationalism / 120;
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have increased our campaigning among the old middle class. While not the most friendly class, we campaigned on the protection of small owners and businessmen from the hands of reactionary past of Kaiserreich.
 
@@ -130,6 +137,7 @@ on-arrival: {!
     ci -= Q.nationalism / 120;
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have campaigned across the two middle classes, prioritizing the issues of the shrinking middle class.
 
@@ -150,6 +158,7 @@ on-arrival: {!
     if (Q.state_buyer === 1) ci += 0.12;
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have increased our campaigning among farmers and rural workers. Our main issue will be guarantee and protection of farmers.
 
@@ -175,6 +184,7 @@ on-arrival: {!
     if (Q.nazi_urgency > 4) ci += 0.08;
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have increased our campaigning among the unemployed.
 
@@ -200,6 +210,7 @@ on-arrival: {!
     // Catholics penalized by abortion rights — handled in tick via identity_modifier
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have campaigned across the women of all kinds of classes, especially focusing on dismantling patriarchic past and equalizing rights between men and women in progressive society.
 
@@ -220,10 +231,16 @@ on-arrival: {!
     if (Q.abortion_rights > 0) ci -= 0.25;  // hard penalty
     Q.campaign_intensity = Math.max(0.1, Math.min(1.5, ci));
 !}
+go-to: transit
 
 We have increased our campaigning among Catholics.
 [? if reichskonkordat = 1: Signing the Concordat between Reich and Pope has gathered us major popularity amongst the catholics. ?]
 [? if prussian_concordat = 1: Signing the Prussian Concordate (and Pope) has gathered us major popularity amongst the catholics of the Prussia. ?]
+
+@transit
+title: [? if campaigning_turn = 0: Secondary campaigning. ?] [? if campaigning_turn = 1: Campaigning is over. ?]
+on-arrival: campaigning_turn += 1
+go-to: campaigning_scene if campaigning_turn = 1; leave if campaigning_turn = 2
 
 
 @finish_game
