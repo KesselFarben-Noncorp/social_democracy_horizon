@@ -2609,134 +2609,40 @@ if (Q.peasant_revolution === 1) {
 }
 
 if (Q.inverted_challenge === 1) {
+
+    var all_parties = Q.parties
+        .filter(p => p !== 'other')
+        .map(p => p.toUpperCase());
+
     // ===== PARTY RELATIONS =====
-    Q.z_relation = Math.random() * 100;
-    Q.kpd_relation = Math.random() * 100;
-    Q.sapd_relation = Math.random() * 100;
-    Q.srpd_relation = Math.random() * 100;
-    Q.ddp_relation = Math.random() * 100;
-    Q.bvp_relation = Math.random() * 100;
-    Q.dvp_relation = Math.random() * 100;
-    Q.wp_relation = Math.random() * 100;
-    Q.dnvp_relation = Math.random() * 100;
-    Q.nsdap_relation = Math.random() * 100;
+    // Derive from all_parties rather than declaring one by one
+    for (var p of all_parties) {
+        Q[p.toLowerCase() + '_relation'] = Math.random() * 100;
+    }
 
     // ===== PARTY RELATIONS MATRIX =====
-    Q.party_relations = {
-        KPD: {},
-        SAPD: {},
-        SPD: {},
-        SRPD: {},
-        DDP: {},
-        Z: {},
-        CSRP: {},
-        VRP: {},
-        CSVD: {},
-        BVP: {},
-        DVP: {},
-        WP: {},
-        DHP: {},
-        BB: {},
-        KVP: {},
-        CNBL: {},
-        DNVP: {},
-        NSDAP: {}
-    };
-
-    var all_parties = ['KPD', 'SAPD', 'SPD', 'SRPD', 'DDP', 'Z', 'BVP', 'CSRP', 'VRP', 'CSVD', 'DVP', 'WP', 'CNBL', 'KVP', 'BB', 'DHP', 'DNVP', 'NSDAP'];
-
-    // Randomize all party-to-party relations
+    Q.party_relations = {};
     for (var party1 of all_parties) {
+        Q.party_relations[party1] = {};
         for (var party2 of all_parties) {
             if (party1 !== party2) {
-                // Random value between 0-100
                 Q.party_relations[party1][party2] = Math.floor(Math.random() * 101);
             }
         }
     }
 
-    Q.coalition_blocks = {
-    KPD_Z:     false,
-    KPD_BVP:   false,
-    KPD_DVP:   false,
-    KPD_WP:    false,
-    KPD_CNBL:  false,
-    KPD_DNVP:  false,
-    KPD_NSDAP: false,
-    KPD_VRP:   false,
-    KPD_DDP:   false,
-    KPD_SPD:   false,
+    // ===== COALITION BLOCKS (all false in inverted mode) =====
+    Q.coalition_blocks = {};
+    for (var p1 of all_parties) {
+        for (var p2 of all_parties) {
+            if (p1 !== p2) {
+                Q.coalition_blocks[p1 + '_' + p2] = false;
+            }
+        }
+    }
+    Q.coalition_blocks.NSDAP_COALITIONS_GENERALLY = false;
 
-    SAPD_DVP:   false,
-    SAPD_WP:    false,
-    SAPD_CNBL:  false,
-    SAPD_DNVP:  false,
-    SAPD_NSDAP: false,
-    SAPD_VRP:   false,
-
-    SPD_NSDAP:  false,
-    SPD_DNVP:   false,
-    SPD_KPD:    false,
-    SPD_VRP:    false,
-
-    SRPD_KPD:   false,
-    SRPD_NSDAP: false,
-    SRPD_DNVP:  false,
-    SRPD_VRP:   false,
-
-    DDP_KPD:    false,
-    DDP_NSDAP:  false,
-    DDP_DNVP:   false,
-
-    Z_KPD:      false,
-    Z_NSDAP:    false,
-    Z_DNVP:     false,
-
-    BVP_KPD:    false,
-    BVP_SAPD:   false,
-    BVP_NSDAP:  false,
-
-    DVP_KPD:    false,
-    DVP_SAPD:   false,
-    DVP_NSDAP:  false,
-    DVP_VRP:    false,
-
-    WP_KPD:     false,
-    WP_SAPD:    false,
-    WP_NSDAP:   false,
-    WP_VRP:     false,
-
-    CNBL_KPD:   false,
-    CNBL_SAPD:  false,
-    CNBL_SPD:   false,
-
-    DNVP_KPD:   false,
-    DNVP_SAPD:  false,
-    DNVP_SPD:   false,
-    DNVP_DDP:   false,
-    DNVP_Z:     false,
-    DNVP_VRP:   false,
-
-    NSDAP_KPD:                  false,
-    NSDAP_SPD:                  false,
-    NSDAP_SAPD:                 false,
-    NSDAP_SRPD:                 false,
-    NSDAP_DDP:                  false,
-    NSDAP_CSRP:                 false,
-    NSDAP_VRP:                  false,
-    NSDAP_BVP:                  false,
-    NSDAP_Z:                    false,
-    NSDAP_COALITIONS_GENERALLY: false,
-
-    VRP_KPD:    false,
-    VRP_SAPD:   false,
-    VRP_WP:     false,
-    VRP_NSDAP:  false,
-    VRP_DNVP:   false,
-    VRP_DVP:    false,
-    VRP_SPD:    false
-    };
-
+    // ===== IDEOLOGY OVERRIDES =====
     var IDEO_DEFAULTS = {
         KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
         DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
@@ -2744,17 +2650,13 @@ if (Q.inverted_challenge === 1) {
         BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10
     };
 
-    for (var _ip = 0; _ip < all_parties.length; _ip++) {
-        var _p = all_parties[_ip];
-        // Randomize within ±3 of default, clamped to 1-10
-        var _base    = IDEO_DEFAULTS[_p] || 5;
-        var _jitter  = Math.floor(Math.random() * 7) - 3; // -3 to +3
-        var _new_pos = Math.max(1, Math.min(10, _base + _jitter));
-        Q[_p.toLowerCase() + '_ideo_override'] = _new_pos;
+    for (var ip of all_parties) {
+        var base   = IDEO_DEFAULTS[ip] || 5;
+        var jitter = Math.floor(Math.random() * 7) - 3;
+        Q[ip.toLowerCase() + '_ideo_override'] = Math.max(1, Math.min(10, base + jitter));
     }
 
-    }
-
+}
 !}
 go-to: apberg if april_challenge = 1; starum if april_challenge = 0
 
