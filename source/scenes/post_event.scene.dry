@@ -2976,8 +2976,8 @@ function computeTarget(party, c) {
 
         case 'nsdap': {
             if (Q.nsdap_banned) return 0;
-            let u = Math.max(0, unr - 0.2);
-            let growth = (u * 100) + (nat * u * 15);
+            let u = Math.max(0, unr - 0.18);
+            let growth = (u * 200) + (nat * u * 20);
             let soft = 35, hard = 60;
             let raw = growth <= soft ? growth
                 : soft + (hard - soft) * (1 - Math.exp(-(growth - soft) / 17));
@@ -2985,10 +2985,10 @@ function computeTarget(party, c) {
 
             const class_mods = {
                 workers:     0.70 * (Q.peoples_party === 1 ? 1.02 : 1),
-                old_middle:  1.40 * (1 + Math.min(Q.nationalism/100,1)*0.25) * (Q.peoples_party === 1 ? 0.95 : 1),
-                new_middle:  1.30 * (1 + Math.min(Q.nationalism/100,1)*0.20) * (Q.peoples_party === 1 ? 0.95 : 1),
-                rural:       1.50 * (1 + Math.min(Q.nationalism/100,1)*0.22) * (Q.peoples_party === 1 ? 0.95 : 1),
-                unemployedc: (1.45 + Math.min(Q.unemployed/20, 0.60)) * (Q.peoples_party === 1 ? 1.03 : 1),
+                old_middle:  1.50 * (1 + Math.min(Q.nationalism/100,1)*0.25) * (Q.peoples_party === 1 ? 0.95 : 1),
+                new_middle:  1.50 * (1 + Math.min(Q.nationalism/100,1)*0.20) * (Q.peoples_party === 1 ? 0.95 : 1),
+                rural:       1.70 * (1 + Math.min(Q.nationalism/100,1)*0.22) * (Q.peoples_party === 1 ? 0.95 : 1),
+                unemployedc: (1.55 + Math.min(Q.unemployed/15, 0.65)) * (Q.peoples_party === 1 ? 1.05 : 1),
             };
             return base * (class_mods[c] || 1.0);
         }
