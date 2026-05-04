@@ -2828,7 +2828,7 @@ lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
 // SHARED FACTORS (unchanged from original)
 // ─────────────────────────────────────────
 
-Q.unemployment_threshold = 7.0;
+Q.unemployment_threshold = 7.5;
 Q.inflation_threshold    = 3.0;
 
 Q.unemployment_excess = Math.max(0, Q.unemployed - Q.unemployment_threshold);
@@ -3013,19 +3013,30 @@ function computeTarget(party, c) {
 
         case 'nsdap': {
             if (Q.nsdap_banned) return 0;
-            let u = Math.max(0, unr - 0.18);
-            let growth = (u * 200) + (nat * u * 20);
-            let soft = 35, hard = 60;
-            let raw = growth <= soft ? growth
-                : soft + (hard - soft) * (1 - Math.exp(-(growth - soft) / 17));
-            base = raw * im.nsdap;
+            
+            // Misery Index: Unemployment + Deflation + Growth Collapse
+            let misery = (Q.unemployment_excess * 2.0) + (Q.inflation_excess * 1.5);
+            if (Q.economic_growth < 0) misery += Math.abs(Q.economic_growth) * 3.0;
+
+            let soft = 40, hard = 120; 
+            let raw = (nat * 8.559) + (misery * 1.1);
+            
+            let final_raw = raw <= soft ? raw
+                : soft + (hard - soft) * (1 - Math.exp(-(raw - soft) / 45));
+
+            // CRITICAL: Check if Q.identity_modifier.nsdap is killing your growth.
+            // We force a floor of 1.0 during a high-misery crisis.
+            let identity = im.nsdap;
+            if (misery > 15) identity = Math.max(identity, 1.0);
+
+            base = final_raw * identity;
 
             const class_mods = {
-                workers:     0.70 * (Q.peoples_party === 1 ? 1.02 : 1),
-                old_middle:  1.50 * (1 + Math.min(Q.nationalism/100,1)*0.25) * (Q.peoples_party === 1 ? 0.95 : 1),
-                new_middle:  1.50 * (1 + Math.min(Q.nationalism/100,1)*0.20) * (Q.peoples_party === 1 ? 0.95 : 1),
-                rural:       1.70 * (1 + Math.min(Q.nationalism/100,1)*0.22) * (Q.peoples_party === 1 ? 0.95 : 1),
-                unemployedc: (1.55 + Math.min(Q.unemployed/15, 0.65)) * (Q.peoples_party === 1 ? 1.05 : 1),
+                workers:     0.85 * (Q.peoples_party === 1 ? 1.1 : 1),
+                old_middle:  2.20 * (1 + (Q.nationalism/100) * 0.5), 
+                new_middle:  1.90 * (1 + (Q.nationalism/100) * 0.4),
+                rural:       2.50 * (1 + (Q.nationalism/100) * 0.6), // Rural core
+                unemployedc: 2.10 * (1 + Math.min(Q.unemployed/10, 1.0)),
             };
             return base * (class_mods[c] || 1.0);
         }
