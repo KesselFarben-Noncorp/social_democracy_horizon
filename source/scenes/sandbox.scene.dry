@@ -20,234 +20,137 @@ go-to: sandbox_menu
 @debug
 on-arrival: {!
 
-console.log("=== PRE-DRIFT CHECK ===");
-console.log("classes:", JSON.stringify(Q.classes));
-console.log("parties:", JSON.stringify(Q.parties));
-console.log("drift_base:", Q.drift_base);
-console.log("unrest_factor:", Q.unrest_factor);
-console.log("pro_republic_factor:", Q.pro_republic_factor);
-console.log("socialism_factor:", Q.socialism_factor);
-console.log("nationalism_factor:", Q.nationalism_factor);
-console.log("identity_modifier.spd:", Q.identity_modifier ? Q.identity_modifier.spd : "UNDEFINED");
-console.log("identity_modifier.nsdap:", Q.identity_modifier ? Q.identity_modifier.nsdap : "UNDEFINED");
-console.log("sample vote var workers_spd:", Q.workers_spd);
-console.log("sample vote var unemployedc_spd:", Q.unemployedc_spd);
-console.log("sample vote var unemployed_spd:", Q.unemployed_spd);
+console.log("=== INVERTED CHALLENGE DEBUG ===");
 
-if (Q.c === Q.classes[0]) {
-    console.log("=== FIRST CLASS ITERATION ===");
-    console.log("Q.c:", Q.c);
-    console.log("class_influences[Q.c]:", Q.class_influences[Q.c]);
-    console.log("workers_spd raw:", Q[Q.c + '_spd']);
-    console.log("workers_nsdap raw:", Q[Q.c + '_nsdap']);
+// 1. PARTIES ARRAY
+console.log("1. Q.parties:", JSON.stringify(Q.parties));
+console.log("1. Q.parties length:", Q.parties ? Q.parties.length : "UNDEFINED");
+
+// 2. CLASS SUPPORT VARIABLES
+var debug_classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed'];
+var debug_parties = Q.parties ? Q.parties.filter(function(p){ return p !== 'other'; }) : [];
+var debug_missing = [];
+var debug_nan = [];
+var debug_zero = [];
+
+for (var di = 0; di < debug_parties.length; di++) {
+    for (var dj = 0; dj < debug_classes.length; dj++) {
+        var debug_key = debug_classes[dj] + '_' + debug_parties[di];
+        var debug_val = Q[debug_key];
+        if (debug_val === undefined || debug_val === null) debug_missing.push(debug_key);
+        else if (isNaN(debug_val)) debug_nan.push(debug_key + '=NaN');
+        else if (debug_val === 0) debug_zero.push(debug_key + '=0');
+    }
 }
 
+console.log("2. MISSING class vars:", JSON.stringify(debug_missing));
+console.log("2. NaN class vars:", JSON.stringify(debug_nan));
+console.log("2. Zero class vars:", JSON.stringify(debug_zero));
 
-if (Q.party === 'spd' && Q.c === Q.classes[0]) {
-    console.log("=== SPD IDEOLOGY FACTOR CHECK ===");
-    console.log("ideology_factor:", Q.ideology_factor);
-    console.log("cap base:", Q.ideology_caps.spd ? Q.ideology_caps.spd.base : "NO CAP");
-    console.log("class multiplier:", Q.ideology_caps.spd ? Q.ideology_caps.spd[Q.c] : "NO KEY");
-    console.log("delta before softcap:", Q.drift_base * Q.ideology_factor * (Q.class_influences[Q.c] || 0) / 6);
+// 3. PARTY RELATIONS
+if (!Q.party_relations) {
+    console.log("3. party_relations: UNDEFINED OR NULL");
+} else {
+    var pr_keys = Object.keys(Q.party_relations);
+    console.log("3. party_relations top keys:", JSON.stringify(pr_keys));
+    var pr_missing = [];
+    var pr_nan = [];
+    var pr_zero = [];
+    for (var pk = 0; pk < pr_keys.length; pk++) {
+        var p1 = pr_keys[pk];
+        var p2_keys = Object.keys(Q.party_relations[p1]);
+        for (var pl = 0; pl < p2_keys.length; pl++) {
+            var p2 = p2_keys[pl];
+            var pr_val = Q.party_relations[p1][p2];
+            if (pr_val === undefined || pr_val === null) pr_missing.push(p1+'->'+p2);
+            else if (isNaN(pr_val)) pr_nan.push(p1+'->'+p2+'=NaN');
+            else if (pr_val === 0) pr_zero.push(p1+'->'+p2+'=0');
+        }
+    }
+    console.log("3. party_relations MISSING:", JSON.stringify(pr_missing));
+    console.log("3. party_relations NaN:", JSON.stringify(pr_nan));
+    console.log("3. party_relations Zero:", JSON.stringify(pr_zero));
 }
 
-if (Q.c === Q.classes[0] && Q.party === 'spd') {
-    console.log("=== SOFTCAP RESULT ===");
-    console.log("base:", Q.base);
-    console.log("delta:", Q.delta);
-    console.log("proposed:", proposed);
-    console.log("final_cap:", final_cap);
-    console.log("result:", Q[Q.c+'_'+Q.party]);
+// 4. COALITION BLOCKS
+if (!Q.coalition_blocks) {
+    console.log("4. coalition_blocks: UNDEFINED OR NULL");
+} else {
+    var cb_keys = Object.keys(Q.coalition_blocks);
+    var cb_weird = [];
+    for (var ci = 0; ci < cb_keys.length; ci++) {
+        var cb_val = Q.coalition_blocks[cb_keys[ci]];
+        if (cb_val !== true && cb_val !== false) cb_weird.push(cb_keys[ci] + '=' + cb_val);
+    }
+    console.log("4. coalition_blocks total keys:", cb_keys.length);
+    console.log("4. coalition_blocks non-boolean:", JSON.stringify(cb_weird));
 }
 
-console.log("=== POST-DRIFT RAW VOTES ===");
-for (var _c of Q.classes) {
-    let row = _c + ": ";
-    for (var _p of Q.parties) {
-        row += _p + "=" + (Q[_c+'_'+_p] || 0).toFixed(1) + " ";
+// 5. CHALLENGE FLAGS
+console.log("5. inverted_challenge:", Q.inverted_challenge);
+console.log("5. gang_challenge:", Q.gang_challenge);
+console.log("5. spartac_challenge:", Q.spartac_challenge);
+console.log("5. duel_challenge:", Q.duel_challenge);
+console.log("5. dice_challenge:", Q.dice_challenge);
+console.log("5. vn_challenge:", Q.vn_challenge);
+console.log("5. dem_challenge:", Q.dem_challenge);
+console.log("5. cmr_challenge:", Q.cmr_challenge);
+console.log("5. new_partei_challenge:", Q.new_partei_challenge);
+console.log("5. peasant_revolution:", Q.peasant_revolution);
+console.log("5. april_challenge:", Q.april_challenge);
+console.log("5. hindenburg_challenge:", Q.hindenburg_challenge);
+
+// 6. REICHSTAG _r VARS
+var r_missing = [];
+var r_nan = [];
+for (var ri = 0; ri < debug_parties.length; ri++) {
+    var r_key = debug_parties[ri] + '_r';
+    var r_val = Q[r_key];
+    if (r_val === undefined || r_val === null) r_missing.push(r_key);
+    else if (isNaN(r_val)) r_nan.push(r_key + '=NaN');
+    else console.log("6. " + r_key + " =", r_val);
+}
+console.log("6. MISSING _r vars:", JSON.stringify(r_missing));
+console.log("6. NaN _r vars:", JSON.stringify(r_nan));
+
+// 7. RELATION VARS
+var rel_missing = [];
+var rel_nan = [];
+for (var reli = 0; reli < debug_parties.length; reli++) {
+    var rel_key = debug_parties[reli] + '_relation';
+    var rel_val = Q[rel_key];
+    if (rel_val === undefined || rel_val === null) rel_missing.push(rel_key);
+    else if (isNaN(rel_val)) rel_nan.push(rel_key + '=NaN');
+    else console.log("7. " + rel_key + " =", rel_val);
+}
+console.log("7. MISSING _relation vars:", JSON.stringify(rel_missing));
+console.log("7. NaN _relation vars:", JSON.stringify(rel_nan));
+
+// 8. FULL NaN SWEEP
+var all_nan_keys = [];
+var q_keys = Object.keys(Q);
+for (var qi = 0; qi < q_keys.length; qi++) {
+    if (typeof Q[q_keys[qi]] === 'number' && isNaN(Q[q_keys[qi]])) {
+        all_nan_keys.push(q_keys[qi]);
     }
-    console.log(row);
+}
+console.log("8. ALL NaN keys in Q:", JSON.stringify(all_nan_keys));
+
+// 9. CRITICAL VARS
+var crit_list = ['workers','old_middle','new_middle','rural','unemployed',
+    'nationalism','socialism','pro_republic',
+    'spd_r','kpd_r','z_r','ddp_r','dvp_r','dnvp_r','nsdap_r',
+    'budget','resources','dissent'];
+for (var cri = 0; cri < crit_list.length; cri++) {
+    var crit_val = Q[crit_list[cri]];
+    if (crit_val === undefined) console.log("9. MISSING: " + crit_list[cri]);
+    else if (isNaN(crit_val)) console.log("9. NaN: " + crit_list[cri]);
+    else console.log("9. OK: " + crit_list[cri] + " =", crit_val);
 }
 
-
-
-console.log("NORM class:", c, "total_votes:", class_votes);
-
-
-// ===== INVERTED CHALLENGE DEBUG SUITE =====
-
-    const Q = window.state?.qualities || {};
-
-    console.group("=== INVERTED CHALLENGE DEBUG ===");
-
-    // 1. PARTIES ARRAY
-    console.group("1. Q.parties contents");
-    console.log("Raw Q.parties:", JSON.stringify(Q.parties));
-    console.log("Length:", Q.parties ? Q.parties.length : "UNDEFINED");
-    console.groupEnd();
-
-    // 2. CLASS SUPPORT VARIABLES
-    console.group("2. Class support variables (workers/old_middle/new_middle/rural/unemployed per party)");
-    const classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployed'];
-    const parties = Q.parties ? Q.parties.filter(p => p !== 'other') : [];
-    
-    let missingClassVars = [];
-    let nanClassVars = [];
-    let zeroClassVars = [];
-
-    for (const party of parties) {
-        for (const cls of classes) {
-            const key = `${cls}_${party}`;
-            const val = Q[key];
-            if (val === undefined || val === null) {
-                missingClassVars.push(key);
-            } else if (isNaN(val)) {
-                nanClassVars.push(`${key} = NaN`);
-            } else if (val === 0) {
-                zeroClassVars.push(`${key} = 0`);
-            } else {
-                // console.log(`  OK: ${key} = ${val}`); // uncomment if you want all
-            }
-        }
-    }
-
-    console.warn("MISSING (undefined/null):", missingClassVars.length, missingClassVars);
-    console.warn("NaN values:", nanClassVars.length, nanClassVars);
-    console.log("Zero values (may be intentional):", zeroClassVars.length, zeroClassVars);
-    console.groupEnd();
-
-    // 3. PARTY RELATIONS MATRIX
-    console.group("3. party_relations matrix");
-    if (!Q.party_relations) {
-        console.error("Q.party_relations is UNDEFINED or NULL");
-    } else {
-        const prKeys = Object.keys(Q.party_relations);
-        console.log("Top-level keys:", prKeys);
-        let prMissing = [];
-        let prNaN = [];
-        let prZero = [];
-        for (const p1 of prKeys) {
-            for (const p2 of Object.keys(Q.party_relations[p1])) {
-                const val = Q.party_relations[p1][p2];
-                if (val === undefined || val === null) prMissing.push(`${p1}->${p2}`);
-                else if (isNaN(val)) prNaN.push(`${p1}->${p2} = NaN`);
-                else if (val === 0) prZero.push(`${p1}->${p2} = 0`);
-            }
-        }
-        console.warn("MISSING entries:", prMissing.length, prMissing);
-        console.warn("NaN entries:", prNaN.length, prNaN);
-        console.log("Zero entries:", prZero.length, prZero);
-    }
-    console.groupEnd();
-
-    // 4. COALITION BLOCKS
-    console.group("4. coalition_blocks");
-    if (!Q.coalition_blocks) {
-        console.error("Q.coalition_blocks is UNDEFINED or NULL");
-    } else {
-        const cbKeys = Object.keys(Q.coalition_blocks);
-        console.log("Total keys:", cbKeys.length);
-        const trueBlocks = cbKeys.filter(k => Q.coalition_blocks[k] === true);
-        const falseBlocks = cbKeys.filter(k => Q.coalition_blocks[k] === false);
-        const weirdBlocks = cbKeys.filter(k => Q.coalition_blocks[k] !== true && Q.coalition_blocks[k] !== false);
-        console.log("TRUE (blocked):", trueBlocks.length);
-        console.log("FALSE (allowed):", falseBlocks.length);
-        console.warn("Non-boolean values:", weirdBlocks, weirdBlocks.map(k => Q.coalition_blocks[k]));
-    }
-    console.groupEnd();
-
-    // 5. CHALLENGE FLAGS
-    console.group("5. Challenge flags");
-    const challenges = [
-        'inverted_challenge', 'gang_challenge', 'spartac_challenge',
-        'duel_challenge', 'dice_challenge', 'vn_challenge',
-        'dem_challenge', 'cmr_challenge', 'new_partei_challenge',
-        'peasant_revolution', 'april_challenge', 'hindenburg_challenge',
-        'modern_variable', 'fptp_variable'
-    ];
-    for (const c of challenges) {
-        console.log(`  ${c}:`, Q[c]);
-    }
-    console.groupEnd();
-
-    // 6. REICHSTAG SEAT VARIABLES
-    console.group("6. Reichstag seat variables (_r suffix)");
-    let missingR = [];
-    let nanR = [];
-    for (const party of parties) {
-        const key = `${party}_r`;
-        const val = Q[key];
-        if (val === undefined || val === null) missingR.push(key);
-        else if (isNaN(val)) nanR.push(`${key} = NaN`);
-        else console.log(`  ${key} = ${val}`);
-    }
-    console.warn("MISSING _r vars:", missingR);
-    console.warn("NaN _r vars:", nanR);
-    console.groupEnd();
-
-    // 7. RELATION VARIABLES (_relation suffix)
-    console.group("7. Relation variables (_relation suffix)");
-    let missingRel = [];
-    let nanRel = [];
-    for (const party of parties) {
-        const key = `${party}_relation`;
-        const val = Q[key];
-        if (val === undefined || val === null) missingRel.push(key);
-        else if (isNaN(val)) nanRel.push(`${key} = NaN`);
-        else console.log(`  ${key} = ${val}`);
-    }
-    console.warn("MISSING _relation vars:", missingRel);
-    console.warn("NaN _relation vars:", nanRel);
-    console.groupEnd();
-
-    // 8. FULL Q DUMP (filtered for relevant keys)
-    console.group("8. Full Q dump - all keys containing party names");
-    const partyNames = ['spd','kpd','z','bvp','ddp','dvp','dhp','aspd','wp','vrp',
-                        'dnvp','nsdap','sapd','srpd','csvd','kvp','cnbl','csrp',
-                        'bb','dhp','dvfp','kpo','sl','hl','vnr','lb','rdp','cvp',
-                        'sls','dtsp'];
-    for (const key of Object.keys(Q).sort()) {
-        for (const pn of partyNames) {
-            if (key.includes(pn)) {
-                console.log(`  Q.${key} =`, Q[key]);
-                break;
-            }
-        }
-    }
-    console.groupEnd();
-
-    // 9. NaN SWEEP - everything in Q
-    console.group("9. Full NaN sweep of Q");
-    let allNaN = [];
-    for (const key of Object.keys(Q)) {
-        if (typeof Q[key] === 'number' && isNaN(Q[key])) {
-            allNaN.push(key);
-        }
-    }
-    console.warn("All NaN numeric keys in Q:", allNaN.length, allNaN);
-    console.groupEnd();
-
-    // 10. UNDEFINED SWEEP for known critical vars
-    console.group("10. Critical variable presence check");
-    const criticals = [
-        'workers','old_middle','new_middle','rural','unemployed',
-        'nationalism','socialism','pro_republic',
-        'spd_r','kpd_r','z_r','ddp_r','dvp_r','dnvp_r','nsdap_r',
-        'budget','resources','dissent'
-    ];
-    for (const c of criticals) {
-        const val = Q[c];
-        if (val === undefined) console.error(`MISSING: Q.${c}`);
-        else if (isNaN(val)) console.error(`NaN: Q.${c}`);
-        else console.log(`  OK: Q.${c} = ${val}`);
-    }
-    console.groupEnd();
-
-    console.groupEnd(); // end main group
-    console.log("=== DEBUG COMPLETE. Expand groups above. ===");
-
-
+console.log("=== DEBUG COMPLETE ===");
 !}
+go-to: sandbox_menu
 
 @developermode
 on-display: {!
