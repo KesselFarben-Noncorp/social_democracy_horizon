@@ -46,9 +46,56 @@ max-cards: 6
 - #advisor
 - @shuffle_leadership_pinned
 
-@dalles
+@main_hard
 is-hand: true
-max-cards: 5
+on-arrival: {!
+if (Q.advisor_action_timer <= 0) {
+    Q.pinnedCardsDescription = 'Advisors - an action is available.';
+} else if (Q.advisor_action_timer == 1) {
+    Q.pinnedCardsDescription = 'Advisors - next action available in 1 month.';
+} else {
+    Q.pinnedCardsDescription = 'Advisors - next action available in ' + Q.advisor_action_timer + ' months.';
+}
+!}
+on-display: {!
+document.getElementById('bill-queue-display').innerHTML = Q.bill_list_html || Q.bill_list_text;
+!}
+max-cards: 2
+
+#Here, the main deck will be displayed. Clicking on the deck draws a card into your hand. Clicking on a card activates that card.
+
+- @party
+- @govt
+- @reichstag
+- @intel
+- #advisor
+- @shuffle_leadership_pinned
+
+@main_historical
+is-hand: true
+on-arrival: {!
+if (Q.advisor_action_timer <= 0) {
+    Q.pinnedCardsDescription = 'Advisors - an action is available.';
+} else if (Q.advisor_action_timer == 1) {
+    Q.pinnedCardsDescription = 'Advisors - next action available in 1 month.';
+} else {
+    Q.pinnedCardsDescription = 'Advisors - next action available in ' + Q.advisor_action_timer + ' months.';
+}
+!}
+on-display: {!
+document.getElementById('bill-queue-display').innerHTML = Q.bill_list_html || Q.bill_list_text;
+!}
+max-cards: 1
+
+#Here, the main deck will be displayed. Clicking on the deck draws a card into your hand. Clicking on a card activates that card.
+
+- @party
+- @govt
+- @reichstag
+- @intel
+- #advisor
+- @shuffle_leadership_pinned
+
 
 @party
 title: Party Affairs
