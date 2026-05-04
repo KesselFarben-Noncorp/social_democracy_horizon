@@ -2607,53 +2607,128 @@ if (Q.peasant_revolution === 1) {
 
 if (Q.inverted_challenge === 1) {
 
-    var all_parties = Q.parties
-        .filter(p => p !== 'other')
-        .map(p => p.toUpperCase());
 
     // ===== PARTY RELATIONS =====
-    // Derive from all_parties rather than declaring one by one
-    for (var p of all_parties) {
-        Q[p.toLowerCase() + '_relation'] = Math.random() * 100;
-    }
+    Q.z_relation = Math.random() * 100;
+    Q.kpd_relation = Math.random() * 100;
+    Q.sapd_relation = Math.random() * 100;
+    Q.srpd_relation = Math.random() * 100;
+    Q.ddp_relation = Math.random() * 100;
+    Q.bvp_relation = Math.random() * 100;
+    Q.dvp_relation = Math.random() * 100;
+    Q.wp_relation = Math.random() * 100;
+    Q.dnvp_relation = Math.random() * 100;
+    Q.nsdap_relation = Math.random() * 100;
+    Q.csvd_relation = Math.random() * 100;
+    Q.cnbl_relation = Math.random() * 100;
+    Q.csrp_relation = Math.random() * 100;
+    Q.vrp_relation = Math.random() * 100;
+    Q.kvp_relation = Math.random() * 100;
+    Q.bb_relation = Math.random() * 100;
+    Q.dhp_relation = Math.random() * 100;
+    Q.dvfp_relation = Math.random() * 100;
+    Q.aspd_relation = Math.random() * 100;
+    Q.hl_relation = Math.random() * 100;
+    Q.vnr_relation = Math.random() * 100;
+    Q.lb_relation = Math.random() * 100;
+    Q.rdp_relation = Math.random() * 100;
+    Q.cvp_relation = Math.random() * 100;
+    Q.sls_relation = Math.random() * 100;
+    Q.dtsp_relation = Math.random() * 100;
+    Q.kpo_relation = Math.random() * 100;
+    Q.sl_relation = Math.random() * 100;
+    Q.hindenburg_relation = Math.random() * 100;
+    Q.schacht_relation = Math.random() * 100;
+    Q.president_relation = Math.random() * 100;
 
     // ===== PARTY RELATIONS MATRIX =====
+    var all_parties_inv = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','VRP',
+                           'CSVD','DVP','WP','CNBL','KVP','BB','DHP','DNVP','NSDAP',
+                           'DVFP','DHD','ASPD','HL','VNR','LB','RDP','CVP','SLS','DTSP'];
+
     Q.party_relations = {};
-    for (var party1 of all_parties) {
-        Q.party_relations[party1] = {};
-        for (var party2 of all_parties) {
-            if (party1 !== party2) {
-                Q.party_relations[party1][party2] = Math.floor(Math.random() * 101);
+    for (var i_inv = 0; i_inv < all_parties_inv.length; i_inv++) {
+        Q.party_relations[all_parties_inv[i_inv]] = {};
+    }
+
+    for (var pi_inv = 0; pi_inv < all_parties_inv.length; pi_inv++) {
+        for (var pj_inv = 0; pj_inv < all_parties_inv.length; pj_inv++) {
+            if (all_parties_inv[pi_inv] !== all_parties_inv[pj_inv]) {
+                Q.party_relations[all_parties_inv[pi_inv]][all_parties_inv[pj_inv]] = Math.floor(Math.random() * 101);
             }
         }
     }
 
-    // ===== COALITION BLOCKS (all false in inverted mode) =====
-    Q.coalition_blocks = {};
-    for (var p1 of all_parties) {
-        for (var p2 of all_parties) {
-            if (p1 !== p2) {
-                Q.coalition_blocks[p1 + '_' + p2] = false;
-            }
-        }
-    }
-    Q.coalition_blocks.NSDAP_COALITIONS_GENERALLY = false;
+    // ===== COALITION BLOCKS (all false) =====
+    Q.coalition_blocks = {
+        KPD_Z: false, KPD_BVP: false, KPD_DVP: false,
+        KPD_WP: false, KPD_CNBL: false, KPD_DNVP: false,
+        KPD_NSDAP: false, KPD_VRP: false, KPD_DDP: false, KPD_SPD: false,
+
+        SAPD_DVP: false, SAPD_WP: false, SAPD_CNBL: false,
+        SAPD_DNVP: false, SAPD_NSDAP: false, SAPD_VRP: false,
+
+        SPD_NSDAP: false, SPD_DNVP: false, SPD_KPD: false, SPD_VRP: false,
+
+        SRPD_KPD: false, SRPD_NSDAP: false, SRPD_DNVP: false, SRPD_VRP: false,
+
+        DDP_KPD: false, DDP_NSDAP: false, DDP_DNVP: false,
+
+        Z_KPD: false, Z_NSDAP: false, Z_DNVP: false,
+
+        BVP_KPD: false, BVP_SAPD: false, BVP_NSDAP: false,
+
+        DVP_KPD: false, DVP_SAPD: false, DVP_NSDAP: false, DVP_VRP: false,
+
+        WP_KPD: false, WP_SAPD: false, WP_NSDAP: false, WP_VRP: false,
+
+        CNBL_KPD: false, CNBL_SAPD: false, CNBL_SPD: false,
+
+        DNVP_KPD: false, DNVP_SAPD: false, DNVP_SPD: false,
+        DNVP_DDP: false, DNVP_Z: false, DNVP_VRP: false,
+
+        NSDAP_KPD: false, NSDAP_SPD: false, NSDAP_SAPD: false,
+        NSDAP_SRPD: false, NSDAP_DDP: false, NSDAP_CSRP: false,
+        NSDAP_VRP: false, NSDAP_BVP: false, NSDAP_Z: false,
+        NSDAP_COALITIONS_GENERALLY: false,
+
+        VRP_KPD: false, VRP_SAPD: false, VRP_WP: false,
+        VRP_NSDAP: false, VRP_DNVP: false, VRP_DVP: false, VRP_SPD: false,
+
+        LB_NSDAP: false, LB_DNVP: false, LB_DVP: false,
+        LB_WP: false, LB_CNBL: false, LB_DVFP: false, LB_DTSP: false,
+
+        RDP_NSDAP: false, RDP_DVFP: false, RDP_DTSP: false, RDP_KPD: false,
+
+        CVP_KPD: false, CVP_SAPD: false, CVP_NSDAP: false,
+        CVP_DVFP: false, CVP_DTSP: false,
+
+        SLS_KPD: false, SLS_NSDAP: false, SLS_DVFP: false,
+        SLS_DTSP: false, SLS_DNVP: false,
+
+        DTSP_KPD: false, DTSP_SAPD: false, DTSP_SPD: false,
+        DTSP_SRPD: false, DTSP_DDP: false, DTSP_Z: false,
+        DTSP_BVP: false, DTSP_CSRP: false, DTSP_LB: false,
+        DTSP_RDP: false, DTSP_SLS: false, DTSP_CVP: false
+    };
 
     // ===== IDEOLOGY OVERRIDES =====
-    var IDEO_DEFAULTS = {
+    var IDEO_DEFAULTS_INV = {
         KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
         DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
         DVP: 7, WP: 7, VRP: 7, DHP: 7,
-        BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10
+        BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10,
+        DTSP: 10, LB: 1, RDP: 4, CVP: 5, SLS: 4
     };
 
-    for (var ip of all_parties) {
-        var base   = IDEO_DEFAULTS[ip] || 5;
-        var jitter = Math.floor(Math.random() * 7) - 3;
-        Q[ip.toLowerCase() + '_ideo_override'] = Math.max(1, Math.min(10, base + jitter));
+    for (var ip_inv = 0; ip_inv < all_parties_inv.length; ip_inv++) {
+        var p_inv = all_parties_inv[ip_inv];
+        var base_inv = IDEO_DEFAULTS_INV[p_inv] || 5;
+        var jitter_inv = Math.floor(Math.random() * 7) - 3;
+        Q[p_inv.toLowerCase() + '_ideo_override'] = Math.max(1, Math.min(10, base_inv + jitter_inv));
     }
-
 }
+
 !}
 go-to: apberg if april_challenge = 1; starum if april_challenge = 0
 
