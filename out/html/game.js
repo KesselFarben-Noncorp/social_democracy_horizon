@@ -25,6 +25,64 @@
       }
     };
 
+    // TAG LIMITATIONS PART STARTS -------------
+
+    // Tag limits for hand
+    var TAG_LIMITS = {
+        party_affairs: 3,
+        govt_affairs: 3
+    };
+
+    var originalDrawCard = dendryUI.dendryEngine.drawCard.bind(dendryUI.dendryEngine);
+    dendryUI.dendryEngine.drawCard = function(deckId) {
+        var engine = dendryUI.dendryEngine;
+        var currentSceneId = engine.state.sceneId;
+        var currentHand = engine.state.currentHands[currentSceneId] || [];
+
+        // Get the card that would be drawn
+        var card = engine._drawFromDeck(deckId);
+        if (!card) return {id: null, title: 'no_card_in_deck'};
+
+        // Check tag limits
+        for (var tag in TAG_LIMITS) {
+            var taggedIds = game.tagLookup[tag];
+            if (taggedIds && taggedIds[card.id]) {
+                var count = currentHand.filter(function(c) {
+                    return taggedIds[c.id];
+                }).length;
+                if (count >= TAG_LIMITS[tag]) {
+                    return {id: null, title: 'no_space_for_tag'};
+                }
+            }
+        }
+
+        return originalDrawCard(deckId);
+    };
+
+    var originalDisplayHand = dendryUI.displayHand.bind(dendryUI);
+    dendryUI.displayHand = function(hand, maxCards) {
+    originalDisplayHand(hand, maxCards);
+    
+    var handItems = document.querySelectorAll('.card-in-hand');
+    handItems.forEach(function(item) {
+        var cardLink = item.querySelector('a.card');
+        if (!cardLink) return;
+        var cardId = cardLink.getAttribute('card-id');
+        if (!cardId) return;
+        
+        var tags = game.tagLookup;
+        item.classList.remove('tag-party_affairs', 'tag-govt_affairs', 'tag-other');
+        if (tags.party_affairs && tags.party_affairs[cardId]) {
+            item.classList.add('tag-party_affairs');
+        } else if (tags.govt_affairs && tags.govt_affairs[cardId]) {
+            item.classList.add('tag-govt_affairs');
+        } else {
+            item.classList.add('tag-other');
+        }
+    });
+   };
+  // TAG LIMITATIONS PART ENDED HERE.
+
     // Add your custom code here.
   };
 
