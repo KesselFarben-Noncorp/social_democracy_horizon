@@ -1401,16 +1401,16 @@ Q.dGrowth = Math.max(-3, Math.min(3, Q.dGrowth));
 // SECTION 12 — TIERED EMERGENCY STABILIZERS
 // ============================================================
 
-if (Q.inflation < -4) {
-    const t1 = Math.min(1, (-4 - Q.inflation) / 3);
-    Q.dInflation += 0.06 * t1;
-    Q.demand_impulse = (Q.demand_impulse||0) + 0.03 * t1;
+if (Q.inflation < -8) {
+    const t1 = Math.min(1, (-8 - Q.inflation) / 3);
+    Q.dInflation += 0.04 * t1;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.02 * t1;
 }
-if (Q.inflation < -7) {
-    const t2 = Math.min(1, (-7 - Q.inflation) / 2);
-    Q.dInflation += 0.10 * t2;
-    Q.price_pressure = (Q.price_pressure||0) + 0.15 * t2;
-    Q.demand_impulse = (Q.demand_impulse||0) + 0.05 * t2;
+if (Q.inflation < -15) {
+    const t2 = Math.min(1, (-15 - Q.inflation) / 2);
+    Q.dInflation += 0.08 * t2;
+    Q.price_pressure = (Q.price_pressure||0) + 0.10 * t2;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.03 * t2;
 }
 if (Q.inflation <= -9 && Q.inflation_expectations > Q.inflation + 2) {
     Q.dInflation += 0.15 * (Q.inflation_expectations - Q.inflation);
@@ -1419,15 +1419,15 @@ if (Q.inflation <= -9 && Q.inflation_expectations > Q.inflation + 2) {
     Q.fiscal_stance = (Q.fiscal_stance||0) - 0.08;
 }
 
-if (Q.economic_growth < -4) {
-    const t1 = Math.min(1, (-4 - Q.economic_growth) / 5);
-    Q.dGrowth += 0.08 * t1;
-    Q.demand_impulse = (Q.demand_impulse||0) + 0.05 * t1;
+if (Q.economic_growth < -8) {
+    const t1 = Math.min(1, (-12 - Q.economic_growth) / 5);
+    Q.dGrowth += 0.06 * t1;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.03 * t1;
 }
-if (Q.economic_growth < -7) {
-    const t2 = Math.min(1, (-7 - Q.economic_growth) / 2);
-    Q.dGrowth += 0.12 * t2;
-    Q.demand_impulse = (Q.demand_impulse||0) + 0.08 * t2;
+if (Q.economic_growth < -12) {
+    const t2 = Math.min(1, (-12 - Q.economic_growth) / 2);
+    Q.dGrowth += 0.08 * t2;
+    Q.demand_impulse = (Q.demand_impulse||0) + 0.07 * t2;
 }
 if (Q.economic_growth < -9) {
     Q.dGrowth += (Q.POTENTIAL_GROWTH - Q.economic_growth) * 0.05;
@@ -1446,9 +1446,12 @@ if (Q.unemployed > 32) {
 // ============================================================
 
 const in_crisis = (Q.phase === "depression" || Q.phase === "hyperinflation");
-Q.inflation       += Q.dInflation    * Q.dt * ((in_crisis && Q.dInflation > 0)    ? 0.95 : 0.86);
-Q.unemployed      += Q.dUnemployment * Q.dt * ((in_crisis && Q.dUnemployment < 0) ? 0.95 : 0.86);
-Q.economic_growth += Q.dGrowth       * Q.dt * ((in_crisis && Q.dGrowth > 0)       ? 0.95 : 0.86);
+
+const momentum = in_crisis ? 0.95 : 1.05; 
+
+Q.inflation       += Q.dInflation    * Q.dt * momentum;
+Q.unemployed      += Q.dUnemployment * Q.dt * momentum;
+Q.economic_growth += Q.dGrowth       * Q.dt * momentum;
 
 // ============================================================
 // SECTION 14 — DECAY (phase-adjusted rates)
@@ -1535,6 +1538,40 @@ if (Q.inflation >= 30 && Q.unemployed >= 30) {
     Q.dInflation         -= 0.15;
     Q.dUnemployment      -= 0.10;
 }
+
+// ============================================================
+// EMERGENCY ECONOMIC GUARDS: ABSOLUTE ±50 WALLS
+// ============================================================
+
+// --- INFLATION WALLS ---
+if (Q.inflation > 50) {
+    const severity = (Q.inflation - 50) / 5; // Scales rapidly
+    Q.dInflation -= (1.5 + severity * 3.0) * Q.dt; // Massive downward pressure
+    Q.demand_impulse -= 0.5 * Q.dt; // Kill demand instantly
+} else if (Q.inflation < -50) {
+    const severity = (-50 - Q.inflation) / 5;
+    Q.dInflation += (1.5 + severity * 3.0) * Q.dt; 
+    Q.demand_impulse += 0.5 * Q.dt; // Massive stimulus
+}
+
+// --- UNEMPLOYMENT WALLS ---
+if (Q.unemployed > 50) {
+    const severity = (Q.unemployed - 50) / 5;
+    Q.dUnemployment -= (1.5 + severity * 3.0) * Q.dt; // Force hiring/dropouts
+    Q.dGrowth += (1.0 + severity * 2.0) * Q.dt; // Desperation stimulus kicks in
+    Q.fiscal_stance += 0.8 * Q.dt;
+}
+
+// --- GROWTH WALLS ---
+if (Q.economic_growth > 50) {
+    const severity = (Q.economic_growth - 50) / 5;
+    Q.dGrowth -= (1.5 + severity * 3.0) * Q.dt; // Overheating crash
+    Q.capital_pressure += 0.8 * Q.dt;
+} else if (Q.economic_growth < -50) {
+    const severity = (-50 - Q.economic_growth) / 5;
+    Q.dGrowth += (1.5 + severity * 3.0) * Q.dt; // Dead-cat bounce / recovery
+}
+
 
 // ============================================================
 // SECTION 15 — CONSTRAINTS
