@@ -8,17 +8,14 @@ go-to: start_menu_2
 
 = Social Democracy: An Alternate Horizon <br>      
 
-                            = 0.9.7.5
-                            = Second Midnight.
 @start_menu_2
 
 - @start: Start game
-- @mod_info: Information about the Mod
+- @mod_info: Mod Information
 - @game_over.achievements
 
 @start
 on-arrival: {!
-Q.started = 1;
 // time elapsed (in months)
 Q.time = 0;
 Q.year = 1927;
@@ -2664,8 +2661,10 @@ go-to: apberg if april_challenge = 1; starum if april_challenge = 0
 
 @apberg
 set-bg: img/weimar_2.jpg
+on-arrival: started = 1
 go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
 
 @starum
 set-bg: img/weimar.jpg
+on-arrival: started = 1
 go-to: main if difficulty >= 0; main.main_easy if difficulty < 0
