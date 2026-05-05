@@ -13,12 +13,19 @@ on-arrival: {!
     Q.bonus_dues_workers = Q.bonus_dues_workers || 0;
     Q.bonus_dues_unemployedc = Q.bonus_dues_unemployedc || 0;
     
-    // Calculate base income
-    Q.workers_income = Math.round((Q.workers_spd * Q.dues_workers * 0.03 * (1 - Q.labor_dissent * 0.007)) + (Q.bonus_dues_workers * 2));
-    Q.unemployedc_income = Math.round((Q.unemployedc_spd * Q.dues_unemployedc * 0.03 * (1 - Q.labor_dissent * 0.007)) + (Q.bonus_dues_unemployedc * 2));
-    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.085 * (1 - Q.reformist_dissent * 0.006));
-    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.085 * (1 - Q.center_dissent * 0.006));
-    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.03 * (1 - Q.center_dissent * 0.006));
+    // Use normalized vote shares × 100 to get actual percentages
+    Q.workers_pct     = Math.round((Q.workers_spd_normalized     || 0) * 100 * 10) / 10;
+    Q.unemployedc_pct = Math.round((Q.unemployedc_spd_normalized || 0) * 100 * 10) / 10;
+    Q.new_middle_pct  = Math.round((Q.new_middle_spd_normalized  || 0) * 100 * 10) / 10;
+    Q.old_middle_pct  = Math.round((Q.old_middle_spd_normalized  || 0) * 100 * 10) / 10;
+    Q.rural_pct       = Math.round((Q.rural_spd_normalized        || 0) * 100 * 10) / 10;
+
+    // Income uses population share × SPD vote share within that class
+    Q.workers_income     = Math.round(Q.workers     * Q.workers_pct     * Q.dues_workers     * 0.0002 * (1 - Q.labor_dissent     * 0.007));
+    Q.unemployedc_income = Math.round(Q.unemployedc * Q.unemployedc_pct * Q.dues_unemployedc * 0.0003 * (1 - Q.labor_dissent     * 0.007));
+    Q.new_middle_income  = Math.round(Q.new_middle  * Q.new_middle_pct  * Q.dues_new_middle  * 0.0008 * (1 - Q.reformist_dissent * 0.006));
+    Q.old_middle_income  = Math.round(Q.old_middle  * Q.old_middle_pct  * Q.dues_old_middle  * 0.0008 * (1 - Q.center_dissent    * 0.006));
+    Q.rural_income       = Math.round(Q.rural       * Q.rural_pct       * Q.dues_rural       * 0.0003 * (1 - Q.center_dissent    * 0.006));
     
     // Total projected income
     Q.total_projected = Q.workers_income + Q.unemployedc_income + Q.new_middle_income + Q.old_middle_income + Q.rural_income;
@@ -43,15 +50,15 @@ The party's financial health depends on member contributions. Our current member
 
 Breakdown by demographic:
 
-~ Workers ([+ workers_spd +]%): [+ workers_income +] resources (dues rate: [+ dues_workers +])
+~ Workers ([+ workers_pct +]%): [+ workers_income +] resources (dues rate: [+ dues_workers +])
 
-~ Unemployed ([+ unemployed_spd +]%): [+ unemployedc_income +] resources (dues rate: [+ dues_unemployedc +])
+~ Unemployed ([+ unemployedc_pct +]%): [+ unemployedc_income +] resources (dues rate: [+ dues_unemployedc +])
 
-~ New Middle Class ([+ new_middle_spd +]%): [+ new_middle_income +] resources (dues rate: [+ dues_new_middle +])
+~ New Middle Class ([+ new_middle_pct +]%): [+ new_middle_income +] resources (dues rate: [+ dues_new_middle +])
 
-~ Old Middle Class ([+ old_middle_spd +]%): [+ old_middle_income +] resources (dues rate: [+ dues_old_middle +])
+~ Old Middle Class ([+ old_middle_pct +]%): [+ old_middle_income +] resources (dues rate: [+ dues_old_middle +])
 
-~ Rural ([+ rural_spd +]%): [+ rural_income +] resources (dues rate: [+ dues_rural +])
+~ Rural ([+ rural_pct +]%): [+ rural_income +] resources (dues rate: [+ dues_rural +])
 
 [? if labor_dissent >= 30 : **Warning:** High labor dissent is reducing collection rates among workers and unemployed. ?]
 [? if reformist_dissent >= 30 : **Warning:** High reformist dissent is reducing collection rates among new middle class. ?]
@@ -234,10 +241,10 @@ go-to: adjust_dues_menu
 Rural dues reduced. This makes the party more accessible to the countryside.
 
 @austerity
-subtitle: Reduce party operating expenses
+subtitle: Reduce party operating expenses (You are warned, increases timer of each party card by one each.)
 choose-if: austerity_timer <= 0
 unavailable-subtitle: [? if austerity_timer > 0 : Cannot implement austerity again yet. Available in [+ austerity_timer +] turns. ?]
-on-arrival: resources += 3; reformist_dissent += 8; center_dissent += 8; austerity_timer = 24
+on-arrival: resources += 5; reformist_dissent += 8; center_dissent += 8; austerity_timer = 24; austerity_fortimers += 1
 
 The party leadership implements austerity:
 - Reduce headquarters staff
@@ -245,7 +252,7 @@ The party leadership implements austerity:
 - Limit travel expenses
 - Defer facility maintenance
 
-We save 3 resources but reformists and centrists complain about reduced effectiveness.
+We have saved 5 resources, however face criticism in the face of weakened apparatus of party.
 
 - @root: Continue.
 
@@ -253,9 +260,9 @@ We save 3 resources but reformists and centrists complain about reduced effectiv
 subtitle: Seek large donations from sympathetic wealthy individuals
 choose-if: donors_timer <= 0
 unavailable-subtitle: [? if donors_timer > 0 : Cannot approach wealthy donors again yet. Available in [+ donors_timer +] turns. ?]
-on-arrival: resources += 5; left_dissent += 10; labor_dissent += 8; reformist_dissent -= 2; donors_timer = 24
+on-arrival: resources += 3; left_dissent += 10; labor_dissent += 8; reformist_dissent -= 2; donors_timer = 24
 
-We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 5 resources.
+We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 3 resources to us.
 
 The Left wing denounces this as selling out to capitalist interests. Workers question our commitment to class struggle. Reformists appreciate the pragmatism.
 
