@@ -14,11 +14,11 @@ on-arrival: {!
     Q.bonus_dues_unemployedc = Q.bonus_dues_unemployedc || 0;
     
     // Calculate base income
-    Q.workers_income = Math.round((Q.workers_spd * Q.dues_workers * 0.04 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_workers * 2));
-    Q.unemployedc_income = Math.round((Q.unemployedc_spd * Q.dues_unemployedc * 0.03 * (1 - Q.labor_dissent * 0.005)) + (Q.bonus_dues_unemployedc * 2));
-    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.09 * (1 - Q.reformist_dissent * 0.005));
-    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.09 * (1 - Q.center_dissent * 0.005));
-    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.04 * (1 - Q.center_dissent * 0.005));
+    Q.workers_income = Math.round((Q.workers_spd * Q.dues_workers * 0.03 * (1 - Q.labor_dissent * 0.007)) + (Q.bonus_dues_workers * 2));
+    Q.unemployedc_income = Math.round((Q.unemployedc_spd * Q.dues_unemployedc * 0.03 * (1 - Q.labor_dissent * 0.007)) + (Q.bonus_dues_unemployedc * 2));
+    Q.new_middle_income = Math.round(Q.new_middle_spd * Q.dues_new_middle * 0.085 * (1 - Q.reformist_dissent * 0.006));
+    Q.old_middle_income = Math.round(Q.old_middle_spd * Q.dues_old_middle * 0.085 * (1 - Q.center_dissent * 0.006));
+    Q.rural_income = Math.round(Q.rural_spd * Q.dues_rural * 0.03 * (1 - Q.center_dissent * 0.006));
     
     // Total projected income
     Q.total_projected = Q.workers_income + Q.unemployedc_income + Q.new_middle_income + Q.old_middle_income + Q.rural_income;
@@ -70,7 +70,7 @@ What is our fundraising strategy?
 subtitle: +[+ total_projected +] resources
 choose-if: collect_timer <= 0
 unavailable-subtitle: [? if collect_timer > 0 : Cannot collect dues yet. Available in [+ collect_timer +] turns. ?]
-on-arrival: resources += total_projected; collect_timer = 48
+on-arrival: resources += total_projected; collect_timer = 40
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
