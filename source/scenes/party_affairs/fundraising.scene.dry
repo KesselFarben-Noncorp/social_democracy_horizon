@@ -77,7 +77,7 @@ What is our fundraising strategy?
 subtitle: +[+ total_projected +] resources
 choose-if: collect_timer <= 0
 unavailable-subtitle: [? if collect_timer > 0 : Cannot collect dues yet. Available in [+ collect_timer +] turns. ?]
-on-arrival: resources += total_projected; collect_timer = 40
+on-arrival: resources += total_projected; collect_timer = 40 + austerity_fortimers
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
@@ -244,7 +244,7 @@ Rural dues reduced. This makes the party more accessible to the countryside.
 subtitle: Reduce party operating expenses (You are warned, increases timer of each party card by one each.)
 choose-if: austerity_timer <= 0
 unavailable-subtitle: [? if austerity_timer > 0 : Cannot implement austerity again yet. Available in [+ austerity_timer +] turns. ?]
-on-arrival: resources += 5; reformist_dissent += 8; center_dissent += 8; austerity_timer = 24; austerity_fortimers += 1
+on-arrival: resources += 5; reformist_dissent += 8; center_dissent += 8; austerity_timer = 24 + austerity_fortimers; austerity_fortimers += 1
 
 The party leadership implements austerity:
 - Reduce headquarters staff
