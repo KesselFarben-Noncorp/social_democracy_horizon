@@ -21,14 +21,14 @@ on-arrival: {!
     Q.rural_pct       = Math.round((Q.rural_spd_normalized        || 0) * 100 * 10) / 10;
 
     // Income uses population share × SPD vote share within that class
-    Q.workers_income     = Math.round(Q.workers     * Q.workers_pct     * Q.dues_workers     * 0.0002 * (1 - Q.labor_dissent     * 0.007));
-    Q.unemployedc_income = Math.round(Q.unemployedc * Q.unemployedc_pct * Q.dues_unemployedc * 0.0003 * (1 - Q.labor_dissent     * 0.007));
-    Q.new_middle_income  = Math.round(Q.new_middle  * Q.new_middle_pct  * Q.dues_new_middle  * 0.0008 * (1 - Q.reformist_dissent * 0.006));
-    Q.old_middle_income  = Math.round(Q.old_middle  * Q.old_middle_pct  * Q.dues_old_middle  * 0.0008 * (1 - Q.center_dissent    * 0.006));
-    Q.rural_income       = Math.round(Q.rural       * Q.rural_pct       * Q.dues_rural       * 0.0003 * (1 - Q.center_dissent    * 0.006));
+    Q.workers_income     = Math.round(Q.workers     * Q.workers_pct     * Q.dues_workers     * 0.0005 * (1 - Q.labor_dissent     * 0.007));
+    Q.unemployedc_income = Math.round(Q.unemployedc * Q.unemployedc_pct * Q.dues_unemployedc * 0.0004 * (1 - Q.labor_dissent     * 0.007));
+    Q.new_middle_income  = Math.round(Q.new_middle  * Q.new_middle_pct  * Q.dues_new_middle  * 0.0009 * (1 - Q.reformist_dissent * 0.006));
+    Q.old_middle_income  = Math.round(Q.old_middle  * Q.old_middle_pct  * Q.dues_old_middle  * 0.00018 * (1 - Q.center_dissent    * 0.006));
+    Q.rural_income       = Math.round(Q.rural       * Q.rural_pct       * Q.dues_rural       * 0.0002 * (1 - Q.center_dissent    * 0.006));
     
     // Total projected income
-    Q.total_projected = Q.workers_income + Q.unemployedc_income + Q.new_middle_income + Q.old_middle_income + Q.rural_income;
+    Q.total_projected = (Q.workers_income + Q.bonus_dues_workers) + (Q.unemployedc_income + Q.bonus_dues_unemployedc) + Q.new_middle_income + Q.old_middle_income + Q.rural_income;
     
     // Initialize separate timers if not set
     if (!Q.collect_timer) { Q.collect_timer = 0; }
@@ -66,10 +66,10 @@ Breakdown by demographic:
 
 What is our fundraising strategy?
 
-- @collect_standard: Collect current dues ([+ total_projected +] resources). [? if collect_timer > 0 : (Available in [+ collect_timer +] months) ?]
+- @collect_standard: Collect current dues ([+ total_projected +] resources). [? if collect_timer > 0 : (Available in [+ collect_timer +] turns) ?]
 - @adjust_dues: Adjust dues rates by demographic.
-- @austerity: Party austerity measures (reduce operating costs). [? if austerity_timer > 0 : (Available in [+ austerity_timer +] months) ?]
-- @wealthy_donors: Seek donations from wealthy sympathizers. [? if donors_timer > 0 : (Available in [+ donors_timer +] months) ?]
+- @austerity: Party austerity measures (reduce operating costs). [? if austerity_timer > 0 : (Available in [+ austerity_timer +] turns) ?]
+- @wealthy_donors: Seek donations from wealthy sympathizers. [? if donors_timer > 0 : (Available in [+ donors_timer +] turns) ?]
 - @root: Defer decision.
 - @easy_discard
 
