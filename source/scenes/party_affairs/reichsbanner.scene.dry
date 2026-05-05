@@ -4,7 +4,7 @@ is-card: true
 tags: party_affairs
 view-if: reichsbanner_timer <= 0
 card-image: img/reichsbanner.jpg
-on-arrival: month_actions += 1; reichsbanner_timer += 6; rb_militarization_cost = 2 if rb_militancy > 0.1 else rb_militarization_cost = 1; rb_militarization_cost = 3 if rb_militancy > 0.25; rb_militarization_cost = 4 if rb_militancy > 0.40; rb_militarization_cost = 5 if rb_militancy > 0.50
+on-arrival: month_actions += 1; reichsbanner_timer += 6
 #subtitle: Paramilitary organizing in defense of the republic.
 
 = Reichsbanner
@@ -18,11 +18,15 @@ The *Reichsbanner Schwarz-Rot-Gold* is a mass organization for the defense of th
 [? if merger_happened or ddp_name = "DStP": The *Jungdo* - national - liberal organization of the VNR and now of DStP. Compared to the other paramilitaries, it's more of semi paramilitary organization with no fireguns or weaponry whatsover. Despite it's non militant nature, Jungdo is quite anti semitic when it comes down to the German Question and membership of Jungdo. ?]
 
 - @militant: Fund more military-style training and equipment for the Reichsbanner.
-- @militant_2: Use our existing resources to support more training for the Reichsbanner.
-- @same: Keep the Reichsbanner as it is.
+- @militant_2: Fund more military-style training and equipment for the Reichsbanner.
+- @militant_3: Fund more military-style training and equipment for the Reichsbanner.
+- @militant_4: Fund more military-style training and equipment for the Reichsbanner.
+- @militant_5: Fund more military-style training and equipment for the Reichsbanner.
 - @cut_rb: Cut funding for the Reichsbanner.
 - @women_rb
+- @trans_rb: Allow transgenders to join the organization
 - @jungdo: Fund the Jungdo organization with equipment
+- @same: Keep the Reichsbanner as it is.
 - @easy_discard
 - @cancel_advisor_action
 
@@ -37,12 +41,12 @@ on-arrival: resources -= 1; jungdo_strength += 20; jungdo_militancy += 0.2; ddp_
 
 We have decided to fund Jungdo, our counterpart from the nationalists. Arthur Mahraun is personally thanking us, though this strengthtens nationalists in our allied Democratic / Liberal party.
 
-
 @militant
-choose-if: resources >= rb_militarization_cost
-unavailable-subtitle: Not enough resources ([+ rb_militarization_cost +] needed).
-subtitle: -[+ rb_militarization_cost +] resources
-on-arrival: resources -= rb_militarization_cost; rb_investment += 1; rb_strength += 100; rb_militancy += 0.02; left_strength += 2; left_dissent -= 2; reformist_dissent += 5; spd_militancy += 0.05; workers_spd += 2*(1-dissent); unemployed_spd += 2*(1-dissent); z_relation -= 5 if historical_mode; ddp_relation -= 3 if historical_mode; z_dissent += 1 if historical_mode; ddp_dissent += 1 if historical_mode
+view-if: rb_militancy >= 0
+choose-if: resources >= 1
+unavailable-subtitle: Not enough resources (1) needed.
+subtitle: -1 resources
+on-arrival: resources -= 1; rb_investment += 1; rb_strength += 100; rb_militancy += 0.02; left_strength += 2; left_dissent -= 2; reformist_dissent += 5; spd_militancy += 0.05; workers_spd += 2*(1-dissent); unemployed_spd += 2*(1-dissent); z_relation -= 5 if historical_mode; ddp_relation -= 3 if historical_mode; z_dissent += 1 if historical_mode; ddp_dissent += 1 if historical_mode
 
 Some in our party decry the increasing militarization of the Reichsbanner. They say it is emulating the right-wing nationalists or the communists, and risks alienating our allies in the centrist parties. On the other hand, more left-leaning radicals are being lured to our organizations, away from the communists.
 
@@ -50,18 +54,48 @@ Some in our party decry the increasing militarization of the Reichsbanner. They 
 
 
 @militant_2
-view-if: funded_reichsbanner >= 1
-on-arrival: rb_militancy += 0.01; funded_reichsbanner -= 1
+view-if: rb_militancy >= 0.10
+choose-if: resources >= 3
+unavailable-subtitle: Not enough resources (3) needed.
+subtitle: -3 resources
+on-arrival: resources -= 3; rb_investment += 1; rb_strength += 150; rb_militancy += 0.04; left_strength += 2; left_dissent -= 2; reformist_dissent += 5; spd_militancy += 0.08; workers_spd += 2*(1-dissent); unemployed_spd += 2*(1-dissent); z_relation -= 5 if historical_mode; ddp_relation -= 3 if historical_mode; z_dissent += 1 if historical_mode; ddp_dissent += 1 if historical_mode
 
-As we have already funded resources towards the Reichsbanner, we can invest in building up their militancy.
+Some in our party decry the increasing militarization of the Reichsbanner. They say it is emulating the right-wing nationalists or the communists, and risks alienating our allies in the centrist parties. On the other hand, more left-leaning radicals are being lured to our organizations, away from the communists.
 
+[? if historical_mode : The Center Party decries the militarization of the Reichsbanner, and its members are leaving the republican organization. Same can be said about Democrats of the DDP. ?]
 
-@same
+@militant_3
+view-if: rb_militancy >= 0.20
+choose-if: resources >= 6
+unavailable-subtitle: Not enough resources (6) needed.
+subtitle: -6 resources
+on-arrival: resources -= 6; rb_investment += 1; rb_strength += 220; rb_militancy += 0.06; left_strength += 2; left_dissent -= 2; reformist_dissent += 5; spd_militancy += 0.08; workers_spd += 2*(1-dissent); unemployed_spd += 2*(1-dissent); z_relation -= 5 if historical_mode; ddp_relation -= 3 if historical_mode; z_dissent += 1 if historical_mode; ddp_dissent += 1 if historical_mode
 
-The Reichsbanner is already serving the purpose it needs to serve. There is no reason to change what already works.
+Some in our party decry the increasing militarization of the Reichsbanner. They say it is emulating the right-wing nationalists or the communists, and risks alienating our allies in the centrist parties. On the other hand, more left-leaning radicals are being lured to our organizations, away from the communists.
 
-- @return: Continue...
+[? if historical_mode : The Center Party decries the militarization of the Reichsbanner, and its members are leaving the republican organization. Same can be said about Democrats of the DDP. ?]
 
+@militant_4
+view-if: rb_militancy >= 0.35
+choose-if: resources >= 8
+unavailable-subtitle: Not enough resources (8) needed).
+subtitle: -8 resources
+on-arrival: resources -= 8; rb_investment += 4; rb_strength += 300; rb_militancy += 0.09; left_strength += 2; left_dissent -= 2; reformist_dissent += 10; spd_militancy += 0.08; workers_spd += 2*(1-dissent); unemployed_spd += 2*(1-dissent); z_relation -= 10 if historical_mode; ddp_relation -= 8 if historical_mode; z_dissent += 1 if historical_mode; ddp_dissent += 1 if historical_mode
+
+Some in our party decry the increasing militarization of the Reichsbanner. They say it is emulating the right-wing nationalists or the communists, and risks alienating our allies in the centrist parties. On the other hand, more left-leaning radicals are being lured to our organizations, away from the communists.
+
+[? if historical_mode : The Center Party decries the militarization of the Reichsbanner, and its members are leaving the republican organization. Same can be said about Democrats of the DDP. ?]
+
+@militant_5
+view-if: rb_militancy >= 0.60
+choose-if: resources >= 12
+unavailable-subtitle: Not enough resources (12) needed.
+subtitle: -12 =esources
+on-arrival: resources -= 12; rb_investment += 5; rb_strength += 450; rb_militancy += 0.11; left_strength += 5; left_dissent -= 5; reformist_dissent += 15; spd_militancy += 0.012; workers_spd += 2*(1-dissent); unemployed_spd += 2*(1-dissent); z_relation -= 15 if historical_mode; ddp_relation -= 10 if historical_mode; z_dissent += 1 if historical_mode; ddp_dissent += 1 if historical_mode
+
+Some in our party decry the increasing militarization of the Reichsbanner. They say it is emulating the right-wing nationalists or the communists, and risks alienating our allies in the centrist parties. On the other hand, more left-leaning radicals are being lured to our organizations, away from the communists.
+
+[? if historical_mode : The Center Party decries the militarization of the Reichsbanner, and its members are leaving the republican organization. Same can be said about Democrats of the DDP. ?]
 
 @cut_rb
 subtitle: +1 resources
@@ -76,7 +110,6 @@ subtitle: -1 resources - This might cause a backlash from existing members.
 choose-if: resources > 0
 view-if: womens_rights >= 4 and sender_advisor == 1 and iron_front_formed == 1
 on-arrival: resources -= 1; rb_militancy *= 0.85; rb_strength += 400; women_in_rb = 1; rb_militancy += 0.05 if repealed_175; rb_militancy += 0.04 if trans_rights; rb_militancy += 0.02 if reformed_183;
-go-to: homosexual if trans_rights or repealed_175 or reformed_183
 max-visits: 1
 achievement: women_reichsbanner
 
@@ -84,5 +117,18 @@ The suggestion to allow women into the Reichsbanner is ridiculed by most, except
 
 After allowing women to join, the number of comrades who leave is more than balanced out by the number of radicalized women and others who join. However, many of our departed members were veterans, and many of the new members have no experience with military-style training.
 
-@homosexual
+@trans_rb
+subtitle: -1 resources - This might cause a backlash from existing members.
+choose-if: resources > 0
+view-if: trans_rights >= 1 or repealed_175 or reformed_183 and iron_front_formed == 1
+on-arrival: resources -= 1; rb_militancy *= 0.90; rb_strength += 200; trans_in_rb = 1; rb_militancy += 0.05 if repealed_175; rb_militancy += 0.04 if trans_rights; rb_militancy += 0.02 if reformed_183;
+max-visits: 1
 achievement: anders_als_die_andern
+
+We have let trans members into our organization.
+
+@same
+
+The Reichsbanner is already serving the purpose it needs to serve. There is no reason to change what already works.
+
+- @return: Continue...
