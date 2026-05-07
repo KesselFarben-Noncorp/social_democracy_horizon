@@ -1,28 +1,36 @@
 title: Berlin Siege, Red March roars...
 subtitle: Red Front Fighters are marching in...
-view-if: communist_revolution_timer < 15 and rfb_strength + rfb_militancy > 150 and year >= 1932 and month >= 10 and april_challenge = 1
+view-if: communist_revolution_timer < 15 and rfb_strength + rfb_militancy > 150 and year >= 1932 and month >= 9 and april_challenge = 1
 tags: event
 max-visits: 1
-on-arrival: rfb_strength += 10; socialism += 20; workers_kpd += 15; rfb_strength += 150 if historical_mode
+on-arrival: rfb_strength += 10; socialism += 20; workers_kpd += 15; rfb_strength += 150 if historical_mode; rfb_strength += workers_kpd * 2
 face-image: img/mayday1933.jpg
 
 = Berlin Siege...
 
-WIP
+As Red Front Fighters, paramilitary and by now already de facto alternative armed forces in germany rivaling even Reichswehr, we were cautious of taking measures of countrywide scale. And now, this day when our fears were justified came to be true.
 
-- @berlin_survives: RFB fails to take Berlin
-- @berlin_falls: RFB takes over the Berlin
+Berlin is sieged by the Red Units against our Reichsbanner, Stalhelm and Military forces. Since we are uncoordinated , it is very well possible Reds might break the siege and enter the city, sparking civil war at once.
+
+What happens next is...
+
+- @berlin_survives: Fate of the berlin lies in...
+- @berlin_falls: Fate of the berlin lies in...
 
 @berlin_survives
 view-if: rfb_strength + rfb_militancy < rb_strength * rb_militancy + (sh_strength * sh_militancy) + (reichswehr_strength * 0.2)
 on-arrival: berlin_falls = 0; communist_revolution_timer += 10; rfb_strength -= 50
 
-We finna survive some bit.
+= Siege broken
+
+RFB retreats as our combined units survive the blockade. However question stands in whether they simply retreated or not.
 
 @berlin_falls
 view-if: rfb_strength + rfb_militancy > rb_strength * rb_militancy + (sh_strength * sh_militancy) + (reichswehr_strength * 0.2)
 on-arrival: berlin_falls = 1; kpd_relation -= 100
 
-Holy cooked bro.
+= Siege Broken
+
+RFB breaks the siege as they finally enter the Berlin and force our combined forces to retreat. It is undoubtful, that war is gonna spark.
 
 - @socfac_civilwar: It is inevitable that we must suppress it.
