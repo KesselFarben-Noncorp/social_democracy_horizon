@@ -3113,7 +3113,7 @@ function computeTarget(party, c) {
             if (Q.wp_banned) return 0;
             let middle_norm  = (Q.old_middle + Q.new_middle) / 99;
             let crisis       = 1 + (Q.inflation * 0.23) - (Q.unemployed * 0.15);
-            base = rep * 39 * nat * 25 * middle_norm * Math.max(0.3, crisis) * im.wp;
+            base = rep * 19 * nat * 17 * middle_norm * Math.max(0.3, crisis) * im.wp;
 
             let old_middle_m = 1.50 * (1 + Math.max(0, Q.inflation * 0.008)) * (Q.peoples_party === 1 ? 0.96 : 1);
             let new_middle_m = 1.30 * (Q.peoples_party === 1 ? 0.96 : 1);
@@ -3146,7 +3146,7 @@ function computeTarget(party, c) {
         case 'sapd': {
             if (Q.sapd_banned || !Q.sapd_formed) return 0;
             let buff = Q.april_challenge === 1 ? 2.50 : 1;
-            base = soc * 30 * 2.0 * (1 + unr * 0.12) * buff * im.sapd;
+            base = soc * 19 * 2.0 * (1 + unr * 0.12) * buff * im.sapd;
 
             const class_mods = {
                 workers:     1.30 * (Q.peoples_party === 1 ? 1.07 : 1),
@@ -3696,21 +3696,21 @@ if (!Q.math_broken) {
 // === PARAMILITARY STRENGTH UPDATES ===
 
 if (Q.nsdap_banned) {
-    Q.sa_strength *= 0.70;
+    Q.sa_strength *= 0.90;
     Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
 } else {
     Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
 }
 
 if (Q.dnvp_banned || Q.sh_banned) {
-    Q.sh_strength *= 0.75;
+    Q.sh_strength *= 0.95;
     Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
 } else {
     Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
 }
 
 if (Q.rfb_banned && !Q.april_challenge) {
-    Q.rfb_strength *= 0.65;
+    Q.rfb_strength *= 0.95;
     Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
 } else if (Q.rfb_true_ban && Q.april_challenge) {
     Q.rfb_strength *= 0.95;
@@ -3720,14 +3720,14 @@ if (Q.rfb_banned && !Q.april_challenge) {
 }
 
 if (Q.rb_banned) {
-    Q.rb_strength *= 0.65;
+    Q.rb_strength *= 0.90;
     Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
 } else {
     Q.rb_strength += Q.random_factor(Q.unrest_factor / 20, 0.3);
 }
 
 if (Q.jungdo_banned) {
-    Q.jungdo_strength *= 0.65;
+    Q.jungdo_strength *= 0.90;
     Q.jungdo_militancy = Math.max(0, Q.rfb_militancy - 0.6);
 } else {
     Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
