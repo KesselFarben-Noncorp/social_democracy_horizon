@@ -1,0 +1,28 @@
+title: Berlin Siege, Red March roars...
+subtitle: Red Front Fighters are marching in...
+view-if: communist_revolution_timer < 15 and rfb_strength + rfb_militancy > 150
+tags: event
+max-visits: 1
+on-arrival: rfb_strength += 10; socialism += 20; workers_kpd += 15; rfb_strength += 150 if historical_mode
+face-image: img/mayday1933.jpg
+
+= Berlin Siege...
+
+WIP
+
+- @berlin_survives: RFB fails to take Berlin
+- @berlin_falls: RFB takes over the Berlin
+
+@berlin_survives
+view-if: rfb_strength + rfb_militancy < rb_strength * rb_militancy + (sh_strength * sh_militancy) + (reichswehr_strength * 0.2)
+on-arrival: berlin_falls = 0; communist_revolution_timer += 10; rfb_strength -= 50
+
+We finna survive some bit.
+
+@berlin_falls
+view-if: rfb_strength + rfb_militancy > rb_strength * rb_militancy + (sh_strength * sh_militancy) + (reichswehr_strength * 0.2)
+on-arrival: berlin_falls = 1; kpd_relation -= 100
+
+Holy cooked bro.
+
+- @socfac_civilwar: It is inevitable that we must suppress it.
