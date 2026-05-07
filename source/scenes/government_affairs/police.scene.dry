@@ -64,10 +64,10 @@ Unfortunately, our investigations have failed to turn up anything. Rumors are th
 @investigate_far_left
 view-if: far_left_investigated < 3 and april_challenge = 1
 on-arrival: far_left_investigated += 1 if interior_police_loyalty >= 0.55
-go-to: investigate_far_left_success if interior_police_loyalty >= 0.55; investigate_far_left_failure if interior_police_loyalty < 0.55
+go-to: investigate_far_left_success if interior_police_loyalty >= 0.55 and kpd_intel > 0; investigate_far_left_failure if interior_police_loyalty < 0.55
 
 @investigate_far_left_success
-on-arrival: rfb_strength -= 30; kpd_relation -= 5
+on-arrival: rfb_strength -= 30 * far_left_investigated; kpd_relation -= 5
 
 [? if far_left_investigated = 1 : We have uncovered RFB weapons caches in Berlin and Hamburg. ?]
 [? if far_left_investigated = 2 : We have documented KPD coordination with Soviet intelligence. ?]
@@ -75,4 +75,4 @@ on-arrival: rfb_strength -= 30; kpd_relation -= 5
 
 @investigate_far_left_failure
 
-Our investigators were unable to penetrate KPD security. The operation has failed.
+Our investigators were unable to penetrate KPD security. The operation has failed. Perhaps, we could spy on them.
