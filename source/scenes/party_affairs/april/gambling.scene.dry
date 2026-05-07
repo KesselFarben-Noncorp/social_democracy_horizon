@@ -1,6 +1,6 @@
 Title: Visit the Las Vegas
 subtitle: Of the future? By the future.
-view-if: april_challenge = 1 and gambling_timer = 0
+view-if: april_challenge = 1 and gambling_timer = 0 and difficulty < 1
 tags: party_affairs
 is-card: true
 card-image: img/flags.jpg
@@ -25,6 +25,7 @@ Currently you have: [+ resources +] resources.
 - @put: Bid.
 - @easy_discard
 - @root: Go back.
+- @bj_room: BlackJack boy.
 
 @put
 
@@ -77,69 +78,175 @@ You are betting **[+ current_bid +]** resources. The lights flicker in sync with
 
 @start
 on-arrival: {!
-if (Q.current_bid > Q.resources) {
-    Q.current_bid = Q.resources;
-}
 
-// 1. Get the random roll using the engine's built-in factor
-// This replaces the broken _mkrng and bitwise logic
-const roll = Q.random_factor; 
+// ── GUARD: cap bid to what player actually has ───────────────────────────────
+if (Q.current_bid > Q.resources) Q.current_bid = Q.resources;
+if (Q.current_bid <= 0) { Q.gambling_result = "NO_BET"; return; }
 
-// 2. Determine Economic Luck Factor
-// Note: Ensure Q.cycle_phase matches the variable name used in your RNGizer
-let luck_modifier = 1.0;
-if (Q.cycle_phase === "growth") luck_modifier = 1.1;
-else if (Q.cycle_phase === "overheating") luck_modifier = 1.25;
-else if (Q.cycle_phase === "correction") luck_modifier = 0.85;
-else if (Q.cycle_phase === "depression") luck_modifier = 0.60;
-else if (Q.cycle_phase === "stagflation") luck_modifier = 0.70;
+// ════════════════════════════════════════════════════════════════════════════
+// 1. BASE ROLL  (0–1 uniform)
+// ════════════════════════════════════════════════════════════════════════════
+const roll = Q.random_factor;   // engine-supplied
 
-// 3. Calculate Score and Payout Multiplier
-const final_score = roll * luck_modifier;
-let payout_mult = 0;
+// ════════════════════════════════════════════════════════════════════════════
+// 2. HOUSE EDGE  — casino always has a structural edge, but it shifts with the
+//    economy.  In a boom the house loosens to attract whales; in depression
+//    it tightens because it needs cash too.
+// ════════════════════════════════════════════════════════════════════════════
+let house_edge = 0.06;   // 6 % baseline (realistic Vegas take)
 
-if (final_score > 0.95) {
-    payout_mult = 3.0; // 3x return
-    Q.gambling_result = "JACKPOT";
-} else if (final_score > 0.55) {
-    payout_mult = 1.5; // 1.5x return
-    Q.gambling_result = "WIN";
-} else if (final_score > 0.2) {
-    payout_mult = 0;   // Lose the bet
-    Q.gambling_result = "LOSS";
+if      (Q.phase === "growth")        house_edge = 0.04;   // loose money era
+else if (Q.phase === "overheating")   house_edge = 0.05;   // slight tightening
+else if (Q.phase === "hyperinflation")house_edge = 0.12;   // house hikes fees vs inflation
+else if (Q.phase === "correction")    house_edge = 0.08;   // cautious house
+else if (Q.phase === "depression")    house_edge = 0.14;   // house is desperate too
+else if (Q.phase === "stagflation")   house_edge = 0.11;   // high costs passed on
+
+// ════════════════════════════════════════════════════════════════════════════
+// 3. LUCK MODIFIERS  — real economic signals affect gambler behavior & odds
+// ════════════════════════════════════════════════════════════════════════════
+
+// 3a. Consumer confidence proxy:
+//     Low unemployment + low inflation = people feel lucky & tip more → slight edge up
+const confidence = Math.max(0, Math.min(1,
+    1 - (Q.unemployed / 30) - (Math.max(0, Q.inflation - 3) / 40)
+));
+
+// 3b. Credit expansion: easy money era → gamblers bet recklessly, lose more
+//     But jackpots are bigger because the pot is inflated
+const credit_boost = (Q.credit_expansion || 0) * 0.15;
+
+// 3c. Inflation tax on winnings: if inflation is high, real value of payout
+//     is eroded; modeled as a multiplier on the payout, not the odds
+const inflation_payout_tax = Math.max(0.5,
+    1 - Math.max(0, Q.inflation - 5) * 0.015
+);
+
+// 3d. Capital flight / instability penalty: when capital_pressure is high,
+//     the casino itself is unstable — rigged machines, unpaid jackpots
+const instability_penalty = Math.min(0.20, (Q.capital_pressure || 0) * 0.18);
+
+// 3e. Business cycle sinusoidal luck — the cycle literally modulates the roll
+//     (small effect, but real — flush times = looser play)
+const cycle_luck = (Q.business_cycle || 0) * 0.04;
+
+// 3f. Expectations: unanchored inflation expectations = chaotic payouts
+const chaos_factor = Q.expectations_anchored ? 0 : 0.08;
+const chaos_swing  = (Math.random() * 2 - 1) * chaos_factor;
+
+// ── Compose effective roll ───────────────────────────────────────────────────
+let eff_roll = roll
+    + confidence    * 0.06
+    + credit_boost
+    + cycle_luck
+    + chaos_swing
+    - house_edge
+    - instability_penalty;
+
+// Clamp to [0, 1]
+eff_roll = Math.max(0, Math.min(1, eff_roll));
+
+// ════════════════════════════════════════════════════════════════════════════
+// 4. OUTCOME THRESHOLDS
+//    Calibrated so that baseline (no modifiers) gives roughly:
+//      JACKPOT      ~4 %   (eff_roll > 0.94)
+//      WIN          ~28 %  (0.66 – 0.94)
+//      LOSS         ~48 %  (0.18 – 0.66)
+//      CRITICAL     ~20 %  (eff_roll < 0.18)
+//    Economy shifts these bands meaningfully.
+// ════════════════════════════════════════════════════════════════════════════
+let payout_mult;
+
+if (eff_roll > 0.94) {
+    payout_mult          = 3.0 * inflation_payout_tax;
+    Q.gambling_result    = "JACKPOT";
+} else if (eff_roll > 0.66) {
+    payout_mult          = 1.5 * inflation_payout_tax;
+    Q.gambling_result    = "WIN";
+} else if (eff_roll > 0.18) {
+    payout_mult          = 0;      // lose the bet, nothing extra
+    Q.gambling_result    = "LOSS";
 } else {
-    payout_mult = -0.5; // Lose bet + penalty
-    Q.gambling_result = "CRITICAL_LOSS";
+    // Critical loss: house charges "maintenance fees" — scaled to instability
+    const penalty_pct    = 0.30 + instability_penalty * 1.5;
+    payout_mult          = -penalty_pct;
+    Q.gambling_result    = "CRITICAL_LOSS";
 }
 
-// 4. Update Resources 
-// Formula: current_bid * multiplier. 
-// If multiplier is 0, net_change is -bid. 
-// If multiplier is 3.0, net_change is +2x bid.
-const net_change = Math.floor(Q.current_bid * (payout_mult - 1));
-Q.resources += net_change;
-Q.last_payout = net_change;
+// ════════════════════════════════════════════════════════════════════════════
+// 5. RESOURCE SETTLEMENT
+// ════════════════════════════════════════════════════════════════════════════
+const net_change     = Math.floor(Q.current_bid * (payout_mult - 1));
+Q.resources         += net_change;
+Q.last_payout        = net_change;
+Q.current_bid        = 0;
 
-// Reset bid after the round so they don't bet money they no longer have
-Q.current_bid = 0;
+// ════════════════════════════════════════════════════════════════════════════
+// 6. MACROECONOMIC BLOWBACK
+//    The casino floor is part of the economy. Gambling activity has real
+//    effects — especially at scale or in extremes.
+// ════════════════════════════════════════════════════════════════════════════
 
-// 5. Macroeconomic Side Effects
-Q.demand_impulse += 0.05;
-Q.capital_pressure += 0.02;
+// Gambling is consumption spending → demand impulse
+Q.demand_impulse = (Q.demand_impulse || 0) + 0.04;
 
+// Capital churn at the tables → minor capital pressure
+Q.capital_pressure = (Q.capital_pressure || 0) + 0.015;
+
+// Jackpots create local spending sprees → small additional demand
+if (Q.gambling_result === "JACKPOT") {
+    Q.demand_impulse  += 0.06;
+    Q.distribution_shift = (Q.distribution_shift || 0) + 0.05; // inequality tick
+}
+
+// Critical losses = household distress → pulls demand down next cycle
+if (Q.gambling_result === "CRITICAL_LOSS") {
+    Q.demand_impulse  -= 0.05;
+    Q.fiscal_stance   = (Q.fiscal_stance || 0) - 0.02; // pressure on social spending
+}
+
+// High-inflation environment: gamblers chase nominal wins, fueling price pressure
 if (Q.inflation > 8) {
-    Q.price_pressure += 0.03;
+    Q.price_pressure = (Q.price_pressure || 0) + 0.04;
 }
+
+// Depression gambling: people gambling out of desperation → no demand benefit
+if (Q.phase === "depression") {
+    Q.demand_impulse -= 0.04;   // net zero or negative
+}
+
+// Store debug info players can inspect
+Q.last_eff_roll      = Math.round(eff_roll * 1000) / 1000;
+Q.last_house_edge    = Math.round(house_edge * 1000) / 1000;
+Q.last_confidence    = Math.round(confidence * 1000) / 1000;
+
 !}
 
-[? if gambling_result = "JACKPOT" : **JACKPOT!** The machine screams in digital delight. ?]
-[? if gambling_result = "WIN" : **A Win!** You collect your shares. ?]
-[? if gambling_result = "LOSS" : **Loss.** The screen turns red. ?]
-[? if gambling_result = "CRITICAL_LOSS" : **Disaster.** Not only did you lose, the house charged you "maintenance fees." ?]
+= Results
 
-[? if last_payout > 0 : You gained [+ last_payout +] resources. ?][? if last_payout < 0 : You lost [+ last_payout +] resources. ?][? if last_payout = 0 : You broke even. ?]
+[? if gambling_result = "JACKPOT" : 🎰 **JACKPOT!** The machine erupts. 
+[? if phase = "hyperinflation" : *Though by the time you cash out, inflation has already eaten 
+a slice.* ?] ?]
 
-Current Resources: [+ resources +]
+[? if gambling_result = "WIN" : ✅ **A Win.** The ticker smiles on you tonight. 
+[? if phase = "overheating" : *Easy money was always out there.* ?] ?]
+
+[? if gambling_result = "LOSS" : ❌ **Loss.** The screen goes red.
+[? if phase = "depression" : *Everyone's losing something these days.* ?] ?]
+
+[? if gambling_result = "CRITICAL_LOSS" : 💀 **Disaster.** The house charged 
+"[? if phase = "stagflation" : stagflation surcharge ?]
+[? if phase = "hyperinflation" : currency adjustment fee ?]
+[? if phase = "depression" : liquidity recovery levy ?]
+maintenance fees."?]
+
+[? if last_payout > 0 : You gained **[+ last_payout +]** resources. ?]
+[? if last_payout < 0 : You lost **[+ last_payout +]** resources. ?]
+[? if last_payout = 0 : You broke even. ?]
+
+*House edge tonight: [+ last_house_edge +] | Your confidence read: [+ last_confidence +] | Effective roll: [+ last_eff_roll +]*
+
+Resources: **[+ resources +]**
 
 ...
 
@@ -153,3 +260,316 @@ Then my crush turned down me. <br>
 
 - @put: Play again?
 - @root: Leave the floor.
+
+
+
+
+
+
+
+@bj_room
+
+= The Blackjack Table
+
+The felt is green under fluorescent light. A dealer waits, impassive.
+The national economy hums somewhere behind the ventilation system.
+
+You have **[+ resources +]** resources.
+Current phase: **[+ phase +]**
+
+- @bj_bet_menu: Take a seat and place a bet.
+- @room: Back to room
+- @easy_discard
+- @root: Walk away.
+
+
+@bj_bet_menu
+
+= Place Your Bet
+
+How much are you putting in?
+
+Current bet: **[+ current_bid +]**
+
+- @bj_add_1: +1 resource
+- @bj_add_5: +5 resources
+- @bj_add_10: +10 resources
+- @bj_add_25: +25 resources
+- @bj_all_in: ALL IN ([+ resources +])
+- @bj_clear_bet: Clear bet.
+- @bj_deal: Deal the cards.
+- @bj_room: Actually, never mind.
+
+
+@bj_add_1
+choose-if: resources > 0 and current_bid < resources
+on-arrival: current_bid += 1
+go-to: bj_bet_menu
+
+@bj_add_5
+choose-if: resources > 4 and current_bid < resources
+on-arrival: current_bid += 5
+go-to: bj_bet_menu
+
+@bj_add_10
+choose-if: resources > 9 and current_bid < resources
+on-arrival: current_bid += 10
+go-to: bj_bet_menu
+
+@bj_add_25
+choose-if: resources > 24 and current_bid < resources
+on-arrival: current_bid += 25
+go-to: bj_bet_menu
+
+@bj_all_in
+choose-if: resources > 0
+on-arrival: current_bid = resources
+go-to: bj_bet_menu
+
+@bj_clear_bet
+on-arrival: current_bid = 0
+go-to: bj_bet_menu
+
+
+@bj_deal
+choose-if: current_bid > 0 and current_bid <= resources
+on-arrival: {!
+
+// ══════════════════════════════════════════════════════════════════════
+// BUILD & SHUFFLE DECK
+// ══════════════════════════════════════════════════════════════════════
+const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const SUITS = ["♠","♥","♦","♣"];
+let deck = [];
+for (const s of SUITS) for (const r of RANKS) deck.push(r + s);
+for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// CARD HELPERS
+// ══════════════════════════════════════════════════════════════════════
+function rankVal(card) {
+    const r = card.slice(0, -1); // strip suit
+    if (["J","Q","K"].includes(r)) return 10;
+    if (r === "A") return 11;
+    return parseInt(r);
+}
+function handTotal(hand) {
+    let total = 0, aces = 0;
+    for (const c of hand) {
+        total += rankVal(c);
+        if (c.startsWith("A")) aces++;
+    }
+    while (total > 21 && aces > 0) { total -= 10; aces--; }
+    return total;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DEAL INITIAL HANDS
+// ══════════════════════════════════════════════════════════════════════
+const p1 = deck.shift(), d1 = deck.shift();
+const p2 = deck.shift(), d2 = deck.shift();
+
+let playerHand = [p1, p2];
+let dealerHand = [d1, d2];
+
+// ══════════════════════════════════════════════════════════════════════
+// ECONOMIC MODIFIERS (mirrors casino redesign)
+// ══════════════════════════════════════════════════════════════════════
+const phaseEdge = {
+    growth: 0.04, overheating: 0.05, hyperinflation: 0.12,
+    correction: 0.08, depression: 0.14, stagflation: 0.11
+};
+const house_edge = phaseEdge[Q.phase] || 0.06;
+
+const confidence = Math.max(0, Math.min(1,
+    1 - (Q.unemployed / 30) - (Math.max(0, Q.inflation - 3) / 40)
+));
+const inflation_payout_tax = Math.max(0.5,
+    1 - Math.max(0, Q.inflation - 5) * 0.015
+);
+const instability = Math.min(0.20, (Q.capital_pressure || 0) * 0.18);
+const credit_boost = (Q.credit_expansion || 0) * 0.08;
+const cycle_luck = (Q.business_cycle || 0) * 0.03;
+const chaos = Q.expectations_anchored ? 0 : (Math.random() * 2 - 1) * 0.06;
+
+// ══════════════════════════════════════════════════════════════════════
+// PLAYER STRATEGY SIMULATION
+// The player uses basic strategy adjusted by economic "desperation factor."
+// Desperate economies = players take more risks (hit on 15 vs dealer 10).
+// ══════════════════════════════════════════════════════════════════════
+const desperation = Math.min(1,
+    (Q.unemployed / 25) + Math.max(0, -Q.economic_growth / 8)
+);
+const hit_threshold = Math.floor(17 - desperation * 3); // 17 normal, as low as 14 in depression
+
+let playerBust = false;
+// Hit loop
+for (let i = 0; i < 6; i++) {
+    const pt = handTotal(playerHand);
+    if (pt >= 21) break;
+    // Stand if above threshold; also factor in economic luck nudge on borderline hands
+    const luck_nudge = (Math.random() * 2 - 1) * (credit_boost + cycle_luck) * 3;
+    const effective_threshold = hit_threshold + Math.round(luck_nudge);
+    if (pt >= Math.max(12, effective_threshold)) break;
+    playerHand.push(deck.shift());
+}
+const pTotal = handTotal(playerHand);
+if (pTotal > 21) playerBust = true;
+
+// ══════════════════════════════════════════════════════════════════════
+// DEALER PLAYS (hits until 17+, hits soft 17)
+// ══════════════════════════════════════════════════════════════════════
+function isSoft17(hand) {
+    if (handTotal(hand) !== 17) return false;
+    return hand.some(c => c.startsWith("A"));
+}
+while (handTotal(dealerHand) < 17 || isSoft17(dealerHand)) {
+    dealerHand.push(deck.shift());
+}
+const dTotal = handTotal(dealerHand);
+const dealerBust = dTotal > 21;
+
+// ══════════════════════════════════════════════════════════════════════
+// DETERMINE OUTCOME
+// ══════════════════════════════════════════════════════════════════════
+let payout_mult = 0;
+let outcome = "";
+
+const naturalBJ = (pTotal === 21 && playerHand.length === 2);
+const dealerBJ  = (dTotal === 21 && dealerHand.length === 2);
+
+if (naturalBJ && !dealerBJ) {
+    outcome = "BLACKJACK";
+    payout_mult = 1.5 * inflation_payout_tax;
+} else if (naturalBJ && dealerBJ) {
+    outcome = "PUSH";
+    payout_mult = 0;
+} else if (playerBust) {
+    outcome = "BUST";
+    payout_mult = -1;
+} else if (dealerBust) {
+    outcome = "WIN";
+    payout_mult = 1.0 * inflation_payout_tax;
+} else if (pTotal > dTotal) {
+    outcome = "WIN";
+    payout_mult = 1.0 * inflation_payout_tax;
+} else if (pTotal === dTotal) {
+    outcome = "PUSH";
+    payout_mult = 0;
+} else {
+    outcome = "LOSE";
+    payout_mult = -1;
+}
+
+// Economic chaos can flip a borderline loss to a push (unanchored markets = wild)
+if (!Q.expectations_anchored && outcome === "LOSE" && dTotal - pTotal <= 2) {
+    if (Math.random() < 0.18) { outcome = "PUSH"; payout_mult = 0; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SETTLE RESOURCES
+// ══════════════════════════════════════════════════════════════════════
+const net = Math.floor(Q.current_bid * payout_mult);
+Q.resources += net;
+Q.bj_last_net = net;
+Q.bj_result = outcome;
+Q.bj_player_total = pTotal;
+Q.bj_dealer_total = dTotal;
+
+// Store card display strings (first 4 cards visible, rest summarised)
+Q.bj_player_cards = playerHand.join(" ");
+Q.bj_dealer_cards = dealerHand.join(" ");
+Q.bj_player_count = playerHand.length;
+Q.bj_dealer_count = dealerHand.length;
+
+// ══════════════════════════════════════════════════════════════════════
+// MACROECONOMIC BLOWBACK
+// ══════════════════════════════════════════════════════════════════════
+Q.demand_impulse = (Q.demand_impulse || 0) + 0.04;
+Q.capital_pressure = (Q.capital_pressure || 0) + 0.015;
+
+if (outcome === "BLACKJACK" || outcome === "WIN") {
+    Q.demand_impulse += 0.05;
+    if (Q.phase === "depression") Q.demand_impulse -= 0.04;
+}
+if (outcome === "BUST" || outcome === "LOSE") {
+    Q.demand_impulse -= 0.04;
+    Q.fiscal_stance = (Q.fiscal_stance || 0) - 0.02;
+}
+if (outcome === "BLACKJACK") {
+    Q.distribution_shift = (Q.distribution_shift || 0) + 0.05;
+}
+if (Q.inflation > 8) {
+    Q.price_pressure = (Q.price_pressure || 0) + 0.04;
+}
+if (Q.phase === "depression") {
+    Q.demand_impulse -= 0.03;
+}
+
+// Debug
+Q.bj_house_edge = Math.round(house_edge * 1000) / 1000;
+Q.bj_confidence = Math.round(confidence * 1000) / 1000;
+Q.bj_inflation_tax = Math.round(inflation_payout_tax * 1000) / 1000;
+
+Q.current_bid = 0;
+
+!}
+go-to: bj_result
+
+
+@bj_result
+
+= The Hand
+
+**Your cards:** [+ bj_player_cards +]
+**Total: [+ bj_player_total +]**
+
+**Dealer's cards:** [+ bj_dealer_cards +]
+**Total: [+ bj_dealer_total +]**
+
+...
+
+[? if bj_result = "BLACKJACK" : ✦ **BLACKJACK.** Natural 21. The table pays 3 to 2.
+[? if phase = "hyperinflation" : *The chips are warm. Inflation is warmer.* ?]
+[? if phase = "growth" : *The room applauds. Someone orders champagne.* ?] ?]
+
+[? if bj_result = "WIN" : ✅ **You win.**
+[? if phase = "overheating" : *Easy money. Everyone's winning something these days.* ?]
+[? if phase = "stagflation" : *A small mercy in a bad economy.* ?]
+[? if phase = "correction" : *The table gives back a little of what the market took.* ?] ?]
+
+[? if bj_result = "PUSH" : 🤝 **Push.** Tied with the dealer. Your bet is returned.
+[? if expectations_anchored = 0 : *The unanchored market swings and somehow finds equilibrium here.* ?] ?]
+
+[? if bj_result = "BUST" : 💥 **Bust.** Over 21. The chips slide away.
+[? if phase = "depression" : *You hit too hard. Everyone does, eventually.* ?]
+[? if phase = "hyperinflation" : *You were chasing a number that kept moving.* ?] ?]
+
+[? if bj_result = "LOSE" : ❌ **Dealer wins.**
+[? if phase = "depression" : *Everyone's losing something these days.* ?]
+[? if phase = "stagflation" : *High costs, low returns. The table mirrors the economy.* ?] ?]
+
+
+===
+
+
+[? if bj_last_net > 0 : You gained **[+ bj_last_net +]** resources. ?]
+[? if bj_last_net < 0 : You lost **[+ bj_last_net +]** resources. ?]
+[? if bj_last_net = 0 : You broke even. Bet returned. ?]
+
+**Resources: [+ resources +]**
+
+*House edge: [+ bj_house_edge +] | Confidence: [+ bj_confidence +] | Inflation tax: [+ bj_inflation_tax +]*
+
+...
+
+=== Same old song
+
+The dealer sweeps. The cards reset. The economy keeps moving.
+
+- @bj_bet_menu: Play another hand.
+- @room: Back to the room
+- @root: Cash out and leave.
