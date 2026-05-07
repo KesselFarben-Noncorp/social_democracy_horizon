@@ -3,135 +3,62 @@ new-page: true
 go-to: eg_menu
 on-arrival: {!
 Q.game_over = 1;
-// Achievements:
-// Große Koalition - form a grand coalition
-// Eiserne Front - Form the Iron Front.
 this.achieve('game_completed');
 
-// Conservative Revolution
-if (Q.dnvp_votes >= 20) {
-    this.achieve('konservolution');
-}
+if (Q.dnvp_votes >= 20)                              this.achieve('konservolution');
+if (Q.nsdap_votes >= 30)                             this.achieve('durchbruch');
+if (Q.president == 'Braun' && Q.chancellor == 'Braun' && Q.spd_prussia)
+                                                     this.achieve('red_tzar_of_prussia');
+if (Q.long_war)                                      this.achieve('civil_war');
+if (Q.president === "Gustav Noske" && Q.historical_mode === 1 &&
+    Q.civil_war_end === "republic" || Q.game_over === 1)
+                                                     this.achieve('noske_leader_historical');
+if (Q.republic_victory)                              this.achieve('victory_for_the_republic');
+if (Q.year >= 1932 && Q.unemployed < 8.6 && Q.budget > 0 && Q.inflation < 5)
+                                                     this.achieve('wirtschaftswunder');
+if (Q.republic_victory && Q.resist_coup)             this.achieve('bollwerk_der_demokratie');
+if (Q.homosexual_rights >= 2)                        this.achieve('hirschfeld');
+if ((Q.womens_work && Q.womens_rights >= 5) || (Q.abortion_rights && Q.womens_rights >= 3))
+                                                     this.achieve('equality');
+if (Q.chancellor == "Thälmann" || Q.president == "Thälmann")
+                                                     this.achieve('sohn_seiner_klasse');
 
-// National Breakthrough
-if (Q.nsdap_votes >= 30) {
-    this.achieve('durchbruch');
-}
-
-// Roter Zar von Preußen - At the end of the game, Otto Braun is president, chancellor, and minister-president of prussia at the same time.
-if (Q.president == 'Braun' && Q.chancellor == 'Braun' && Q.spd_prussia) {
-    this.achieve('red_tzar_of_prussia');
-}
-// Bürgerkrieg - enter a long civil war.
-if (Q.long_war) {
-    this.achieve('civil_war');
-}
-
-if (Q.president === "Gustav Noske" && Q.historical_mode === 1 && Q.civil_war_end === "republic" || Q.game_over === 1) {
-    this.achieve('noske_leader_historical');
-}
-
-
-// Sieg für die Republik - victory for the republic
-if (Q.republic_victory) {
-    this.achieve('victory_for_the_republic');
-}
-// Einigkeit - survive on easy without a civil war.
-// Einigkeit und Recht - survive on medium without a civil war.
-// Einigkeit und Recht und Freiheit - survive on hard without a civil war.
-
-// Einheitsfront - form a united front with the KPD, and win the civil war.
-
-// Volksfront - form a popular front government, and win the civil war.
-
-// Verfassungskoalition - form a Constitutional Coalition.
-// Wirtschaftspolitik - enact an economic plan.
-// Wirtschaftswunder - reduce unemployment below 10% and have a non-negative budget by 1933.
-if (Q.year >= 1932  && Q.unemployed < 8.6 && Q.budget > 0 && Q.inflation < 5) {
-    this.achieve('wirtschaftswunder');
-}
-// Bollwerk der Demokratie - resist the Prussian Coup, and win.
-if (Q.republic_victory && Q.resist_coup) {
-    this.achieve('bollwerk_der_demokratie');
-}
-// Der österreichische Gefreiter - deport hitler
-// Volkspartei - form a people's party
-// Hirschfeld - legalize 2 of homosexual rights and trans rights.
-if (Q.homosexual_rights >= 2) {
-    this.achieve('hirschfeld');
-}
-// Mädchen und Uniform - a woman's place is in the Reichsbanner.
-// Gleichheit - Support and enact reforms for women's rights.
-if ((Q.womens_work && Q.womens_rights >= 5) || (Q.abortion_rights && Q.womens_rights >= 3)) {
-    this.achieve('equality');
-}
-
-// Sohn seiner Klasse - elect Ernst Thälmann as president or chancellor.
-if (Q.chancellor == "Thälmann" || Q.president == "Thälmann") {
-    this.achieve('sohn_seiner_klasse');
-}
-
-// calculate normalized class voting for the achievements
 for (var c of Q.classes) {
     var class_votes = 0;
     for (var party of Q.parties) {
-        if (Q[c+'_'+party] < 0) {
-            Q[c+'_'+party] = 0;
-        }
+        if (Q[c+'_'+party] < 0) Q[c+'_'+party] = 0;
         class_votes += Q[c+'_'+party];
     }
-    for (var party of Q.parties) {
-        Q[c + '_' + party + '_normalized'] = Math.round(100*Q[c+'_'+party]/class_votes);
-    }
+    for (var party of Q.parties)
+        Q[c+'_'+party+'_normalized'] = Math.round(100 * Q[c+'_'+party] / class_votes);
 }
 
-// Die Rote Fahne - join the KPD in the May Day march.
-// Mehrheitspartei - form an SPD majority government in the Reichstag.
-// Panik im Mittelstand - have over 50% of New Middle Class support.
-if (Q.new_middle_spd_normalized && Q.new_middle_spd_normalized >= 50) {
-    this.achieve('panik_im_mittelstand');
-}
-// Bauernrevolution - have over 50% rural support.
-if (Q.rural_spd_normalized && Q.rural_spd_normalized >= 50) {
-    this.achieve('bauernrevolution');
-}
-if (Q.catholics_spd_normalized && Q.catholics_spd_normalized >= 50) {
-    this.achieve('katholischer_sozialismus');
-}
-if (Q.workers_spd_normalized >= 80 && Q.new_middle_spd_normalized <= 20 && Q.old_middle_spd_normalized <= 20 && Q.rural_spd_normalized <= 20) {
-    this.achieve('klassenkampf');
-}
-if (Q.workers_spd_normalized >= 40 && Q.new_middle_spd_normalized >= 40 && Q.old_middle_spd_normalized >= 40 && Q.rural_spd_normalized >= 40) {
-    this.achieve('grosse_volkspartei');
-}
-// Räterepublik - begin the transformation to a socialist economy.
-if (Q.spd_in_government && ((Q.nationalization_progress >= 2 && Q.economic_democracy >= 3) || (Q.nationalization_progress >= 1 && Q.economic_democracy >= 4))) {
-    this.achieve('raterepublik');
-}
-// Polykrise - survive both a fascist coup and a capital strike.
-if (Q.march_on_berlin_seen && Q.capital_strike_seen && Q.chancellor != "Hitler" && Q.president != "Hitler" && !Q.total_defeat) {
-    this.achieve("polykrise");
-}
-// Wirtschaftsexperiment - implement two different economic plans.
-if ((Q.nationalization_progress >= 1 && Q.wtb_implemented >= 1) || (Q.wtb_implemented >= 1 && Q.moderate_plan_progress >= 1) || (Q.nationalization_progress >= 1 && Q.moderate_plan_progress >= 1)) {
-    this.achieve("wirtschaftsexperiment");
-}
-// Syndikalismus - support factory takeovers by workers.
-if (Q.factory_takeovers >= 2) {
-    this.achieve("syndikalismus");
-}
-// Commonwealth - people's true unions.
-if (Q.commonwealth_cooperation >= 2) {
-    this.achieve("commonwealth");
-}
-// Stolperstein - lose the civil war against Hitler.
-if ((Q.chancellor_party == "NSDAP" || Q.chancellor == "Hitler" || Q.president == "Hitler") && Q.total_defeat) {
-    this.achieve('stolperstein');
-}
-// Heidelberger Programm - fulfill the goals of the Heidelberg programm - increase welfare, reform justice, support women's rights, progressive taxation, works councils, build a European Union.
-if ((Q.welfare > 0 && Q.judicial_reform >= 2 && Q.womens_work >= 1 && Q.family_law >= 1 && Q.upper_tax_rates > Q.lower_tax_rates && Q.works_councils > 0 && Q.eu > 0)) {
-    this.achieve('heidelberger_programm');
-}
+if (Q.new_middle_spd_normalized >= 50)               this.achieve('panik_im_mittelstand');
+if (Q.rural_spd_normalized >= 50)                    this.achieve('bauernrevolution');
+if (Q.catholics_spd_normalized >= 50)                this.achieve('katholischer_sozialismus');
+if (Q.workers_spd_normalized >= 80 && Q.new_middle_spd_normalized <= 20 &&
+    Q.old_middle_spd_normalized <= 20 && Q.rural_spd_normalized <= 20)
+                                                     this.achieve('klassenkampf');
+if (Q.workers_spd_normalized >= 40 && Q.new_middle_spd_normalized >= 40 &&
+    Q.old_middle_spd_normalized >= 40 && Q.rural_spd_normalized >= 40)
+                                                     this.achieve('grosse_volkspartei');
+if (Q.spd_in_government && ((Q.nationalization_progress >= 2 && Q.economic_democracy >= 3) ||
+    (Q.nationalization_progress >= 1 && Q.economic_democracy >= 4)))
+                                                     this.achieve('raterepublik');
+if (Q.march_on_berlin_seen && Q.capital_strike_seen &&
+    Q.chancellor != "Hitler" && Q.president != "Hitler" && !Q.total_defeat)
+                                                     this.achieve("polykrise");
+if ((Q.nationalization_progress >= 1 && Q.wtb_implemented >= 1) ||
+    (Q.wtb_implemented >= 1 && Q.moderate_plan_progress >= 1) ||
+    (Q.nationalization_progress >= 1 && Q.moderate_plan_progress >= 1))
+                                                     this.achieve("wirtschaftsexperiment");
+if (Q.factory_takeovers >= 2)                        this.achieve("syndikalismus");
+if (Q.commonwealth_cooperation >= 2)                 this.achieve("commonwealth");
+if ((Q.chancellor_party == "NSDAP" || Q.chancellor == "Hitler" || Q.president == "Hitler") &&
+    Q.total_defeat)                                  this.achieve('stolperstein');
+if (Q.welfare > 0 && Q.judicial_reform >= 2 && Q.womens_work >= 1 && Q.family_law >= 1 &&
+    Q.upper_tax_rates > Q.lower_tax_rates && Q.works_councils > 0 && Q.eu > 0)
+                                                     this.achieve('heidelberger_programm');
 !}
 
 
@@ -162,15 +89,17 @@ go-to: eg_menu
 
 Adolf Hitler has taken power in Germany. However, we have rallied the democratic forces of the country against him, and are fighting back. The outcome of this war is uncertain.
 
-
 @no_hitler
 view-if: chancellor != "Hitler" and president != "Hitler" and president != "Göring" and chancellor_party != "NSDAP"
 title: Hitler does not yet control Germany...
 tags: endings
 go-to: eg_menu
 
-Hitler does not yet control Germany. [? if chancellor == "Papen" : However, Chancellor Papen's authoritarianism and far-right politics are paving the way for Hitler, or someone like him, to take power. ?] [? if chancellor == "Schleicher" : However, Chancellor Schleicher's authoritarianism and scheming is paving the way for Hitler, or someone like him, to take power. ?][? if resist_coup == 1 and republic_victory == 0 and long_war == 0 and coup_victory == 0 : Given our defeat in the Prussian coup, the far-right appears to be ascendant. ?][? if chancellor == "Brüning" : However, Chancellor Brüning's austerity policies and the continuation of the depression are paving the way for Hitler, or someone like him, to take power. ?]
-
+Hitler does not yet control Germany.
+[? if chancellor == "Papen" : However, Chancellor Papen's authoritarianism and far-right politics are paving the way for Hitler, or someone like him, to take power. ?]
+[? if chancellor == "Schleicher" : However, Chancellor Schleicher's authoritarianism and scheming is paving the way for Hitler, or someone like him, to take power. ?]
+[? if resist_coup == 1 and republic_victory == 0 and long_war == 0 and coup_victory == 0 : Given our defeat in the Prussian coup, the far-right appears to be ascendant. ?]
+[? if chancellor == "Brüning" : However, Chancellor Brüning's austerity policies and the continuation of the depression are paving the way for Hitler, or someone like him, to take power. ?]
 [? if hitler_deported == 1 : We have deported Hitler back to Austria. Hopefully he will never return. ?]
 
 @nsdap_win
@@ -179,8 +108,8 @@ title: Despite the deportation of Hitler, the Nazis have still taken power...
 tags: endings
 go-to: eg_menu
 
-Despite the deportation of Hitler, the NSDAP has somehow still wormed its way into power. [? if long_war == 1 : We are fighting them for control of Germany. ?]
-
+Despite the deportation of Hitler, the NSDAP has somehow still wormed its way into power.
+[? if long_war == 1 : We are fighting them for control of Germany. ?]
 
 @civil_war_won
 title: We have won the civil war.
@@ -204,10 +133,11 @@ view-if: long_war == 1
 tags: endings
 go-to: eg_menu
 
-Germany is currently in the grip of a civil war, a brutal affair that has no obvious end. Thousands of lives have already been extinguished, and it is likely that the war will not stop until Germany's cities are reduced to ruins. 
-
-[? if is_favorable == 0 : The current conditions are not favorable for us. ?][? if west_relation >= 2: Our cause is popular in the West, but their sclerotic governments are reluctant to send us aid. ?][? if soviet_aid >= 1 : The Soviet Union has aided the Communists, but not the socialists and democrats, in an attempt to shape Germany's future government. ?][? if east_aid >= 1 : Poland and Czechoslovakia have sent some assistance against the fascists. ?]
-
+Germany is currently in the grip of a civil war, a brutal affair that has no obvious end. Thousands of lives have already been extinguished, and it is likely that the war will not stop until Germany's cities are reduced to ruins.
+[? if is_favorable == 0 : The current conditions are not favorable for us. ?]
+[? if west_relation >= 2: Our cause is popular in the West, but their sclerotic governments are reluctant to send us aid. ?]
+[? if soviet_aid >= 1 : The Soviet Union has aided the Communists, but not the socialists and democrats, in an attempt to shape Germany's future government. ?]
+[? if east_aid >= 1 : Poland and Czechoslovakia have sent some assistance against the fascists. ?]
 
 @braun_victorious
 title: Otto Braun victorious
@@ -240,8 +170,6 @@ tags: endings
 go-to: eg_menu
 
 Albert Einstein, possibly the most famous scientist in the world, has been elected as President of Germany. As a German Jew and a pacifist, he is the repudiation of everything the Nazis stood for, and a symbol of a new German Republic that has moved beyond its checkered past.
-
-
 
 @spd_victorious
 title: SPD still in government
@@ -283,8 +211,6 @@ go-to: eg_menu
 
 Unemployment levels have fallen substantially! This is a success of our economic policy.
 
-
-
 @unemployment_high
 title: Unemployment is still too high.
 view-if: unemployed >= 20 and (chancellor != "Hitler" and president != "Hitler") and (total_defeat == 0) and long_war == 0
@@ -292,7 +218,6 @@ tags: endings
 go-to: eg_menu
 
 Unemployment is still at dangerously high levels. Even though Hitler is not in power, the situation is ripe for instability and extremism.
-
 
 @emergency_government
 title: SPD ruling in an emergency government.
@@ -340,1310 +265,126 @@ view-if: achievement_game_completed == 1
 tags: endings
 go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
-
-
-
-
-
-
-
-= Completed Achievements in this Playthrough
-
-
-[? if game_achievement_eiserne_front : 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Eiserne Front</strong> - form the Iron Front.
-{!</div>!}
-?]
-
-[? if game_achievement_civil_war : 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Bürgerkrieg</strong> - enter a long civil war.
-{!</div>!}
-?]
-
-[? if game_achievement_einigkeit : 
-{!<div style="border-left: 4px solid #000000; background-color: rgba(0, 0, 0, 0.05); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #000000; margin-right: 8px;"></span>!}
-  <strong>Einigkeit</strong> - reach the end without civil war (Easy).
-{!</div>!}
-?]
-
-[? if game_achievement_einigkeit_und_recht : 
-{!<div style="border-left: 4px solid #DD0000; background-color: rgba(221, 0, 0, 0.05); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #DD0000; margin-right: 8px;"></span>!}
-  <strong>Einigkeit und Recht</strong> - reach the end without civil war (Normal).
-{!</div>!}
-?]
-
-[? if game_achievement_einigkeit_und_recht_und_freiheit : 
-{!<div style="border-left: 4px solid #FFCE00; background-color: rgba(255, 206, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFCE00; margin-right: 8px;"></span>!}
-  <strong>Einigkeit und Recht und Freiheit</strong> - reach the end without civil war (Hard).
-{!</div>!}
-?]
-
-[? if game_achievement_schwarz_rot_gold : 
-{!<div style="border-left: 4px solid #000000; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 33%, rgba(221,0,0,0.1) 33%, rgba(221,0,0,0.1) 66%, rgba(255,206,0,0.1) 66%); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background: linear-gradient(to bottom, #000 33%, #DD0000 33%, #DD0000 66%, #FFCE00 66%); margin-right: 8px;"></span>!}
-  <strong>Schwarz-Rot-Gold</strong> - reach the end without civil war (Historical).
-{!</div>!}
-?]
-
-[? if game_achievement_victory_for_the_republic: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Republik</strong> - win the civil war.
-{!</div>!}
-?]
-
-[? if game_achievement_bollwerk_der_demokratie: 
-{!<div style="border-left: 4px solid #0077FF; background-color: rgba(0, 119, 255, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #0077FF; margin-right: 8px;"></span>!}
-  <strong>Bollwerk der Demokratie</strong> - Resist the Prussian Coup and win.
-{!</div>!}
-?]
-
-[? if game_achievement_red_tzar_of_prussia : 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Roter Zar von Preußen</strong> - Otto Braun is President, Chancellor, and Minister-President.
-{!</div>!}
-?]
-
-[? if game_achievement_einheitsfront: 
-{!<div style="border-left: 4px solid #C40000; background-color: rgba(196, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #C40000; margin-right: 8px;"></span>!}
-  <strong>Einheitsfront</strong> - Form a government with SPD and KPD.
-{!</div>!}
-?]
-
-[? if game_achievement_einheitsfront_2: 
-{!<div style="border-left: 4px solid #C40000; background-color: rgba(196, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #C40000; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Einheitsfront</strong> - Left Front survives KPD demands.
-{!</div>!}
-?]
-
-[? if game_achievement_volksfront: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Volksfront</strong> - Form government with SPD, KPD, Z, and DDP.
-{!</div>!}
-?]
-
-[? if game_achievement_grosse_volksfront: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Große Volksfront</strong> - Popular Front with Joos and Conciliators.
-{!</div>!}
-?]
-
-[? if game_achievement_volksfront_2: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Volksfront</strong> - Popular Front survives KPD demands.
-{!</div>!}
-?]
-
-[? if game_achievement_majority_party: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.2); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Mehrheitspartei</strong> - SPD-only majority government.
-{!</div>!}
-?]
-
-[? if game_achievement_minderheitsregierung :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Minderheitsregierung</strong> - form an SPD minority government.
-{!</div>!}
-?]
-
-[? if game_achievement_volkspartei: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Volkspartei</strong> - the SPD is a People's Party.
-{!</div>!}
-?]
-
-[? if game_achievement_sohn_seiner_klasse :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sohn seiner Klasse</strong> - Ernst Thälmann is either president or chancellor.
-{!</div>!}
-?]
-
-[? if game_achievement_rote_millionar :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der rote Millionär</strong> - Willi Münzenberg is president.
-{!</div>!}
-?]
-
-[? if game_achievement_versohnler :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Versöhnler</strong> - the Conciliators lead the KPD.
-{!</div>!}
-?]
-
-[? if game_achievement_deport_hitler :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der österreichische Gefreite</strong> - deported Hitler
-{!</div>!}
-?]
-
-[? if game_achievement_wirtschaftspolitik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftspolitik</strong> - enact an economic plan.
-{!</div>!}
-?]
-
-[? if game_achievement_wirtschaftswunder: 
-{!<div style="border-left: 4px solid #FFD700; background-color: rgba(255, 215, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFD700; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftswunder</strong> - Economic miracle achieved.
-{!</div>!}
-?]
-
-[? if game_achievement_wirtschaftsexperiment :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftsexperiment</strong> - enact two different economic plans.
-{!</div>!}
-?]
-
-[? if game_achievement_freie_marktwirtschaft :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Freie Marktwirtschaft</strong> - survive to the end of the game without adopting an economic plan.
-{!</div>!}
-?]
-
-[? if game_achievement_equality: 
-{!<div style="border-left: 4px solid #9C27B0; background-color: rgba(156, 39, 176, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #9C27B0; margin-right: 8px;"></span>!}
-  <strong>Gleichheit</strong> - pass reforms for women's rights.
-{!</div>!}
-?]
-
-[? if game_achievement_hirschfeld: 
-{!<div style="border-left: 4px solid #FF1493; background-color: rgba(255, 20, 147, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FF1493; margin-right: 8px;"></span>!}
-  <strong>Hirschfeld</strong> - pass reforms for homosexual rights.
-{!</div>!}
-?]
-
-[? if game_achievement_women_reichsbanner :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Mädchen in Uniform</strong> - a woman's place is in the Reichsbanner.
-{!</div>!}
-?]
-
-[? if game_achievement_anders_als_die_andern :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Anders als die Andern</strong> - sexual minorities will defend the Republic.
-{!</div>!}
-?]
-
-[? if game_achievement_bruder_zur_sonne :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Brüder, zur Sonne, zur Freiheit</strong> - reduce unemployment, pause reparations, increase women's rights, elect an SPD president, and deport Hitler in one playthrough on at least normal difficulty.
-{!</div>!}
-?]
-
-[? if game_achievement_die_rote_fahne :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Die Rote Fahne</strong> - join the KPD in their May Day march.
-{!</div>!}
-?]
-
-[? if game_achievement_panik_im_mittelstand: 
-{!<div style="border-left: 4px solid #FFD700; background-color: rgba(255, 215, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFD700; margin-right: 8px;"></span>!}
-  <strong>Panik im Mittelstand</strong> - SPD new middle class support ≥ 50%.
-{!</div>!}
-?]
-
-[? if game_achievement_bauernrevolution: 
-{!<div style="border-left: 4px solid #8B4513; background-color: rgba(139, 69, 19, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B4513; margin-right: 8px;"></span>!}
-  <strong>Bauernrevolution</strong> - SPD rural support ≥ 50%.
-{!</div>!}
-?]
-
-[? if game_achievement_katholischer_sozialismus: 
-{!<div style="border-left: 4px solid #000000; background-color: rgba(0, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #000000; margin-right: 8px;"></span>!}
-  <strong>Katholischer Sozialismus</strong> - SPD Catholic support ≥ 50%.
-{!</div>!}
-?]
-
-[? if game_achievement_grosse_volkspartei: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Große Volkspartei</strong> - All classes ≥ 40% SPD support.
-{!</div>!}
-?]
-
-[? if game_achievement_klassenkampf: 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Klassenkampf</strong> - Workers ≥ 80%, middle class & rural < 20%.
-{!</div>!}
-?]
-
-[? if game_achievement_konservolution :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Die Konservative Revolution</strong> - DNVP secures 20% of the votes!
-{!</div>!}
-?]
-
-[? if game_achievement_durchbruch :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der Nationale Durchbruch</strong> - NSDAP secures 30% of the votes!
-{!</div>!}
-?]
-
-[? if game_achievement_raterepublik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Räterepublik</strong> - begin the transformation to a socialist economy.
-{!</div>!}
-?]
-
-[? if game_achievement_polykrise: 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; animation: pulse 2s infinite; margin-right: 8px;"></span>!}
-  <strong>Polykrise</strong> - survived capital strike and fascist coup.
-{!</div>!}
-{!<style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }</style>!}
-?]
-
-[? if game_achievement_syndikalismus :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Syndikalismus</strong> - support factory takeovers by the workers.
-{!</div>!}
-?]
-
-[? if game_achievement_drei_pfeile :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Drei Pfeile</strong> - defeat a coup without a civil war.
-{!</div>!}
-?]
-
-[? if game_achievement_ruhrland :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Rheinland in Fire</strong> - French reoccupy the Rheinland following catastrophy of Young Plan.
-{!</div>!}
-?]
-
-[? if game_achievement_ausnahmezustand :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Ausnahmezustand</strong> - use emergency powers to cancel elections.
-{!</div>!}
-?]
-
-[? if game_achievement_eu: 
-{!<div style="border-left: 4px solid #003399; background-color: rgba(0, 51, 153, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #003399; margin-right: 8px;"></span>!}
-  <strong>Vereinigte Staaten von Europa</strong> - form a "European Union".
-{!</div>!}
-?]
-
-[? if game_achievement_heidelberger_programm: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.2); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Heidelberger Programm</strong> - achieve all Heidelberg Program goals.
-{!</div>!}
-?]
-
-[? if game_achievement_verfassungsreform :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Verfassungsreform</strong> - pass a constitutional amendment.
-{!</div>!}
-?]
-
-[? if game_achievement_zeppelin_kapitan :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Zeppelinkapitän</strong> - Hugo Eckener has been elected president.
-{!</div>!}
-?]
-
-[? if game_achievement_wahlrechts :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wahlrechts für Frauen</strong> - Marie Juchacz has been elected president.
-{!</div>!}
-?]
-
-[? if game_achievement_bundesrepublik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Bundesrepublik</strong> - Konrad Adenauer or Kurt Schumacher has been elected president, and constitutional reforms have reduced presidential power.
-{!</div>!}
-?]
-
-[? if game_achievement_republik_der_wissenschaft :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Republik der Wissenschaft</strong> - Albert Einstein has been elected president.
-{!</div>!}
-?]
-
-[? if game_achievement_arbeiter_von_wien :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Arbeiter von Wien</strong> - SDAPÖ victory in Austria.
-{!</div>!}
-?]
-
-[? if game_achievement_wien_freien :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Rot in Wien, Rot im Staat</strong> - SDAPÖ secures victory in Austrian election.
-{!</div>!}
-?]
-
-[? if game_achievement_faustischer_pakt: 
-{!<div style="border-left: 4px solid #E3800F; background-color: rgba(120, 200, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Faustischer</strong> - Accepted Hjalmar Schacht's nationalist economic plan.
-{!</div>!}
-?]
-
-[? if game_socialist_reichsbank: 
-{!<div style="border-left: 4px solid #E3000F; background-color: #ffe5e5; padding: 10px; margin: 8px 0; border-radius: 2px;">!}
-  {!<span style="display: inline-block; width: 14px; height: 14px; background-color: #FFD700; border: 2px solid #E3000F; vertical-align: middle; margin-right: 8px;"></span>!}
-  <strong style="color: #E3000F;">Socialist Reichsbank</strong> — A Socialist has been appointed to lead the Reichsbank.
-{!</div>!}
-?]
-
-[? if game_achievement_commonwealth: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 16px; height: 16px; background-color: #FFD700; border: 3px solid #E3000F; margin-right: 8px;"></span>!}
-  <strong>Co-operative Commonwealth</strong> - British dream of proletariat, German reality of workers.
-{!</div>!}
-?]
-
-[? if game_achievement_tyrole_danubia: 
-{!<div style="border-left: 4px solid #009246; background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.1) 11%, rgba(221,0,0,0.1) 11%, rgba(221,0,0,0.1) 22%, rgba(255,206,0,0.1) 22%, rgba(255,206,0,0.1) 33%, rgba(221,0,0,0.15) 33%, rgba(221,0,0,0.15) 44%, rgba(241,242,241,0.15) 44%, rgba(241,242,241,0.15) 55%, rgba(221,0,0,0.15) 55%, rgba(221,0,0,0.15) 66%, rgba(0,146,70,0.1) 66%, rgba(0,146,70,0.1) 77.5%, rgba(241,242,241,0.1) 77.5%, rgba(241,242,241,0.1) 88.5%, rgba(206,43,55,0.1) 88.5%, rgba(206,43,55,0.1) 100%); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #000 33%, #DD0000 33%, #DD0000 66%, #FFCE00 66%); margin-right: 1px;"></span>!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #DD0000 33%, #F1F2F1 33%, #F1F2F1 66%, #DD0000 66%); margin-right: 1px;"></span>!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #009246 33%, #F1F2F1 33%, #F1F2F1 66%, #CE2B37 66%); margin-right: 8px;"></span>!}
-  <strong>Tyrol - Danubian Pact</strong> - Italy and Germany has signed non aggression treaty.
-{!</div>!}
-?]
-
-[? if game_achievement_stolperstein: 
-{!<div style="border-left: 4px solid #666666; background-color: rgba(102, 102, 102, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #666666; margin-right: 8px;"></span>!}
-  <strong>Stolperstein</strong> - we lost, but history might memorialize us...
-{!</div>!}
-?]
-
-[? if game_achievement_oktobersturm :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Oktobersturm</strong> - KPD secures 28% of the votes!
-{!</div>!}
-?]
-
-
-
-
-
-
-= Completed Achievements Overall
-
-
-[? if achievement_eiserne_front : 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Eiserne Front</strong> - form the Iron Front.
-{!</div>!}
-?]
-
-[? if achievement_civil_war : 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Bürgerkrieg</strong> - enter a long civil war.
-{!</div>!}
-?]
-
-[? if achievement_einigkeit : 
-{!<div style="border-left: 4px solid #000000; background-color: rgba(0, 0, 0, 0.05); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #000000; margin-right: 8px;"></span>!}
-  <strong>Einigkeit</strong> - reach the end without civil war (Easy).
-{!</div>!}
-?]
-
-[? if achievement_einigkeit_und_recht : 
-{!<div style="border-left: 4px solid #DD0000; background-color: rgba(221, 0, 0, 0.05); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #DD0000; margin-right: 8px;"></span>!}
-  <strong>Einigkeit und Recht</strong> - reach the end without civil war (Normal).
-{!</div>!}
-?]
-
-[? if achievement_einigkeit_und_recht_und_freiheit : 
-{!<div style="border-left: 4px solid #FFCE00; background-color: rgba(255, 206, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFCE00; margin-right: 8px;"></span>!}
-  <strong>Einigkeit und Recht und Freiheit</strong> - reach the end without civil war (Hard).
-{!</div>!}
-?]
-
-[? if achievement_schwarz_rot_gold : 
-{!<div style="border-left: 4px solid #000000; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 33%, rgba(221,0,0,0.1) 33%, rgba(221,0,0,0.1) 66%, rgba(255,206,0,0.1) 66%); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background: linear-gradient(to bottom, #000 33%, #DD0000 33%, #DD0000 66%, #FFCE00 66%); margin-right: 8px;"></span>!}
-  <strong>Schwarz-Rot-Gold</strong> - reach the end without civil war (Historical).
-{!</div>!}
-?]
-
-[? if achievement_victory_for_the_republic: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Republik</strong> - win the civil war.
-{!</div>!}
-?]
-
-[? if achievement_bollwerk_der_demokratie: 
-{!<div style="border-left: 4px solid #0077FF; background-color: rgba(0, 119, 255, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #0077FF; margin-right: 8px;"></span>!}
-  <strong>Bollwerk der Demokratie</strong> - Resist the Prussian Coup and win.
-{!</div>!}
-?]
-
-[? if achievement_red_tzar_of_prussia : 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Roter Zar von Preußen</strong> - Otto Braun is President, Chancellor, and Minister-President.
-{!</div>!}
-?]
-
-[? if achievement_einheitsfront: 
-{!<div style="border-left: 4px solid #C40000; background-color: rgba(196, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #C40000; margin-right: 8px;"></span>!}
-  <strong>Einheitsfront</strong> - Form a government with SPD and KPD.
-{!</div>!}
-?]
-
-[? if achievement_einheitsfront_2: 
-{!<div style="border-left: 4px solid #C40000; background-color: rgba(196, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #C40000; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Einheitsfront</strong> - Left Front survives KPD demands.
-{!</div>!}
-?]
-
-[? if achievement_volksfront: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Volksfront</strong> - Form government with SPD, KPD, Z, and DDP.
-{!</div>!}
-?]
-
-[? if achievement_grosse_volksfront: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Große Volksfront</strong> - Popular Front with Joos and Conciliators.
-{!</div>!}
-?]
-
-[? if achievement_volksfront_2: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Volksfront</strong> - Popular Front survives KPD demands.
-{!</div>!}
-?]
-
-[? if achievement_majority_party: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.2); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Mehrheitspartei</strong> - SPD-only majority government.
-{!</div>!}
-?]
-
-[? if achievement_minderheitsregierung :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Minderheitsregierung</strong> - form an SPD minority government.
-{!</div>!}
-?]
-
-[? if achievement_volkspartei: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Volkspartei</strong> - the SPD is a People's Party.
-{!</div>!}
-?]
-
-[? if achievement_sohn_seiner_klasse :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sohn seiner Klasse</strong> - Ernst Thälmann is either president or chancellor.
-{!</div>!}
-?]
-
-[? if achievement_rote_millionar :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der rote Millionär</strong> - Willi Münzenberg is president.
-{!</div>!}
-?]
-
-[? if achievement_versohnler :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Versöhnler</strong> - the Conciliators lead the KPD.
-{!</div>!}
-?]
-
-[? if achievement_deport_hitler :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der österreichische Gefreite</strong> - deported Hitler
-{!</div>!}
-?]
-
-[? if achievement_wirtschaftspolitik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftspolitik</strong> - enact an economic plan.
-{!</div>!}
-?]
-
-[? if achievement_wirtschaftswunder: 
-{!<div style="border-left: 4px solid #FFD700; background-color: rgba(255, 215, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFD700; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftswunder</strong> - Economic miracle achieved.
-{!</div>!}
-?]
-
-[? if achievement_wirtschaftsexperiment :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftsexperiment</strong> - enact two different economic plans.
-{!</div>!}
-?]
-
-[? if achievement_freie_marktwirtschaft :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Freie Marktwirtschaft</strong> - survive to the end of the game without adopting an economic plan.
-{!</div>!}
-?]
-
-[? if achievement_equality: 
-{!<div style="border-left: 4px solid #9C27B0; background-color: rgba(156, 39, 176, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #9C27B0; margin-right: 8px;"></span>!}
-  <strong>Gleichheit</strong> - pass reforms for women's rights.
-{!</div>!}
-?]
-
-[? if achievement_hirschfeld: 
-{!<div style="border-left: 4px solid #FF1493; background-color: rgba(255, 20, 147, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FF1493; margin-right: 8px;"></span>!}
-  <strong>Hirschfeld</strong> - pass reforms for homosexual rights.
-{!</div>!}
-?]
-
-[? if achievement_women_reichsbanner :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Mädchen in Uniform</strong> - a woman's place is in the Reichsbanner.
-{!</div>!}
-?]
-
-[? if achievement_anders_als_die_andern :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Anders als die Andern</strong> - sexual minorities will defend the Republic.
-{!</div>!}
-?]
-
-[? if achievement_bruder_zur_sonne :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Brüder, zur Sonne, zur Freiheit</strong> - reduce unemployment, pause reparations, increase women's rights, elect an SPD president, and deport Hitler in one playthrough on at least normal difficulty.
-{!</div>!}
-?]
-
-[? if achievement_die_rote_fahne :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Die Rote Fahne</strong> - join the KPD in their May Day march.
-{!</div>!}
-?]
-
-[? if achievement_panik_im_mittelstand: 
-{!<div style="border-left: 4px solid #FFD700; background-color: rgba(255, 215, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFD700; margin-right: 8px;"></span>!}
-  <strong>Panik im Mittelstand</strong> - SPD new middle class support ≥ 50%.
-{!</div>!}
-?]
-
-[? if achievement_bauernrevolution: 
-{!<div style="border-left: 4px solid #8B4513; background-color: rgba(139, 69, 19, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B4513; margin-right: 8px;"></span>!}
-  <strong>Bauernrevolution</strong> - SPD rural support ≥ 50%.
-{!</div>!}
-?]
-
-[? if achievement_katholischer_sozialismus: 
-{!<div style="border-left: 4px solid #000000; background-color: rgba(0, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #000000; margin-right: 8px;"></span>!}
-  <strong>Katholischer Sozialismus</strong> - SPD Catholic support ≥ 50%.
-{!</div>!}
-?]
-
-[? if achievement_grosse_volkspartei: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Große Volkspartei</strong> - All classes ≥ 40% SPD support.
-{!</div>!}
-?]
-
-[? if achievement_klassenkampf: 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Klassenkampf</strong> - Workers ≥ 80%, middle class & rural < 20%.
-{!</div>!}
-?]
-
-[? if achievement_raterepublik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Räterepublik</strong> - begin the transformation to a socialist economy.
-{!</div>!}
-?]
-
-[? if achievement_polykrise: 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; animation: pulse 2s infinite; margin-right: 8px;"></span>!}
-  <strong>Polykrise</strong> - survived capital strike and fascist coup.
-{!</div>!}
-{!<style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }</style>!}
-?]
-
-[? if achievement_syndikalismus :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Syndikalismus</strong> - support factory takeovers by the workers.
-{!</div>!}
-?]
-
-[? if achievement_drei_pfeile :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Drei Pfeile</strong> - defeat a coup without a civil war.
-{!</div>!}
-?]
-
-[? if achievement_ausnahmezustand :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Ausnahmezustand</strong> - use emergency powers to cancel elections.
-{!</div>!}
-?]
-
-[? if achievement_eu: 
-{!<div style="border-left: 4px solid #003399; background-color: rgba(0, 51, 153, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #003399; margin-right: 8px;"></span>!}
-  <strong>Vereinigte Staaten von Europa</strong> - form a "European Union".
-{!</div>!}
-?]
-
-[? if achievement_heidelberger_programm: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.2); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Heidelberger Programm</strong> - achieve all Heidelberg Program goals.
-{!</div>!}
-?]
-
-[? if achievement_verfassungsreform :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Verfassungsreform</strong> - pass a constitutional amendment.
-{!</div>!}
-?]
-
-[? if achievement_zeppelin_kapitan :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Zeppelinkapitän</strong> - Hugo Eckener has been elected president.
-{!</div>!}
-?]
-
-[? if achievement_wahlrechts :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wahlrechts für Frauen</strong> - Marie Juchacz has been elected president.
-{!</div>!}
-?]
-
-[? if achievement_bundesrepublik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Bundesrepublik</strong> - Konrad Adenauer or Kurt Schumacher has been elected president, and constitutional reforms have reduced presidential power.
-{!</div>!}
-?]
-
-[? if achievement_republik_der_wissenschaft :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Republik der Wissenschaft</strong> - Albert Einstein has been elected president.
-{!</div>!}
-?]
-
-[? if achievement_arbeiter_von_wien :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Arbeiter von Wien</strong> - SDAPÖ victory in Austria.
-{!</div>!}
-?]
-
-[? if achievement_stolperstein: 
-{!<div style="border-left: 4px solid #666666; background-color: rgba(102, 102, 102, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #666666; margin-right: 8px;"></span>!}
-  <strong>Stolperstein</strong> - we lost, but history might memorialize us...
-{!</div>!}
-?]
-
-= Incomplete Achievements
-
-[? if not achievement_eiserne_front : 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Eiserne Front</strong> - form the Iron Front.
-{!</div>!}
-?]
-
-[? if not achievement_civil_war : 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Bürgerkrieg</strong> - enter a long civil war.
-{!</div>!}
-?]
-
-[? if not achievement_einigkeit : 
-{!<div style="border-left: 4px solid #000000; background-color: rgba(0, 0, 0, 0.05); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #000000; margin-right: 8px;"></span>!}
-  <strong>Einigkeit</strong> - reach the end without civil war (Easy).
-{!</div>!}
-?]
-
-[? if not achievement_einigkeit_und_recht : 
-{!<div style="border-left: 4px solid #DD0000; background-color: rgba(221, 0, 0, 0.05); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #DD0000; margin-right: 8px;"></span>!}
-  <strong>Einigkeit und Recht</strong> - reach the end without civil war (Normal).
-{!</div>!}
-?]
-
-[? if not achievement_einigkeit_und_recht_und_freiheit : 
-{!<div style="border-left: 4px solid #FFCE00; background-color: rgba(255, 206, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFCE00; margin-right: 8px;"></span>!}
-  <strong>Einigkeit und Recht und Freiheit</strong> - reach the end without civil war (Hard).
-{!</div>!}
-?]
-
-[? if not achievement_schwarz_rot_gold : 
-{!<div style="border-left: 4px solid #000000; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 33%, rgba(221,0,0,0.1) 33%, rgba(221,0,0,0.1) 66%, rgba(255,206,0,0.1) 66%); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background: linear-gradient(to bottom, #000 33%, #DD0000 33%, #DD0000 66%, #FFCE00 66%); margin-right: 8px;"></span>!}
-  <strong>Schwarz-Rot-Gold</strong> - reach the end without civil war (Historical).
-{!</div>!}
-?]
-
-[? if not achievement_victory_for_the_republic: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Republik</strong> - win the civil war.
-{!</div>!}
-?]
-
-[? if not achievement_bollwerk_der_demokratie: 
-{!<div style="border-left: 4px solid #0077FF; background-color: rgba(0, 119, 255, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #0077FF; margin-right: 8px;"></span>!}
-  <strong>Bollwerk der Demokratie</strong> - Resist the Prussian Coup and win.
-{!</div>!}
-?]
-
-[? if not  achievement_red_tzar_of_prussia : 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Roter Zar von Preußen</strong> - Otto Braun is President, Chancellor, and Minister-President.
-{!</div>!}
-?]
-
-[? if not achievement_einheitsfront: 
-{!<div style="border-left: 4px solid #C40000; background-color: rgba(196, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #C40000; margin-right: 8px;"></span>!}
-  <strong>Einheitsfront</strong> - Form a government with SPD and KPD.
-{!</div>!}
-?]
-
-[? if not achievement_einheitsfront_2: 
-{!<div style="border-left: 4px solid #C40000; background-color: rgba(196, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #C40000; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Einheitsfront</strong> - Left Front survives KPD demands.
-{!</div>!}
-?]
-
-[? if not achievement_volksfront: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Volksfront</strong> - Form government with SPD, KPD, Z, and DDP.
-{!</div>!}
-?]
-
-[? if not achievement_grosse_volksfront: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Große Volksfront</strong> - Popular Front with Joos and Conciliators.
-{!</div>!}
-?]
-
-[? if not achievement_volksfront_2: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sieg für die Volksfront</strong> - Popular Front survives KPD demands.
-{!</div>!}
-?]
-
-[? if not achievement_majority_party: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.2); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Mehrheitspartei</strong> - SPD-only majority government.
-{!</div>!}
-?]
-
-[? if not achievement_minderheitsregierung :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Minderheitsregierung</strong> - form an SPD minority government.
-{!</div>!}
-?]
-
-[? if not achievement_volkspartei: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Volkspartei</strong> - the SPD is a People's Party.
-{!</div>!}
-?]
-
-[? if not achievement_sohn_seiner_klasse :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Sohn seiner Klasse</strong> - Ernst Thälmann is either president or chancellor.
-{!</div>!}
-?]
-
-[? if not achievement_rote_millionar :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der rote Millionär</strong> - Willi Münzenberg is president.
-{!</div>!}
-?]
-
-[? if not achievement_versohnler :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Versöhnler</strong> - the Conciliators lead the KPD.
-{!</div>!}
-?]
-
-[? if not achievement_deport_hitler :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der österreichische Gefreite</strong> - deported Hitler
-{!</div>!}
-?]
-
-[? if not achievement_wirtschaftspolitik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftspolitik</strong> - enact an economic plan.
-{!</div>!}
-?]
-
-[? if not achievement_wirtschaftswunder: 
-{!<div style="border-left: 4px solid #FFD700; background-color: rgba(255, 215, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFD700; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftswunder</strong> - Economic miracle achieved.
-{!</div>!}
-?]
-
-[? if not achievement_wirtschaftsexperiment :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wirtschaftsexperiment</strong> - enact two different economic plans.
-{!</div>!}
-?]
-
-[? if not achievement_freie_marktwirtschaft :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Freie Marktwirtschaft</strong> - survive to the end of the game without adopting an economic plan.
-{!</div>!}
-?]
-
-[? if not achievement_equality: 
-{!<div style="border-left: 4px solid #9C27B0; background-color: rgba(156, 39, 176, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #9C27B0; margin-right: 8px;"></span>!}
-  <strong>Gleichheit</strong> - pass reforms for women's rights.
-{!</div>!}
-?]
-
-[? if not achievement_hirschfeld: 
-{!<div style="border-left: 4px solid #FF1493; background-color: rgba(255, 20, 147, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FF1493; margin-right: 8px;"></span>!}
-  <strong>Hirschfeld</strong> - pass reforms for homosexual rights.
-{!</div>!}
-?]
-
-[? if not achievement_women_reichsbanner :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Mädchen in Uniform</strong> - a woman's place is in the Reichsbanner.
-{!</div>!}
-?]
-
-[? if not achievement_anders_als_die_andern :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Anders als die Andern</strong> - sexual minorities will defend the Republic.
-{!</div>!}
-?]
-
-[? if not achievement_bruder_zur_sonne :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Brüder, zur Sonne, zur Freiheit</strong> - reduce unemployment, pause reparations, increase women's rights, elect an SPD president, and deport Hitler in one playthrough on at least normal difficulty.
-{!</div>!}
-?]
-
-[? if not achievement_die_rote_fahne :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Die Rote Fahne</strong> - join the KPD in their May Day march.
-{!</div>!}
-?]
-
-[? if not achievement_panik_im_mittelstand: 
-{!<div style="border-left: 4px solid #FFD700; background-color: rgba(255, 215, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #FFD700; margin-right: 8px;"></span>!}
-  <strong>Panik im Mittelstand</strong> - SPD new middle class support ≥ 50%.
-{!</div>!}
-?]
-
-[? if not achievement_bauernrevolution: 
-{!<div style="border-left: 4px solid #8B4513; background-color: rgba(139, 69, 19, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B4513; margin-right: 8px;"></span>!}
-  <strong>Bauernrevolution</strong> - SPD rural support ≥ 50%.
-{!</div>!}
-?]
-
-[? if not achievement_katholischer_sozialismus: 
-{!<div style="border-left: 4px solid #000000; background-color: rgba(0, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #000000; margin-right: 8px;"></span>!}
-  <strong>Katholischer Sozialismus</strong> - SPD Catholic support ≥ 50%.
-{!</div>!}
-?]
-
-[? if not achievement_grosse_volkspartei: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Große Volkspartei</strong> - All classes ≥ 40% SPD support.
-{!</div>!}
-?]
-
-[? if not achievement_klassenkampf: 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; margin-right: 8px;"></span>!}
-  <strong>Klassenkampf</strong> - Workers ≥ 80%, middle class & rural < 20%.
-{!</div>!}
-?]
-
-[? if not achievement_raterepublik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Räterepublik</strong> - begin the transformation to a socialist economy.
-{!</div>!}
-?]
-
-[? if not achievement_polykrise: 
-{!<div style="border-left: 4px solid #8B0000; background-color: rgba(139, 0, 0, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #8B0000; animation: pulse 2s infinite; margin-right: 8px;"></span>!}
-  <strong>Polykrise</strong> - survived capital strike and fascist coup.
-{!</div>!}
-{!<style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }</style>!}
-?]
-
-[? if not achievement_syndikalismus :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Syndikalismus</strong> - support factory takeovers by the workers.
-{!</div>!}
-?]
-
-[? if not achievement_drei_pfeile :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Drei Pfeile</strong> - defeat a coup without a civil war.
-{!</div>!}
-?]
-
-[? if not achievement_ausnahmezustand :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Ausnahmezustand</strong> - use emergency powers to cancel elections.
-{!</div>!}
-?]
-
-[? if not achievement_eu: 
-{!<div style="border-left: 4px solid #003399; background-color: rgba(0, 51, 153, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #003399; margin-right: 8px;"></span>!}
-  <strong>Vereinigte Staaten von Europa</strong> - form a "European Union".
-{!</div>!}
-?]
-
-[? if not achievement_heidelberger_programm: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.2); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Heidelberger Programm</strong> - achieve all Heidelberg Program goals.
-{!</div>!}
-?]
-
-[? if not achievement_verfassungsreform :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Verfassungsreform</strong> - pass a constitutional amendment.
-{!</div>!}
-?]
-
-[? if not achievement_zeppelin_kapitan :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Zeppelinkapitän</strong> - Hugo Eckener has been elected president.
-{!</div>!}
-?]
-
-[? if not  achievement_wahlrechts :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Wahlrechts für Frauen</strong> - Marie Juchacz has been elected president.
-{!</div>!}
-?]
-
-[? if not achievement_bundesrepublik :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Bundesrepublik</strong> - Konrad Adenauer or Kurt Schumacher has been elected president, and constitutional reforms have reduced presidential power.
-{!</div>!}
-?]
-
-[? if not achievement_republik_der_wissenschaft :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Republik der Wissenschaft</strong> - Albert Einstein has been elected president.
-{!</div>!}
-?]
-
-[? if not achievement_arbeiter_von_wien :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Arbeiter von Wien</strong> - SDAPÖ victory in Austria.
-{!</div>!}
-?]
-
-[? if not achievement_stolperstein: 
-{!<div style="border-left: 4px solid #666666; background-color: rgba(102, 102, 102, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #666666; margin-right: 8px;"></span>!}
-  <strong>Stolperstein</strong> - we lost, but history might memorialize us...
-{!</div>!}
-?]
-
-= Modification Achievements - Complete
-
-[? if achievement_konservolution :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Die Konservative Revolution</strong> - DNVP secures 20% of the votes!
-{!</div>!}
-?]
-
-[? if achievement_durchbruch :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der Nationale Durchbruch</strong> - NSDAP secures 30% of the votes!
-{!</div>!}
-?]
-
-[? if achievement_oktobersturm :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Oktobersturm</strong> - KPD secures 28% of the votes!
-{!</div>!}
-?]
-[? if achievement_ruhrland :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Rheinland in Fire</strong> - French reoccupy the Rheinland following catastrophy of Young Plan.
-{!</div>!}
-?]
-
-[? if achievement_wien_freien :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Rot in Wien, Rot im Staat</strong> - SDAPÖ secures victory in Austrian election.
-{!</div>!}
-?]
-
-[? if achievement_faustischer_pakt: 
-{!<div style="border-left: 4px solid #E3800F; background-color: rgba(120, 200, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Faustischer</strong> - Accepted Hjalmar Schacht's nationalist economic plan.
-{!</div>!}
-?]
-
-[? if socialist_reichsbank: 
-{!<div style="border-left: 4px solid #E3000F; background-color: #ffe5e5; padding: 10px; margin: 8px 0; border-radius: 2px;">!}
-  {!<span style="display: inline-block; width: 14px; height: 14px; background-color: #FFD700; border: 2px solid #E3000F; vertical-align: middle; margin-right: 8px;"></span>!}
-  <strong style="color: #E3000F;">Socialist Reichsbank</strong> — A Socialist has been appointed to lead the Reichsbank.
-{!</div>!}
-?]
-
-[? if achievement_commonwealth: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 16px; height: 16px; background-color: #FFD700; border: 2px solid #E3000F; margin-right: 8px;"></span>!}
-  <strong>Co-operative Commonwealth</strong> - British dream of proletariat, German reality of workers.
-{!</div>!}
-?]
-
-[? if achievement_tyrole_danubia: 
-{!<div style="border-left: 4px solid #009246; background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.1) 11%, rgba(221,0,0,0.1) 11%, rgba(221,0,0,0.1) 22%, rgba(255,206,0,0.1) 22%, rgba(255,206,0,0.1) 33%, rgba(221,0,0,0.15) 33%, rgba(221,0,0,0.15) 44%, rgba(241,242,241,0.15) 44%, rgba(241,242,241,0.15) 55%, rgba(221,0,0,0.15) 55%, rgba(221,0,0,0.15) 66%, rgba(0,146,70,0.1) 66%, rgba(0,146,70,0.1) 77.5%, rgba(241,242,241,0.1) 77.5%, rgba(241,242,241,0.1) 88.5%, rgba(206,43,55,0.1) 88.5%, rgba(206,43,55,0.1) 100%); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #000 33%, #DD0000 33%, #DD0000 66%, #FFCE00 66%); margin-right: 1px;"></span>!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #DD0000 33%, #F1F2F1 33%, #F1F2F1 66%, #DD0000 66%); margin-right: 1px;"></span>!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #009246 33%, #F1F2F1 33%, #F1F2F1 66%, #CE2B37 66%); margin-right: 8px;"></span>!}
-  <strong>Tyrol - Danubian Pact</strong> - Italy and Germany has signed non aggression treaty.
-{!</div>!}
-?]
-
-= Modification Achievements - Incomplete
-
-[? if not achievement_konservolution :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Die Konservative Revolution</strong> - DNVP secures 20% of the votes!
-{!</div>!}
-?]
-
-[? if not achievement_durchbruch :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Der Nationale Durchbruch</strong> - NSDAP secures 30% of the votes!
-{!</div>!}
-?]
-
-[? if not achievement_oktobersturm :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Oktobersturm</strong> - KPD secures 28% of the votes!
-{!</div>!}
-?]
-
-[? if not achievement_ruhrland :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Rheinland in Fire</strong> - French reoccupy the Rheinland following catastrophy of Young Plan.
-{!</div>!}
-?]
-
-[? if not achievement_wien_freien :
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Rot in Wien, Rot im Staat</strong> - SDAPÖ secures victory in Austrian election.
-{!</div>!}
-?]
-
-[? if not achievement_faustischer_pakt: 
-{!<div style="border-left: 4px solid #E3800F; background-color: rgba(120, 200, 15, 0.15); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Faustischer</strong> - Accepted Hjalmar Schacht's nationalist economic plan.
-{!</div>!}
-?]
-
-[? if not socialist_reichsbank: 
-{!<div style="border-left: 4px solid #E3000F; background-color: #ffe5e5; padding: 10px; margin: 8px 0; border-radius: 2px;">!}
-  {!<span style="display: inline-block; width: 14px; height: 14px; background-color: #FFD700; border: 2px solid #E3000F; vertical-align: middle; margin-right: 8px;"></span>!}
-  <strong style="color: #E3000F;">Socialist Reichsbank</strong> — A Socialist has been appointed to lead the Reichsbank.
-{!</div>!}
-?]
-
-[? if not achievement_commonwealth: 
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 16px; height: 16px; background-color: #FFD700; border: 2px solid #E3000F; margin-right: 8px;"></span>!}
-  <strong>Co-operative Commonwealth</strong> - British dream of proletariat, German reality of workers.
-{!</div>!}
-?]
-
-[? if not achievement_tyrole_danubia: 
-{!<div style="border-left: 4px solid #009246; background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.1) 11%, rgba(221,0,0,0.1) 11%, rgba(221,0,0,0.1) 22%, rgba(255,206,0,0.1) 22%, rgba(255,206,0,0.1) 33%, rgba(221,0,0,0.15) 33%, rgba(221,0,0,0.15) 44%, rgba(241,242,241,0.15) 44%, rgba(241,242,241,0.15) 55%, rgba(221,0,0,0.15) 55%, rgba(221,0,0,0.15) 66%, rgba(0,146,70,0.1) 66%, rgba(0,146,70,0.1) 77.5%, rgba(241,242,241,0.1) 77.5%, rgba(241,242,241,0.1) 88.5%, rgba(206,43,55,0.1) 88.5%, rgba(206,43,55,0.1) 100%); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #000 33%, #DD0000 33%, #DD0000 66%, #FFCE00 66%); margin-right: 1px;"></span>!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #DD0000 33%, #F1F2F1 33%, #F1F2F1 66%, #DD0000 66%); margin-right: 1px;"></span>!}
-  {!<span style="display: inline-block; width: 4px; height: 12px; background: linear-gradient(to bottom, #009246 33%, #F1F2F1 33%, #F1F2F1 66%, #CE2B37 66%); margin-right: 8px;"></span>!}
-  <strong>Tyrol - Danubian Pact</strong> - Italy and Germany has signed non aggression treaty.
-{!</div>!}
-?]
+{!
+function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+    var n = parseInt(hex, 16);
+    return [(n>>16)&255, (n>>8)&255, n&255].join(',');
+}
+function ab(key, color, title, desc) {
+    var run     = Q['game_achievement_' + key];
+    var overall = Q['achievement_'      + key];
+    var alpha   = overall ? '0.15' : '0.04';
+    var opacity = overall ? '1'    : '0.45';
+    var badge   = run
+        ? ' <span style="float:right;font-size:0.75em;background:'+color+
+          ';color:#fff;padding:1px 6px;border-radius:3px;">&#10003; this run</span>'
+        : '';
+    return '<div style="border-left:4px solid '+color+
+           ';background-color:rgba('+hexToRgb(color)+','+alpha+
+           ');padding:8px;margin:4px 0;opacity:'+opacity+'">' +
+           '<span style="display:inline-block;width:12px;height:12px;background-color:'+
+           color+';margin-right:8px;"></span>'+badge+
+           '<strong>'+title+'</strong> &#8211; '+desc+'</div>';
+}
+!}
+
+= Achievements &#8212; Survival
+
+{! ab("einigkeit",                        "#000000", "Einigkeit",                         "Reach the end without civil war (Easy).") !}
+{! ab("einigkeit_und_recht",              "#DD0000", "Einigkeit und Recht",                "Reach the end without civil war (Normal).") !}
+{! ab("einigkeit_und_recht_und_freiheit", "#FFCE00", "Einigkeit und Recht und Freiheit",   "Reach the end without civil war (Hard).") !}
+{! ab("schwarz_rot_gold",                 "#000000", "Schwarz-Rot-Gold",                   "Reach the end without civil war (Historical).") !}
+
+= Achievements &#8212; War &amp; Coups
+
+{! ab("civil_war",               "#8B0000", "B&#252;rgerkrieg",              "Enter a long civil war.") !}
+{! ab("victory_for_the_republic","#E3000F", "Sieg f&#252;r die Republik",    "Win the civil war.") !}
+{! ab("bollwerk_der_demokratie", "#0077FF", "Bollwerk der Demokratie",        "Resist the Prussian Coup and win.") !}
+{! ab("drei_pfeile",             "#E3000F", "Drei Pfeile",                    "Defeat a coup without a civil war.") !}
+{! ab("polykrise",               "#8B0000", "Polykrise",                      "Survived capital strike and fascist coup.") !}
+{! ab("stolperstein",            "#666666", "Stolperstein",                   "We lost, but history might memorialize us...") !}
+{! ab("ausnahmezustand",         "#E3000F", "Ausnahmezustand",                "Use emergency powers to cancel elections.") !}
+
+= Achievements &#8212; Government &amp; Coalitions
+
+{! ab("eiserne_front",        "#E3000F", "Eiserne Front",             "Form the Iron Front.") !}
+{! ab("einheitsfront",        "#C40000", "Einheitsfront",             "Form a government with SPD and KPD.") !}
+{! ab("einheitsfront_2",      "#C40000", "Sieg f&#252;r die Einheitsfront", "Left Front survives KPD demands.") !}
+{! ab("volksfront",           "#E3000F", "Volksfront",                "Form government with SPD, KPD, Z, and DDP.") !}
+{! ab("grosse_volksfront",    "#E3000F", "Gro&#223;e Volksfront",     "Popular Front with Joos and Conciliators.") !}
+{! ab("volksfront_2",         "#E3000F", "Sieg f&#252;r die Volksfront", "Popular Front survives KPD demands.") !}
+{! ab("majority_party",       "#E3000F", "Mehrheitspartei",           "SPD-only majority government.") !}
+{! ab("minderheitsregierung", "#E3000F", "Minderheitsregierung",      "Form an SPD minority government.") !}
+{! ab("volkspartei",          "#E3000F", "Volkspartei",               "The SPD is a People's Party.") !}
+
+= Achievements &#8212; Party &amp; Voting
+
+{! ab("panik_im_mittelstand",    "#FFD700", "Panik im Mittelstand",     "SPD new middle class support &#8805; 50%.") !}
+{! ab("bauernrevolution",        "#8B4513", "Bauernrevolution",         "SPD rural support &#8805; 50%.") !}
+{! ab("katholischer_sozialismus","#000000", "Katholischer Sozialismus", "SPD Catholic support &#8805; 50%.") !}
+{! ab("grosse_volkspartei",      "#E3000F", "Gro&#223;e Volkspartei",   "All classes &#8805; 40% SPD support.") !}
+{! ab("klassenkampf",            "#8B0000", "Klassenkampf",             "Workers &#8805; 80%, middle class &amp; rural &lt; 20%.") !}
+
+= Achievements &#8212; Persons
+
+{! ab("red_tzar_of_prussia",       "#8B0000", "Roter Zar von Preu&#223;en",        "Otto Braun is President, Chancellor, and Minister-President.") !}
+{! ab("sohn_seiner_klasse",        "#E3000F", "Sohn seiner Klasse",                "Ernst Th&#228;lmann is either president or chancellor.") !}
+{! ab("rote_millionar",            "#E3000F", "Der rote Million&#228;r",           "Willi M&#252;nzenberg is president.") !}
+{! ab("versohnler",                "#E3000F", "Vers&#246;hnler",                   "The Conciliators lead the KPD.") !}
+{! ab("deport_hitler",             "#E3000F", "Der &#246;sterreichische Gefreite", "Deported Hitler.") !}
+{! ab("zeppelin_kapitan",          "#E3000F", "Zeppelinkapit&#228;n",              "Hugo Eckener has been elected president.") !}
+{! ab("wahlrechts",                "#E3000F", "Wahlrechts f&#252;r Frauen",        "Marie Juchacz has been elected president.") !}
+{! ab("bundesrepublik",            "#E3000F", "Bundesrepublik",                    "Adenauer or Schumacher elected president with reduced presidential power.") !}
+{! ab("republik_der_wissenschaft", "#E3000F", "Republik der Wissenschaft",         "Albert Einstein has been elected president.") !}
+
+= Achievements &#8212; Economics
+
+{! ab("wirtschaftspolitik",    "#E3000F", "Wirtschaftspolitik",    "Enact an economic plan.") !}
+{! ab("wirtschaftswunder",     "#FFD700", "Wirtschaftswunder",     "Economic miracle achieved.") !}
+{! ab("wirtschaftsexperiment", "#E3000F", "Wirtschaftsexperiment", "Enact two different economic plans.") !}
+{! ab("freie_marktwirtschaft", "#E3000F", "Freie Marktwirtschaft", "Survive to the end without adopting an economic plan.") !}
+{! ab("raterepublik",          "#E3000F", "R&#228;terepublik",     "Begin the transformation to a socialist economy.") !}
+{! ab("syndikalismus",         "#E3000F", "Syndikalismus",         "Support factory takeovers by the workers.") !}
+{! ab("commonwealth",          "#E3000F", "Co-operative Commonwealth", "British dream of proletariat, German reality of workers.") !}
+
+= Achievements &#8212; Social Reforms
+
+{! ab("equality",             "#9C27B0", "Gleichheit",           "Pass reforms for women's rights.") !}
+{! ab("hirschfeld",           "#FF1493", "Hirschfeld",           "Pass reforms for homosexual rights.") !}
+{! ab("women_reichsbanner",   "#E3000F", "M&#228;dchen in Uniform",   "A woman's place is in the Reichsbanner.") !}
+{! ab("anders_als_die_andern","#E3000F", "Anders als die Andern", "Sexual minorities will defend the Republic.") !}
+
+= Achievements &#8212; Diplomacy &amp; Institutions
+
+{! ab("eu",                    "#003399", "Vereinigte Staaten von Europa", "Form a 'European Union'.") !}
+{! ab("heidelberger_programm", "#E3000F", "Heidelberger Programm",         "Achieve all Heidelberg Program goals.") !}
+{! ab("verfassungsreform",     "#E3000F", "Verfassungsreform",              "Pass a constitutional amendment.") !}
+{! ab("arbeiter_von_wien",     "#E3000F", "Arbeiter von Wien",              "SDAP&#214; victory in Austria.") !}
+
+= Achievements &#8212; Combined / Hard
+
+{! ab("bruder_zur_sonne", "#E3000F", "Br&#252;der, zur Sonne, zur Freiheit", "Reduce unemployment, pause reparations, increase women's rights, elect an SPD president, and deport Hitler in one playthrough on at least normal difficulty.") !}
+{! ab("die_rote_fahne",   "#E3000F", "Die Rote Fahne",                       "Join the KPD in their May Day march.") !}
+
+= Modification Achievements
+
+{! ab("konservolution",      "#E3000F", "Die Konservative Revolution", "DNVP secures 20% of the votes!") !}
+{! ab("durchbruch",          "#E3000F", "Der Nationale Durchbruch",    "NSDAP secures 30% of the votes!") !}
+{! ab("oktobersturm",        "#E3000F", "Oktobersturm",                "KPD secures 28% of the votes!") !}
+{! ab("ruhrland",            "#E3000F", "Rheinland in Fire",           "French reoccupy the Rheinland following catastrophe of Young Plan.") !}
+{! ab("wien_freien",         "#E3000F", "Rot in Wien, Rot im Staat",   "SDAP&#214; secures victory in Austrian election.") !}
+{! ab("faustischer_pakt",    "#E3800F", "Faustischer",                 "Accepted Hjalmar Schacht's nationalist economic plan.") !}
+{! ab("socialist_reichsbank","#E3000F", "Socialist Reichsbank",        "A Socialist has been appointed to lead the Reichsbank.") !}
+{! ab("tyrole_danubia",      "#009246", "Tyrol &#8211; Danubian Pact", "Italy and Germany have signed a non-aggression treaty.") !}
 
 = Secret Achievements
 
-[? if achievement_chud:
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Nothing ever happens</strong> - Smallburger Thursday is not worth mentioning at all. Hilferchuding is supreme.
-{!</div>!}
-?]
-
-[? if achievement_reichswehr_ruhrland:
-{!<div style="border-left: 8px solid #000; border-right: 4px solid #DD0000; background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,206,0,0.05)); padding: 12px; margin: 10px 0; font-family: serif;">!}
-  {!<span style="letter-spacing: 2px; text-transform: uppercase; font-weight: bold; color: #222;">!}
-    {!<span style="color: #DD0000;">&#10016;</span> Reichswehr-Kommando!}
-  {!</span>!}
-  {!<hr style="border: 0; border-top: 1px solid #ccc; margin: 8px 0;">!}
-  {!<p style="margin: 0; font-style: italic;"><strong>Reichsprotection</strong> - Protect the Rheinland from being reoccupied by the French..</p>!}
-{!</div>!}
-?]
-
-[? if achievement_noske_leader:
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>Gustav Noske's Comeback</strong> - Elect the Ebert Noske in the presidential election.
-{!</div>!}
-?]
-
-[? if achievement_noske_leader_historical:
-{!<div style="border-left: 4px solid #E3000F; background-color: rgba(227, 0, 15, 0.1); padding: 8px; margin: 4px 0;">!}
-  {!<span style="display: inline-block; width: 12px; height: 12px; background-color: #E3000F; margin-right: 8px;"></span>!}
-  <strong>True ending - Social Fascism</strong> - Narrator must say it, but, by bringing reformism to capitalism, capitalism brings reformism to your socialism. Be aware.
-{!</div>!}
-?]
-
+{! ab("chud",                    "#E3000F", "Nothing ever happens",          "Smallburger Thursday is not worth mentioning at all. Hilferchuding is supreme.") !}
+{! ab("reichswehr_ruhrland",     "#000000", "Reichsprotection",              "Protect the Rheinland from being reoccupied by the French.") !}
+{! ab("noske_leader",            "#E3000F", "Gustav Noske's Comeback",       "Elect the Ebert-Noske in the presidential election.") !}
+{! ab("noske_leader_historical", "#E3000F", "True ending &#8211; Social Fascism", "By bringing reformism to capitalism, capitalism brings reformism to your socialism. Be aware.") !}
 
 
 @end_game
