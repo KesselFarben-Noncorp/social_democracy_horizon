@@ -1,0 +1,31 @@
+title: Popular Front Thesis.
+tags: event
+subtitle: The threat of rising far right increases need in co-operation...
+view-if: year >= 1931 and month >= 6 and (nsdap_votes > 15 or dvfp_votes > 15 or dnvp_votes > 20) and communist_coalition >= 3 and kpd_relation >= 40 and ddp_relation >= 40 and z_relation >= 40 and (left_strength + center_strength) > 45
+on-arrival: communist_coalition += 1; kpd_relation += 5
+
+= Popular Front Thesis
+
+Increasingly alarming pace at which far right forces rise is destabilizing, however expected given how crisis is getting bad. At this rate, coalition formation will be near impossible unless we would to form some sort of constitutional alliance.
+
+As counter measure and subtype of constitutional coalition, our members, especially left wing oriented ones, have formulated some potential coalition, spanning KPD - SPD - Z and even DDP, which is very unexpected, with especially inclusion of Marxist Leninist left radical forces.
+
+However, we are ready for last measure.
+
+- @popfront: Time to articulate this.
+
+@popfront
+subtitle: Popular Front is unlocked.
+on-arrival: {!
+  Q.coalition_blocks.KPD_DDP = false;
+  Q.coalition_blocks.KPD_Z = false;
+  Q.coalition_blocks.DDP_KPD = false;
+  Q.coalition_blocks.Z_KPD = false;
+
+  Q.party_relations.KPD.DDP += 25;
+  Q.party_relations.KPD.Z += 25;
+  Q.party_relations.DDP.KPD += 25;
+  Q.party_relations.Z.KPD += 25;
+  Q.communist_coalition += 1;
+!}
+go-to: root
