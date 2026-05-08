@@ -18,7 +18,8 @@ Braun [? if spd_prussia = 1 : is ?][? if spd_prussia = 0 : was ?] the Minister-P
 @hindenburg_negotiation
 title: Communicate with Paul von Hindenburg
 subtitle: As his old friend and influential head of Prussia, he can attempt to reason with him.
-view-if: (spd_prussia = 1 or prussian_government = "SPD") and president = "Hindenburg"
+view-if: (spd_prussia = 1 or prussian_government = "SPD") and president = "Hindenburg" and advisor_action_timer <= 0
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 on-arrival: hindenburg_patience += 10; hindenburg_patience *= 1.20; advisor_action_timer += 10;
 
 We have calmed down Hindenburg's mind a bit, just enough to keep him from sacking our government in multiple months. Braun has talked him out about pragmatism of SPD.
