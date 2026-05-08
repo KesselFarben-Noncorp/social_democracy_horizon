@@ -246,9 +246,11 @@ We have helped to form a European Union to bring peace and prosperity to the con
 title: Achievements
 view-if: achievement_game_completed == 1
 tags: endings
-on-arrival: {!
+go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 
-const { useState } = React;
+= Achievements
+
+{! const { useState } = React;
 
 const achievements = [
   // Core
@@ -587,10 +589,6 @@ export default function App() {
   );
 }
 !}
-go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
-
-
-= Achievements
 
 {!<style>
 .ach { display: flex; align-items: center; padding: 8px; margin: 4px 0; border-left: 4px solid; }
