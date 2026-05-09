@@ -1,0 +1,31 @@
+title: Camarilla unveiled
+tags: event
+view-if: tag_2_pred = 1
+subtitle: President?
+on-arrival: {!
+Q.tag_2_pred = 0:
+
+Q.camarilla_members_display = "";
+for (const [key, member] of Object.entries(_profile.members)) {
+    const inf = Math.round(Q.camarilla_member_influences[key] || 0);
+    Q.camarilla_members_display += member.label + ": " + inf + "\n";
+}
+
+Q.camarilla_goals_display = "";
+for (const [key, gdata] of Object.entries(_profile.goals)) {
+    const score = Math.round(Q.camarilla_goals[key] || 0);
+    Q.camarilla_goals_display += gdata.label + ": " + score + "\n";
+}
+!}
+
+Unveiled camarilla is:
+
+[+ president +]'s inner circle has been formed.
+
+Combined strength: [+ camarilla_strength +] / [+ camarilla_ceiling +]
+
+Members:
+[+ camarilla_members_display +]
+
+Goals:
+[+ camarilla_goals_display +]
