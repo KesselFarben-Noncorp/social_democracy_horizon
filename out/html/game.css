@@ -1001,25 +1001,32 @@ body.crt-mode tr.row-neutral   { background-color: rgba(51, 255, 100, 0.02); }
 
 
 
-/* Two-column achievements */
-#content {
-  font-size: 0;
-}
-
-#content > *:not(.ach) {
-  font-size: 1.1em;
-}
-
+/* Remove the old .ach rules first, then add: */
 .ach {
-  display: inline-flex;
-  width: calc(50% - 6px);
-  vertical-align: top;
-  box-sizing: border-box;
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin: 4px 0;
+  border-left: 4px solid;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+#content {
+  columns: 2;
+  column-gap: 16px;
+}
+
+#content h1,
+#content h2,
+#content h3,
+#content ul,
+#content p {
+  column-span: all;
 }
 
 @media (max-width: 580px) {
-  .ach { width: 100%; }
+  #content { columns: 1; }
 }
 
 
