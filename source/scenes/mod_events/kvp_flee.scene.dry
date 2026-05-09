@@ -1,0 +1,37 @@
+title: KVP members leave the DNVP!
+tags: event
+subtitle: However may it be, [+ dnvp_party_leader +] is certainly ridding party off moderates.
+view-if: (dnvp_line = 3 or dnvp_leader = "Hugenberg") or (dnvp_line = 1 and dnvp_leader = "Oberfohren") and year >= 1930 and month >= 5 and kvp_flee = 0
+on-arrival: {! Q.parties.push('kvp');
+Q.kvp_flee = 1; 
+Q.middle_class_dnvp *= 0.85; 
+Q.old_middle_dnvp *= 0.89;
+Q.rural_dnvp *= 0.85;
+Q.workers_kvp += 1;
+Q.new_middle_kvp += 1;
+Q.old_middle_kvp += 10;
+Q.rural_kvp += 5;
+Q.unemployedc_kvp += 1;
+
+// update all records
+Q.kvp_r = 0;
+Q.old_kvp_r = 0;
+for (var record of Q.election_records) {
+    record['kvp'] = 0;
+}
+for (var record of Q.party_support_records) {
+    record['kvp'] = 0;
+}
+!}
+
+= KVP members leave the party!
+
+As the result of the party becoming more radical due to recent developments and maneuvers within the party, KVP group members finally declared they will leave the DNVP. Notable members of the new formed party include Gottfried Treviranus (who already left in first wave of expulsions, following CSVD), Kuno von Westarp and Paul Lejeune-Jung, followed by even more waves of agrarians.
+
+[? if dnvp_leader = "Hugenberg": The "Hugenberg Experiment" has finally reached its logical, if destructive, conclusion. For years, the Christian-social elements of the DNVP—men like Treviranus and Stegerwald—have argued that the party must be a broad tent of national conservatism. Hugenberg, ever the media mogul and uncompromising nationalist, has shown them the door instead.
+​To Hugenberg, these "reformists" were merely dead weight, tethering the party to the compromises of the Weimar system. As the CSVD members depart to form their own movement, the DNVP becomes leaner, meaner, and far more radical. The loss of the working-class vote is a price Hugenberg is more than willing to pay for a party of "pure" conviction. ?]
+
+[? if dnvp_leader = "Oberfohren": The brief flirtation with moderation is over. Following a chaotic internal struggle, Ernst Oberfohren has successfully outmaneuvered the reformist wing, securing a "win back" for the party's hardline faction. However, the price of this restoration is high.
+​Seeing the writing on the wall and realizing that the party’s soul has been reclaimed by the intransigents, the Christian-Socials have packed their bags. They refuse to serve under a leadership that views social compromise as a form of treason. Oberfohren watches them go with a cold indifference; he has successfully saved the partys "ideological purity", but he has inherited a much smaller, more isolated fortress in the process. ?]
+
+- @root: Certainly troubling development.
