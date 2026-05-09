@@ -4437,6 +4437,22 @@ for (const [key, member] of Object.entries(_profile.members)) {
     Q.camarilla_cabinet_threshold = _cabinet_threshold;
 }
 
+// === BUILD DISPLAY STRINGS ===
+Q.camarilla_members_display = "";
+for (const [key, member] of Object.entries(_profile.members)) {
+    const inf = Math.round(Q.camarilla_member_influences[key] || 0);
+    if (inf > 0) {
+        Q.camarilla_members_display += member.label + ": " + inf + "\n";
+    }
+}
+
+Q.camarilla_goals_display = "";
+for (const [key, gdata] of Object.entries(_profile.goals)) {
+    const score = Math.round(Q.camarilla_goals[key] || 0);
+    Q.camarilla_goals_display += gdata.label + ": " + score + "\n";
+}
+
+
 // === LEGACY COMPATIBILITY ===
 // Keep old variable names alive so existing events don't break
 if (_pres_key === "Hindenburg") {
@@ -4455,6 +4471,7 @@ if (_pres_key === "Hindenburg") {
     Q.camarilla_exists     = Q.camarilla_strength > 20 ? 1 : 0;
     Q.hindenburg_president = 0;
   }
+
 
 
 
