@@ -1,4 +1,4 @@
-title: Hindenburg has dismissed the government of [+ chancellor +]
+title: [+ president +] has dismissed the government of [+ chancellor +]
 subtitle: The President's patience has run out.
 tags: event
 new-page: true
@@ -87,22 +87,8 @@ if (Q.camarilla_member_influences) {
 Q.pro_republic -= 3;
 
 // Street reaction
-Q.sa_militancy  = Math.min(5, (Q.sa_militancy  || 1) + 0.2);
-Q.rfb_militancy = Math.min(5, (Q.rfb_militancy || 1) + 0.15);
-
-// Party relation fallout — depends on who was dismissed
-if (Q.last_dismissed_chancellor_party === 'SPD') {
-    Q.kpd_relation   -= 3;  // KPD sees SPD as failures
-    Q.z_relation     -= 2;
-    Q.dvp_relation   -= 2;
-} else if (Q.last_dismissed_chancellor_party === 'Z') {
-    Q.z_relation     -= 4;
-    Q.dvp_relation   -= 2;
-    Q.bvp_relation   -= 3;
-} else if (Q.last_dismissed_chancellor_party === 'DVP') {
-    Q.dvp_relation   -= 3;
-    Q.z_relation     -= 2;
-}
+Q.sa_militancy  = Math.min(5, (Q.sa_militancy  || 1) + 0.12);
+Q.rfb_militancy = Math.min(5, (Q.rfb_militancy || 1) + 0.10);
 
 // === ELECTION TIMER ===
 Q.next_election_month = Q.month + 4;
@@ -126,10 +112,10 @@ Q.hindenburg_successor_pressure = (Q.camarilla_strength || 0) > 70 ? "strong" : 
 
 = The Dismissal
 
-The presidential letter arrived without warning. [+ last_dismissed_chancellor +]'s government has been dissolved by order of Hindenburg.
+The presidential letter arrived without warning. [+ last_dismissed_chancellor +]'s government has been dissolved by order of [+ president +].
 
 *[+ month: month +], [+ year +]*
 
-Hindenburg has exercised his constitutional authority to dismiss the government of [+ last_dismissed_chancellor +]. Whether the republic survives what comes next is another question entirely.
+[+ president +] has exercised his constitutional authority to dismiss the government of [+ last_dismissed_chancellor +]. Whether the republic survives what comes next is another question entirely.
 
 Next elections are in [+ next_election_month: month +] of [+ next_election_year +].
