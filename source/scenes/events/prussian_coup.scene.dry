@@ -1,6 +1,6 @@
 title: Coup in Prussia
 subtitle: The Chancellor attempts to overthrow the Prussian government.
-view-if: (chancellor = "Papen" or chancellor = "Schleicher" or president = "Seldte") and president = "Hindenburg" and year >= 1932 and month >= 8 and spd_in_government == 0 and spd_prussia = 1 and not presidential_powers
+view-if: (chancellor = "Papen" or chancellor = "Schleicher" or president = "Seldte" or chancellor_party = "I") and president = "Hindenburg" and year >= 1932 and month >= 8 and spd_in_government == 0 and spd_prussia = 1 and not presidential_powers
 on-arrival: prussian_coup_seen = 1
 new-page: true
 tags: event
@@ -9,7 +9,7 @@ face-image: img/Reichswehr.jpg
 
 = Coup in Prussia
 
-A crisis! Chancellor [+ chancellor +] has ordered the dismissal of the Prussian government in a procedure known as the *Reichsexecution*. His argument is that the Prussian state government is unable to maintain order due to the battles on the streets between the SA, Reichsbanner, and other paramilitaries. This is despite his own government legalizing them.
+A crisis! Chancellor [+ chancellor +] has ordered the dismissal (under the influence of president [+ president +]) of the Prussian government in a procedure known as the *Reichsexecution*. His argument is that the Prussian state government is unable to maintain order due to the battles on the streets between the SA, Reichsbanner, and other paramilitaries. This is despite his own government legalizing them.
 
 The legality of the action is questionable. Many of our members are ready to resist.
 
@@ -57,6 +57,6 @@ Our forces confront the government troops and their supporters on the streets of
 
 @surrender
 title: Give up on the Prussian government.
-on-arrival: spd_prussia = 0; workers_spd -= 5; left_dissent += 10; labor_dissent += 10; rb_militancy = rb_militancy/2; rb_strength -= 1000;
+on-arrival: spd_prussia = 0; workers_spd -= 5; left_dissent += 10; labor_dissent += 10; rb_militancy = rb_militancy/2; rb_strength -= 1000; prussian_government = "I"
 
 A pall of hopelessness and despair descends over social democracy. We have failed. Many in the Reichsbanner simply quit, demoralized by their leaders' lack of a call to action.
