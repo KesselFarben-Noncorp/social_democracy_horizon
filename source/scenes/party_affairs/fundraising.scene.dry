@@ -21,11 +21,11 @@ on-arrival: {!
     Q.rural_pct       = Math.round((Q.rural_spd_normalized        || 0) * 100 * 10) / 10;
 
     // Income uses population share × SPD vote share within that class
-    Q.workers_income     = Math.round(Q.workers     * Q.workers_pct     * Q.dues_workers     * 0.0005 * (1 - Q.labor_dissent     * 0.007));
-    Q.unemployedc_income = Math.round(Q.unemployedc * Q.unemployedc_pct * Q.dues_unemployedc * 0.0004 * (1 - Q.labor_dissent     * 0.007));
-    Q.new_middle_income  = Math.round(Q.new_middle  * Q.new_middle_pct  * Q.dues_new_middle  * 0.0009 * (1 - Q.reformist_dissent * 0.006));
+    Q.workers_income     = Math.round(Q.workers     * Q.workers_pct     * Q.dues_workers     * 0.0007 * (1 - Q.labor_dissent     * 0.007));
+    Q.unemployedc_income = Math.round(Q.unemployedc * Q.unemployedc_pct * Q.dues_unemployedc * 0.0004 * (1 - Q.left_dissent     * 0.007));
+    Q.new_middle_income  = Math.round(Q.new_middle  * Q.new_middle_pct  * Q.dues_new_middle  * 0.00012 * (1 - Q.reformist_dissent * 0.006));
     Q.old_middle_income  = Math.round(Q.old_middle  * Q.old_middle_pct  * Q.dues_old_middle  * 0.00018 * (1 - Q.center_dissent    * 0.006));
-    Q.rural_income       = Math.round(Q.rural       * Q.rural_pct       * Q.dues_rural       * 0.0002 * (1 - Q.center_dissent    * 0.006));
+    Q.rural_income       = Math.round(Q.rural       * Q.rural_pct       * Q.dues_rural       * 0.00016 * (1 - Q.neorevisionist_dissent    * 0.006));
     
     // Total projected income
     Q.total_projected = (Q.workers_income + Q.bonus_dues_workers) + (Q.unemployedc_income + Q.bonus_dues_unemployedc) + Q.new_middle_income + Q.old_middle_income + Q.rural_income;
@@ -60,9 +60,12 @@ Breakdown by demographic:
 
 ~ Rural ([+ rural_pct +]%): [+ rural_income +] resources (dues rate: [+ dues_rural +])
 
-[? if labor_dissent >= 30 : **Warning:** High labor dissent is reducing collection rates among workers and unemployed. ?]
-[? if reformist_dissent >= 30 : **Warning:** High reformist dissent is reducing collection rates among new middle class. ?]
-[? if center_dissent >= 30 : **Warning:** High centrist dissent is reducing collection rates among old middle class, rural, and Catholic members. ?]
+[? if labor_dissent >= 30 : **Warning:** High labor dissent is reducing collection rates among workers. ?] <br>
+[? if reformist_dissent >= 30 : **Warning:** High reformist dissent is reducing collection rates among new middle class. ?] <br>
+[? if center_dissent >= 30 : **Warning:** High centrist dissent is reducing collection rates among old middle class members. ?] <br>
+[? if left_dissent >= 30 : **Warning:** High leftist dissent is reducing collection rates among unemployed members. ?] <br>
+[? if neorevisionist_dissent >= 30 : **Warning:** High neorevisionist dissent is reducing collection rates amongst rural members. ?]
+
 
 What is our fundraising strategy?
 
@@ -77,7 +80,7 @@ What is our fundraising strategy?
 subtitle: +[+ total_projected +] resources
 choose-if: collect_timer <= 0
 unavailable-subtitle: [? if collect_timer > 0 : Cannot collect dues yet. Available in [+ collect_timer +] turns. ?]
-on-arrival: resources += total_projected; collect_timer = 40 + austerity_fortimers
+on-arrival: resources += total_projected; collect_timer = 38 + austerity_fortimers
 
 Dues collection proceeds as scheduled. The party treasury receives [+ total_projected +] resources.
 
