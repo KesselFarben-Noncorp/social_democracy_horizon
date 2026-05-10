@@ -257,9 +257,22 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 .ach-locked .ach-icon { background-color: #999 !important; }
 .ach-new { font-size: 0.72em; background: #E3000F; color: white; padding: 1px 6px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
 .ach-mod { padding-left: 24px; }
+
+/* Space between headings and achievement items */
+h1, h2, h3 { margin-bottom: 12px; margin-top: 20px; }
+
+/* Two-column grid for achievement */
+.ach-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 16px;
+}
 </style>!}
 
 = Core Achievements
+
+{!<div class="ach-grid">!}
 
 [? if achievement_eiserne_front :
 {!<div class="ach" style="border-color:#E3000F; background:rgba(227,0,15,0.1)"><span class="ach-icon" style="background:#E3000F"></span><strong>Eiserne Front</strong> - form the Iron Front.!}[? if game_achievement_eiserne_front : {!<span class="ach-new">New!</span>!}?]{!</div>!}
@@ -612,6 +625,9 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 {!<div class="ach ach-locked"><span class="ach-icon"></span><strong>Stolperstein</strong> - we lost, but history might memorialize us...</div>!}
 ?]
 
+{!</div>!}
+
+{!<div class="ach-grid">!}
 
 = Mod Achievements
 
@@ -678,6 +694,10 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 {!<div class="ach ach-mod ach-locked"><span class="ach-icon"></span><strong>Tyrol - Danubian Pact</strong> - Italy and Germany has signed non aggression treaty.</div>!}
 ?]
 
+{!</div>!}
+
+{!<div class="ach-grid">!}
+
 = Social Fascism
 
 [? if achievement_noske_leader :
@@ -733,6 +753,10 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 {!<div class="ach" style="border-color:#E3000F; background:rgba(227,0,15,0.1)"><span class="ach-icon" style="background:#E3000F"></span><strong>True ending - Social Fascism</strong> - Narrator must say it, but, by bringing reformism to capitalism, capitalism brings reformism to your socialism. Be aware.!}[? if game_achievement_noske_leader_historical : {!<span class="ach-new">New!</span>!}?]{!</div>!}
 ?]
 
+{!</div>!}
+
+{!<div class="ach-grid">!}
+
 
 = Secret Achievements
 
@@ -743,6 +767,8 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 [? if achievement_reichswehr_ruhrland :
 {!<div class="ach" style="border-left:8px solid #000; border-right:4px solid #DD0000; background:linear-gradient(90deg,rgba(255,255,255,0.1),rgba(255,206,0,0.05)); padding:12px; margin:10px 0; font-family:serif"><span style="letter-spacing:2px;text-transform:uppercase;font-weight:bold;color:#222"><span style="color:#DD0000">&#10016;</span> Reichswehr-Kommando</span><hr style="border:0;border-top:1px solid #ccc;margin:8px 0"><p style="margin:0;font-style:italic"><strong>Reichsprotection</strong> - Protect the Rheinland from being reoccupied by the French.</p></div>!}[? if game_achievement_reichswehr_ruhrland : {!<span class="ach-new">New!</span>!}?]
 ?]
+
+{!</div>!}
 
 
 @end_game
