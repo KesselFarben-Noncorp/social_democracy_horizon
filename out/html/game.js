@@ -292,8 +292,186 @@
 
   // This function allows you to modify the text before it's displayed.
   window.displayText = function(text) {
-      return text;
-  };
+    var keywords = {
+
+        // ── German Reichstag parties ──────────────────────────────
+        'KPD':   '#8B0000',
+        'SPD':   '#E3000F',
+        'DDP':   '#DCCA4A',
+        'DVP':   '#D5AC27',
+        'DNVP':  '#3F7BC1',
+        'NSDAP': '#954B00',
+        'SAPD':  '#C40000',
+        'ASPD':  '#B22222',
+        'SRPD':  '#FF6B6B',
+        'WP':    '#808080',
+        'CNBL':  '#5D4E37',
+        'CSRP':  '#FFCCFF',
+        'VRP':   '#69413C',
+        'CSVD':  '#5E76FF',
+        'BB':    '#36FF64',
+        'DHP':   '#518A60',
+        'HL':    '#2E8B57',
+        'SL':    '#005B96',
+        'VNR':   '#4B5320',
+        'DVFP':  '#7A5C12',
+        'KVP':   '#6699FF',
+        'LB':    '#6B0000',
+        'RDP':   '#B8B000',
+        'CVP':   '#555555',
+        'SLS':   '#4A7C59',
+        'DTSP':  '#3B1A00',
+        'KPO':   '#990000',
+
+        // Centre Party (Z) — avoid single-letter match, use full name below
+        'Zentrum': '#333333',
+        'BVP':   '#69A2BE',
+
+        // ── Austrian Nationalrat parties ──────────────────────────
+        'SDAPÖ': '#C0392B',
+        'SDAPO': '#C0392B',
+        'KPÖ':   '#8B0000',
+        'KPOE':  '#8B0000',
+        'CS':    '#2E4F9E',
+        'GDVP':  '#1A6B4A',
+        'Landbund':   '#8B6914',
+        'Heimatblock': '#7D3C98',
+        'DNSAP': '#2C2C2C',
+
+        // ── Ideology & movements ──────────────────────────────────
+        // Socialism / left
+        'socialism':     '#E3000F',
+        'socialist':     '#E3000F',
+        'socialists':    '#E3000F',
+        'Socialism':     '#E3000F',
+        'Socialist':     '#E3000F',
+        'Socialists':    '#E3000F',
+        'communism':     '#8B0000',
+        'communist':     '#8B0000',
+        'communists':    '#8B0000',
+        'Communism':     '#8B0000',
+        'Communist':     '#8B0000',
+        'Communists':    '#8B0000',
+        'Bolshevik':     '#8B0000',
+        'Bolsheviks':    '#8B0000',
+        'bolshevik':     '#8B0000',
+        'Marxism':       '#C0392B',
+        'Marxist':       '#C0392B',
+        'marxism':       '#C0392B',
+        'marxist':       '#C0392B',
+        'proletariat':   '#E3000F',
+        'Proletariat':   '#E3000F',
+        'workers':       '#E3000F',
+        'Workers':       '#E3000F',
+        'labour':        '#E3000F',
+        'Labour':        '#E3000F',
+        'trade union':   '#E3000F',
+        'Trade Union':   '#E3000F',
+
+        // Nationalism / right
+        'nationalism':   '#954B00',
+        'nationalist':   '#954B00',
+        'nationalists':  '#954B00',
+        'Nationalism':   '#954B00',
+        'Nationalist':   '#954B00',
+        'Nationalists':  '#954B00',
+        'fascism':       '#7A3B00',
+        'fascist':       '#7A3B00',
+        'fascists':      '#7A3B00',
+        'Fascism':       '#7A3B00',
+        'Fascist':       '#7A3B00',
+        'Fascists':      '#7A3B00',
+        'Nazi':          '#954B00',
+        'Nazis':         '#954B00',
+        'nazi':          '#954B00',
+        'Putsch':        '#7A3B00',
+        'putsch':        '#7A3B00',
+        'coup':          '#7A3B00',
+        'Coup':          '#7A3B00',
+        'reactionary':   '#3F7BC1',
+        'Reactionary':   '#3F7BC1',
+        'conservative':  '#3F7BC1',
+        'Conservative':  '#3F7BC1',
+
+        // Liberalism / centre
+        'liberal':       '#DCCA4A',
+        'Liberal':       '#DCCA4A',
+        'liberalism':    '#DCCA4A',
+        'Liberalism':    '#DCCA4A',
+        'democracy':     '#D5AC27',
+        'Democracy':     '#D5AC27',
+        'democratic':    '#D5AC27',
+        'Democratic':    '#D5AC27',
+
+        // Republic — German tricolor: black / red / gold
+        // Three separate styled words via a chained trick isn't possible per-word,
+        // so we color "Republic" in the gold of the Weimar flag and add a subtle glow
+        'Republic':      '#DCCA4A',
+        'republic':      '#DCCA4A',
+        'Weimar':        '#DCCA4A',
+        'weimar':        '#DCCA4A',
+        'Reichstag':     '#D5AC27',
+        'reichstag':     '#D5AC27',
+        'Reich':         '#C0392B',
+        'reich':         '#C0392B',
+
+        // Government / institutions
+        'Chancellor':    '#B8B000',
+        'chancellor':    '#B8B000',
+        'President':     '#B8B000',
+        'president':     '#B8B000',
+        'Reichswehr':    '#4B5320',
+        'reichswehr':    '#4B5320',
+        'Stormtroopers': '#954B00',
+        'stormtroopers': '#954B00',
+        'SA':            '#954B00',
+        'SS':            '#1a1a1a',
+        'Gestapo':       '#1a1a1a',
+        'Freikorps':     '#3F7BC1',
+        'freikorps':     '#3F7BC1',
+
+        // Economics
+        'inflation':     '#FF6B00',
+        'Inflation':     '#FF6B00',
+        'depression':    '#808080',
+        'Depression':    '#808080',
+        'unemployment':  '#808080',
+        'Unemployment':  '#808080',
+        'strike':        '#E3000F',
+        'Strike':        '#E3000F',
+        'capital':       '#D5AC27',
+        'Capital':       '#D5AC27',
+        'capitalism':    '#D5AC27',
+        'Capitalism':    '#D5AC27',
+
+        // War & revolution
+        'revolution':    '#8B0000',
+        'Revolution':    '#8B0000',
+        'war':           '#4B5320',
+        'War':           '#4B5320',
+        'Armistice':     '#518A60',
+        'armistice':     '#518A60',
+        'Versailles':    '#808080',
+    };
+
+    // Sort by length descending so longer matches (e.g. "NSDAP") win over shorter ones
+    var sorted = Object.keys(keywords).sort(function(a, b) {
+        return b.length - a.length;
+    });
+
+    sorted.forEach(function(word) {
+        var color = keywords[word];
+        // Escape special regex chars in the keyword
+        var escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Word boundary — but allow spaces inside multi-word phrases
+        var regex = new RegExp('(?<![\\w-])(' + escaped + ')(?![\\w-])', 'g');
+        text = text.replace(regex,
+            '<span style="color:' + color + ';font-weight:600;text-shadow:0 0 8px ' + color + '33;">' + '$1' + '</span>'
+        );
+    });
+
+    return text;
+};
 
   // Refreshes the bottom panel on scene change signals.
   window.handleSignal = function(signal, event, scene_id) {
