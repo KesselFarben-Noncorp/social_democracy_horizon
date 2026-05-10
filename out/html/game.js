@@ -292,6 +292,32 @@
 
   // This function allows you to modify the text before it's displayed.
   window.displayText = function(text) {
+  var wordPhrases = {
+    'Weimar Republic': ['#DCCA4A', '#E3000F'],   // Weimar=gold, Republic=red
+    'German Reich':    ['#111111', '#C0392B'],    // German=black, Reich=red
+    'Red Front':       ['#E3000F', '#8B0000'],
+    'Black Reichswehr':['#111111', '#4B5320'],
+    'Social Democracy':['#E3000F', '#D5AC27'],
+    'National Socialism':['#954B00', '#E3000F'],
+};
+
+function renderWordColors(phrase, colors) {
+    var words = phrase.split(' ');
+    return words.map(function(word, i) {
+        var color = colors[i] || colors[colors.length - 1];
+        return '<span style="color:' + color + ';font-weight:600;text-shadow:0 0 8px ' + color + '33;">' + word + '</span>';
+    }).join(' ');
+}
+
+Object.keys(wordPhrases).forEach(function(phrase) {
+    var colors = wordPhrases[phrase];
+    var escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var regex = new RegExp('(?<![\\w-])(' + escaped + ')(?![\\w-])', 'g');
+    text = text.replace(regex, function() {
+        return renderWordColors(phrase, colors);
+    });
+});
+    
     var keywords = {
 
         // ── German Reichstag parties ──────────────────────────────
