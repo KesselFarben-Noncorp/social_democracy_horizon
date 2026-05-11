@@ -4598,6 +4598,12 @@ if (Q.president === "Hindenburg" || Q.president_party === "I") {
     if (!Q.hindenburg_dismissed_government_this_turn) {
 
 // === INITIALIZE MISSING VARIABLES ===
+if (Q.hindenburg_dismissed_cooldown_turns > 0) {
+    Q.hindenburg_dismissed_cooldown_turns -= 1;
+    if (Q.hindenburg_dismissed_cooldown_turns === 0) {
+        Q.hindenburg_dismissed_government_this_turn = 0;
+    }
+}
 Q.article_48_uses           = Q.article_48_uses           || 0;
 Q.z_left_wing               = Q.z_left_wing               || 0;
 Q.chancellor_minority_ticks = Q.chancellor_minority_ticks || 0;
