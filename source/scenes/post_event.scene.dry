@@ -4592,330 +4592,320 @@ if (Q.prussian_police_training < 1) {
 
 
 
-if (Q.president_party !== "SPD") {
+// === HINDENBURG PATIENCE ENGINE ===
+// Guard: Only runs for Hindenburg or Independent presidents, never party presidents
+if (Q.president === "Hindenburg" || Q.president_party === "I") {
+    if (!Q.hindenburg_dismissed_government_this_turn) {
 
-    // === INITIALIZE MISSING VARIABLES (fixes undefined references) ===
-    Q.article_48_uses           = Q.article_48_uses           || 0;
-    Q.z_left_wing               = Q.z_left_wing               || 0;
-    Q.chancellor_minority_ticks = Q.chancellor_minority_ticks || 0;
-    Q.hindenburg_trust_spd      = Q.hindenburg_trust_spd      || 30;
-    Q.hindenburg_trust_dnvp     = Q.hindenburg_trust_dnvp     || 70;
-    Q.hindenburg_trust_military = Q.hindenburg_trust_military || 85;
-    Q.hindenburg_trust_z        = Q.hindenburg_trust_z        || 60;
-    Q.hindenburg_trust_reichstag= Q.hindenburg_trust_reichstag|| 50;
-    Q.hindenburg_senility       = Q.hindenburg_senility       || 0;
-    Q.hindenburg_monarchist_sentiment = Q.hindenburg_monarchist_sentiment || 65;
-    Q.camarilla_strength        = Q.camarilla_strength        || 0;
-    Q.oskar_influence           = Q.oskar_influence           || 0;
-    Q.papen_influence           = Q.papen_influence           || 0;
-    Q.oldenburg_influence       = Q.oldenburg_influence       || 0;
-    Q.schleicher_influence      = Q.schleicher_influence      || 0;
-    Q.camarilla_goal_protect_junkers = Q.camarilla_goal_protect_junkers || 0;
-    Q.camarilla_goal_destroy_parliament = Q.camarilla_goal_destroy_parliament || 0;
-    Q.camarilla_goal_crush_left = Q.camarilla_goal_crush_left || 0;
-    Q.hindenburg_interventions  = Q.hindenburg_interventions  || 0;
-    Q.hindenburg_crisis_threshold = Q.hindenburg_crisis_threshold || 0;
+// === INITIALIZE MISSING VARIABLES ===
+Q.article_48_uses           = Q.article_48_uses           || 0;
+Q.z_left_wing               = Q.z_left_wing               || 0;
+Q.chancellor_minority_ticks = Q.chancellor_minority_ticks || 0;
+Q.hindenburg_trust_spd      = Q.hindenburg_trust_spd      || 30;
+Q.hindenburg_trust_dnvp     = Q.hindenburg_trust_dnvp     || 70;
+Q.hindenburg_trust_military = Q.hindenburg_trust_military || 85;
+Q.hindenburg_trust_z        = Q.hindenburg_trust_z        || 60;
+Q.hindenburg_trust_reichstag= Q.hindenburg_trust_reichstag|| 50;
+Q.hindenburg_senility       = Q.hindenburg_senility       || 0;
+Q.hindenburg_monarchist_sentiment = Q.hindenburg_monarchist_sentiment || 65;
+Q.camarilla_strength        = Q.camarilla_strength        || 0;
+Q.oskar_influence           = Q.oskar_influence           || 0;
+Q.papen_influence           = Q.papen_influence           || 0;
+Q.oldenburg_influence       = Q.oldenburg_influence       || 0;
+Q.schleicher_influence      = Q.schleicher_influence      || 0;
+Q.camarilla_goal_protect_junkers    = Q.camarilla_goal_protect_junkers    || 0;
+Q.camarilla_goal_destroy_parliament = Q.camarilla_goal_destroy_parliament || 0;
+Q.camarilla_goal_crush_left         = Q.camarilla_goal_crush_left         || 0;
+Q.hindenburg_interventions          = Q.hindenburg_interventions           || 0;
+Q.hindenburg_crisis_threshold       = Q.hindenburg_crisis_threshold        || 0;
 
-    const hasChancellor = (
-        Q.bruning_cabinet || Q.schleicher_cabinet ||
-        Q.papen_cabinet   || Q.chancellor
-    );
+// === DISMISSAL COOLDOWN GUARD ===
+// Prevent any patience processing the same turn a dismissal fires
+if (Q.hindenburg_dismissed_government_this_turn) return;
 
-    if (hasChancellor) {
+const hasChancellor = !!(
+    Q.bruning_cabinet || Q.schleicher_cabinet ||
+    Q.papen_cabinet   || Q.chancellor
+);
 
-        const PATIENCE_START = {
-            "Müller":      55, "Wels":        40, "Braun":       45,
-            "Breitscheid": 30, "Hilferding":  35,
-            "Thälmann":    10, "Neumann":     15, "Rosenfeld":   20,
-            "Koch-Weser":  60, "Dietrich":    62, "Mahraun":     58,
-            "Wirth":       55, "Joos":        60, "Horsing":     58,
-            "Held":        65, "Schäffer":    68, "Drewitz":     65,
-            "Hepp":        68, "Heller":      52, "Brüning":    100,
-            "Kaas":        85, "Stresemann":  75, "Curtius":     80,
-            "Dingeldey":   82, "Westarp":     90, "Treviranus":  88,
-            "Hugenberg":   85, "Lambach":     80,
-            // New additions from variables
-            "Papen":       95, "Schleicher":  78, "Goerdeler":   72,
-        };
-
-        if (Q.last_chancellor !== Q.chancellor) {
-            Q.hindenburg_patience       = PATIENCE_START[Q.chancellor] ?? 70;
-            Q.last_chancellor           = Q.chancellor;
-            Q.chancellor_minority_ticks = 0;
-        }
-
-        let patience_delta = 0;
-
-        // === UNIVERSAL DRAINS & RECOVERIES ===
-
-        // Unemployment
-        if      (Q.unemployed >= 25) patience_delta -= 0.4 + (Q.unemployed - 25) * 0.06;
-        else if (Q.unemployed >= 20) patience_delta -= 0.25;
-        else if (Q.unemployed >= 15) patience_delta -= 0.15;
-        else if (Q.unemployed >= 12) patience_delta -= 0.07;
-        else if (Q.unemployed <  8) patience_delta += 0.08;
-        else if (Q.unemployed <  10) patience_delta += 0.04;
-
-        // Deflation
-        if (Q.inflation < -2) patience_delta -= 0.15 * Math.abs(Q.inflation + 2);
-
-        // Growth
-        if      (Q.economic_growth < -2) patience_delta -= 0.12 * Math.abs(Q.economic_growth + 2);
-        else if (Q.economic_growth <  0) patience_delta -= 0.06;
-        else if (Q.economic_growth >  4) patience_delta += 0.05;
-
-        // Budget
-        if      (Q.budget < -3) patience_delta -= 0.10;
-        else if (Q.budget < -1) patience_delta -= 0.05;
-        else if (Q.budget >= 2) patience_delta += 0.08;
-        else if (Q.budget >= 0) patience_delta += 0.03;
-
-        // NSDAP surge
-        if      (Q.nsdap_r >= 35) patience_delta -= 0.35 + (Q.nsdap_r - 35) * 0.02;
-        else if (Q.nsdap_r >= 25) patience_delta -= 0.18;
-        else if (Q.nsdap_r >= 15) patience_delta -= 0.08;
-
-        // Presidential cabinet count — each one erodes faith in parliament
-        if (Q.presidential_cabinet_count >= 3) patience_delta -= 0.08;
-        if (Q.article_48_permanent)            patience_delta -= 0.20;
-
-        // Reichstag dissolutions — Hindenburg grows weary of endless elections
-        if (Q.hindenburg_reichstag_dissolutions >= 2) patience_delta -= 0.10;
-        if (Q.hindenburg_reichstag_dissolutions >= 3) patience_delta -= 0.15;
-
-        // === HINDENBURG / INDEPENDENT PRESIDENT SPECIFIC ===
-
-        const isHindenburg = (
-            Q.president === "Hindenburg" || Q.president_party === "I"
-        );
-
-        if (isHindenburg) {
-
-            // Trust variables as modifiers (all initialized above)
-            const trust_spd_drain    = (50 - Q.hindenburg_trust_spd)    / 100; // +drain if low trust
-            const trust_dnvp_bonus   = (Q.hindenburg_trust_dnvp - 50)   / 200; // +recovery if high trust
-            const trust_z_modifier   = (Q.hindenburg_trust_z - 50)      / 300;
-            const trust_mil_modifier = (Q.hindenburg_trust_military - 50)/ 400;
-
-            // DNVP vs Z gap
-            const dnvp_z_gap = (Q.dnvp_r || 0) - (Q.z_r || 0);
-            if      (dnvp_z_gap > 10) patience_delta -= 0.12 + (dnvp_z_gap - 10) * 0.01;
-            else if (dnvp_z_gap >  5) patience_delta -= 0.06;
-            if (Q.dnvp_line === 3)    patience_delta -= 0.15;
-
-            // Trust in DNVP and Z colour how he reads the political situation
-            patience_delta += trust_dnvp_bonus;
-            patience_delta += trust_z_modifier;
-
-            // Military trust — if Reichswehr is loyal and Hindenburg trusts them,
-            // he feels more secure and bleeds patience slower
-            patience_delta += trust_mil_modifier;
-            if (Q.reichswehr_loyalty < 0.15) patience_delta -= 0.12;
-
-            // Camarilla pressure from all tracked members
-            const camarilla = Q.camarilla_strength;
-            if      (camarilla >= 90) patience_delta -= 0.40;
-            else if (camarilla >= 75) patience_delta -= 0.25;
-            else if (camarilla >= 60) patience_delta -= 0.12;
-            else if (camarilla >= 40) patience_delta -= 0.06;
-
-            if (Q.oskar_influence    >= 60) patience_delta -= 0.15;
-            if (Q.papen_influence    >= 40) patience_delta -= 0.20;
-            if (Q.oldenburg_influence>= 50) patience_delta -= 0.10;
-            if (Q.schleicher_influence >= 55) patience_delta -= 0.08; // was missing
-
-            // Camarilla goals bleeding through
-            if (Q.camarilla_goal_protect_junkers    >= 75) patience_delta -= 0.20;
-            if (Q.camarilla_goal_destroy_parliament >= 50) patience_delta -= 0.12;
-            if (Q.camarilla_goal_crush_left         >= 60) patience_delta -= 0.08;
-
-            // Land reform is an absolute dealbreaker for his Junker circle
-            if (Q.land_reform >= 1) patience_delta -= 1.50;
-
-            // Monarchist sentiment — any republican chancellor is grating
-            const monarch_drain = (Q.hindenburg_monarchist_sentiment - 50) / 500;
-            patience_delta -= monarch_drain;
-
-            // Osthilfe scandal — if exposed, massive hit (he took the bribe)
-            if (Q.osthilfe_exposed)   patience_delta -= 0.40;
-            if (Q.osthilfe_cover_up)  patience_delta += 0.10; // camarilla shielded him
-
-            // Neudeck estate — he's now personally beholden to Junker interests
-            if (Q.hindenburg_estate_neudeck) {
-                patience_delta -= 0.15;
-                if (Q.land_reform >= 1) patience_delta -= 0.50; // extra on top
-            }
-
-            // Street violence — Hindenburg wants ORDER above all
-            const street_chaos = (
-                (Q.sa_strength  * Q.sa_militancy)  +
-                (Q.rfb_strength * Q.rfb_militancy) +
-                (Q.sh_strength  * Q.sh_militancy)
-            ) / 1000;
-            if      (street_chaos >= 6)   patience_delta -= 0.25 + (street_chaos - 6) * 0.05;
-            else if (street_chaos >= 3)   patience_delta -= 0.12;
-            else if (street_chaos >= 1.5) patience_delta -= 0.05;
-
-            // Minority government fatigue
-            if (Q.minority_government) {
-                Q.chancellor_minority_ticks += 1;
-                if (Q.chancellor_minority_ticks >= 6)
-                    patience_delta -= 0.10 + (Q.chancellor_minority_ticks - 6) * 0.02;
-            } else {
-                Q.chancellor_minority_ticks = 0;
-            }
-
-            // Article 48 — overuse erodes his own faith in normal governance
-            if      (Q.article_48_uses >= 15) patience_delta -= 0.20;
-            else if (Q.article_48_uses >= 10) patience_delta -= 0.12;
-            else if (Q.article_48_uses >=  5) patience_delta -= 0.06;
-
-            // Hindenburg interventions and dismissals — crisis accumulator
-            Q.hindenburg_crisis_threshold += Math.max(0, -patience_delta * 0.1);
-            if (Q.hindenburg_crisis_threshold >= 10) {
-                Q.hindenburg_crisis_threshold = 0;
-                Q.hindenburg_interventions += 1;
-            }
-
-            // === CHANCELLOR-SPECIFIC MODIFIERS ===
-
-            const ch = Q.chancellor;
-
-            // SPD chancellors
-            if (["Müller","Wels","Braun","Breitscheid","Hilferding"].includes(ch)) {
-                patience_delta -= 0.20 + trust_spd_drain;
-                if (Q.socialism >= 45) patience_delta -= 0.15;
-                if (Q.spd_r    >= 30)  patience_delta -= 0.10;
-                patience_delta -= camarilla * 0.004;
-                if (Q.unemployed < 10 && Q.economic_growth > 2) patience_delta += 0.10;
-            }
-
-            // Hard left — countdown mode
-            if (["Thälmann","Neumann","Rosenfeld"].includes(ch)) {
-                patience_delta -= 1.20;
-                if (camarilla >= 50) patience_delta -= 0.50;
-            }
-
-            // Brüning
-            if (ch === "Brüning") {
-                if (Q.spd_toleration && !Q.spd_in_government) {
-                    patience_delta -= 0.30;
-                    if (Q.spd_r >= 25) patience_delta -= 0.10;
-                    if (Q.spd_r >= 30) patience_delta -= 0.10;
-                }
-                if (Q.spd_in_government)               patience_delta -= 0.55;
-                if (Q.hindenburg_patience > 60)         patience_delta += 0.04;
-                if (Q.sa_banned && Q.nsdap_r >= 20)    patience_delta -= 0.30;
-                // Camarilla tired of Brüning accelerates dismissal
-                if (Q.camarilla_tired_of_bruning)      patience_delta -= 0.35;
-                if (Q.bruning_saved_by_spd)             patience_delta -= 0.20;
-            }
-
-            // Papen — Hindenburg loves him personally but chaos piles up
-            if (ch === "Papen") {
-                patience_delta += 0.15; // Personal affection baseline
-                if (Q.papen_cabinet)              patience_delta += 0.05;
-                if (Q.cabinet_of_barons)          patience_delta += 0.05;
-                if (Q.schleicher_papen_rivalry >= 50) patience_delta -= 0.15;
-                if (Q.papen_dictatorship_attempt) patience_delta -= 0.30;
-                // No Reichstag majority is a constant embarrassment
-                if (Q.minority_government)        patience_delta -= 0.10;
-            }
-
-            // Schleicher — trusted general, but Hindenburg feels manipulated
-            if (ch === "Schleicher") {
-                patience_delta += 0.05;
-                if (Q.schleicher_querfront_attempt && !Q.schleicher_querfront_success)
-                    patience_delta -= 0.25; // Failed gambit looks weak
-                if (Q.schleicher_querfront_success)
-                    patience_delta += 0.15;
-                if (Q.papen_influence >= 50) patience_delta -= 0.20; // Papen whispering against him
-                if (Q.schleicher_cabinet)    patience_delta -= 0.05;
-            }
-
-            // Wirth — Hindenburg genuinely disliked him
-            if (ch === "Wirth") {
-                patience_delta -= 0.20;
-                if (Q.spd_toleration) patience_delta -= 0.20;
-                if (Q.z_left_wing >= 1) patience_delta -= 0.10;
-            }
-
-            // Kaas
-            if (ch === "Kaas") {
-                patience_delta += 0.05;
-                if (Q.nsdap_r >= 30) patience_delta -= 0.10;
-            }
-
-            // Stresemann
-            if (ch === "Stresemann") {
-                if (Q.reparations <= 0)    patience_delta += 0.08;
-                if (Q.pro_republic >= 60)  patience_delta -= 0.08;
-                if (Q.west_relation >= 1)  patience_delta += 0.05;
-            }
-
-            // Hugenberg
-            if (ch === "Hugenberg") {
-                if (Q.economic_growth < 0) patience_delta -= 0.15;
-                if (Q.nsdap_r >= 30)       patience_delta -= 0.12;
-                if (Q.hugenberg_hitler_pact) patience_delta -= 0.20;
-            }
-
-            // Goerdeler — technocratic, Hindenburg respects competence
-            if (ch === "Goerdeler") {
-                if (Q.economic_growth > 1) patience_delta += 0.08;
-                if (Q.unemployed < 15)     patience_delta += 0.05;
-                if (Q.goerdeler_prominence < 5) patience_delta -= 0.05; // Seen as obscure
-            }
-
-            // Westarp / Treviranus — most comfortable
-            if (["Westarp","Treviranus"].includes(ch)) {
-                patience_delta += 0.04;
-                if (Q.unemployed >= 20) patience_delta -= 0.10;
-            }
-
-            // === SENILITY AMPLIFIER ===
-            // As Hindenburg ages and loses clarity, swings get bigger
-            if (Q.hindenburg_senility >= 50) {
-                const senility_amp = 1 + ((Q.hindenburg_senility - 50) / 50) * 0.6;
-                patience_delta *= senility_amp;
-            }
-
-            // Age-based health decline affects how quickly camarilla can move
-            Q.hindenburg_age = 78 + Math.max(0, Q.year - 1925);
-            if (Q.hindenburg_age >= 84) Q.hindenburg_health = Math.max(0, Q.hindenburg_health - 0.05);
-
-            // === UNIVERSAL RECOVERY ===
-            if (!Q.spd_in_government && !Q.spd_toleration &&
-                (Q.z_in_government || Q.dvp_in_government || Q.dnvp_in_government)) {
-                patience_delta += 0.10;
-            }
-            if (Q.dvp_in_government || Q.z_in_government) patience_delta += 0.05;
-
-            // WTB — inside Hindenburg block only
-            if (Q.wtb_timer > 0) patience_delta += 0.45;
-
-        } // end isHindenburg
-
-        // === APPLY & CLAMP ===
-        Q.hindenburg_patience = Math.max(0, Math.min(100,
-            Q.hindenburg_patience + patience_delta
-        ));
-
-        // === FLAGS FOR EVENT SYSTEM ===
-        Q.hindenburg_patience_low      = Q.hindenburg_patience <= 25 ? 1 : 0;
-        Q.hindenburg_patience_critical = Q.hindenburg_patience <= 10 ? 1 : 0;
-        Q.hindenburg_ready_to_dismiss  = Q.hindenburg_patience <= 0  ? 1 : 0;
-
-    } else {
-        // No chancellor — reset fatigue tracker only inside president block
-        Q.chancellor_minority_ticks    = 0;
-        Q.hindenburg_patience_low      = 0;
-        Q.hindenburg_patience_critical = 0;
-        Q.hindenburg_ready_to_dismiss  = 0;
-    }
-
+if (!hasChancellor) {
+    // No chancellor — reset trackers and clear flags, then stop
+    Q.chancellor_minority_ticks    = 0;
+    Q.hindenburg_patience_low      = 0;
+    Q.hindenburg_patience_critical = 0;
+    // Do NOT set hindenburg_ready_to_dismiss here — nothing to dismiss
+    Q.hindenburg_ready_to_dismiss  = 0;
+    return;
 }
 
+// === PATIENCE INITIALIZATION ON CHANCELLOR CHANGE ===
+const PATIENCE_START = {
+    "Müller":      55, "Wels":        40, "Braun":       45,
+    "Breitscheid": 30, "Hilferding":  35,
+    "Thälmann":    10, "Neumann":     15, "Rosenfeld":   20,
+    "Koch-Weser":  60, "Dietrich":    62, "Mahraun":     58,
+    "Wirth":       55, "Joos":        60, "Horsing":     58,
+    "Held":        65, "Schäffer":    68, "Drewitz":     65,
+    "Hepp":        68, "Heller":      52, "Brüning":    100,
+    "Kaas":        85, "Stresemann":  75, "Curtius":     80,
+    "Dingeldey":   82, "Westarp":     90, "Treviranus":  88,
+    "Hugenberg":   85, "Lambach":     80,
+    "Papen":       95, "Schleicher":  78, "Goerdeler":   72,
+};
+
+if (Q.last_chancellor !== Q.chancellor) {
+    Q.hindenburg_patience       = PATIENCE_START[Q.chancellor] ?? 70;
+    Q.last_chancellor           = Q.chancellor;
+    Q.chancellor_minority_ticks = 0;
+    // Also clear any stale dismissal flags on new appointment
+    Q.hindenburg_ready_to_dismiss  = 0;
+    Q.hindenburg_patience_low      = 0;
+    Q.hindenburg_patience_critical = 0;
+}
+
+// Clamp patience to valid range before computing this turn's delta
+Q.hindenburg_patience = Math.max(0, Math.min(100, Q.hindenburg_patience || 70));
+
+let patience_delta = 0;
+
+// === UNIVERSAL DRAINS & RECOVERIES ===
+
+// Unemployment
+if      (Q.unemployed >= 25) patience_delta -= 0.4 + (Q.unemployed - 25) * 0.06;
+else if (Q.unemployed >= 20) patience_delta -= 0.25;
+else if (Q.unemployed >= 15) patience_delta -= 0.15;
+else if (Q.unemployed >= 12) patience_delta -= 0.07;
+else if (Q.unemployed <   8) patience_delta += 0.08;
+else if (Q.unemployed <  10) patience_delta += 0.04;
+
+// Deflation
+if (Q.inflation < -2) patience_delta -= 0.15 * Math.abs(Q.inflation + 2);
+
+// Growth
+if      (Q.economic_growth < -2) patience_delta -= 0.12 * Math.abs(Q.economic_growth + 2);
+else if (Q.economic_growth <  0) patience_delta -= 0.06;
+else if (Q.economic_growth >  4) patience_delta += 0.05;
+
+// Budget
+if      (Q.budget < -3) patience_delta -= 0.10;
+else if (Q.budget < -1) patience_delta -= 0.05;
+else if (Q.budget >= 2) patience_delta += 0.08;
+else if (Q.budget >= 0) patience_delta += 0.03;
+
+// NSDAP surge
+if      (Q.nsdap_r >= 35) patience_delta -= 0.35 + (Q.nsdap_r - 35) * 0.02;
+else if (Q.nsdap_r >= 25) patience_delta -= 0.18;
+else if (Q.nsdap_r >= 15) patience_delta -= 0.08;
+
+// Presidential cabinet count
+if (Q.presidential_cabinet_count >= 3) patience_delta -= 0.08;
+if (Q.article_48_permanent)            patience_delta -= 0.20;
+
+// Reichstag dissolutions
+if (Q.hindenburg_reichstag_dissolutions >= 2) patience_delta -= 0.10;
+if (Q.hindenburg_reichstag_dissolutions >= 3) patience_delta -= 0.15;
+
+// === HINDENBURG-SPECIFIC MODIFIERS ===
+
+const trust_spd_drain    = (50 - Q.hindenburg_trust_spd)    / 100;
+const trust_dnvp_bonus   = (Q.hindenburg_trust_dnvp - 50)   / 200;
+const trust_z_modifier   = (Q.hindenburg_trust_z - 50)      / 300;
+const trust_mil_modifier = (Q.hindenburg_trust_military - 50)/ 400;
+
+// DNVP vs Z gap
+const dnvp_z_gap = (Q.dnvp_r || 0) - (Q.z_r || 0);
+if      (dnvp_z_gap > 10) patience_delta -= 0.12 + (dnvp_z_gap - 10) * 0.01;
+else if (dnvp_z_gap >  5) patience_delta -= 0.06;
+if (Q.dnvp_line === 3)    patience_delta -= 0.15;
+
+patience_delta += trust_dnvp_bonus;
+patience_delta += trust_z_modifier;
+patience_delta += trust_mil_modifier;
+if (Q.reichswehr_loyalty < 0.15) patience_delta -= 0.12;
+
+// Camarilla pressure
+const camarilla = Q.camarilla_strength;
+if      (camarilla >= 90) patience_delta -= 0.40;
+else if (camarilla >= 75) patience_delta -= 0.25;
+else if (camarilla >= 60) patience_delta -= 0.12;
+else if (camarilla >= 40) patience_delta -= 0.06;
+
+if (Q.oskar_influence     >= 60) patience_delta -= 0.15;
+if (Q.papen_influence     >= 40) patience_delta -= 0.20;
+if (Q.oldenburg_influence >= 50) patience_delta -= 0.10;
+if (Q.schleicher_influence>= 55) patience_delta -= 0.08;
+
+if (Q.camarilla_goal_protect_junkers    >= 75) patience_delta -= 0.20;
+if (Q.camarilla_goal_destroy_parliament >= 50) patience_delta -= 0.12;
+if (Q.camarilla_goal_crush_left         >= 60) patience_delta -= 0.08;
+
+if (Q.land_reform >= 1) patience_delta -= 1.50;
+
+const monarch_drain = (Q.hindenburg_monarchist_sentiment - 50) / 500;
+patience_delta -= monarch_drain;
+
+if (Q.osthilfe_exposed)  patience_delta -= 0.40;
+if (Q.osthilfe_cover_up) patience_delta += 0.10;
+
+if (Q.hindenburg_estate_neudeck) {
+    patience_delta -= 0.15;
+    if (Q.land_reform >= 1) patience_delta -= 0.50;
+}
+
+// Street violence
+const street_chaos = (
+    (Q.sa_strength  * Q.sa_militancy)  +
+    (Q.rfb_strength * Q.rfb_militancy) +
+    (Q.sh_strength  * Q.sh_militancy)
+) / 1000;
+if      (street_chaos >= 6)   patience_delta -= 0.25 + (street_chaos - 6) * 0.05;
+else if (street_chaos >= 3)   patience_delta -= 0.12;
+else if (street_chaos >= 1.5) patience_delta -= 0.05;
+
+// Minority government fatigue
+if (Q.minority_government) {
+    Q.chancellor_minority_ticks += 1;
+    if (Q.chancellor_minority_ticks >= 6)
+        patience_delta -= 0.10 + (Q.chancellor_minority_ticks - 6) * 0.02;
+} else {
+    Q.chancellor_minority_ticks = 0;
+}
+
+// Article 48 overuse
+if      (Q.article_48_uses >= 15) patience_delta -= 0.20;
+else if (Q.article_48_uses >= 10) patience_delta -= 0.12;
+else if (Q.article_48_uses >=  5) patience_delta -= 0.06;
+
+// Crisis threshold — ONLY increments interventions, does NOT touch patience flags
+Q.hindenburg_crisis_threshold += Math.max(0, -patience_delta * 0.1);
+if (Q.hindenburg_crisis_threshold >= 10) {
+    Q.hindenburg_crisis_threshold = 0;
+    Q.hindenburg_interventions += 1;
+    // Do NOT set hindenburg_ready_to_dismiss here — let patience flags do it
+}
+
+// === CHANCELLOR-SPECIFIC MODIFIERS ===
+const ch = Q.chancellor;
+
+if (["Müller","Wels","Braun","Breitscheid","Hilferding"].includes(ch)) {
+    patience_delta -= 0.20 + trust_spd_drain;
+    if (Q.socialism >= 45) patience_delta -= 0.15;
+    if (Q.spd_r    >= 30)  patience_delta -= 0.10;
+    patience_delta -= camarilla * 0.004;
+    if (Q.unemployed < 10 && Q.economic_growth > 2) patience_delta += 0.10;
+}
+
+if (["Thälmann","Neumann","Rosenfeld"].includes(ch)) {
+    patience_delta -= 1.20;
+    if (camarilla >= 50) patience_delta -= 0.50;
+}
+
+if (ch === "Brüning") {
+    if (Q.spd_toleration && !Q.spd_in_government) {
+        patience_delta -= 0.30;
+        if (Q.spd_r >= 25) patience_delta -= 0.10;
+        if (Q.spd_r >= 30) patience_delta -= 0.10;
+    }
+    if (Q.spd_in_government)            patience_delta -= 0.55;
+    if (Q.hindenburg_patience > 60)     patience_delta += 0.04;
+    if (Q.sa_banned && Q.nsdap_r >= 20) patience_delta -= 0.30;
+    if (Q.camarilla_tired_of_bruning)   patience_delta -= 0.35;
+    if (Q.bruning_saved_by_spd)         patience_delta -= 0.20;
+}
+
+if (ch === "Papen") {
+    patience_delta += 0.15;
+    if (Q.papen_cabinet)                  patience_delta += 0.05;
+    if (Q.cabinet_of_barons)              patience_delta += 0.05;
+    if (Q.schleicher_papen_rivalry >= 50) patience_delta -= 0.15;
+    if (Q.papen_dictatorship_attempt)     patience_delta -= 0.30;
+    if (Q.minority_government)            patience_delta -= 0.10;
+}
+
+if (ch === "Schleicher") {
+    patience_delta += 0.05;
+    if (Q.schleicher_querfront_attempt && !Q.schleicher_querfront_success)
+        patience_delta -= 0.25;
+    if (Q.schleicher_querfront_success)
+        patience_delta += 0.15;
+    if (Q.papen_influence >= 50) patience_delta -= 0.20;
+    if (Q.schleicher_cabinet)    patience_delta -= 0.05;
+}
+
+if (ch === "Wirth") {
+    patience_delta -= 0.20;
+    if (Q.spd_toleration) patience_delta -= 0.20;
+    if (Q.z_left_wing >= 1) patience_delta -= 0.10;
+}
+
+if (ch === "Kaas") {
+    patience_delta += 0.05;
+    if (Q.nsdap_r >= 30) patience_delta -= 0.10;
+}
+
+if (ch === "Stresemann") {
+    if (Q.reparations <= 0)   patience_delta += 0.08;
+    if (Q.pro_republic >= 60) patience_delta -= 0.08;
+    if (Q.west_relation >= 1) patience_delta += 0.05;
+}
+
+if (ch === "Hugenberg") {
+    if (Q.economic_growth < 0)   patience_delta -= 0.15;
+    if (Q.nsdap_r >= 30)         patience_delta -= 0.12;
+    if (Q.hugenberg_hitler_pact) patience_delta -= 0.20;
+}
+
+if (ch === "Goerdeler") {
+    if (Q.economic_growth > 1)      patience_delta += 0.08;
+    if (Q.unemployed < 15)          patience_delta += 0.05;
+    if (Q.goerdeler_prominence < 5) patience_delta -= 0.05;
+}
+
+if (["Westarp","Treviranus"].includes(ch)) {
+    patience_delta += 0.04;
+    if (Q.unemployed >= 20) patience_delta -= 0.10;
+}
+
+// === SENILITY AMPLIFIER ===
+if (Q.hindenburg_senility >= 50) {
+    const senility_amp = 1 + ((Q.hindenburg_senility - 50) / 50) * 0.6;
+    patience_delta *= senility_amp;
+}
+
+// Age-based health decline
+Q.hindenburg_age = 78 + Math.max(0, Q.year - 1925);
+if (Q.hindenburg_age >= 84) {
+    Q.hindenburg_health = Math.max(0, (Q.hindenburg_health || 100) - 0.05);
+}
+
+// Universal recovery for non-SPD government
+if (!Q.spd_in_government && !Q.spd_toleration &&
+    (Q.z_in_government || Q.dvp_in_government || Q.dnvp_in_government)) {
+    patience_delta += 0.10;
+}
+if (Q.dvp_in_government || Q.z_in_government) patience_delta += 0.05;
+
+if (Q.wtb_timer > 0) patience_delta += 0.45;
+
+// === APPLY & CLAMP ===
+Q.hindenburg_patience = Math.max(0, Math.min(100,
+    Q.hindenburg_patience + patience_delta
+));
+
+// === SET FLAGS ===
+// Clamp patience to exactly 0 before flagging — prevents negative values
+// triggering both "Presidential Intervention" (< 0) and "The Dismissal" (= 0)
+Q.hindenburg_patience_low      = Q.hindenburg_patience <= 25 ? 1 : 0;
+Q.hindenburg_patience_critical = Q.hindenburg_patience <= 10 ? 1 : 0;
+
+// Only set ready_to_dismiss if patience is truly exhausted AND no cooldown active
+Q.hindenburg_ready_to_dismiss = (
+    Q.hindenburg_patience <= 0 &&
+    !Q.hindenburg_dismissed_government_this_turn
+) ? 1 : 0;
+
+  }
+}
 
 
 
