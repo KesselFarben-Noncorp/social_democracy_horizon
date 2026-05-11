@@ -646,7 +646,9 @@ Object.keys(wordPhrases).forEach(function(phrase) {
 
 
 /* =====================================================================
-   SUPER EVENT — JS  v2.1
+   SUPER EVENT — JS  v2.2
+   Size tiers: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'full'
+   Free-form:  maxWidth: '1400px' or '90vw' overrides size tier
    ===================================================================== */
 
 const SuperEvent = (() => {
@@ -785,7 +787,6 @@ const SuperEvent = (() => {
       tiles.push(tile);
     }
 
-    // Stagger break
     tiles.forEach((t, i) => {
       setTimeout(() => t.classList.add('breaking'), i * 28 + Math.random() * 40);
     });
@@ -794,6 +795,23 @@ const SuperEvent = (() => {
       grid.remove();
       if (typeof cb === 'function') cb();
     }, 800);
+  }
+
+  /* ── Apply size ─────────────────────────────────────────────────── */
+  /*
+   * Sizes are defined in CSS via --se-max-width on size-* classes.
+   * The JS only needs to act when `maxWidth` is passed as a freeform
+   * override — in that case we set the CSS variable directly so the
+   * frame's `max-width: var(--se-max-width)` picks it up automatically.
+   * When no override is given we just clear any previous inline value
+   * and let the size-* class do the work.
+   */
+  function _applyMaxWidth(maxWidth) {
+    if (maxWidth) {
+      _overlay.style.setProperty('--se-max-width', maxWidth);
+    } else {
+      _overlay.style.removeProperty('--se-max-width');
+    }
   }
 
   /* ── Close ──────────────────────────────────────────────────────── */
@@ -836,60 +854,60 @@ const SuperEvent = (() => {
   function trigger(opts = {}) {
     const {
       // Media
-      videoSrc    = '',
-      imageSrc    = null,
+      videoSrc     = '',
+      imageSrc     = null,
       imageCaption = null,
-      posterSrc   = null,
-      leftImage   = null,
-      rightImage  = null,
+      posterSrc    = null,
+      leftImage    = null,
+      rightImage   = null,
 
       // Content
-      title       = '',
-      left        = '',
-      right       = '',
-      quote       = '',
-      quoteCite   = '',
+      title        = '',
+      left         = '',
+      right        = '',
+      quote        = '',
+      quoteCite    = '',
 
       // Layout
-      size        = 'md',       // 'sm' | 'md' | 'lg' | 'full'
-      layout      = 'default',  // 'default' | 'video-only' | 'left-only' | 'right-only' | 'centered'
-      videoRatio  = '16:9',     // '16:9' | '4:3' | '1:1' | '21:9'
+      size         = 'md',      // 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'full'
+      maxWidth     = null,      // CSS string override, e.g. '1600px' or '92vw'
+      layout       = 'default', // 'default' | 'video-only' | 'left-only' | 'right-only' | 'centered'
+      videoRatio   = '16:9',    // '16:9' | '4:3' | '1:1' | '21:9'
 
       // Effects
-      effect      = 'none',     // 'none' | 'glitch' | 'cinematic' | 'static' | 'shatter'
-      scanlines   = false,
-      vignette    = false,
+      effect       = 'none',   // 'none' | 'glitch' | 'cinematic' | 'static' | 'shatter'
+      scanlines    = false,
+      vignette     = false,
       ambientColor = null,
 
       // Playback
-      muted       = false,
-      loop        = false,
-      autoClose   = true,
-      startAt     = 0,
+      muted        = false,
+      loop         = false,
+      autoClose    = true,
+      startAt      = 0,
 
       // Audio
-      audioSrc    = null,
-      audioVolume = 1,
-      audioLoop   = false,
+      audioSrc     = null,
+      audioVolume  = 1,
+      audioLoop    = false,
 
       // Image duration
-      duration    = null,   // ms — auto-close delay for imageSrc (null = stay open)
+      duration     = null,  // ms — auto-close delay for imageSrc (null = stay open)
 
       // Visibility
-      showSkip    = true,
-      showTitle   = true,
-      showQuote   = true,
+      showSkip     = true,
+      showTitle    = true,
+      showQuote    = true,
 
       // Hooks
-      onOpen      = null,
-      onClose     = null,
-      onSkip      = null,
+      onOpen       = null,
+      onClose      = null,
+      onSkip       = null,
     } = opts;
 
     return new Promise(resolve => {
       _init();
 
-      // Guard: remove stale end handler on rapid re-trigger
       if (_endHandler) {
         _video.removeEventListener('ended', _endHandler);
         _endHandler = null;
@@ -914,6 +932,10 @@ const SuperEvent = (() => {
         _overlay.style.setProperty('--se-ambient-color', ambientColor);
       }
 
+      /* ── Size / maxWidth ────────────────────────────────────────── */
+      // size-* class sets --se-max-width via CSS; maxWidth overrides inline
+      _applyMaxWidth(maxWidth);
+
       /* ── Ratio ──────────────────────────────────────────────────── */
       _clearClasses(_videoWrap, 'ratio-');
       const ratioClass = 'ratio-' + videoRatio.replace(':', '-');
@@ -929,7 +951,6 @@ const SuperEvent = (() => {
       }
 
       /* ── Media: image or video ──────────────────────────────────── */
-      // Remove any previous injected image
       const prevImg = _videoWrap.querySelector('img.se-hero-image');
       if (prevImg) prevImg.remove();
       const prevCap = _videoWrap.querySelector('.se-image-caption');
@@ -954,8 +975,8 @@ const SuperEvent = (() => {
         const src = _video.querySelector('source');
         src.src = videoSrc;
         if (posterSrc) _video.poster = posterSrc;
-        _video.muted      = muted;
-        _video.loop       = loop;
+        _video.muted       = muted;
+        _video.loop        = loop;
         _video.currentTime = 0;
         _video.load();
 
@@ -1091,6 +1112,8 @@ const SuperEvent = (() => {
   return { trigger, skip, close, queue, isActive };
 
 })();
+
+
 
 
 
