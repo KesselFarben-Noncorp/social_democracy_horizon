@@ -2,8 +2,11 @@ title: [+ president +] has dismissed the government of [+ chancellor +]
 subtitle: The President's patience has run out.
 tags: event
 new-page: true
-view-if: hindenburg_ready_to_dismiss = 1 and chancellor != 0 and not presidential_powers
+view-if: hindenburg_ready_to_dismiss = 1 and chancellor != 0 and not presidential_powers and not hindenburg_dismissed_government_this_turn
 on-arrival: {!
+
+if (Q.hindenburg_dismissed_government_this_turn) return; // prevent double-fire
+Q.hindenburg_dismissed_government_this_turn = 1;
 
 // === RESET PATIENCE & DISMISS FLAG ===
 Q.hindenburg_ready_to_dismiss = 0;
@@ -107,6 +110,9 @@ Q.snap_election = 1;
 // Hindenburg will push his preferred successor
 Q.hindenburg_pushing_successor = 1;
 Q.hindenburg_successor_pressure = (Q.camarilla_strength || 0) > 70 ? "strong" : "mild";
+
+// Schedule flag reset for next turn — don't clear it immediately
+Q.hindenburg_dismissed_cooldown_turns = 1;
 
 !}
 
