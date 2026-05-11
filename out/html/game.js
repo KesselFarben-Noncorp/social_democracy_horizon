@@ -44,6 +44,8 @@
         if (!card) return {id: null, title: 'no_card_in_deck'};
 
         // Check tag limits
+        if (difficulty === undefined || difficulty > -1) {
+        // Check tag limits
         for (var tag in TAG_LIMITS) {
             var taggedIds = game.tagLookup[tag];
             if (taggedIds && taggedIds[card.id]) {
@@ -52,6 +54,7 @@
                 }).length;
                 if (count >= TAG_LIMITS[tag]) {
                     return {id: null, title: 'no_space_for_tag'};
+                    }
                 }
             }
         }
