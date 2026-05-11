@@ -35,17 +35,16 @@
 
     var originalDrawCard = dendryUI.dendryEngine.drawCard.bind(dendryUI.dendryEngine);
     dendryUI.dendryEngine.drawCard = function(deckId) {
-        var engine = dendryUI.dendryEngine;
-        var currentSceneId = engine.state.sceneId;
-        var currentHand = engine.state.currentHands[currentSceneId] || [];
+    var engine = dendryUI.dendryEngine;
+    var currentSceneId = engine.state.sceneId;
+    var currentHand = engine.state.currentHands[currentSceneId] || [];
 
-        // Get the card that would be drawn
-        var card = engine._drawFromDeck(deckId);
-        if (!card) return {id: null, title: 'no_card_in_deck'};
+    var card = engine._drawFromDeck(deckId);
+    if (!card) return {id: null, title: 'no_card_in_deck'};
 
-        // Check tag limits
-        if (difficulty === undefined || difficulty > -1) {
-        // Check tag limits
+    var difficulty = dendryUI.dendryEngine.state.qualities.difficulty;
+
+    if (difficulty > -1) {
         for (var tag in TAG_LIMITS) {
             var taggedIds = game.tagLookup[tag];
             if (taggedIds && taggedIds[card.id]) {
@@ -54,13 +53,13 @@
                 }).length;
                 if (count >= TAG_LIMITS[tag]) {
                     return {id: null, title: 'no_space_for_tag'};
-                    }
                 }
             }
         }
+    }
 
-        return originalDrawCard(deckId);
-    };
+    return originalDrawCard(deckId);
+};
 
     var originalDisplayHand = dendryUI.displayHand.bind(dendryUI);
     dendryUI.displayHand = function(hand, maxCards) {
