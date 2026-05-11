@@ -677,6 +677,9 @@ const SuperEvent = (() => {
     const overlay = document.createElement('div');
     overlay.id = 'super-event-overlay';
 
+    // NOTE: blockquote is OUTSIDE #super-event-frame so the frame
+    // (image/video + optional side panels) always takes full max-width.
+    // The quote sits below the frame, also capped to --se-max-width.
     overlay.innerHTML = `
       <div id="super-event-title"></div>
       <div id="super-event-frame">
@@ -688,9 +691,9 @@ const SuperEvent = (() => {
         </div>
         <div class="super-event-right">
           <div class="super-event-right-body"></div>
-          <blockquote class="super-event-quote"></blockquote>
         </div>
       </div>
+      <blockquote class="super-event-quote"></blockquote>
       <button id="super-event-skip">Skip</button>
     `;
 
@@ -797,15 +800,9 @@ const SuperEvent = (() => {
     }, 800);
   }
 
-  /* ── Apply size ─────────────────────────────────────────────────── */
-  /*
-   * Sizes are defined in CSS via --se-max-width on size-* classes.
-   * The JS only needs to act when `maxWidth` is passed as a freeform
-   * override — in that case we set the CSS variable directly so the
-   * frame's `max-width: var(--se-max-width)` picks it up automatically.
-   * When no override is given we just clear any previous inline value
-   * and let the size-* class do the work.
-   */
+  /* ── Apply maxWidth ─────────────────────────────────────────────── */
+  // size-* classes set --se-max-width in CSS.
+  // If maxWidth is passed here it overrides inline (wins over class).
   function _applyMaxWidth(maxWidth) {
     if (maxWidth) {
       _overlay.style.setProperty('--se-max-width', maxWidth);
@@ -933,7 +930,6 @@ const SuperEvent = (() => {
       }
 
       /* ── Size / maxWidth ────────────────────────────────────────── */
-      // size-* class sets --se-max-width via CSS; maxWidth overrides inline
       _applyMaxWidth(maxWidth);
 
       /* ── Ratio ──────────────────────────────────────────────────── */
@@ -992,13 +988,15 @@ const SuperEvent = (() => {
       if (leftImage) leftContent = `<img src="${leftImage}" style="width:100%;display:block;margin-bottom:0.5rem;" alt="">` + left;
       _setOrHide(_leftPanel, leftContent, true);
 
-      /* ── Right panel ────────────────────────────────────────────── */
+      /* ── Right panel (sidebar content only — no quote) ──────────── */
       let rightContent = right;
       if (rightImage) rightContent = `<img src="${rightImage}" style="width:100%;display:block;margin-bottom:0.5rem;" alt="">` + right;
       _rightPanel.querySelector('.super-event-right-body').innerHTML = rightContent || '';
-      _rightPanel.style.display = (right || rightImage || (showQuote && quote)) ? '' : 'none';
+      // Hide the right panel when there is no sidebar content
+      _rightPanel.style.display = (right || rightImage) ? '' : 'none';
 
-      const quoteEl = _rightPanel.querySelector('.super-event-quote');
+      /* ── Quote — rendered BELOW the frame ──────────────────────── */
+      const quoteEl = _overlay.querySelector('.super-event-quote');
       if (showQuote && quote) {
         quoteEl.innerHTML = `${quote}<cite>${quoteCite}</cite>`;
         quoteEl.style.display = '';
