@@ -4,74 +4,8 @@ tags: advisor
 card-image: img/muller_cabinet.jpg
 on-arrival: last_pia_action = 1
 new-page: true 
-on-display: {!
-
-// FACTION CHART
-function drawFactionCharts() {
-  var strengthSvg = document.getElementById('faction-strength-svg');
-  var dissentSvg  = document.getElementById('faction-dissent-svg');
-  if (!strengthSvg || !dissentSvg) return;
-
-  var Q = dendryUI.dendryEngine.state.qualities;
-  var factions = ['left', 'center', 'labor', 'reformist', 'neorevisionist'];
-  var colors   = {
-    left:          '#c0392b',
-    center:        '#2980b9',
-    labor:         '#27ae60',
-    reformist:     '#8e44ad',
-    neorevisionist:'#e67e22'
-  };
-
-  function drawSemi(svg, key) {
-    svg.innerHTML = '';
-    var cx = 100, cy = 105, r = 90;
-    var values = factions.map(function(f) {
-      return Math.max(0, Q[f + '_' + key] || 0);
-    });
-    var total = values.reduce(function(a, b) { return a + b; }, 0);
-    if (total === 0) return;
-
-    var angle = Math.PI;
-    factions.forEach(function(f, i) {
-      if (values[i] === 0) return;
-      var slice = (values[i] / total) * Math.PI;
-      var x1 = cx + r * Math.cos(angle);
-      var y1 = cy + r * Math.sin(angle);
-      var x2 = cx + r * Math.cos(angle + slice);
-      var y2 = cy + r * Math.sin(angle + slice);
-      var large = slice > Math.PI ? 1 : 0;
-
-      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d',
-        'M ' + cx + ',' + cy +
-        ' L ' + x1 + ',' + y1 +
-        ' A ' + r + ',' + r + ' 0 ' + large + ',1 ' + x2 + ',' + y2 +
-        ' Z'
-      );
-      path.setAttribute('fill', colors[f]);
-      svg.appendChild(path);
-      angle += slice;
-    });
-  }
-
-  drawSemi(strengthSvg, 'strength');
-  drawSemi(dissentSvg,  'dissent');
-}
-
-!}
 
 = Cabinet
-
-<div style="display:flex;gap:30px;margin:16px 0;">
-  <div style="text-align:center;">
-    <svg id="faction-strength-svg" width="200" height="110" viewBox="0 0 200 110"></svg>
-    <div style="font-size:11px;margin-top:4px;">Strength</div>
-  </div>
-  <div style="text-align:center;">
-    <svg id="faction-dissent-svg"  width="200" height="110" viewBox="0 0 200 110"></svg>
-    <div style="font-size:11px;margin-top:4px;">Dissent</div>
-  </div>
-</div>
 
 We can control the internal affairs and questions within our party. For example, we can push our own spd candidate forward to the elections.
 
