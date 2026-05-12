@@ -2,78 +2,63 @@ title: The Prussian Bulwark
 new-page: true
 is-card: true
 view-if: spd_prussia = 1 and prussian_affairs_timer <= 0
-on-arrival: prussian_affairs_timer += 7; month_actions += 1
+on-arrival: prussian_affairs_timer += 6; month_actions += 1
 tags: govt_affairs, party_affairs
 card-image: img/braun.jpg
+#subtitle: The state government of Prussia is a bulwark of democracy...
 
 = Prussian Affairs
 
 Prussia, by far the largest and most important state in Germany, is governed by our party, in a coalition with the Center and Democratic parties. It is the most stable and democratic state government in Germany, led by the able Otto Braun.
 
-Current police loyalty: [+ prussian_police_loyalty : loyalty +]. <br>
-Current police strength: [+ prussian_police_strength +].  <br>
-Bureaucracy purge level: [+ bureaucracy_purge +]. <br>
-[? if osthilfe_investigation = 1 and osthilfe_exposed = 0: An Osthilfe investigation is ongoing. ?] <br>
-[? if osthilfe_exposed = 1: The Osthilfe scandal has been exposed. ?] <br>
-[? if sa_banned = 1: SA is banned in Prussia. ?] <br>
+We can enact policies in Prussia. [? if bureaucracy_purge < 1: However, as our Prussian Free State is filled with reactionaries, we can't adequately take measures. ?]
+
+Current police loyalty: [+ prussian_police_loyalty : loyalty +].
+
+Current police strength: [+ prussian_police_strength +].
 
 - @police_loyalty: Bolster the loyalty of the police.
-- @police_strength: Recruit additional police. [? if prussian_police_loyalty < 0.5: Requires loyalty 0.5. ?]
-- @bureaucracy: Purge the bureaucracy of reactionary elements. [? if prussian_police_loyalty < 0.6: Requires loyalty 0.6. ?]
-- @administrative_parity: Republicanize the Prussian Police alongside Joseph Hess.
-- @ban_sa: Ban the SA in Prussia. [? if nazi_urgency < 3 or bureaucracy_purge < 1: Requires Nazi urgency 3 and purge level 1. ?]
+- @police_strength: Recruit additional police.
+- @bureaucracy: Purge the bureaucracy of reactionary elements.
+- @ban_sa: Ban the SA, the Nazi paramilitary group.
 - @unban_sa: Reverse the SA ban.
-- @ban_sh: Ban the Stahlhelm in Prussia. [? if bureaucracy_purge < 1: Requires purge level 1. ?]
-- @unban_sh: Reverse the Stahlhelm ban.
-- @ban_rfb: Ban the RFB in Prussia. [? if communist_coalition >= 3: Unavailable in popular front. ?]
+- @ban_rfb: Ban the RFB, the Communist paramilitary.
 - @unban_rfb: Reverse the RFB ban.
-- @osthilfe_investigation: Investigate the Osthilfe subsidy scandal. [? if bureaucracy_purge < 1 or year < 1929: Requires purge level 1 and year 1929+. ?]
+- @ban_sh: Ban the Stahlhelm, the Nationalist paramilitary.
+- @unban_sh: Reverse the Stahlhelm ban.
 - @negotiate_concordat: Negotiate a concordat with the Vatican.
 - @sign_concordat: Sign a concordat with the Vatican.
-- @prussian_education_reform: Reform Prussian schools and universities. [? if bureaucracy_purge < 1 or education_science < 1: Requires purge level 1 and education policy 1. ?]
 - @root: No new policies are needed.
 - @easy_discard
 - @cancel_advisor_action
 
 @police_loyalty
-view-if: prussian_police_loyalty < 0.95
+view-if: prussian_police_loyalty < 1
 on-arrival: prussian_police_loyalty += 0.1; hindenburg_patience -= 1 if president = "Hindenburg";
 
-We have improved the training and recruitment process to select for a broader demographic than the traditional conservatives, setting up committees to investigate the ranks and remove those with far-right sympathies. It is slow and arduous work.
+# increase police loyalty
+The police have historically been overrun with reactionaries, and we are trying to change this, little by little. We have improved the training and recruitment process to select for a broader demographic than the traditional conservatives, and to put a tighter leash on their political activity. In addition, we set up committees to investigate the ranks of the police and remove those with far-right sympathies. It is a slow and arduous work.
 
 Current police loyalty: [+ prussian_police_loyalty : loyalty +].
 
 @police_strength
-view-if: prussian_police_loyalty >= 0.5
-choose-if: prussian_police_loyalty >= 0.5
-unavailable-subtitle: We need greater police loyalty before recruitment can be effective.
 on-arrival: prussian_police_strength += 20 if prussian_police_loyalty < 0.75; prussian_police_strength += 40 if prussian_police_loyalty >= 0.75
 
-We have increased the size of the Prussian police. [? if prussian_police_loyalty >= 0.75: The loyalty of our Prussian police allows us to recruit even more units than before. ?]
+We have increased the size of the Prussian police. [? if prussian_police_loyalty >= 0.75: Loyalty of our Prussian Police allows us to recruit even more units compared to our previous crippled state! ?]
 
 @bureaucracy
-view-if: prussian_police_loyalty >= 0.6
-choose-if: prussian_police_loyalty >= 0.6
-unavailable-subtitle: We need police loyalty of at least 0.6 first.
-on-arrival: prussian_police_loyalty += 0.05; nationalism -= 5; pacifism += 1; bureaucracy_purge += 1; democratization += 1; pro_republic += 3*(1-dissent); new_middle_spd += 2*(1-dissent) if democratization >= 3; new_middle_spd += 2*(1-dissent) if democratization >= 4; coup_progress += 0.5; prussian_police_strength *= 0.91; hindenburg_patience -= 3 if president = "Hindenburg"; camarilla_strength += 5; schleicher_influence += 3 if schleicher_influence > 0;
+choose-if: prussian_police_loyalty > 0.60
+unavailable-subtitle: We need to have police become loyal just a bit.
+on-arrival: prussian_police_loyalty += 0.05; nationalism -= 5; pacifism += 1; bureaucracy_purge += 1; democratization += 1; pro_republic += 3*(1-dissent); new_middle_spd += 2*(1-dissent) if democratization >= 3; new_middle_spd += 2*(1-dissent) if democratization >= 4; coup_progress += 0.5; prussian_police_strength *= 0.91; hindenburg_patience -= 3 if president = "Hindenburg";
 
-The bureaucracy is deeply reactionary and many abuse their power to favor the political right. By removing the pro-monarchy and pro-dictatorship elements we can democratize it. Some opponents claim we are infringing on individual freedoms, but the security of the republic requires it.
-
-@purge_judiciary
-view-if: bureaucracy_purge >= 1 and prussian_police_loyalty >= 0.65
-choose-if: bureaucracy_purge >= 1 and prussian_police_loyalty >= 0.65
-unavailable-subtitle: Requires purge level 1 and loyalty 0.65.
-on-arrival: judicial_reform += 0.5; coup_progress -= 0.5; pro_republic += 2*(1-dissent); nationalism -= 3; hindenburg_patience -= 2 if president = "Hindenburg"; dvp_relation -= 3; democratization += 1;
-
-The Prussian courts have long been a haven for reactionary judges who hand lenient sentences to right-wing terrorists while crushing leftists. We begin a systematic review, removing the worst offenders where we legally can.
+The bureaucracy is deeply reactionary, and many abuse their power to favor the political right. By removing the pro-monarchy and pro-dictatorship elements, we can democratize it. Some of our opponents claim that we are infringing on individual freedoms, but perhaps the security of the republic requires it.
 
 @ban_sa
-view-if: nazi_urgency >= 3 and sa_banned = 0 and bureaucracy_purge >= 1
-choose-if: nazi_urgency >= 3 and bureaucracy_purge >= 1
-unavailable-subtitle: Requires Nazi urgency 3 and purge level 1.
-on-arrival: sa_strength *= 0.9; sa_strength *= 0.75 if prussian_police_loyalty >= 0.75; sa_banned = 1; dvp_relation -= 3; prussian_police_loyalty -= 0.05; sa_militancy -= 0.05; sa_ban_timer = 6; sa_strength *= bonus_mdf_reform if full_reform_initiated = 1; hindenburg_patience -= 4 if president = "Hindenburg"; camarilla_goal_crush_left += 5;
+view-if: nazi_urgency >= 3 and sa_banned == 0
+choose-if: bureaucracy_purge > 0 or prussian_police_loyalty > 0.70
+on-arrival: sa_strength *= 0.9; sa_strength *= 0.75 if prussian_police_loyalty >= 0.75; sa_banned = 1; dvp_relation -= 3; prussian_police_loyalty -= 0.05; sa_militancy -= 0.05; sa_ban_timer = 6; sa_strength *= bonus_mdf_reform if full_reform_initiated = 1;
 
-The Nazi SA has many allies in the police and bureaucracy. Our relationship with the police weakens and the SA can still organize illegally. [? if prussian_police_loyalty >= 0.7: Nevertheless, the SA is substantially weakened by our ban. ?]
+As it turns out, the Nazi SA has many allies in the police and bureaucracy. Our relationship with the police weakens, and the SA can still organize illegally, right under the police's noses. [? if prussian_police_loyalty >= 0.7 : Nevertheless, the SA is substantially weakened by our ban. ?] 
 
 @unban_sa
 view-if: sa_banned = 1
@@ -82,12 +67,11 @@ on-arrival: sa_banned = 0; sa_strength += 100; sa_militancy += 0.05
 The SA is no longer banned. They immediately go on a recruiting spree.
 
 @ban_sh
-view-if: sh_banned = 0 and bureaucracy_purge >= 1
-choose-if: bureaucracy_purge >= 1
-unavailable-subtitle: Requires purge level 1.
 on-arrival: sh_strength *= 0.85; sh_strength *= 0.7 if prussian_police_loyalty >= 0.75; sh_banned = 1; dvp_relation -= 5; prussian_police_loyalty -= 0.1; coalition_dissent += 1 if spd_in_government = 1 and in_grand_coalition = 1 and president = "Hindenburg"; sh_ban_timer = 6; sh_strength *= bonus_mdf_reform if full_reform_initiated = 1; hindenburg_patience -= 5 if president = "Hindenburg";
+view-if: sh_banned == 0
+choose-if: bureaucracy_purge > 0 or prussian_police_loyalty > 0.70
 
-[? if president = "Hindenburg": Banning the Stahlhelm weakens our relationship with President Hindenburg, as well as the political right and the police. ?][? if president != "Hindenburg": Banning the Stahlhelm weakens our relationship with the political right and the police. ?] [? if spd_in_government = 1 and in_grand_coalition = 1 and president = "Hindenburg": It also weakens our coalition due to Hindenburg's influence over its right wing. ?]
+[? if president == "Hindenburg": Banning the Stahlhelm weakens our relationship with President Hindenburg, as well as the political right and the police. ?][? if president != "Hindenburg": Banning the Stahlhelm weakens our relationship with the political right and the police. ?] [? if spd_in_government = 1 and in_grand_coalition = 1 and president = "Hindenburg" : It also weakens our coalition due to the influence of Hindenburg on the right wing of our coalition. ?] In addition, the Stahlhelm still operates out of public sight. 
 
 @unban_sh
 view-if: sh_banned = 1
@@ -95,8 +79,9 @@ on-arrival: sh_banned = 0; sh_strength += 100; hindenburg_patience += 2 if presi
 
 The Stahlhelm is no longer banned.
 
+
 @ban_rfb
-view-if: communist_coalition < 3 and rfb_banned = 0
+view-if: communist_coalition < 3 and rfb_banned = 0 
 on-arrival: kpd_relation -= 15; rfb_strength -= 50; rfb_banned = 1; communist_coalition -= 1; z_relation += 5; dvp_relation += 5; prussian_police_loyalty += 0.1; rfb_strength *= (bonus_mdf_reform + 0.3) if full_reform_initiated = 1; hindenburg_patience += 3 if president = "Hindenburg";
 
 The ban is enthusiastically carried out by the police, perhaps too enthusiastically. The Communists take this as one more reason why the Socialists are traitors to the left. However, the moderate and center-right parties approve, as do the police.
@@ -107,16 +92,6 @@ on-arrival: rfb_banned = 0; rfb_strength += 50; prussian_police_loyalty -= 0.1
 
 The Communist RFB is no longer banned.
 
-@osthilfe_investigation
-view-if: osthilfe_scandal = 0 and bureaucracy_purge >= 1 and year >= 1929
-choose-if: bureaucracy_purge >= 3 and year >= 1931
-unavailable-subtitle: Requires purge level 3
-on-arrival: osthilfe_scandal = 1; osthilfe_investigation = 1; coup_progress += 0.5; hindenburg_patience -= 4 if president = "Hindenburg"; camarilla_strength += 10; dnvp_relation -= 5; old_middle_spd += 1*(1-dissent);
-
-Through our reformed Prussian bureaucracy we have uncovered evidence of systematic abuse in the Osthilfe eastern aid program — subsidies meant for struggling farmers are being funneled directly to wealthy Junker estates, including those with ties to President Hindenburg's circle. We begin a quiet investigation.
-
-[? if president = "Hindenburg": This will not go unnoticed by the camarilla. ?]
-
 @negotiate_concordat
 view-if: prussian_concordat_progress < 3
 on-arrival: prussian_concordat_progress += 1; z_relation += 2*(1-dissent);
@@ -125,22 +100,6 @@ We are making progress towards negotiating a concordat between Prussia and the C
 
 @sign_concordat
 view-if: prussian_concordat_progress >= 3 and prussian_concordat = 0
-on-arrival: prussian_concordat = 1; z_relation += 5; bvp_relation += 3; workers_spd += 3*(1-dissent); catholics += 1;
+on-arrival: prussian_concordat = 1; z_relation += 5; workers_spd += 3*(1-dissent)
 
-We have signed a concordat between the Free State of Prussia and the Roman Catholic Church, guaranteeing religious freedom for Catholics in Prussia. This sets the stage for the negotiation of a national concordat covering all of Germany.
-
-@administrative_parity
-view-if: bureaucracy_purge >= 1 and z_in_government = 1 and prussian_concordat >= 1
-choose-if: prussian_police_loyalty >= 0.65 and bureaucracy_purge >= 1
-unavailable-subtitle: Requires purge level 1 and loyalty 0.65.
-on-arrival: bureaucracy_purge += 1; z_relation += 5*(1-dissent); bvp_relation += 2*(1-dissent); dvp_relation -= 4; dnvp_relation -= 3; pro_republic += 3*(1-dissent); new_middle_spd += 1*(1-dissent); catholics += 1; coup_progress += 0.3; hindenburg_patience -= 2 if president = "Hindenburg";
-
-Working alongside Joseph Hess of the Prussian Center's left wing and Interior Minister Grzesinski, we have accelerated the republicanization of the Prussian administration - systematically correcting the religious and political imbalances baked into the bureaucracy since the Wilhelmine era.
-
-@prussian_education_reform
-view-if: education_science >= 1
-choose-if: bureaucracy_purge >= 1 and education_science >= 1
-unavailable-subtitle: Requires purge level 1 and education policy 1.
-on-arrival: science += 1; pro_republic += 3*(1-dissent); nationalism -= 3; youth += 1; new_middle_spd += 2*(1-dissent); workers_spd += 1*(1-dissent); coup_progress -= 0.3; hindenburg_patience -= 1 if president = "Hindenburg";
-
-Prussia's schools and universities are a crucial battleground for the republic's future. We reform the curriculum to emphasize democratic civic values, fund new scientific research institutes, and push reactionary professors out of positions of influence where we legally can. The youth of Prussia will grow up knowing what we are fighting for.
+We have signed a Concordat between the Free State of Prussia and the Roman Catholic Church, guaranteeing religious freedom for Catholics in Prussia. This sets the stage for the negotiation of a national Concordat covering all of Germany.
