@@ -4574,7 +4574,6 @@ if (Q.prussian_police_training < 1) {
 // === HINDENBURG PATIENCE ENGINE ===
 // Guard: Only runs for Hindenburg or Independent presidents, never party presidents
 if (Q.president === "Hindenburg" || Q.president_party === "I") {
-    if (!Q.hindenburg_dismissed_government_this_turn) {
 
 // === INITIALIZE MISSING VARIABLES ===
 if (Q.hindenburg_dismissed_cooldown_turns > 0) {
@@ -4885,11 +4884,8 @@ Q.hindenburg_patience_critical = Q.hindenburg_patience <= 10 ? 1 : 0;
 
 // Only set ready_to_dismiss if patience is truly exhausted AND no cooldown active
 Q.hindenburg_ready_to_dismiss = (
-    Q.hindenburg_patience <= 0 &&
-    !Q.hindenburg_dismissed_government_this_turn
-) ? 1 : 0;
+    Q.hindenburg_patience <= 0 ) ? 1 : 0;
 
-  }
 }
 
 
