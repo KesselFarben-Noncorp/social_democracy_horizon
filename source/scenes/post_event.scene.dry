@@ -1519,13 +1519,25 @@ Q.distribution_shift = (Q.distribution_shift||0) * Math.exp(-0.08 * dt);
 // SECTION 10 — CONSTRAINTS (single pass)
 // ============================================================
 
-Q.inflation              = Math.max(-12, Math.min(99, Q.inflation));
-Q.unemployed             = Math.max(0,   Math.min(75, Q.unemployed));
-Q.economic_growth        = Math.max(-15, Math.min(20, Q.economic_growth));
-Q.inflation_expectations = Math.max(-9,  Math.min(99, Q.inflation_expectations));
-Q.capital_pressure       = Math.max(0,   Math.min(1.2, Q.capital_pressure));
-Q.supply_cost_drag       = Math.max(0,   Math.min(0.5, Q.supply_cost_drag));
-Q.credit_expansion       = Math.max(0,   Math.min(0.8, Q.credit_expansion));
+if (!Q.math_broken) {
+    // NORMAL: Hard clamps keep economic variables in valid ranges
+    Q.inflation              = Math.max(-12, Math.min(99, Q.inflation));
+    Q.unemployed             = Math.max(0,   Math.min(75, Q.unemployed));
+    Q.economic_growth        = Math.max(-15, Math.min(20, Q.economic_growth));
+    Q.inflation_expectations = Math.max(-9,  Math.min(99, Q.inflation_expectations));
+    Q.capital_pressure       = Math.max(0,   Math.min(1.2, Q.capital_pressure));
+    Q.supply_cost_drag       = Math.max(0,   Math.min(0.5, Q.supply_cost_drag));
+    Q.credit_expansion       = Math.max(0,   Math.min(0.8, Q.credit_expansion));
+} else {
+    // MATH BROKEN: Constraints become suggestions
+    Q.inflation              = Q.impossible_add(Q.inflation, 0);
+    Q.unemployed             = Q.impossible_percentage(Q.unemployed);
+    Q.economic_growth        = Q.impossible_subtract(Q.economic_growth, 0);
+    Q.inflation_expectations = Q.impossible_multiply(Q.inflation_expectations, 1);
+    Q.capital_pressure       = Q.impossible_add(Q.capital_pressure, 0); // Can exceed 1.2 or go negative
+    // supply_cost_drag and credit_expansion left unconstrained — anything goes
+    console.log("CONSTRAINT CHAOS: inflation=" + Q.inflation + " unemployed=" + Q.unemployed + " growth=" + Q.economic_growth);
+}
 
 
 
@@ -1626,7 +1638,17 @@ Q.credit_expansion       = Math.max(0,   Math.min(0.8, Q.credit_expansion));
 
 /// SMALL SETTINGS
 
-Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
+if (!Q.math_broken) {
+    // NORMAL: Sum of progressive party support
+    Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
+} else {
+    // MATH BROKEN: Coalition math doesn't add up
+    Q.progressive_coalition = Q.impossible_add(
+        Q.impossible_add(Q.spd_r, Q.kpd_r),
+        Q.impossible_add(Q.impossible_add(Q.ddp_r, Q.srpd_r), Q.impossible_add(Q.sapd_r, Q.csrp_r))
+    );
+    console.log("COALITION CHAOS: Progressive coalition = " + Q.progressive_coalition + "%");
+}
 
 
 
@@ -1658,8 +1680,13 @@ Q.relation_gravity = function(value) {
 var relations = ['z', 'kpd', 'sapd', 'srpd', 'cnbl', 'csvd', 'csrp', 'dhp', 'bb', 'kvp', 'ddp', 'vrp', 'bvp', 'dvp', 'wp', 'dnvp', 'nsdap', 'dvfp'];
 for (var rel of relations) {
     Q[rel + '_relation'] = Q.relation_gravity(Q[rel + '_relation']);
-    // Hard cap just in case
-    Q[rel + '_relation'] = Math.max(-100, Math.min(100, Q[rel + '_relation']));
+    if (!Q.math_broken) {
+        // NORMAL: Hard cap just in case
+        Q[rel + '_relation'] = Math.max(-100, Math.min(100, Q[rel + '_relation']));
+    } else {
+        // MATH BROKEN: Relations can exceed bounds — a party might be 150% friendly or -200% hostile
+        Q[rel + '_relation'] = Q.impossible_add(Q[rel + '_relation'], 0);
+    }
 }
 
 
@@ -2281,9 +2308,18 @@ Q.socialism    += soc_delta;
 // CLAMP & ROUND
 // ============================================================
 
-Q.pro_republic = Math.round(Math.max(0, Math.min(100, Q.pro_republic)) * 10) / 10;
-Q.nationalism  = Math.round(Math.max(0, Math.min(100, Q.nationalism))  * 10) / 10;
-Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 10;
+if (!Q.math_broken) {
+    // NORMAL: Clamp to [0, 100] and round to 1 decimal
+    Q.pro_republic = Math.round(Math.max(0, Math.min(100, Q.pro_republic)) * 10) / 10;
+    Q.nationalism  = Math.round(Math.max(0, Math.min(100, Q.nationalism))  * 10) / 10;
+    Q.socialism    = Math.round(Math.max(0, Math.min(100, Q.socialism))    * 10) / 10;
+} else {
+    // MATH BROKEN: Values can exceed 100, go negative, or become nonsense
+    Q.pro_republic = Q.impossible_percentage(Q.pro_republic);
+    Q.nationalism  = Q.impossible_percentage(Q.nationalism);
+    Q.socialism    = Q.impossible_percentage(Q.socialism);
+    console.log("OPINION CHAOS: PR=" + Q.pro_republic + " Nat=" + Q.nationalism + " Soc=" + Q.socialism + " Total=" + (Q.pro_republic + Q.nationalism + Q.socialism));
+}
 
 
 
@@ -4011,7 +4047,9 @@ if (_pres_key === "Hindenburg") {
     Q.growth_stress       = Math.pow(Math.max(0, -Q.economic_growth) / 10, 1.6) * 0.10;
     Q.economic_health_drain = Q.unemployment_stress + Q.inflation_stress + Q.growth_stress;
 
-    Q.left_bloc   = (Q.spd_r || 0) + (Q.kpd_r || 0) + (Q.sapd_r || 0);
+    Q.left_bloc   = Q.math_broken
+        ? Q.impossible_add(Q.impossible_add(Q.spd_r || 0, Q.kpd_r || 0), Q.sapd_r || 0)
+        : (Q.spd_r || 0) + (Q.kpd_r || 0) + (Q.sapd_r || 0);
     Q.left_stress = Math.pow(Math.max(0, Q.left_bloc - 35) / 25, 1.4) * 0.08;
     Q.nazi_stress = Math.pow(Math.max(0, Q.nsdap_r - 10) / 30, 2.0) * 0.12;
 
@@ -4092,8 +4130,12 @@ if (_pres_key === "Hindenburg") {
 } else {
     // === SIMPLE HEALTH MODEL (all other presidents) ===
     // Political stress only — no aging curve
-    Q.left_bloc   = (Q.spd_r  || 0) + (Q.kpd_r  || 0) + (Q.sapd_r || 0);
-    Q.right_bloc  = (Q.nsdap_r || 0) + (Q.dnvp_r || 0);
+    Q.left_bloc   = Q.math_broken
+        ? Q.impossible_add(Q.impossible_add(Q.spd_r || 0, Q.kpd_r || 0), Q.sapd_r || 0)
+        : (Q.spd_r  || 0) + (Q.kpd_r  || 0) + (Q.sapd_r || 0);
+    Q.right_bloc  = Q.math_broken
+        ? Q.impossible_add(Q.nsdap_r || 0, Q.dnvp_r || 0)
+        : (Q.nsdap_r || 0) + (Q.dnvp_r || 0);
     Q.economy_score = (5 - Q.unemployed / 5) + (Q.economic_growth / 3) - (Math.abs(Q.inflation - 2) / 4);
     Q.coalition_chaos = (
         (Q.coalition_dissent || 0) * 0.08 +
@@ -5331,10 +5373,22 @@ for (const [key, raw] of Object.entries(forces)) {
 
 // Normalize to percentages
 const para_share = {};
-for (const [key, eff] of Object.entries(effective)) {
-    para_share[key] = total_effective > 0
-        ? Math.round((eff / total_effective) * 1000) / 10  // one decimal
-        : 0;
+if (!Q.math_broken) {
+    // NORMAL: Shares sum to 100%
+    for (const [key, eff] of Object.entries(effective)) {
+        para_share[key] = total_effective > 0
+            ? Math.round((eff / total_effective) * 1000) / 10  // one decimal
+            : 0;
+    }
+} else {
+    // MATH BROKEN: Paramilitary shares don't add up — the SA might be 300% of all forces
+    for (const [key, eff] of Object.entries(effective)) {
+        para_share[key] = total_effective > 0
+            ? Q.impossible_percentage(Math.round((eff / total_effective) * 1000) / 10)
+            : Q.impossible_add(0, 0);
+    }
+    console.log("PARA CHAOS: SA=" + para_share.sa + "% RFB=" + para_share.rfb + "% Total=" +
+        Object.values(para_share).reduce((a, b) => a + b, 0) + "%");
 }
 
 // Write back to Q
@@ -5390,6 +5444,9 @@ if (this.ui && this.ui.show_portraits) {
 
 
 var parties = ['z','srpd','ddp','dvp','csrp','sapd','kpd','bvp','wp','cnbl','dhp','bb','vrp','kvp','csvd','dnvp','nsdap'];
+
+if (!Q.math_broken) {
+    // NORMAL: Coalition dissent is a straightforward sum
     var total = 0;
     for (var i = 0; i < parties.length; i++) {
         var p = parties[i];
@@ -5400,6 +5457,21 @@ var parties = ['z','srpd','ddp','dvp','csrp','sapd','kpd','bvp','wp','cnbl','dhp
         }
     }
     Q.coalition_dissent = total;
+} else {
+    // MATH BROKEN: Dissent arithmetic is unreliable
+    var total = Q.impossible_add(0, 0); // "Zero" that may not be zero
+    for (var i = 0; i < parties.length; i++) {
+        var p = parties[i];
+        if (Q[p + '_in_government']) {
+            total = Q.impossible_add(total, Q[p + '_dissent'] || 0);
+        } else {
+            // MATH BROKEN: Setting to zero may produce non-zero
+            Q[p + '_dissent'] = Q.impossible_multiply(0, 1);
+        }
+    }
+    Q.coalition_dissent = total;
+    console.log("DISSENT CHAOS: Coalition dissent = " + Q.coalition_dissent);
+}
 
 
 
