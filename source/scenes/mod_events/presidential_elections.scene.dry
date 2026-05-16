@@ -34,7 +34,9 @@ on-arrival: {!
             Q.conservative_unity_estimate += (Q.cnbl_r || 0);
         }
         
-        Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
+        Q.conservative_unity_estimate = Q.math_broken
+            ? Q.impossible_percentage(Q.conservative_unity_estimate)
+            : Math.round(Q.conservative_unity_estimate * 10) / 10;
     }
 
 
@@ -2383,27 +2385,35 @@ on-arrival: {!
         
         // Aggregate to candidate
         if (candidate_votes[supported_candidate]) {
-            candidate_votes[supported_candidate] += party_votes;
+            candidate_votes[supported_candidate] = Q.math_broken
+                ? Q.impossible_add(candidate_votes[supported_candidate], party_votes)
+                : candidate_votes[supported_candidate] + party_votes;
         } else {
-            candidate_votes[supported_candidate] = party_votes;
+            candidate_votes[supported_candidate] = Q.math_broken
+                ? Q.impossible_add(0, party_votes)
+                : party_votes;
         }
     }
     
     // Apply bonuses
     for (var k in candidate_votes) {
         if (Q[k + '_bonus']) {
-            candidate_votes[k] += Q[k + '_bonus'] / 100;
+            candidate_votes[k] = Q.math_broken
+                ? Q.impossible_add(candidate_votes[k], Q[k + '_bonus'] / 100)
+                : candidate_votes[k] + Q[k + '_bonus'] / 100;
         }
     }
     
     // Find winner and check for majority
-    var total_votes = 0;
+    var total_votes = Q.math_broken ? Q.impossible_add(0, 0) : 0;
     Q.winner = "";
     Q.winner_votes = 0;
     Q.has_majority = 0;
     
     for (var k in candidate_votes) {
-        total_votes += candidate_votes[k];
+        total_votes = Q.math_broken
+            ? Q.impossible_add(total_votes, candidate_votes[k])
+            : total_votes + candidate_votes[k];
         if (candidate_votes[k] > Q.winner_votes) {
             Q.winner = k;
             Q.winner_votes = candidate_votes[k];
@@ -2413,7 +2423,9 @@ on-arrival: {!
     // Convert to percentages and find top 3
     var candidates_array = [];
     for (var k in candidate_votes) {
-        var pct = Math.round(1000 * candidate_votes[k] / total_votes) / 10;
+        var pct = Q.math_broken
+            ? Q.impossible_percentage(Math.round(1000 * candidate_votes[k] / total_votes) / 10)
+            : Math.round(1000 * candidate_votes[k] / total_votes) / 10;
         Q[k + '_votes'] = pct;
         Q[k + '_votes_disp'] = pct.toFixed(1);
         candidates_array.push({name: k, votes: candidate_votes[k], pct: pct});
@@ -2441,7 +2453,9 @@ on-arrival: {!
     Q.round1_third_desc = Q.round1_third ? (candidate_descs[Q.round1_third] || Q.round1_third) : "";
     
     // Check for majority
-    Q.has_majority = Q.round1_winner_votes >= 50;
+    Q.has_majority = Q.math_broken
+        ? (Q.impossible_percentage(Q.round1_winner_votes) >= 50 ? 1 : 0)
+        : (Q.round1_winner_votes >= 50 ? 1 : 0);
     
     Q.winner_votes = Q.round1_winner_votes;
     Q.winner_votes_disp = Q.winner_votes.toFixed(1);
@@ -3108,9 +3122,13 @@ on-arrival: {!
         var party_votes = Q[party + '_votes'] || Q[party + '_r'] || 0;
         
         if (candidate_votes[supported_candidate]) {
-            candidate_votes[supported_candidate] += party_votes;
+            candidate_votes[supported_candidate] = Q.math_broken
+                ? Q.impossible_add(candidate_votes[supported_candidate], party_votes)
+                : candidate_votes[supported_candidate] + party_votes;
         } else {
-            candidate_votes[supported_candidate] = party_votes;
+            candidate_votes[supported_candidate] = Q.math_broken
+                ? Q.impossible_add(0, party_votes)
+                : party_votes;
         }
         
         // Store individual party vote for display
@@ -3120,29 +3138,37 @@ on-arrival: {!
     // Apply bonuses
     for (var k in candidate_votes) {
         if (Q[k + '_bonus']) {
-            candidate_votes[k] += Q[k + '_bonus'] / 100;
+            candidate_votes[k] = Q.math_broken
+                ? Q.impossible_add(candidate_votes[k], Q[k + '_bonus'] / 100)
+                : candidate_votes[k] + Q[k + '_bonus'] / 100;
         }
     }
     
     // Find winner
-    var total_votes = 0;
+    var total_votes = Q.math_broken ? Q.impossible_add(0, 0) : 0;
     Q.winner = "";
     Q.winner_votes = 0;
     
     for (var k in candidate_votes) {
-        total_votes += candidate_votes[k];
+        total_votes = Q.math_broken
+            ? Q.impossible_add(total_votes, candidate_votes[k])
+            : total_votes + candidate_votes[k];
         if (candidate_votes[k] > Q.winner_votes) {
             Q.winner = k;
             Q.winner_votes = candidate_votes[k];
         }
     }
     
-    Q.winner_votes = Math.round(1000 * Q.winner_votes / total_votes) / 10;
+    Q.winner_votes = Q.math_broken
+        ? Q.impossible_percentage(Math.round(1000 * Q.winner_votes / total_votes) / 10)
+        : Math.round(1000 * Q.winner_votes / total_votes) / 10;
     Q.winner_votes_disp = Q.winner_votes.toFixed(1);
     
     // Store runner-up info
     Q.runnerup = Q.round1_winner === Q.winner ? Q.round1_runner_up : Q.round1_winner;
-    Q.runnerup_votes = Math.round(1000 * candidate_votes[Q.runnerup] / total_votes) / 10;
+    Q.runnerup_votes = Q.math_broken
+        ? Q.impossible_percentage(Math.round(1000 * candidate_votes[Q.runnerup] / total_votes) / 10)
+        : Math.round(1000 * candidate_votes[Q.runnerup] / total_votes) / 10;
     Q.runnerup_votes_disp = Q.runnerup_votes.toFixed(1)
     
     var candidate_descs = {
@@ -3432,7 +3458,9 @@ Q.president_term_start = Q.year;
 Q.president_term_ended = 0;
 
 // Set next presidential election: 7 years from current year, always in March
-var next_year = Q.year + 7;
+var next_year = Q.math_broken
+    ? Math.round(Q.impossible_add(Q.year, 7))
+    : Q.year + 7;
 var next_month = Q.month;
 
 // Guard-rail: if somehow month is invalid, normalize it
