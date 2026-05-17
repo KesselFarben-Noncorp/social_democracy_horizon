@@ -987,17 +987,17 @@ if (Q.year >= 1930 && Q.year < 1933) {
 
 
 // ============================================================
-// ECONOMIC SIMULATION — v2
+// ECONOMIC SIMULATION — v3
 //
-// FIX 1 — Policy impulses scale with crisis depth
-// FIX 2 — demand_impulse/supply_impulse → demand_pressure/supply_pressure
-// FIX 3 — Deflation unemployment penalties hard-capped per tick
-// FIX 4 — Capital pressure: policy lever + accumulation softened in freefall
-// FIX 5 — Correction phase decay stays depression-level for 10 ticks post-transition
-// FIX A — Triple crisis drag softener on dGrowth
-// FIX B — Demand/supply depth boost on dGrowth
-// FIX C — dGrowth cap scales with distance from floor
-// FIX D — Direct demand bypass on dUnemployment at extreme depth
+// Tuning changes from v2:
+//   T1 — Depression demand decay starts at 0.03 (not ramping from 0.35)
+//   T2 — Demand→unemployment coefficient 0.35 → 0.60
+//   T3 — FIX D bypass cap 0.15 → 0.30
+//   T4 — WTB impulse values moved to policy_constants.js
+//
+// Target: u=30% → u=15% over 48 fortnightly ticks with
+//         WTB initial + 2 continuations. Survivable with
+//         correct sustained play, not with one lucky pick.
 // ============================================================
 
 
@@ -1032,7 +1032,7 @@ if (!Q.economyInitialized) {
 
     Q.phase                 = "growth";
     Q.phase_duration        = 0;
-    Q.post_crisis_ticks     = 0;   // FIX 5
+    Q.post_crisis_ticks     = 0;
     Q.cycle_phase           = 0;
     Q.tick                  = 0;
 
@@ -1046,14 +1046,13 @@ Q.phase_duration        = (Q.phase_duration || 0) + 1;
 
 
 // ============================================================
-// FIX 1 + 2 — POLICY IMPULSE ABSORPTION
-// Policy scripts write Q.demand_impulse / Q.supply_impulse.
-// We absorb them into the pressure accumulators (which the sim
-// actually reads) with crisis-depth scaling, then clear them.
+// POLICY IMPULSE ABSORPTION
+// Policy scripts write Q.demand_impulse / Q.supply_impulse /
+// Q.capital_relief. Absorbed here with crisis scaling, then cleared.
+// Actual impulse values live in policy_constants.js.
 // ============================================================
 
 function _policyScale() {
-    // FIX 1: multiplier > 1 at crisis depth, caps at 3.5×
     let scale = 1.0;
     if (Q.unemployed > 15)      scale += Math.min(1.2, (Q.unemployed - 15) * 0.08);
     if (Q.inflation < -3)       scale += Math.min(0.8, Math.abs(Q.inflation + 3) * 0.10);
@@ -1068,6 +1067,10 @@ if (Q.demand_impulse) {
 if (Q.supply_impulse) {
     Q.supply_pressure += Q.supply_impulse * _policyScale();
     Q.supply_impulse   = 0;
+}
+if (Q.distribution_shift_impulse) {
+    Q.distribution_shift += Q.distribution_shift_impulse;
+    Q.distribution_shift_impulse = 0;
 }
 
 
@@ -1104,9 +1107,9 @@ if (Q.phase_duration >= MIN_PHASE_DURATION) {
         else if (grw > 1 && inf < 4)                    Q.phase = "growth";
     }
     else if (Q.phase === "depression") {
-        const longDep   = Q.phase_duration > 15;
-        const growthOk  = grw > (longDep ? -0.5 : 0);
-        const inflOk    = inf > (longDep ? -2.5 : -1);
+        const longDep  = Q.phase_duration > 15;
+        const growthOk = grw > (longDep ? -0.5 : 0);
+        const inflOk   = inf > (longDep ? -2.5 : -1);
         if      (growthOk && inflOk)                    Q.phase = "correction";
         else if (Q.price_pressure > 0.3 && unem > 12)  Q.phase = "stagflation";
         else if (Q.phase_duration > 25)                 Q.phase = "correction";
@@ -1119,12 +1122,11 @@ if (Q.phase_duration >= MIN_PHASE_DURATION) {
 
     if (Q.phase !== prev) {
         if (prev === "depression" || prev === "hyperinflation")
-            Q.post_crisis_ticks = 0;   // FIX 5: start grace period
+            Q.post_crisis_ticks = 0;
         Q.phase_duration = 0;
     }
 }
 
-// FIX 5: count ticks in correction post-crisis
 if (Q.phase === "correction") {
     Q.post_crisis_ticks = (Q.post_crisis_ticks || 0) + 1;
 } else if (Q.phase !== "depression" && Q.phase !== "hyperinflation") {
@@ -1265,27 +1267,21 @@ if (Q.phase === "depression" && Q.phase_duration > 5 && Q.phase_duration % 6 ===
 // SECTION 6 — CAPITAL & TRADE PRESSURE
 // ============================================================
 
-// FIX 4a — Direct capital relief policy lever.
-// Game scripts set Q.capital_relief (suggested max raw value: 0.25).
-// Scaled by crisis depth, hard-capped at 0.70 total relief per fire.
 if (Q.capital_relief) {
     const effective    = Math.min(Q.capital_relief * _policyScale(), 0.70);
     Q.capital_pressure = Math.max(0, Q.capital_pressure - effective);
     Q.capital_relief   = 0;
 }
 
-// FIX 4b — Accumulation rate capped; was flat 0.025 at any negative growth.
 if (Q.economic_growth < 0) {
     const rate = Math.min(0.018, 0.008 + Math.abs(Q.economic_growth) * 0.0008);
     Q.capital_pressure += rate * dt;
 }
 if (Q.inflation > 8 || Q.budget < -20) Q.capital_pressure += 0.020 * dt;
 
-// Clearing
 if (Q.inflation < 2 && Q.economic_growth > 3) Q.capital_pressure -= 0.015 * dt;
 if (Q.economic_growth > 4)                    Q.capital_pressure -= 0.010 * dt;
 
-// Depression liquidation (unchanged)
 if (Q.phase === "depression") {
     if (Q.phase_duration > 5) {
         const liquidation = Math.min(0.06, 0.005 + Q.phase_duration * 0.004) * dt;
@@ -1308,7 +1304,6 @@ if (Q.phase === "depression") {
 
 Q.capital_pressure = Math.max(0, Math.min(1.2, Q.capital_pressure));
 
-// Trade pressure
 if (Q.economic_growth > POTENTIAL_GROWTH + 2)      Q.trade_pressure += 0.020 * dt;
 else if (Q.economic_growth < POTENTIAL_GROWTH - 2) Q.trade_pressure -= 0.015 * dt;
 if (Q.phase === "depression")                       Q.trade_pressure *= Math.exp(-0.04 * dt);
@@ -1344,11 +1339,20 @@ dInflation += (Math.random() - 0.5) * 0.02;
 // ---- dUNEMPLOYMENT ----
 let dUnemployment = 0;
 
+// Okun's law — softened at extreme negative growth
+// Raw coefficient 0.032 at grwGap=-17.5 gives +0.19/tick regardless of policy.
+// Denominator widened so deep collapse doesn't permanently lock unemployment.
 const growthGap = Q.economic_growth - POTENTIAL_GROWTH;
-dUnemployment -= (growthGap < 0 ? 0.032 : 0.020) * growthGap / (1 + Math.abs(growthGap) * 0.12);
+const okunsCoeff = growthGap < 0 ? 0.032 : 0.020;
+dUnemployment -= okunsCoeff * growthGap / (1 + Math.abs(growthGap) * 0.20);  // was 0.12
 
 dUnemployment += 0.005 * Math.max(0, Q.inflation - 6);
-dUnemployment -= demandForce * 0.35;
+
+// T2 — Demand→unemployment coefficient raised 0.35 → 0.60 in depression/correction.
+// In normal phases stays at 0.35 so stimulus doesn't trivially cure mild unemployment.
+const demandUCoeff = (Q.phase === "depression" || Q.phase === "correction") ? 0.60 : 0.35;
+dUnemployment -= demandForce * demandUCoeff;
+
 dUnemployment += Q.capital_pressure * 0.06;
 dUnemployment += Math.min(Q.trade_pressure * 0.04, 1.0);
 
@@ -1363,9 +1367,7 @@ if (Q.unemployed > Q.NAIRU) {
     }
 }
 
-// FIX 3 — Deflation unemployment tiers capped in total.
-// Raw stack at inf=-12 was ~+0.29/tick. Cap at 0.14 keeps it punishing
-// but policy-responsive.
+// Deflation unemployment tiers — capped total (FIX 3)
 {
     let deflUnempTotal = 0;
     if (Q.inflation < 0) {
@@ -1383,15 +1385,13 @@ if (Q.unemployed > Q.NAIRU) {
     dUnemployment += Math.min(deflUnempTotal, 0.14);
 }
 
-// FIX D — Direct demand bypass at extreme unemployment.
-// Normal path: demand → dGrowth → Okun → unemployment (1 tick lag).
-// Bypass: demand cuts unemployment directly, representing public works
-// absorbing workers. Requires BOTH u>20 AND active demand_pressure>0.15.
-// Max effect: -0.15/tick at u=40, demand_pressure=0.55+
+// T3 — Direct demand bypass, cap raised 0.15 → 0.30.
+// Requires u>20 AND active demand_pressure>0.15 simultaneously.
+// Represents public works directly absorbing workers.
 if (Q.unemployed > 20 && Q.demand_pressure > 0.15) {
     const uDepth    = Math.min(1.0, (Q.unemployed - 20) / 20);
     const dStrength = Math.min(1.0, (Q.demand_pressure - 0.15) / 0.4);
-    dUnemployment  -= 0.15 * uDepth * dStrength;
+    dUnemployment  -= 0.30 * uDepth * dStrength;   // was 0.15
 }
 
 dUnemployment += (Math.random() - 0.5) * 0.01;
@@ -1401,13 +1401,7 @@ dUnemployment  = Math.max(-2, Math.min(2, dUnemployment));
 // ---- dGROWTH ----
 let dGrowth = 0;
 
-// FIX A — Triple crisis drag softener.
-// Each drag formula was designed for one bad variable at a time.
-// When all three hit simultaneously they compound to 3-5× design intent.
-// Softener activates ONLY when all three are in crisis simultaneously,
-// and self-removes as any one of them improves.
-// Full triple crisis (inf=-12, grw=-15, u=35): DS ≈ 0.52
-// Single bad variable: DS ≈ 1.0 (no effect)
+// Triple crisis drag softener (FIX A)
 const _infCrisis = Math.max(0, Math.min(1, (-Q.inflation - 2) / 10));
 const _grwCrisis = Math.max(0, Math.min(1, (-Q.economic_growth - 5) / 10));
 const _uCrisis   = Math.max(0, Math.min(1, (Q.unemployed - 15) / 20));
@@ -1436,11 +1430,8 @@ if (Q.unemployed > 10)
 dGrowth -= 0.007 * overheating;
 if (Q.economic_growth > 8) dGrowth -= 0.005 * (Q.economic_growth - 8);
 
-// FIX B — Stimulus depth boost.
-// At growth=-15, outputGap=-17.5. Same demand coefficient as at growth=1
-// means stimulus is swamped. Boost scales with how far below potential,
-// fades back to 1.0 as growth recovers above -5.
-const depthBoost = 1 + Math.max(0, -Q.economic_growth - 5) * 0.04;  // 1.0 → 1.4 as grw -5 → -15
+// Depth boost on stimulus (FIX B)
+const depthBoost = 1 + Math.max(0, -Q.economic_growth - 5) * 0.04;
 dGrowth += demandForce * 1.3 * depthBoost;
 dGrowth += supplyForce * 1.6 * depthBoost;
 
@@ -1448,7 +1439,6 @@ dGrowth += supplyForce * 1.6 * depthBoost;
 dGrowth -= Math.min(Q.trade_pressure   * 0.07, 1.5) * DS;
 dGrowth -= Math.min(Q.capital_pressure * 0.08, 1.5) * DS;
 
-// Depression floor bounce (unchanged)
 if (Q.phase === "depression") {
     if (Q.economic_growth < -10) {
         const floorStrength = Math.min(1.0, (-10 - Q.economic_growth) / 5);
@@ -1460,11 +1450,7 @@ if (Q.phase === "depression") {
 
 dGrowth += (Math.random() - 0.5) * 0.015;
 
-// FIX C — Dynamic dGrowth cap.
-// Hard cap of 3.0 at growth=-15 means minimum 5 ticks to reach 0,
-// while drag keeps compounding. Cap expands at extreme depths so
-// a strong sustained policy response can produce a real bounce.
-// Shrinks back to 3.0 once above -10 — no free ride to boom.
+// Dynamic cap (FIX C)
 const growthDepthCap = Q.economic_growth < -10
     ? 3.0 + Math.min(1.5, (-10 - Q.economic_growth) * 0.15)
     : 3.0;
@@ -1485,8 +1471,9 @@ Q.economic_growth += dGrowth       * dt * momentum;
 
 // ============================================================
 // SECTION 9 — DECAY PERSISTENT SIGNALS
-// FIX 5: correction phase interpolates from depression decay rates
-// for the first 10 ticks after leaving depression/hyperinflation.
+// T1 — Depression demand decay starts at 0.03, not ramping from 0.35.
+//       Player policies persist long enough to actually stack.
+// FIX 5 — Post-crisis grace period in correction for 10 ticks.
 // ============================================================
 
 const depDur = Q.phase === "depression" ? Q.phase_duration : 0;
@@ -1496,7 +1483,8 @@ const BASE_DR = {
     overheating:    { demand: 0.19, supply: 0.25, price: 0.18, trade: 0.30 },
     hyperinflation: { demand: 0.35, supply: 0.08, price: 0.05, trade: 0.14 },
     correction:     { demand: 0.35, supply: 0.25, price: 0.50, trade: 0.18 },
-    depression:     { demand: Math.max(0.03, 0.35 - depDur * 0.008),
+    // T1: demand decay floor lowered from ramping-toward-0.03 to starting at 0.03
+    depression:     { demand: Math.max(0.03, 0.08 - depDur * 0.004),   // was 0.35 - depDur*0.008
                       supply: Math.max(0.03, 0.25 - depDur * 0.006),
                       price:  0.50,
                       trade:  Math.max(0.04, 0.30 - depDur * 0.007) },
@@ -1505,7 +1493,7 @@ const BASE_DR = {
 
 let dr = BASE_DR[Q.phase] || { demand: 0.16, supply: 0.25, price: 0.25, trade: 0.30 };
 
-// FIX 5: grace period — linearly interpolate decay rates over 10 ticks
+// FIX 5: grace period — interpolate from depression toward correction over 10 ticks
 if (Q.phase === "correction" && (Q.post_crisis_ticks || 0) < 10) {
     const t     = Q.post_crisis_ticks / 10;
     const depDr = BASE_DR.depression;
