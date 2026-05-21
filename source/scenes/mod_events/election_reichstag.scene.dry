@@ -3064,13 +3064,13 @@ The mandate now passes to **[+ formateur +]** ([+ formateur_votes +]%).
 @call_new_elections
 on-arrival: {!
 Q.new_elections_imminent = 1;
-Q.next_election_month = Q.month + 2;
+Q.next_election_month = Q.month + 3;
 Q.next_election_year = Q.year;
 if (Q.next_election_month > 12) {
     Q.next_election_month -= 12;
     Q.next_election_year += 1;
 }
-Q.next_election_time = Q.time + 2;
+Q.next_election_time = Q.time + 8;
 
 // Temporary caretaker government
 Q.in_minority_government = 1;
@@ -3081,6 +3081,7 @@ Q.pro_republic -= 3;
 Q.workers_spd -= 2;
 Q.new_middle_spd -= 1;
 Q.political_crisis_level += 1;
+Q.goerdeler_prominence += 1; // Goerdeler rises above.
 !}
 
 = Coalition Formation Impossible - New Elections
@@ -3197,7 +3198,7 @@ if (Q.president === "Hindenburg") {
     var rt = Q.hindenburg_trust_reichstag || 50;
     if (rt >= 30 && !hindenburg_puppet) {
 
-        if (Q.z_r >= 10) {
+        if (Q.z_r >= 10 || Q.z_votes >= 10) {
             if (Q.z_party_leader === "Brüning" || Q.z_leader === "Brüning") {
                 candidates.push({
                     name: "Brüning", party: "Z", type: "parliamentary",
@@ -3237,7 +3238,14 @@ if (Q.president === "Hindenburg") {
                 name: "Curtius", party: "DVP", type: "parliamentary",
                 base_score: (cam_scores["Curtius"] || 0)
                           + (Q.dvp_r * 0.6)
-                          + (Q.economic_minister === "Curtius" ? 8 : 0)
+                          + (Q.economic_minister === "Curtius" ? 15 : 0)
+            });
+
+            candidates.push({
+                name: "Dingeldey", party: "DVP", type: "parliamentary",
+                base_score: (cam_scores["Dingeldey"] || 0)
+                          + (Q.dvp_r * 0.6)
+                          + (Q.dvp_party_leader === "Dingeldey" ? 20 : 0)
             });
         }
 
@@ -3313,7 +3321,7 @@ if (Q.president === "Hindenburg") {
                    + (catastrophic_crisis ? 0.4 : 0)
                    + ((Q.hindenburg_trust_military || 60) > 70 ? 0.2 : 0);
 
-    if ((Q.schleicher_influence || 0) >= 50) {
+    if ((Q.schleicher_influence || 0) >= 80) {
         candidates.push({
             name: "Schleicher", party: "I", type: "military",
             base_score: (cam_scores["Schleicher"] || 0)
@@ -3323,7 +3331,7 @@ if (Q.president === "Hindenburg") {
         });
     }
 
-    if (Q.reichswehr_minister === "Groener" && !Q.groener_dismissed) {
+    if (Q.reichswehr_minister != "Groener" && !Q.groener_dismissed) {
         candidates.push({
             name: "Groener", party: "I", type: "military",
             base_score: 50 + (Q.hindenburg_trust_military || 60) * 0.4
@@ -3331,7 +3339,7 @@ if (Q.president === "Hindenburg") {
         });
     }
 
-    if ((Q.reichswehr_loyalty || 0.5) >= 0.5 && Q.nsdap_r >= 20) {
+    if ((Q.reichswehr_loyalty || 0.5) <= 0.5 && Q.nsdap_r >= 19.9) {
         candidates.push({
             name: "Hammerstein", party: "I", type: "military",
             base_score: (cam_scores["Hammerstein"] || 0)
