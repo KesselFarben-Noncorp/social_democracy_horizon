@@ -3064,13 +3064,13 @@ function computeTarget(party, c) {
             let workers_m     = 0.59
                 * (Q.peoples_party    === 1                              ? 1.05 : 1)
                 * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
-                * (Q.lambach_momentum  && Q.year < 1929                  ? 1.55 : 1);
+                * (Q.lambach_momentum  && Q.year < 1929                  ? 1.55 : 1)
                 * (Q.dnvp_party_leader == "Lambach" ? 1.25 : 1.00);
             let old_middle_m  = 1.49 * (1 + Math.min(Q.nationalism/100,1)*0.28) * (Q.peoples_party === 1 ? 0.95 : 1);
             let new_middle_m  = 0.95 * (1 + Math.min(Q.nationalism/100,1)*0.18)
                 * (Q.peoples_party    === 1                              ? 0.95 : 1)
                 * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
-                * (Q.lambach_momentum  && Q.year < 1929                  ? 2.45 : 1);
+                * (Q.lambach_momentum  && Q.year < 1929                  ? 2.45 : 1)
                 * (Q.dnvp_party_leader == "Lambach" ? 1.45 : 1.00);
             let rural_m       = 1.68 * (1 + Math.min(Q.nationalism/100,1)*0.30)
                 * (Q.peoples_party === 1 ? 0.95 : 1)
@@ -3172,7 +3172,7 @@ function computeTarget(party, c) {
             else if (Q.ideology === 'reformist') { r *= 1.10; s *= 0.90; }
             else if (Q.ideology === 'neorev')    { s *= 1.05; r *= 1.05; }
 
-            if (Q.social_fascism_adopted == 1) {r * 1.31; s *= 0.79}
+            if (Q.social_fascism_adopted == 1) {r *= 1.31; s *= 0.79}
 
             let campaign_boost = 1.1;
             if (Q.campaign_focus === 'workers'    && ci > 0) campaign_boost += ci * 0.75;
@@ -3318,15 +3318,15 @@ function computeTarget(party, c) {
 
         case 'bvp': {
             if (Q.bvp_banned) return 0;
-            let cath = Q.catholics * 0.05;
-            let rur  = Q.rural    * 0.03;
-            base = Math.min(4.5, rep * 30 * im.bvp + cath + rur);
+            let cath = Q.catholics * 0.10;
+            let rur  = Q.rural    * 0.05;
+            base = Math.min(4.5, rep * 38 * im.bvp + cath + rur);
 
-            let rural_m = 1.15 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
+            let rural_m = 1.25 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
             const class_mods = {
-                workers:     0.80 * (Q.peoples_party === 1 ? 0.94 : 1),
-                old_middle:  1.10 * (Q.peoples_party === 1 ? 0.96 : 1),
-                new_middle:  0.90 * (Q.peoples_party === 1 ? 0.96 : 1),
+                workers:     0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
+                old_middle:  1.25 * (Q.peoples_party === 1 ? 0.96 : 1),
+                new_middle:  0.88 * (Q.peoples_party === 1 ? 0.96 : 1),
                 rural:       rural_m,
                 unemployedc: 0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
             };
