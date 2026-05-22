@@ -1912,7 +1912,7 @@ var socialist_party_count   = 0;
 var centrist_party_count    = 0;
 var nationalist_party_count = 0;
 
-if (Q.ideology === "left" && Q.spd_in_government) socialist_party_count++;
+if (Q.ideology === "left" && Q.spd_in_government && Q.social_fascism_adopted != 1) socialist_party_count++;
 if (Q.kpd_in_government)  socialist_party_count++;
 if (Q.sapd_in_government) socialist_party_count++;
 if (Q.sl_in_government)   socialist_party_count++;
@@ -3063,13 +3063,15 @@ function computeTarget(party, c) {
 
             let workers_m     = 0.59
                 * (Q.peoples_party    === 1                              ? 1.05 : 1)
-                * (Q.lambach_reinstated && Q.year < 1929                 ? 1.05 : 1)
+                * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
                 * (Q.lambach_momentum  && Q.year < 1929                  ? 1.55 : 1);
+                * (Q.dnvp_party_leader == "Lambach" ? 1.25 : 1.00);
             let old_middle_m  = 1.49 * (1 + Math.min(Q.nationalism/100,1)*0.28) * (Q.peoples_party === 1 ? 0.95 : 1);
             let new_middle_m  = 0.95 * (1 + Math.min(Q.nationalism/100,1)*0.18)
                 * (Q.peoples_party    === 1                              ? 0.95 : 1)
-                * (Q.lambach_reinstated && Q.year < 1929                 ? 1.05 : 1)
+                * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
                 * (Q.lambach_momentum  && Q.year < 1929                  ? 2.45 : 1);
+                * (Q.dnvp_party_leader == "Lambach" ? 1.45 : 1.00);
             let rural_m       = 1.68 * (1 + Math.min(Q.nationalism/100,1)*0.30)
                 * (Q.peoples_party === 1 ? 0.95 : 1)
                 * (Q.parties.includes('cnbl') ? 0.7953 : 1);
@@ -3120,7 +3122,7 @@ function computeTarget(party, c) {
 
         case 'kpd': {
             if (Q.kpd_banned) return 0;
-            let buff = Q.april_challenge === 1 ? 1.25 : 1;
+            let buff = Q.april_challenge === 1 ? 1.35 : 1;
             base = soc * 45 * 2.0 * (1 + unr * 0.13) * buff * im.kpd;
 
             let workers_m     = 1.50 * (Q.peoples_party === 1 ? 1.08 : 1);
@@ -3134,7 +3136,7 @@ function computeTarget(party, c) {
 
         case 'sapd': {
             if (Q.sapd_banned || !Q.sapd_formed) return 0;
-            let buff = Q.april_challenge === 1 ? 2.50 : 1;
+            let buff = Q.april_challenge === 1 ? 1.25 : 0.90;
             base = soc * 19 * 2.0 * (1 + unr * 0.12) * buff * im.sapd;
 
             const class_mods = {
@@ -3165,12 +3167,14 @@ function computeTarget(party, c) {
         case 'spd': {
             if (Q.spd_banned) return 0;
             let s = soc, r = rep;
-            if (Q.peoples_party === 1)      { s *= 0.80; r *= 1.15; }
+            if (Q.peoples_party === 1)      { s *= 0.80; r *= 1.20; }
             if (Q.ideology === 'left')       { s *= 1.15; r *= 0.90; }
             else if (Q.ideology === 'reformist') { r *= 1.10; s *= 0.90; }
             else if (Q.ideology === 'neorev')    { s *= 1.05; r *= 1.05; }
 
-            let campaign_boost = 1.5;
+            if (Q.social_fascism_adopted == 1) {r * 1.31; s *= 0.79}
+
+            let campaign_boost = 1.1;
             if (Q.campaign_focus === 'workers'    && ci > 0) campaign_boost += ci * 0.75;
             if (Q.campaign_focus === 'new_middle' && ci > 0) campaign_boost += ci * 0.65;
             if (Q.campaign_focus === 'old_middle' && ci > 0) campaign_boost += ci * 0.55;
