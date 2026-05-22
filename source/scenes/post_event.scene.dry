@@ -2739,7 +2739,7 @@ Q.identity_modifier = {
              - (cath_share * 0.40) - (sec_share * 0.10),
 
     // DNVP: Protestant conservative base, loses youth
-    dnvp:  1 + (prot_share * 0.20) - (youth_share * 0.15) - (cath_share * 0.10),
+    dnvp:  1 + (prot_share * 0.45) - (youth_share * 0.15) - (cath_share * 0.10),
 
     //DVFP
     dvfp:  1 + (prot_share * 0.25) - (youth_share * 0.25) - (cath_share * 0.10),
@@ -3058,24 +3058,24 @@ function computeTarget(party, c) {
                 base = ((nat * 40) + polarization + crisis_bonus) * im.dnvp;
             } else {
                 let chaos_penalty = unr > 0.7 ? (unr * 1) : 0;
-                base = ((nat * 54) + (rep * 21) - chaos_penalty) * im.dnvp;
+                base = ((nat * 67) + (rep * 41) - chaos_penalty) * im.dnvp;
             }
 
-            let workers_m     = 0.59
+            let workers_m     = 0.60
                 * (Q.peoples_party    === 1                              ? 1.05 : 1)
                 * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
                 * (Q.lambach_momentum  && Q.year < 1929                  ? 1.55 : 1)
                 * (Q.dnvp_party_leader == "Lambach" ? 1.25 : 1.00);
-            let old_middle_m  = 1.49 * (1 + Math.min(Q.nationalism/100,1)*0.28) * (Q.peoples_party === 1 ? 0.95 : 1);
-            let new_middle_m  = 0.95 * (1 + Math.min(Q.nationalism/100,1)*0.18)
+            let old_middle_m  = 1.52 * (1 + Math.min(Q.nationalism/100,1)*0.28) * (Q.peoples_party === 1 ? 0.95 : 1);
+            let new_middle_m  = 0.98 * (1 + Math.min(Q.nationalism/100,1)*0.18)
                 * (Q.peoples_party    === 1                              ? 0.95 : 1)
                 * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
                 * (Q.lambach_momentum  && Q.year < 1929                  ? 2.45 : 1)
                 * (Q.dnvp_party_leader == "Lambach" ? 1.45 : 1.00);
-            let rural_m       = 1.68 * (1 + Math.min(Q.nationalism/100,1)*0.30)
+            let rural_m       = 1.72 * (1 + Math.min(Q.nationalism/100,1)*0.30)
                 * (Q.peoples_party === 1 ? 0.95 : 1)
                 * (Q.parties.includes('cnbl') ? 0.7953 : 1);
-            let unemployedc_m = 0.50 * (Q.peoples_party === 1 ? 1.02 : 1);
+            let unemployedc_m = 0.57 * (Q.peoples_party === 1 ? 1.02 : 1);
 
             const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
             return base * (class_mods[c] || 1.0);
