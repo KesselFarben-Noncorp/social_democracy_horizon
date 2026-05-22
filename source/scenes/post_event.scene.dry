@@ -5340,6 +5340,7 @@ const forces = {
     interior_police:       Q.interior_police_strength || 0,
     reichswehr:            Q.reichswehr_strength || 0,
     reichsbanner:          Q.rb_strength || 0,
+    rpb:                   (Q.rpb_formed ? Q.rpb_strength || 0 : 0),
     jungdo:                Q.jungdo_strength || 0,
     rfb:                   Q.rfb_strength || 0,
     stahlhelm:             Q.sh_strength || 0,
@@ -5348,10 +5349,11 @@ const forces = {
 
 // Militancy weights — raw strength alone isn't threat; multiply by militancy
 const militancy_weights = {
-    prussian_police:  (Q.prussian_police_loyalty || 50) / 100,  // loyalty replaces militancy for police
+    prussian_police:  (Q.prussian_police_loyalty || 50) / 100,
     interior_police:  (Q.interior_police_loyalty || 50) / 100,
     reichswehr:       (Q.reichswehr_militancy || 1) / 5,
     reichsbanner:     (Q.rb_militancy || 1) / 5,
+    rpb:              (Q.rpb_militancy || 1) / 5,
     jungdo:           (Q.jungdo_militancy || 1) / 5,
     rfb:              (Q.rfb_militancy || 1) / 5,
     stahlhelm:        (Q.sh_militancy || 1) / 5,
@@ -5369,14 +5371,12 @@ for (const [key, raw] of Object.entries(forces)) {
 // Normalize to percentages
 const para_share = {};
 if (!Q.math_broken) {
-    // NORMAL: Shares sum to 100%
     for (const [key, eff] of Object.entries(effective)) {
         para_share[key] = total_effective > 0
-            ? Math.round((eff / total_effective) * 1000) / 10  // one decimal
+            ? Math.round((eff / total_effective) * 1000) / 10
             : 0;
     }
 } else {
-    // MATH BROKEN: Paramilitary shares don't add up — the SA might be 300% of all forces
     for (const [key, eff] of Object.entries(effective)) {
         para_share[key] = total_effective > 0
             ? Q.impossible_percentage(Math.round((eff / total_effective) * 1000) / 10)
@@ -5391,21 +5391,39 @@ Q.para_share_prussian_police  = para_share.prussian_police;
 Q.para_share_interior_police  = para_share.interior_police;
 Q.para_share_reichswehr       = para_share.reichswehr;
 Q.para_share_reichsbanner     = para_share.reichsbanner;
+Q.para_share_rpb              = para_share.rpb;
 Q.para_share_jungdo           = para_share.jungdo;
 Q.para_share_rfb              = para_share.rfb;
 Q.para_share_stahlhelm        = para_share.stahlhelm;
 Q.para_share_sa               = para_share.sa;
 
-// Faction blocs (useful for coup/civil war checks)
-Q.para_bloc_pro_republic = 
-    para_share.prussian_police + 
-    para_share.interior_police + 
-    para_share.reichsbanner + 
-    para_share.jungdo;
+//// Faction blocs
+if (Q.april_challenge === 1 && Q.year >= 1933 && Q.month >= 10) {
+    Q.para_bloc_pro_republic =
+        para_share.prussian_police +
+        para_share.interior_police +
+        para_share.rpb +
+        para_share.jungdo +
+        para_share.stahlhelm;
 
-Q.para_bloc_left     = para_share.rfb;
-Q.para_bloc_right    = para_share.stahlhelm + para_share.sa;
-Q.para_bloc_military = para_share.reichswehr;
+    Q.para_bloc_left =
+        para_share.rfb +
+        para_share.reichsbanner;
+
+    Q.para_bloc_right    = para_share.sa;
+    Q.para_bloc_military = para_share.reichswehr;
+} else {
+    Q.para_bloc_pro_republic =
+        para_share.prussian_police +
+        para_share.interior_police +
+        para_share.reichsbanner +
+        para_share.rpb +
+        para_share.jungdo;
+
+    Q.para_bloc_left     = para_share.rfb;
+    Q.para_bloc_right    = para_share.stahlhelm + para_share.sa;
+    Q.para_bloc_military = para_share.reichswehr;
+}
 
 
 
