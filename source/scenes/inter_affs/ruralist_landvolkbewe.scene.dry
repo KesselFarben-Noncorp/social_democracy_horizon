@@ -18,12 +18,11 @@ The sudden collapse of hog and beef prices, paired with heavy debt maturities, h
 title: Protect Smallholder Homesteads from Foreclosure via Prussian Judicial Directives
 subtitle: Order local magistrates to temporarily defer forced auctions for family smallholders.
 on-arrival: {!
-  Q.rural_qol += 2;                // Defers immediate economic evictions of family farms
-  Q.stability += 1;                // De-escalates violent blockades around rural homesteads
+  Q.rural_qol += 2;                // Defers immediate economic evictions of family farms            // De-escalates violent blockades around rural homesteads
   Q.rural_spd += 2;                // Peels moderate elements away from underground bomb cells
   Q.rural_dnvp -= 3;               // Traditional Landbund elites lose their monopoly on rural distress
   Q.capital_strike_progress += 1;  // Banking interests and urban liberals protest the delay of debt collections
-  Q.landvolk_tactic = "deferred";
+  Q.landvolk_suppress += 1;
   Q.month_actions += 1;
 !}
 
@@ -38,13 +37,13 @@ By removing the immediate threat of eviction, the physical friction between the 
 title: Split the Marsh Population via the Small Cottagers Association
 subtitle: Funnel party resources to the independent coastal laborers to combat the wealthy cattle barons.
 choose-if: socialism >= 15 and welfare >= 0
-unavailable-text: Our party's internal focus on urban industrial trade unions makes us too rigid to exploit rural class differences.
+unavailable-subtitle: Our party's internal focus on urban industrial trade unions makes us too rigid to exploit rural class differences.
 on-arrival: {!
   Q.resources -= 1;                   // Funded via local provincial party organization budgets
   Q.rural_spd += 3;                // Direct electoral gains among the poorest coastal cottagers
   Q.rural_dnvp -= 4;               // The conservative Landbund's attempt to absorb smallholders fails
   Q.rural_nsdap -= 2;              // Prevents a unified right-wing rural front from solidifying on the coast
-  Q.landvolk_tactic = "divided";
+  Q.landvolk_suppress += 1;
   Q.month_actions += 1;
 !}
 
@@ -59,12 +58,12 @@ This subverts the conservative strategy of cultivating absolute "provincial soli
 title: Secure the Eastern Hill Zone Bastion via the Reichsbanner
 subtitle: Establish armed rural defense units to protect socialist farmhands from Stahlhelm intimidation.
 choose-if: Q.rb_strength >= 1200 and Q.rb_militancy >= 0.08
-unavailable-text: The Reichsbanner lacks the strength or tactical edge required to safely deploy armed patrols in the provinces.
+unavailable-subtitle: The Reichsbanner lacks the strength or tactical edge required to safely deploy armed patrols in the provinces.
 on-arrival: {!
   Q.rb_militancy += 0.01;          // Reichsbanner structures become highly combat-ready in the field
   Q.rural_spd += 5;                // Deepens turnout and security for the landless proletariat
   Q.rural_dnvp += 2;               // Alarmed noble estate owners fiercely consolidate their defenses
-  Q.landvolk_tactic = "fortressed";
+  Q.landvolk_suppress += 1;
   Q.month_actions += 1;
 !}
 
