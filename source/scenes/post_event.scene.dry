@@ -2481,6 +2481,13 @@ if ((Q.wtb_timer || 0) > 0) {
 
 
 
+
+
+
+
+
+
+
 // === PARTY RELATIONS DYNAMIC PATCH (runs every tick) ===
 
 // KPD
@@ -2645,11 +2652,441 @@ Q.coalition_blocks.BB_NSDAP  = Q.nazi_urgency >= 7;
 
 
 
+// ============================================================
+// QOL GRIEVANCE SYSTEM
+// ============================================================
+
+// ============================================================
+// SECTION 2A — TARGET COMPUTATION PER DIMENSION PER CLASS
+// Each target is 0–100. 50 = neutral (1928 baseline).
+// Above 50 = satisfied, below 50 = aggrieved.
+// ============================================================
+
+// ---- SHARED SIGNALS ----
+// Pre-compute signals used across multiple classes to avoid repetition.
+
+// Economic signals
+const _qol_unemp_stress  = Math.max(0, Q.unemployed - 8);       // 0 at baseline
+const _qol_infl_stress   = Math.abs(Q.inflation - 2);            // 0 at stable 2%
+const _qol_defl_stress   = Math.max(0, -Q.inflation);            // deflation hits debtors
+const _qol_growth_bonus  = Math.max(0, Q.economic_growth - 1);   // positive growth signal
+const _qol_growth_stress = Math.max(0, -Q.economic_growth);      // contraction signal
+
+// Security signals
+const _qol_sa_threat  = (Q.sa_strength  * Q.sa_militancy)  / 500;
+const _qol_rfb_threat = (Q.rfb_strength * Q.rfb_militancy) / 400;
+const _qol_sh_threat  = (Q.sh_strength  * Q.sh_militancy)  / 600;
+const _qol_rb_shield  = Math.min(1.5, (Q.rb_strength * Q.rb_militancy) / 3000);
+const _qol_pol_loyal  = ((Q.prussian_police_loyalty || 0.5) + (Q.interior_police_loyalty || 0.45)) / 2;
+
+// Political signals
+const _qol_spd_in_govt  = Q.spd_in_government  ? 1 : 0;
+const _qol_left_in_govt = (Q.spd_in_government || Q.kpd_in_government || Q.sapd_in_government) ? 1 : 0;
+const _qol_right_in_govt= (Q.dnvp_in_government || Q.nsdap_in_government) ? 1 : 0;
+const _qol_con_reform   = Q.constitutional_reform || 0;
+const _qol_pres_rel     = (Q.hindenburg_patience  || 50) / 100;
+
+// Cultural signals
+const _qol_edu          = Q.education_science || 0;
+const _qol_sci          = Q.science           || 0;
+const _qol_womens       = Q.womens_rights      || 0;
+const _qol_secular      = Q.secularized        || 0;
+const _qol_curriculum_d = (Q.major_curriculum === 'democratic'  || Q.minor_curriculum === 'democratic')  ? 1 : 0;
+const _qol_curriculum_t = (Q.major_curriculum === 'traditional' || Q.minor_curriculum === 'traditional') ? 1 : 0;
+const _qol_concordat    = (Q.prussian_concordate || Q.reichskonkordat) ? 1 : 0;
+const _qol_youth_orgs   = Q.youth_organizations || 0;
 
 
+// ============================================================
+// WORKERS
+// ============================================================
+
+{
+    // --- Economic ---
+    let _t = 50;
+    _t += (Q.welfare          || 0) * 7;
+    _t += (Q.working_hours    || 0) * 5;
+    _t += (Q.workers_safety   || 0) * 4;
+    _t += (Q.works_councils   || 0) * 4;
+    _t += (Q.works_program    || 0) * 6;
+    _t += (Q.wtb_implemented  || 0) * 5;
+    _t += (Q.cooperatives     || 0) * 3;
+    _t += _qol_growth_bonus        * 1.5;
+    _t -= _qol_unemp_stress        * 2.5;
+    _t -= _qol_growth_stress       * 2.0;
+    _t -= (Q.dues_workers     || 0) * 4;     // dues are a burden on workers
+    _t -= _qol_infl_stress         * 0.8;   // workers hurt by inflation but less than middle
+    if (Q.unions_independent === 1) _t -= 10; // alienated from SPD
+    _t = Math.max(0, Math.min(100, _t));
+    Q.workers_grievance_economic += ((_t - Q.workers_grievance_economic) * Q.grievance_decay.economic);
+
+    // --- Security ---
+    _t = 50;
+    _t -= _qol_sa_threat  * 18;   // SA is the primary threat to workers
+    _t -= _qol_rfb_threat * 6;    // RFB crossfire also hurts workers
+    _t += _qol_rb_shield  * 12;   // Reichsbanner protects
+    _t += _qol_pol_loyal  * 10;   // loyal police helps
+    _t -= (Q.blutmai ? 8 : 0);    // Blutmai permanently scars worker trust in state
+    _t -= (Q.rb_banned  ? 12 : 0);
+    _t -= (Q.rfb_banned ? 3  : 0); // RFB ban removes crossfire but also solidarity org
+    _t = Math.max(0, Math.min(100, _t));
+    Q.workers_grievance_security += ((_t - Q.workers_grievance_security) * Q.grievance_decay.security);
+
+    // --- Political ---
+    _t = 50;
+    _t += _qol_spd_in_govt      * 15;
+    _t += (Q.labor_rights    || 0) * 8;
+    _t += (Q.works_councils  || 0) * 5;
+    _t += (Q.economic_democracy || 0) * 6;
+    _t += _qol_con_reform       * 4;
+    _t -= _qol_right_in_govt    * 12;
+    _t -= (Q.presidential_cabinet ? 8 : 0);
+    _t -= (Q.emergency_rule   ? 10 : 0);
+    _t -= (Q.rfb_banned && !Q.kpd_banned ? 6 : 0); // banning their orgs feels political
+    _t = Math.max(0, Math.min(100, _t));
+    Q.workers_grievance_political += ((_t - Q.workers_grievance_political) * Q.grievance_decay.political);
+
+    // --- Cultural ---
+    _t = 50;
+    _t += _qol_edu              * 4;
+    _t += _qol_womens           * 3;
+    _t += (Q.commonwealth_cooperation || 0) * 5;
+    _t += _qol_curriculum_d     * 5;
+    _t -= _qol_curriculum_t     * 4;
+    _t += _qol_youth_orgs       * 3;
+    _t = Math.max(0, Math.min(100, _t));
+    Q.workers_grievance_cultural += ((_t - Q.workers_grievance_cultural) * Q.grievance_decay.cultural);
+}
 
 
+// ============================================================
+// UNEMPLOYED
+// ============================================================
 
+{
+    // --- Economic ---
+    let _t = 50;
+    _t += (Q.welfare        || 0) * 8;
+    _t += (Q.works_program  || 0) * 10;   // works programs are their direct lifeline
+    _t += (Q.wtb_implemented|| 0) * 8;
+    _t += (Q.state_buyer    || 0) * 5;
+    _t -= _qol_unemp_stress       * 3.5;  // they feel this most acutely
+    _t -= _qol_growth_stress      * 2.5;
+    _t -= _qol_defl_stress        * 1.5;  // deflation = no jobs being created
+    _t -= (Q.dues_unemployedc > 0 ? (Q.dues_unemployedc * 6) : -8); // waived dues = relief
+    _t = Math.max(0, Math.min(100, _t));
+    Q.unemployedc_grievance_economic += ((_t - Q.unemployedc_grievance_economic) * Q.grievance_decay.economic);
+
+    // --- Security ---
+    _t = 50;
+    _t -= _qol_sa_threat  * 20;   // SA recruits and terrorizes the unemployed simultaneously
+    _t -= _qol_rfb_threat * 8;
+    _t += _qol_rb_shield  * 10;
+    _t += _qol_pol_loyal  * 8;
+    _t -= (Q.blutmai ? 10 : 0);
+    _t -= (Q.rb_banned  ? 14 : 0);
+    _t = Math.max(0, Math.min(100, _t));
+    Q.unemployedc_grievance_security += ((_t - Q.unemployedc_grievance_security) * Q.grievance_decay.security);
+
+    // --- Political ---
+    _t = 50;
+    _t += _qol_left_in_govt     * 12;
+    _t += (Q.labor_rights    || 0) * 5;
+    _t += _qol_con_reform       * 3;
+    _t -= _qol_right_in_govt    * 15;   // right govt = austerity = their destruction
+    _t -= (Q.presidential_cabinet ? 12 : 0);
+    _t -= (Q.emergency_rule   ? 12 : 0);
+    _t -= (Q.austerity_cuts   ? 15 : 0); // emergency cuts devastate them
+    _t = Math.max(0, Math.min(100, _t));
+    Q.unemployedc_grievance_political += ((_t - Q.unemployedc_grievance_political) * Q.grievance_decay.political);
+
+    // --- Cultural ---
+    _t = 50;
+    _t += _qol_edu              * 3;
+    _t += _qol_youth_orgs       * 4;   // youth orgs matter more — they skew young
+    _t += _qol_curriculum_d     * 4;
+    _t -= _qol_curriculum_t     * 3;
+    _t = Math.max(0, Math.min(100, _t));
+    Q.unemployedc_grievance_cultural += ((_t - Q.unemployedc_grievance_cultural) * Q.grievance_decay.cultural);
+}
+
+
+// ============================================================
+// OLD MIDDLE (Mittelstand — artisans, small shopkeepers, rentiers)
+// ============================================================
+
+{
+    // --- Economic ---
+    let _t = 50;
+    // Old middle was destroyed by 1923 — inflation is their deepest fear
+    _t -= _qol_infl_stress        * 4.0;   // strongest inflation sensitivity of any class
+    _t -= _qol_defl_stress        * 2.0;   // deflation kills their businesses too
+    _t -= _qol_unemp_stress       * 1.5;   // less direct than workers
+    _t += _qol_growth_bonus       * 2.0;
+    _t -= _qol_growth_stress      * 2.5;
+    _t += (Q.pro_consumer      || 0) * 5;  // pro-consumer policy helps shopkeepers
+    _t -= (Q.dues_old_middle   || 0) * 5;
+    _t += (Q.nationalization_progress > 0 ? -8 : 0); // nationalization threatens them
+    _t = Math.max(0, Math.min(100, _t));
+    Q.old_middle_grievance_economic += ((_t - Q.old_middle_grievance_economic) * Q.grievance_decay.economic);
+
+    // --- Security ---
+    _t = 50;
+    _t -= _qol_sa_threat  * 8;    // SA is disruptive to their businesses
+    _t -= _qol_rfb_threat * 10;   // RFB street fighting scares shopkeepers more
+    _t += _qol_pol_loyal  * 12;
+    _t -= (Q.general_strike_progress > 3 ? 10 : 0); // general strike = closed shops
+    _t -= (Q.rb_banned  ? 5  : 0);
+    _t -= (Q.emergency_rule ? -5 : 0); // emergency rule = order, they may prefer it
+    _t = Math.max(0, Math.min(100, _t));
+    Q.old_middle_grievance_security += ((_t - Q.old_middle_grievance_security) * Q.grievance_decay.security);
+
+    // --- Political ---
+    _t = 50;
+    _t -= _qol_spd_in_govt      * 8;    // SPD = socialism = threat to property
+    _t -= _qol_left_in_govt     * 10;
+    _t += _qol_right_in_govt    * 6;
+    _t += _qol_con_reform       * 3;
+    _t += (Q.judicial_reform   || 0) * 5; // rule of law protects their contracts
+    _t -= (Q.presidential_cabinet ? 3 : 0); // ambiguous — order but uncertainty
+    _t -= (Q.emergency_rule   ? -4 : 0);   // they often prefer strong order
+    _t = Math.max(0, Math.min(100, _t));
+    Q.old_middle_grievance_political += ((_t - Q.old_middle_grievance_political) * Q.grievance_decay.political);
+
+    // --- Cultural ---
+    // Old middle is the most culturally conservative class
+    _t = 50;
+    _t += _qol_concordat        * 8;    // church-state relations matter deeply
+    _t += _qol_curriculum_t     * 8;    // traditional curriculum = their values
+    _t -= _qol_curriculum_d     * 6;
+    _t -= _qol_secular          * 5;
+    _t -= _qol_womens           * 3;    // women's rights challenge their worldview
+    _t += (Q.judicial_reform   || 0) * 3;
+    _t = Math.max(0, Math.min(100, _t));
+    Q.old_middle_grievance_cultural += ((_t - Q.old_middle_grievance_cultural) * Q.grievance_decay.cultural);
+}
+
+
+// ============================================================
+// NEW MIDDLE (White-collar workers, civil servants, professionals)
+// ============================================================
+
+{
+    // --- Economic ---
+    let _t = 50;
+    _t += _qol_growth_bonus       * 3.0;   // growth = promotions, security
+    _t -= _qol_growth_stress      * 3.0;
+    _t -= _qol_infl_stress        * 2.5;   // salaries don't keep up with inflation
+    _t -= _qol_defl_stress        * 1.5;
+    _t -= _qol_unemp_stress       * 1.5;
+    _t += (Q.education_science || 0) * 5;  // education = their career prospects
+    _t += (Q.science           || 0) * 4;
+    _t -= (Q.dues_new_middle   || 0) * 4;
+    _t += (Q.wtb_implemented   || 0) * 3;  // WTB stabilizes the economy they depend on
+    _t = Math.max(0, Math.min(100, _t));
+    Q.new_middle_grievance_economic += ((_t - Q.new_middle_grievance_economic) * Q.grievance_decay.economic);
+
+    // --- Security ---
+    _t = 50;
+    _t -= _qol_sa_threat  * 10;
+    _t -= _qol_rfb_threat * 10;   // equally threatened by both extremes
+    _t += _qol_pol_loyal  * 14;   // care most about state order
+    _t -= (Q.general_strike_progress > 3 ? 8 : 0);
+    _t += (Q.emergency_rule ? 5 : 0); // new middle often prefers order over freedom
+    _t -= (Q.rb_banned  ? 6  : 0);
+    _t = Math.max(0, Math.min(100, _t));
+    Q.new_middle_grievance_security += ((_t - Q.new_middle_grievance_security) * Q.grievance_decay.security);
+
+    // --- Political ---
+    _t = 50;
+    // New middle wants competent, stable government more than ideology
+    _t += _qol_con_reform       * 6;
+    _t += (Q.bureaucratic_reform || 0) * 8;  // direct interest in civil service reform
+    _t += (Q.judicial_reform    || 0) * 5;
+    _t -= (Q.presidential_cabinet ? 4 : 0);
+    _t -= _qol_left_in_govt     * 6;    // SPD threatens their civil service positions
+    _t -= _qol_right_in_govt    * 4;    // DNVP purges them too
+    _t += _qol_pres_rel         * 5;    // presidential legitimacy matters
+    _t = Math.max(0, Math.min(100, _t));
+    Q.new_middle_grievance_political += ((_t - Q.new_middle_grievance_political) * Q.grievance_decay.political);
+
+    // --- Cultural ---
+    // New middle is split — educated but often nationalist
+    _t = 50;
+    _t += _qol_edu              * 6;
+    _t += _qol_sci              * 5;
+    _t += _qol_womens           * 4;   // more open to women's rights than old middle
+    _t += _qol_curriculum_d     * 4;
+    _t -= _qol_curriculum_t     * 3;
+    _t += _qol_youth_orgs       * 3;
+    _t = Math.max(0, Math.min(100, _t));
+    Q.new_middle_grievance_cultural += ((_t - Q.new_middle_grievance_cultural) * Q.grievance_decay.cultural);
+}
+
+
+// ============================================================
+// RURAL
+// ============================================================
+
+{
+    // --- Economic ---
+    let _t = 50;
+    _t += (Q.agricultural_policy  || 0) * 8;
+    _t += (Q.agricultural_finance || 0) * 7;
+    _t += (Q.land_reform          || 0) * 6;   // land reform helps poor farmers
+    _t += (Q.state_buyer          || 0) * 6;   // state grain purchases = price floor
+    _t -= _qol_defl_stress              * 3.5; // deflation crushes farm prices hardest
+    _t -= _qol_infl_stress              * 1.5; // input cost inflation hurts
+    _t -= _qol_unemp_stress             * 1.0;
+    _t += _qol_growth_bonus             * 1.5;
+    _t -= (Q.tariffs < 0 ? Math.abs(Q.tariffs) * 5 : 0); // low tariffs = foreign competition
+    _t -= (Q.dues_rural           || 0) * 4;
+    _t = Math.max(0, Math.min(100, _t));
+    Q.rural_grievance_economic += ((_t - Q.rural_grievance_economic) * Q.grievance_decay.economic);
+
+    // --- Security ---
+    // Rural areas experience less direct street violence but fear disorder
+    _t = 50;
+    _t -= _qol_sa_threat  * 6;
+    _t -= _qol_rfb_threat * 6;
+    _t += _qol_pol_loyal  * 8;
+    _t -= (Q.emergency_rule ? -6 : 0); // rural often welcomes strong order
+    _t -= (Q.general_strike_progress > 5 ? 8 : 0); // strikes cut off supply chains
+    _t = Math.max(0, Math.min(100, _t));
+    Q.rural_grievance_security += ((_t - Q.rural_grievance_security) * Q.grievance_decay.security);
+
+    // --- Political ---
+    _t = 50;
+    _t += (Q.agricultural_policy  || 0) * 6;  // direct representation of rural interests
+    _t += (Q.land_reform          || 0) * 5;
+    _t -= _qol_spd_in_govt              * 5;   // SPD is an urban party
+    _t -= _qol_left_in_govt             * 8;
+    _t += _qol_right_in_govt            * 4;   // DNVP claims to represent agrarian interests
+    _t += (Q.cnbl_in_government ? 8 : 0);      // explicit rural party in govt
+    _t += (Q.bb_in_government   ? 6 : 0);
+    _t -= (Q.presidential_cabinet ? 2 : 0);
+    _t = Math.max(0, Math.min(100, _t));
+    Q.rural_grievance_political += ((_t - Q.rural_grievance_political) * Q.grievance_decay.political);
+
+    // --- Cultural ---
+    // Rural is the most church-dependent and tradition-bound class
+    _t = 50;
+    _t += _qol_concordat        * 12;   // church-state agreement is central to rural life
+    _t += _qol_curriculum_t     * 10;
+    _t -= _qol_curriculum_d     * 8;
+    _t -= _qol_secular          * 8;
+    _t -= _qol_womens           * 4;
+    _t += (Q.catholics > 35 ? 4 : 0);  // high catholic share = concordat matters more
+    _t += _qol_youth_orgs       * 2;
+    _t = Math.max(0, Math.min(100, _t));
+    Q.rural_grievance_cultural += ((_t - Q.rural_grievance_cultural) * Q.grievance_decay.cultural);
+}
+
+
+// ============================================================
+// SECTION 2B — COMPOSITE QOL CALCULATION
+// Weighted sum of 4 dimensions per class → Q.[class]_qol (0–150)
+// ============================================================
+
+const _CLASSES_QOL_TICK    = ['workers', 'unemployedc', 'old_middle', 'new_middle', 'rural'];
+const _DIMENSIONS_QOL_TICK = ['economic', 'security', 'political', 'cultural'];
+
+for (const _c of _CLASSES_QOL_TICK) {
+    const _w  = Q.grievance_weights[_c];
+    let _composite = 0;
+
+    for (const _d of _DIMENSIONS_QOL_TICK) {
+        // grievance dimension is 0-100, 50=neutral
+        // remap to -50/+50 relative to neutral, then weight
+        _composite += (_w[_d] * Q[_c + '_grievance_' + _d]);
+    }
+    // _composite is now 0-100 (50 = perfectly neutral across all dimensions)
+    // Remap to 0-150 scale where 100 = 1928 baseline
+    // Formula: 100 + (_composite - 50) * 1.0
+    // So 50 composite → QOL 100, 100 composite → QOL 150, 0 composite → QOL 50
+
+    Q[_c + '_qol_last'] = Q[_c + '_qol'];
+    Q[_c + '_qol']      = Math.max(50, Math.min(150,
+        100 + (_composite - 50)
+    ));
+    Q[_c + '_qol_vel']  = Q[_c + '_qol'] - Q[_c + '_qol_last'];
+}
+
+// Convenience aliases for display
+Q.workers_qol_display    = Q.workers_qol.toFixed(1);
+Q.unemployed_qol_display = Q.unemployedc_qol.toFixed(1);
+Q.old_middle_qol_display = Q.old_middle_qol.toFixed(1);
+Q.new_middle_qol_display = Q.new_middle_qol.toFixed(1);
+Q.rural_qol_display      = Q.rural_qol.toFixed(1);
+
+// Overall population QOL (class-size weighted)
+Q.population_qol = (
+    (Q.workers    / 100) * Q.workers_qol    +
+    (Q.unemployedc/ 100) * Q.unemployedc_qol+
+    (Q.old_middle / 100) * Q.old_middle_qol +
+    (Q.new_middle / 100) * Q.new_middle_qol +
+    (Q.rural      / 100) * Q.rural_qol
+);
+Q.population_qol = Math.round(Q.population_qol * 10) / 10;
+
+
+// ============================================================
+// SECTION 3D — MATH BROKEN COMPATIBILITY
+// If Q.math_broken is active, QOL becomes chaotic.
+// ============================================================
+
+if (Q.math_broken) {
+    for (const _c of ['workers', 'unemployedc', 'old_middle', 'new_middle', 'rural']) {
+        Q[_c + '_qol'] = Q.impossible_percentage(Q[_c + '_qol']);
+        for (const _d of ['economic', 'security', 'political', 'cultural']) {
+            Q[_c + '_grievance_' + _d] = Q.impossible_add(Q[_c + '_grievance_' + _d], 0);
+        }
+    }
+    Q.population_qol = Q.impossible_percentage(Q.population_qol);
+    console.log('QOL CHAOS: population_qol=' + Q.population_qol);
+}
+
+
+// ============================================================
+// SECTION 3C — QOL DISPLAY STRING
+// ============================================================
+
+{
+    const _QOL_CLASSES = [
+        ['workers',    'Workers'],
+        ['unemployedc','Unemployed'],
+        ['old_middle', 'Old Middle'],
+        ['new_middle', 'New Middle'],
+        ['rural',      'Rural'],
+    ];
+    const _QOL_DIMS = ['economic', 'security', 'political', 'cultural'];
+
+    function _qol_bar(val) {
+        // val is 0-100 grievance dimension. 50=neutral.
+        // Returns a simple text indicator.
+        if (val >= 75) return '+++';
+        if (val >= 60) return '++ ';
+        if (val >= 50) return '+  ';
+        if (val >= 40) return '-  ';
+        if (val >= 25) return '-- ';
+        return                     '---';
+    }
+
+    let _report = '';
+    for (const [_ck, _label] of _QOL_CLASSES) {
+        const _qol = Q[_ck + '_qol'] || 100;
+        const _vel = Q[_ck + '_qol_vel'] || 0;
+        const _trend = _vel > 0.3 ? '↑' : _vel < -0.3 ? '↓' : '→';
+        _report += `**${_label}** QOL: ${_qol.toFixed(0)} ${_trend}\n`;
+        for (const _d of _QOL_DIMS) {
+            const _dval = Q[_ck + '_grievance_' + _d] || 50;
+            _report += `  ${_d}: ${_qol_bar(_dval)} (${_dval.toFixed(0)})\n`;
+        }
+        _report += '\n';
+    }
+    _report += `**Population QOL:** ${(Q.population_qol || 100).toFixed(1)}\n`;
+    Q.qol_report = _report;
+}
 
 
 // ============================================================
@@ -2699,11 +3136,6 @@ if (Q.womens_rights >= 2)       Q.youth_policy_effect -= 0.04;
 Q.youth = Math.max(10, Math.min(55, 
     Q.youth + Q.youth_crisis_pressure - Q.youth_normalization + Q.youth_policy_effect
 ));
-
-
-
-
-
 
 
 // ============================================================
@@ -2793,18 +3225,6 @@ lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
     // OTHER: catch-all, slight youth boost (protest votes)
     other: 1 + (youth_share * 0.10)
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // === PARTY DRIFT OVERHAUL ===
@@ -2982,6 +3402,51 @@ const BANNED_REDISTRIBUTION = {
     ]
 };
 
+// Crisis party definitions — mirrors Q.crisis_parties_by_class
+
+const _CRISIS_PARTIES = {
+    workers:     ['kpd', 'sapd', 'nsdap'],
+    unemployedc: ['kpd', 'sapd', 'nsdap'],
+    old_middle:  ['nsdap', 'dvfp', 'dnvp'],
+    new_middle:  ['nsdap', 'dvfp', 'dnvp'],
+    rural:       ['nsdap', 'cnbl', 'dnvp'],
+};
+
+
+// ─────────────────────────────────────────
+// SECTION 3A — QOL HELPER
+// ─────────────────────────────────────────
+
+// _applyQOL — applies the asymmetric QOL multiplier to a computed base.
+//
+// For crisis parties: bad QOL amplifies appeal (2.0 - qol_ratio)
+//   qol=50  (ratio 0.50) → ×1.50  strong amplification
+//   qol=100 (ratio 1.00) → ×1.00  neutral
+//   qol=150 (ratio 1.50) → ×0.50  suppressed even at baseline
+//
+// For moderate parties: good QOL gives gentle boost (0.85 + ratio*0.15)
+//   qol=50  (ratio 0.50) → ×0.925  mild suppression
+//   qol=100 (ratio 1.00) → ×1.000  neutral
+//   qol=150 (ratio 1.50) → ×1.075  mild bonus
+//
+// The asymmetry is intentional:
+//   crisis party penalty from high QOL (×0.50) >> moderate party bonus from high QOL (×1.075)
+//   This means QOL erosion is always more dangerous than QOL improvement is helpful.
+
+function _applyQOL(base, party, c) {
+    const _qol    = Q[c + '_qol'] || 100;
+    const _ratio  = _qol / 100;                     // 0.5 to 1.5
+    const _crisis = (_CRISIS_PARTIES[c] || []).includes(party);
+
+    if (_crisis) {
+        // Amplify crisis party appeal when QOL is bad
+        return base * (2.0 - _ratio);
+    } else {
+        // Gently modulate moderate party appeal with QOL
+        return base * (0.85 + _ratio * 0.15);
+    }
+}
+
 
 // ─────────────────────────────────────────
 // TARGET COMPUTATION
@@ -3027,7 +3492,7 @@ function computeTarget(party, c) {
                 rural:       2.50 * (1 + (Q.nationalism/100) * 0.6), // Rural core
                 unemployedc: 2.10 * (1 + Math.min(Q.unemployed/10, 1.0)),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'dvfp': {
@@ -3044,7 +3509,7 @@ function computeTarget(party, c) {
                 rural:       1.79 * (1 + Math.min(Q.nationalism/100,1)*0.22) * (Q.peoples_party === 1 ? 0.95 : 1),
                 unemployedc: 0.77 * (Q.peoples_party === 1 ? 1.03 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'dnvp': {
@@ -3078,7 +3543,7 @@ function computeTarget(party, c) {
             let unemployedc_m = 0.57 * (Q.peoples_party === 1 ? 1.02 : 1);
 
             const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'dvp': {
@@ -3097,7 +3562,7 @@ function computeTarget(party, c) {
                 rural:       0.70 * (Q.peoples_party === 1 ? 0.96 : 1),
                 unemployedc: 0.35 * (Q.peoples_party === 1 ? 0.92 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'wp': {
@@ -3109,7 +3574,7 @@ function computeTarget(party, c) {
             let old_middle_m = 1.50 * (1 + Math.max(0, Q.inflation * 0.008)) * (Q.peoples_party === 1 ? 0.96 : 1);
             let new_middle_m = 1.30 * (Q.peoples_party === 1 ? 0.96 : 1);
             const class_mods = { workers: 0.50, old_middle: old_middle_m, new_middle: new_middle_m, rural: 0.70, unemployedc: 0.50 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'cnbl': {
@@ -3117,7 +3582,7 @@ function computeTarget(party, c) {
             base = (rep * 11 + nat * 19) * (1 + Q.rural * 0.009) * im.cnbl;
             let rural_m = 1.80 * (1 + Math.min(Q.rural / 100, 0.4));
             const class_mods = { workers: 0.25, old_middle: 0.60, new_middle: 0.40, rural: rural_m, unemployedc: 0.30 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'kpd': {
@@ -3131,7 +3596,7 @@ function computeTarget(party, c) {
             let rural_m       = 0.15 * (Q.peoples_party === 1 ? 0.92 : 1);
             let unemployedc_m = 1.40 * (Q.peoples_party === 1 ? 1.08 : 1);
             const class_mods  = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'sapd': {
@@ -3146,7 +3611,7 @@ function computeTarget(party, c) {
                 rural:       0.20 * (Q.peoples_party === 1 ? 0.93 : 1),
                 unemployedc: 1.20 * (Q.peoples_party === 1 ? 1.07 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'srpd': {
@@ -3161,7 +3626,7 @@ function computeTarget(party, c) {
                 rural:       0.73 * (Q.peoples_party === 1 ? 0.94 : 1),
                 unemployedc: 1.02 * (Q.peoples_party === 1 ? 1.06 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'spd': {
@@ -3257,7 +3722,7 @@ function computeTarget(party, c) {
             } else {
                 m = 1.0;
             }
-            return base * m * 0.93;
+            return _applyQOL(base * m * 0.93, party, c);
         }
 
         case 'ddp': {
@@ -3278,7 +3743,7 @@ function computeTarget(party, c) {
                     rural:       (0.50) * (Q.peoples_party === 1 ? 1.05 : 1),
                     unemployedc: (0.55) * (Q.peoples_party === 1 ? 0.93 : 1),
                 };
-                return base * (class_mods[c] || 1.0);
+                return _applyQOL(base * (class_mods[c] || 1.0), party, c);
             } else {
                 // DStP
                 let jungdo  = (Q.jungdo_strength || 0) * 0.0003;
@@ -3295,7 +3760,7 @@ function computeTarget(party, c) {
                     rural:       1.15 * (Q.peoples_party === 1 ? 1.05 : 1),
                     unemployedc: 0.55 * (Q.peoples_party === 1 ? 0.93 : 1),
                 };
-                return base * (class_mods[c] || 1.0);
+                return _applyQOL(base * (class_mods[c] || 1.0), party, c);
             }
         }
 
@@ -3313,14 +3778,14 @@ function computeTarget(party, c) {
                 rural:       1.05 * (Q.peoples_party === 1 ? 0.96 : 1),
                 unemployedc: 0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'bvp': {
             if (Q.bvp_banned) return 0;
             let cath = Q.catholics * 0.10;
             let rur  = Q.rural    * 0.05;
-            base = Math.min(4.5, rep * 38 * im.bvp + cath + rur);
+            base = Math.min(4.5, rep * 42 * im.bvp + cath + rur);
 
             let rural_m = 1.25 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
             const class_mods = {
@@ -3330,7 +3795,7 @@ function computeTarget(party, c) {
                 rural:       rural_m,
                 unemployedc: 0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'csvd': {
@@ -3344,8 +3809,6 @@ function computeTarget(party, c) {
             else if (Q.nsdap_r >= 30)                           anti_nazi_appeal = -0.2;
 
             let coalition_stability = 0;
-            if (Q.in_weimar_coalition || Q.in_grand_coalition)  coalition_stability = -0.15;
-            if (Q.constitutional_reform >= 2)                   coalition_stability += 0.1;
 
             let crisis_factor = Q.unemployed >= 20 ? 0.6 : Q.unemployed >= 12 ? 0.8 : Q.unemployed >= 8 ? 0.85 : 1.0;
 
@@ -3358,7 +3821,7 @@ function computeTarget(party, c) {
                 rural:       1.30 * (1 + Math.min(Q.nationalism/100,1)*0.25) * (Q.peoples_party === 1 ? 0.96 : 1),
                 unemployedc: 0.60 * (Q.peoples_party === 1 ? 0.93 : 1),
             };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'csrp': {
@@ -3366,21 +3829,21 @@ function computeTarget(party, c) {
             let april = Q.april_challenge && Q.year >= 1933 ? 20 : 1;
             base = rep * 16 * im.csrp * april;
             const class_mods = { workers: 0.20, old_middle: 0.05, new_middle: 0.15, rural: 0.10, unemployedc: 0.30 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'vrp': {
             if (Q.vrp_banned) return 0;
             base = rep * 10 + Math.max(0, Q.inflation) * 0.05 * im.vrp;
             const class_mods = { workers: 0.25, old_middle: 0.01, new_middle: 0.10, rural: 0.04, unemployedc: 0.40 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'other': {
             if (Q.other_banned) return 0;
             base = (nat + rep) * 6 * im.other;
             const class_mods = { workers: 0.30, old_middle: 1.00, new_middle: 1.00, rural: 1.00, unemployedc: 0.30 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'kvp': {
@@ -3388,14 +3851,14 @@ function computeTarget(party, c) {
             let split_bonus = Q.dnvp_line === 3 ? 2.2 : 0.8;
             base = (rep * 18 + nat * 14) * split_bonus * im.kvp;
             const class_mods = { workers: 0.25, old_middle: 1.45, new_middle: 1.20, rural: 0.90, unemployedc: 0.30 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'dhp': {
             if (Q.dhp_banned) return 0;
             base = Math.min(3.5, (rep * 30 + nat * 10) * 0.8 * im.dhp);
             const class_mods = { workers: 0.20, old_middle: 1.35, new_middle: 0.60, rural: 1.70, unemployedc: 0.25 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'bb': {
@@ -3404,21 +3867,21 @@ function computeTarget(party, c) {
             let deflation_bonus = Q.inflation < 0 ? (1 + Math.abs(Q.inflation) * 0.08) : 1.0;
             base = (rep * 10 + nat * 12) * rural_weight * deflation_bonus * im.bb;
             const class_mods = { workers: 0.10, old_middle: 0.40, new_middle: 0.20, rural: 2.10, unemployedc: 0.35 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'aspd': {
             if (Q.aspd_banned) return 0;
             base = (rep * 3 + nat * 5 + soc * 10) * im.bb;
             const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'hl': {
             if (Q.hl_banned) return 0;
             base = (rep * 3 + nat * 5 + soc * 10) * im.bb;
             const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'sl': {
@@ -3426,35 +3889,35 @@ function computeTarget(party, c) {
             let sl_buff = Q.april_challenge === 1 ? 4.50 : 1;
             base = (rep * 3 + nat * 5 + soc * 10) * sl_buff * im.bb;
             const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'kpo': {
             if (Q.kpo_banned) return 0;
             base = (rep * 3 + nat * 5 + soc * 20) * im.bb;
             const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'vnr': {
             if (Q.vnr_banned) return 0;
             base = (rep * 3 + nat * 5 + soc * 10) * im.bb;
             const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'dtsp': {
             if (Q.dtsp_banned) return 0;
             base = nat * 8 * (1 + unr * 0.10) * im.dtsp;
             const class_mods = { workers: 0.15, old_middle: 0.90, new_middle: 0.70, rural: 0.80, unemployedc: 0.20 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'sls': {
             if (Q.sls_banned) return 0;
             base = rep * 4 * im.sls;
             const class_mods = { workers: 0.30, old_middle: 0.40, new_middle: 0.25, rural: 0.60, unemployedc: 0.20 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'rdp': {
@@ -3462,7 +3925,7 @@ function computeTarget(party, c) {
             let nat_pen = (Q.nationalism / 100) * 0.20;
             base = rep * 6 * (1.0 - nat_pen) * im.rdp;
             const class_mods = { workers: 0.25, old_middle: 0.30, new_middle: 0.85, rural: 0.15, unemployedc: 0.20 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'cvp': {
@@ -3470,21 +3933,21 @@ function computeTarget(party, c) {
             let cath_bonus = Q.catholics / 18;
             base = (rep * 5 + cath_bonus) * im.cvp;
             const class_mods = { workers: 0.40, old_middle: 0.80, new_middle: 0.50, rural: 0.70, unemployedc: 0.30 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         case 'lb': {
             if (Q.lb_banned) return 0;
             base = soc * 7 * (1 + unr * 0.08) * im.lb;
             const class_mods = { workers: 0.55, old_middle: 0.10, new_middle: 0.20, rural: 0.10, unemployedc: 0.45 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
         default: {
             if (Q.other_banned) return 0;
             base = (nat + rep) * 6 * im.other;
             const class_mods = { workers: 0.30, old_middle: 1.00, new_middle: 1.00, rural: 1.00, unemployedc: 0.30 };
-            return base * (class_mods[c] || 1.0);
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
     }
 }
