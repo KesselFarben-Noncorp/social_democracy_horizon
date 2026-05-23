@@ -2,21 +2,25 @@ title: Agricultural crisis' culmination...
 subtitle: Small farmers and rurals are preparing for splitting away...
 new-page: true
 tags: event
-view-if: year >= 1928 and month = 3 and weeks >= 1
+view-if: year >= 1928 and year <= 1929 and month = 3 and weeks >= 1
 max-visits: 1
 on-arrival: {!
   const conditions = [
   Q.commercialized_media >= 1,
   Q.radio >= 1,
-  Q.rural_spd >= 10,
+  Q.rural_spd >= 15,
   Q.local_rally >= 1,
   Q.nationalism > 10,
-  Q.pro_republic <= 69.2,
-  Q.enemies = "DNVP"
+  Q.dnvp_votes >= 19.2,
+  Q.pro_republic <= 67.2,
+  Q.enemies = "DNVP",
+  Q.enemies = "far right",
+  Q.peoples_party = 1,
+  Q.ideology = "reformist"
 ];
 
 Q.triggered = conditions.filter(Boolean).length;
-if (Q.triggered >= 3) { Q.cnbl_crisis = 1 }
+if (Q.triggered >= 4) { Q.cnbl_crisis = 1 }
 !}
 
 = Rural Crisis
@@ -38,9 +42,10 @@ Q.rural_cnbl += 2;
 Q.rural_dnvp -= 3;
 Q.rural_dvp -= 3;
 Q.dnvp_r -= 5;
+Q.cnbl_r += 5;
 !}
 
-= Thuringian and Hesseian Rural Leagues secede from RLB...
+= Thuringian and Hessean Rural Leagues secede from RLB...
 
 In the Thuringian capital of Weimar, the long-standing alliance between the traditional conservative parties and the agrarian middle class has officially reached its breaking point. Leaders from the Thuringian and Hessian Landbunds have formally announced their secession from the DNVP to establish the Christian-National Peasants and Farmers’ Party. This organizational split follows months of mounting frustration over falling commodity prices and the perceived failure of the Marx cabinet to provide adequate tariff protections. By organizing independently, these regional agrarian leaders aim to provide small and medium-sized farmers with a direct political voice untainted by the interests of the large eastern estates. The movement represents a significant shift from broad nationalist cooperation toward a strategy of specialized economic interest representation. This fragmentation fundamentally alters the electoral landscape of the German countryside just as the spring 1928 campaign begins in earnest.
   
