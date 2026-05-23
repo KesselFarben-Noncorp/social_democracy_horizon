@@ -67,8 +67,6 @@ if (!Q.rng_seed) {
 // ========================================
 // HINDENBURG & CAMARILLA VARIABLES
 // ========================================
-// Add these to your main variable initialization (likely in a starting scene or setup)
-
 
 // === HINDENBURG PERSONAL STATE ===
 Q.hindenburg_president = 0;           // Is Hindenburg currently president?
@@ -1580,12 +1578,100 @@ Q.economic_growth = 5.4;
 // economic expansion timer
 Q.economic_expansion = 0;
 
-// quality of life (as % of 1928 - currently unused - should be welfare-adjusted.)
-Q.workers_qol = 100;
-Q.rural_qol = 100;
-Q.unemployed_qol = 100;
-Q.old_middle_qol = 100;
-Q.new_middle_qol = 100;
+
+
+
+
+
+
+
+
+// ============================================================
+// QOL GRIEVANCE SYSTEM
+// ============================================================
+
+// ---- DIMENSION WEIGHTS PER CLASS ----
+// How much each class cares about each grievance dimension.
+// These are used in postevent to compute the composite QOL score.
+
+Q.grievance_weights = {
+    workers: {
+        economic: 0.45,
+        security: 0.25,
+        political: 0.20,
+        cultural: 0.10,
+    },
+    unemployedc: {
+        economic: 0.55,
+        security: 0.20,
+        political: 0.15,
+        cultural: 0.10,
+    },
+    old_middle: {
+        economic: 0.40,
+        security: 0.15,
+        political: 0.20,
+        cultural: 0.25,
+    },
+    new_middle: {
+        economic: 0.35,
+        security: 0.15,
+        political: 0.25,
+        cultural: 0.25,
+    },
+    rural: {
+        economic: 0.45,
+        security: 0.10,
+        political: 0.15,
+        cultural: 0.30,
+    },
+};
+
+// ---- DECAY RATES PER DIMENSION ----
+// Fraction of (target - current) closed per tick.
+// Economic is fast, cultural is slow.
+
+Q.grievance_decay = {
+    economic: 0.12,
+    security: 0.10,
+    political: 0.07,
+    cultural: 0.04,
+};
+
+// ---- CRISIS PARTY DEFINITIONS PER CLASS ----
+// Which parties benefit from low QOL in each class.
+// Used in computeTarget() patch to apply asymmetric multiplier.
+
+Q.crisis_parties_by_class = {
+    workers:    ['kpd', 'sapd', 'nsdap'],
+    unemployedc:['kpd', 'sapd', 'nsdap'],
+    old_middle: ['nsdap', 'dvfp', 'dnvp'],
+    new_middle: ['nsdap', 'dvfp', 'dnvp'],
+    rural:      ['nsdap', 'cnbl', 'dnvp'],
+};
+
+// ---- INITIALIZE GRIEVANCE DIMENSIONS ----
+// All start at 50 (neutral). Composite QOL starts at 100 (1928 baseline).
+// Format: Q.[class]_grievance_[dimension]
+
+const _CLASSES_QOL    = ['workers', 'unemployedc', 'old_middle', 'new_middle', 'rural'];
+const _DIMENSIONS_QOL = ['economic', 'security', 'political', 'cultural'];
+
+for (const _c of _CLASSES_QOL) {
+    for (const _d of _DIMENSIONS_QOL) {
+        Q[_c + '_grievance_' + _d] = 50;
+    }
+    // Composite QOL — replaces the old unused Q.[class]_qol
+    Q[_c + '_qol'] = 100;
+}
+
+// ---- INITIALIZE QOL MEMORY ----
+// Tracks last-tick QOL for velocity/momentum (used in postevent)
+for (const _c of _CLASSES_QOL) {
+    Q[_c + '_qol_last'] = 100;
+    Q[_c + '_qol_vel']  = 0;
+}
+
 
 Q.classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployedc'];
 Q.parties = ['spd', 'kpd', 'z', 'bvp', 'ddp', 'dvp', 'dhp', 'aspd', 'wp', 'vrp', 'dnvp', 'nsdap', 'other'];
