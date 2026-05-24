@@ -3531,20 +3531,20 @@ function computeTarget(party, c) {
                 base = ((nat * 40) + polarization + crisis_bonus) * im.dnvp;
             } else {
                 let chaos_penalty = unr > 0.7 ? (unr * 1) : 0;
-                base = ((nat * 67) + (rep * 41) - chaos_penalty) * im.dnvp;
+                base = ((nat * 60) + (rep * 36) - chaos_penalty) * im.dnvp;
             }
 
             let workers_m     = 0.60
                 * (Q.peoples_party    === 1                              ? 1.05 : 1)
                 * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
                 * (Q.lambach_momentum  && Q.year < 1929                  ? 1.55 : 1)
-                * (Q.dnvp_party_leader == "Lambach" ? 1.25 : 1.00);
+                * (Q.dnvp_party_leader == "Walther Lambach" ? 1.25 : 1.00);
             let old_middle_m  = 1.52 * (1 + Math.min(Q.nationalism/100,1)*0.28) * (Q.peoples_party === 1 ? 0.95 : 1);
             let new_middle_m  = 0.98 * (1 + Math.min(Q.nationalism/100,1)*0.18)
                 * (Q.peoples_party    === 1                              ? 0.95 : 1)
                 * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
                 * (Q.lambach_momentum  && Q.year < 1929                  ? 2.45 : 1)
-                * (Q.dnvp_party_leader == "Lambach" ? 1.45 : 1.00);
+                * (Q.dnvp_party_leader == "Walther Lambach" ? 1.45 : 1.00);
             let rural_m       = 1.72 * (1 + Math.min(Q.nationalism/100,1)*0.30)
                 * (Q.peoples_party === 1 ? 0.95 : 1)
                 * (Q.parties.includes('cnbl') ? 0.7953 : 1);
