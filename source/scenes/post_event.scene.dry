@@ -911,7 +911,8 @@ if (Q.inflation > 10) {
         Q.inflation_crisis_event = 0;
         }
 
-if (Q.year >= 1928 && Q.month == 2 && Q.weeks >= 2) {
+if (Q.year >= 1928 && Q.month == 2 && Q.weeks >= 2 && Q.landvolk_suppress < 2) {
+    Q.bayernbund_flavor_1 = 1;
     Q.parties.push('bb');
 }
 
@@ -954,6 +955,12 @@ if (Q.year >= 1930 && Q.year < 1933) {
     Q.unemployed += 0.1;
     Q.inflation -= 0.1;
     Q.economic_growth -= 0.15;
+}
+
+if (Q.year >= 1928 && Q.year < 1929 && Q.geest_wildfire == 1 && (Q.state_buyer == 1 || Q.agricultural_finance == 1 || Q.land_reform == 1 || Q.tariffs > 1) && Q.landvolkbewegung_flavor != 1)  {
+    Q.landvolkbewegung_flavor_1 = 1;
+    Q.rural_dnvp += 5;
+    Q.cnbl_dnvp += 2;
 }
 
 
