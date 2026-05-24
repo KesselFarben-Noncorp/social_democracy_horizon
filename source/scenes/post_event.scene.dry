@@ -3844,9 +3844,9 @@ function computeTarget(party, c) {
             base = (nat + rep) * 7 * im.other;
             const class_mods = { 
         workers: 0.30, 
-        old_middle: 1.00, 
-        new_middle: 1.00, 
-        rural: 1.00 * (Q.landvolk_fury > 0 ? Q.landvolk_fury / 1.10 : 1), 
+        old_middle: 0.85, 
+        new_middle: 0.80, 
+        rural: 1.15 * (Q.landvolk_fury > 0 ? Q.landvolk_fury / 1.05 : 1) * (Q.parties.includes('cnbl') ? 1.5953 : 1), 
         unemployedc: 0.30 };
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
