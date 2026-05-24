@@ -1,0 +1,73 @@
+title: The Schism in the Patriotic Front
+subtitle: The Jungdeutscher Orden breaks with the traditional Right...
+new-page: true
+tags: event
+view-if: year = 1928 and month >= 3 and month <= 5 and weeks >= 1
+max-visits: 1
+on-arrival: {!
+  const conditions = [
+    Q.pro_republic >= 66,
+    Q.dnvp_votes <= 18,
+    Q.old_middle_dnvp >= 20,
+    Q.rb_militancy < 0.05,
+    Q.sh_militancy > 0.10,
+    Q.nationalism >= 12,
+    Q.ideology === "reformist",
+    Q.ddp_relation > 50,
+    Q.radio > 0,
+    Q.local_rally >= 1
+  ];
+
+  Q.jungdo_split_severity = conditions.filter(Boolean).length;
+!}
+
+= The Launch of the Volksnationale Reichsvereinigung
+
+While the countryside fractures into specialized agrarian leagues, an equally profound ideological civil war has broken out within the urban patriotic associations (*vaterländische Verbände*). The *Jungdeutscher Orden* (Young German Order, or *Jungdo*), led by the charismatic Artur Mahraun, has officially shattered the solidarity of the nationalist block. 
+
+Unlike the *Stahlhelm*, which has steadily drifted into an uncompromising, reactionary alliance with the East Elbian nobility and heavy industry, Mahraun’s *Jungdo* commands a massive, highly disciplined following among urban white-collar employees, idealistic students, and the younger civil servants of the *Mittelstand*. 
+
+In March 1928, Mahraun took the definitive step: he formally declared that the old conservative parties were morally bankrupt interest-machines incapable of achieving a true, organic national community (*Volksgemeinschaft*). Rejecting the old Right's monarchist nostalgia and aggressive anti-republicanism, the *Jungdo* has launched an independent political vehicle for the spring elections: the **Volksnationale Reichsvereinigung** (National People's Reich Association).
+
+The emergence of this "Third Front" fundamentally disrupts the urban political landscape: <br>
+1. **The New Nationalist Frontier:** The VNR explicitly accepts the constitutional reality of the Republic, seeking to conquer it from within to create a democratic, non-partisan corporate state rooted in social justice for the middle class. <br>
+2. **The Generational Cleavage:** It aggressively appeals to the front-generation youth who resent the old, pre-war party notables (*Honoratioren*) dominating the DVP and DNVP.<br>
+3. **The Liberal Confrontation:** By presenting a nationalist alternative that embraces social reform, the VNR threatens to siphon away the remaining urban bourgeois voters from the center-left DDP and the right-liberal DVP.<br>
+
+- @evaluate_jungdo_impact: The banners of the Order are marching alone. Where do the urban youth turn?
+
+@evaluate_jungdo_impact
+go-to: vnr_ignites if jungdo_split_severity >= 4; vnr_marginalized if jungdo_split_severity < 4
+
+@vnr_ignites
+face-image: img/jungdo_rally.png
+on-arrival: {!
+  Q.nationalism -= 2;           // Chauvinistic, reactionary nationalism loses its monopoly
+  Q.pro_republic += 3;          // A significant segment of the nationalist youth reconciles with the state
+  Q.old_middle_spd -= 2;        // The urban Mittelstand finds a non-socialist alternative for social reform
+  Q.old_middle_vnr += 3;
+  Q.new_middle_vnr += 3;
+  Q.rural_vnr += 2;
+  Q.vnr_momentum = 1;      // Sets a structural flag for the upcoming May election calculations
+  Q.stahlhelm_strength -= 100;
+  Q.jungdo_strength += 100;
+  Q.jungdo_formed = 1;
+!}
+
+= The Rise of the Third Front
+
+The *Volksnationale Reichsvereinigung* has ignited a genuine prairie fire among the urban middle-class youth. In major cities across western and central Germany, local *Jungdo* chapters have transformed into highly efficient electoral cells, packing municipal assembly halls with young tech-managers, bank clerks, and frustrated retail shopkeepers. 
+
+By framing their campaign as a crusade of the "productive generation" against both Marxist class war and capitalistic corporate cartels, the VNR has successfully decoupled cultural nationalism from right-wing obstructionism. Our local party monitors report that the right-liberal DVP is losing entire municipal youth organizations to the VNR overnight. This unprecedented realignment injects a highly volatile, democratic-nationalist wildcard into the urban ballot boxes just weeks before the Reichstag opens.
+
+@vnr_marginalized
+on-arrival: {!
+  Q.nationalism += 1;
+  Q.vnr_momentum = 0;
+!}
+
+= A Fragmented Fringe
+
+The bold experiment fails to break through the rigid walls of traditional German partisan loyalty. Because the political atmosphere remains hyper-polarized or the democratic center lacks structural vitality, the *Volksnationale Reichsvereinigung* is quickly isolated as an eccentric political sect. 
+
+While Mahraun’s manifestos against the "party state" find a sympathetic ear in academic circles and specific nationalist student fraternities, the vast majority of the urban *Mittelstand* views the VNR as a dangerous electoral distraction that will only benefit the Marxist Left by splitting the non-socialist vote. The old party machines of the liberal DVP easily reassert control over their urban strongholds, leaving the *Jungdo* cadres to march in isolation as the campaign enters its final, brutal phase.
