@@ -916,6 +916,10 @@ if (Q.year >= 1928 && Q.month == 2 && Q.weeks >= 2 && Q.landvolk_suppress < 2) {
     Q.parties.push('bb');
 }
 
+if (Q.year >= 1929 && Q.vnr_momentum_trigger_flavor_1 == 0) { 
+Q.vnr_momentum = 0;
+Q.vnr_momentum_trigger_flavor_1 = 1;
+}
 
 
 if (Q.year == 1928 && Q.month >= 9 && Q.lambach_exile == 1 && Q.weeks >= 0) {
@@ -3914,8 +3918,13 @@ function computeTarget(party, c) {
 
         case 'vnr': {
             if (Q.vnr_banned) return 0;
-            base = (rep * 3 + nat * 5 + soc * 10) * im.bb;
-            const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
+            base = (rep * 6 + nat * 7 + soc * 1) * im.bb;
+            const class_mods = { 
+    workers: 0.10, 
+    old_middle: 0.35 * (Q.vnr_momentum > 0 ? 2.11 : 1), 
+    new_middle: 0.30 * (Q.vnr_momentum > 0 ? 2.11 : 1), 
+    rural: 0.20, 
+    unemployedc: 0.10 };
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
