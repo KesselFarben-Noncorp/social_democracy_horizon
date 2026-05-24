@@ -13,15 +13,14 @@ on-arrival: {!
   Q.nationalism > 15.4,
   Q.dnvp_votes >= 19.3,
   Q.pro_republic <= 67.2,
-  Q.enemies == "DNVP",
-  Q.enemies == "far right",
+  (Q.enemies == "DNVP" || Q.enemies == "far right"),
   Q.peoples_party == 1,
   Q.ideology == "reformist",
   Q.landvolk_fury > 3
 ];
 
-Q.triggered = conditions.filter(Boolean).length;
-Q.triggered -= Q.landvolk_suppress;
+QQ.triggered = conditions.filter(Boolean).length;
+Q.triggered -= (Q.landvolk_suppress || 0);
 if (Q.triggered >= 3) { Q.cnbl_crisis = 1 }
 !}
 
