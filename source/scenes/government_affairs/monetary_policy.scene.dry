@@ -21,7 +21,7 @@ The Reichsbank President awaits your direction on the discount rate. The current
 title: Sharp Rate Hike (+2 points)
 subtitle: Aggressive tightening to crush inflation and defend the currency
 view-if: inflation > 3 or capital_pressure > 0.4
-on-arrival: {
+on-arrival: {!
     Q.price_pressure -= 1.20;
     Q.inflation_expectations -= 0.75;
     Q.demand_impulse -= 0.90;
@@ -31,7 +31,7 @@ on-arrival: {
     Q.dGrowth -= 0.60;
     Q.dUnemployment += 0.45;
     Q.discount_rate += 2;
-}
+!}
 
 The Reichsbank raises the discount rate by a full 200 basis points — a shock to credit markets that signals unwavering commitment to price stability.
 
@@ -46,7 +46,7 @@ The Reichsbank raises the discount rate by a full 200 basis points — a shock t
 @rate_hike_moderate
 title: Moderate Rate Hike (+1 point)
 subtitle: Gradual tightening to cool inflation without choking growth
-on-arrival: {
+on-arrival: {!
     Q.price_pressure -= 0.60;
     Q.inflation_expectations -= 0.45;
     Q.demand_impulse -= 0.45;
@@ -56,7 +56,7 @@ on-arrival: {
     Q.dGrowth -= 0.23;
     Q.dUnemployment += 0.15;
     Q.discount_rate += 1;
-}
+!}
 
 The Reichsbank lifts the discount rate by 100 basis points — a measured signal that the era of easy money is ending.
 
@@ -71,10 +71,10 @@ The Reichsbank lifts the discount rate by 100 basis points — a measured signal
 @rate_hold
 title: Hold Rates Steady
 subtitle: Maintain the current discount rate and monitor conditions
-on-arrival: {
+on-arrival: {!
     Q.inflation_expectations += 0;
     Q.monetary_policy_timer = 3;
-}
+!}
 
 The Reichsbank signals that current monetary conditions are appropriate. No change to the discount rate.
 
@@ -90,7 +90,7 @@ The Reichsbank signals that current monetary conditions are appropriate. No chan
 title: Moderate Rate Cut (−1 point)
 subtitle: Easing credit to stimulate investment and cushion a downturn
 view-if: unemployment > 8 or inflation < 2 or economic_growth < 1
-on-arrival: {
+on-arrival: {!
     Q.demand_impulse += 0.75;
     Q.price_pressure += 0.30;
     Q.inflation_expectations += 0.23;
@@ -100,7 +100,7 @@ on-arrival: {
     Q.dGrowth += 0.45;
     Q.dUnemployment -= 0.23;
     Q.discount_rate -= 1;
-}
+!}
 
 The Reichsbank lowers the discount rate by 100 basis points, reducing the cost of credit for businesses and households alike.
 
@@ -116,7 +116,7 @@ The Reichsbank lowers the discount rate by 100 basis points, reducing the cost o
 title: Emergency Rate Cut (−2 points)
 subtitle: Dramatic easing to arrest deflation and avert economic collapse
 view-if: unemployment > 14 or inflation < -3 or economic_growth < -3
-on-arrival: {
+on-arrival: {!
     Q.demand_impulse += 1.50;
     Q.price_pressure += 0.75;
     Q.inflation_expectations += 0.60;
@@ -126,7 +126,7 @@ on-arrival: {
     Q.dGrowth += 0.90;
     Q.dUnemployment -= 0.45;
     Q.discount_rate -= 2;
-}
+!}
 
 The Reichsbank slashes the discount rate by 200 basis points in an emergency session. This is an unmistakable signal that deflation is the paramount threat.
 
