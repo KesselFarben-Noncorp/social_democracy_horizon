@@ -1498,8 +1498,6 @@ go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_co
 
 
 
-
-
 # # ============================================
 # SPD AS FORMATEUR - PLAYER CHOOSES COALITION
 # ============================================
@@ -2479,6 +2477,7 @@ Q.is_minority_government = Q.chosen_coalition.toleration ? 1 : 0;
 Q.tolerating_parties = Q.chosen_coalition.toleration ? Q.chosen_coalition.tolerating_parties : [];
 Q.spd_toleration = (Q.chosen_coalition.toleration && Q.chosen_coalition.tolerating_parties.indexOf('SPD') >= 0) ? 1 : 0;
 
+// Set flags for each tolerating party
 if (Q.chosen_coalition.toleration) {
     for (var i = 0; i < Q.chosen_coalition.tolerating_parties.length; i++) {
         var t = Q.chosen_coalition.tolerating_parties[i].toLowerCase();
@@ -2490,6 +2489,8 @@ var coalition = Q.chosen_coalition.parties;
 Q.government_parties = coalition;
 Q.coalition_votes = Q.chosen_coalition.votes;
 Q.coalition_type = Q.chosen_coalition.type;
+
+// Replace the coalition_partners_list building block in @coalition_success:
 
 var seat_total_cs = 0;
 for (var i = 0; i < Q.parties.length; i++) {
@@ -2557,271 +2558,25 @@ if (Q.coalition_type === 'weimar') {
 }
 
 // ============================================
-// BASE MINISTRY LEVERAGE PER COALITION PARTY
-// ============================================
-
-var total_coalition_votes_cs = 0;
-for (var i = 0; i < coalition.length; i++) {
-    total_coalition_votes_cs += Q[coalition[i].toLowerCase() + '_r'] || 0;
-}
-if (total_coalition_votes_cs === 0) total_coalition_votes_cs = 1;
-
-Q.base_ministry_leverage = {};
-for (var i = 0; i < coalition.length; i++) {
-    var p = coalition[i];
-    var base = ((Q[p.toLowerCase() + '_r'] || 0) / total_coalition_votes_cs) * 100;
-    var rel = Q[p.toLowerCase() + '_relation'] || 50;
-    base += (rel - 50) / 5;
-    Q.base_ministry_leverage[p] = Math.max(base, 10);
-}
-
-// ============================================
-// AUTOMATED IDEOLOGICAL ALIGNMENT FOR DEFERRAL
-// Assigns each small coalition party a deferral
-// target by finding which larger coalition partner
-// has the closest ideological position, measured
-// by the _r-weighted left-right spectrum score.
-//
-// Spectrum positions (lower = further left):
-//   KPD/SAPD  ~  5   far-left
-//   SRPD      ~ 12   left-socialist
-//   SPD       ~ 25   social-democrat
-//   DDP       ~ 38   left-liberal
-//   Z/BVP     ~ 45   christian-centre
-//   DVP       ~ 60   right-liberal / national-liberal
-//   WP/CNBL   ~ 65   agrarian-liberal
-//   CSVD      ~ 70   christian-conservative
-//   DNVP      ~ 82   national-conservative
-//   DVFP      ~ 90   volkisch-nationalist
-//   NSDAP     ~ 95   national-socialist
-// ============================================
-
-var IDEOLOGY_SCORE = {
-    KPD:  5,  SAPD: 8,  LB:  10, KPO:  10,
-    SRPD: 12, ASPD: 14,
-    SPD:  25, SL:   28,
-    DDP:  38, RDP:  38,
-    Z:    45, CVP:  45, SLS: 46, CSRP: 44, BVP: 47,
-    DVP:  60, BB:   62, HL:  63, VRP:  62,
-    WP:   65, CNBL: 66,
-    CSVD: 70,
-    KVP:  75, VNR:  77, DHP: 78,
-    DNVP: 82,
-    DVFP: 90,
-    NSDAP:95
-};
-
-var DEFER_THRESHOLD = 15;
-
-// Build a sorted list of coalition parties by vote share for target selection
-var coalition_by_size = coalition.slice().sort(function(a, b) {
-    return (Q[b.toLowerCase() + '_r'] || 0) - (Q[a.toLowerCase() + '_r'] || 0);
-});
-
-Q.deferral_map   = {};
-Q.deferral_bonus = {};
-
-for (var i = 0; i < coalition.length; i++) {
-    var p = coalition[i];
-    var p_share = Q.base_ministry_leverage[p] || 0;
-    if (p_share >= DEFER_THRESHOLD) continue; // large enough to stand alone
-
-    var p_score = IDEOLOGY_SCORE[p];
-    if (p_score === undefined) continue; // unknown party, skip
-
-    // Find the closest ideologically aligned LARGER party in this coalition
-    var best_target = null;
-    var best_dist   = 999;
-    for (var j = 0; j < coalition_by_size.length; j++) {
-        var t = coalition_by_size[j];
-        if (t === p) continue;
-        var t_share = Q.base_ministry_leverage[t] || 0;
-        if (t_share < DEFER_THRESHOLD) continue; // only defer to larger parties
-
-        var t_score = IDEOLOGY_SCORE[t];
-        if (t_score === undefined) continue;
-
-        var dist = Math.abs(p_score - t_score);
-        if (dist < best_dist) {
-            best_dist   = dist;
-            best_target = t;
-        }
-    }
-
-    // Only defer if a suitable larger partner exists and ideological gap isn't too wide
-    // (gap > 35 means they're on opposite ends — no meaningful alignment)
-    if (best_target && best_dist <= 35) {
-        Q.deferral_map[p] = best_target;
-        Q.deferral_bonus[best_target] = (Q.deferral_bonus[best_target] || 0) + 4;
-        var rel_var = p.toLowerCase() + '_relation';
-        Q[rel_var] = Math.min(100, (Q[rel_var] || 50) + 3);
-    }
-}
-
-// ============================================
-// PRESIDENTIAL PRE-ANNOUNCEMENT
-// ============================================
-
-Q.presidential_preferred_candidate = "";
-Q.presidential_preferred_party     = "";
-Q.president_has_preference         = 0;
-
-var cam_scores_pa = Q.camarilla_chancellor_scores || {};
-
-function score_for_president(name, party) {
-    var s = cam_scores_pa[name] || 0;
-    var pres = Q.president;
-    if (pres === 'Hindenburg') {
-        var spd_trust = Q.hindenburg_trust_spd || 65;
-        if (party === 'SPD') s += (spd_trust - 60);
-        if (party === 'KPD' || party === 'SAPD') s -= 80;
-        if (party === 'Z')   s += 15;
-        if (party === 'DVP') s += 10;
-        if (party === 'DNVP' && Q.dnvp_line !== 3) s += 8;
-        s += (Q.meissner_influence || 50) * 0.1;
-    } else if (pres === 'Braun') {
-        if (party === 'SPD' || party === 'SRPD') s += 40;
-        if (party === 'NSDAP' || party === 'DNVP') s -= 60;
-    } else if (pres === 'Westarp') {
-        if (party === 'DNVP') s += 40;
-        if (party === 'DVP')  s += 20;
-        if (party === 'SPD')  s -= 40;
-        if (party === 'KPD')  s -= 80;
-    } else if (pres === 'Thälmann' || pres === 'Thalmann') {
-        if (party === 'KPD' || party === 'SAPD') s += 50;
-        if (party === 'SPD') s += 20;
-        if (party === 'NSDAP' || party === 'DNVP') s -= 80;
-    } else if (pres === 'Hitler') {
-        if (party === 'NSDAP') s += 80;
-        if (party === 'SPD' || party === 'KPD') s -= 80;
-    }
-    return s;
-}
-
-function get_top_candidate_for_party_pa(party) {
-    if (party === 'KPD')  return Q.kpd_party_leader === "Conciliators" ? "Neumann" : "Thälmann";
-    if (party === 'SAPD') return "Rosenfeld";
-    if (party === 'SRPD') return "Horsing";
-    if (party === 'SPD') {
-        if (Q.spd_chancellor_preference === "mueller" && !Q.muller_dead) return "Müller";
-        if (Q.spd_chancellor_preference === "wels")       return "Wels";
-        if (Q.spd_chancellor_preference === "braun")      return "Braun";
-        if (Q.spd_chancellor_preference === "hilferding") return "Hilferding";
-        if (Q.spd_chancellor_preference === "breitscheid") return "Breitscheid";
-        return Q.muller_dead ? "Wels" : "Müller";
-    }
-    if (party === 'DDP') return "Koch-Weser";
-    if (party === 'Z') {
-        if (Q.z_party_leader === "Kaas")   return "Kaas";
-        if (Q.z_party_leader === "Brüning") return "Brüning";
-        return "Wirth";
-    }
-    if (party === 'BVP')  return "Held";
-    if (party === 'DVP')  return Q.stresemann_dead ? "Curtius" : "Stresemann";
-    if (party === 'WP')   return "Drewitz";
-    if (party === 'CNBL') return "Hepp";
-    if (party === 'CSVD') return "Lambach";
-    if (party === 'DNVP') {
-        if (Q.dnvp_line === 3) return "Hugenberg";
-        if (Q.dnvp_line === 2) return "Westarp";
-        return "Treviranus";
-    }
-    if (party === 'DVFP')  return "Graefe";
-    if (party === 'NSDAP') return "Hitler";
-    return "";
-}
-
-var best_pres_score = -999;
-var best_pres_name  = "";
-var best_pres_party = "";
-
-for (var i = 0; i < coalition.length; i++) {
-    var p = coalition[i];
-    var top_name = get_top_candidate_for_party_pa(p);
-    if (!top_name) continue;
-    var ps = score_for_president(top_name, p);
-    if (ps > best_pres_score) {
-        best_pres_score = ps;
-        best_pres_name  = top_name;
-        best_pres_party = p;
-    }
-}
-
-if (best_pres_score > 15 && best_pres_name) {
-    Q.presidential_preferred_candidate = best_pres_name;
-    Q.presidential_preferred_party     = best_pres_party;
-    Q.president_has_preference         = 1;
-}
-
-// ============================================
-// PARTNER CONTESTATION
-// ============================================
-
-Q.contesting_parties             = [];
-Q.contestation_display           = "";
-Q.any_contestation               = 0;
-Q.contestation_concession_available = 0;
-
-for (var i = 0; i < coalition.length; i++) {
-    var p = coalition[i];
-    if (p === 'SPD') continue;
-    if (Q.deferral_map[p]) continue;
-
-    var p_share   = Q.base_ministry_leverage[p] || 0;
-    var p_rel     = Q[p.toLowerCase() + '_relation'] || 50;
-    var top_name  = get_top_candidate_for_party_pa(p);
-    if (!top_name) continue;
-
-    var will_contest = false;
-    if (p_share >= 20) will_contest = true;
-    else if (p_share >= 15 && p_rel < 60) will_contest = true;
-
-    if (will_contest) {
-        Q.contesting_parties.push({
-            party:     p,
-            candidate: top_name,
-            share:     p_share,
-            relation:  p_rel
-        });
-        Q.any_contestation = 1;
-    }
-}
-
-if (Q.any_contestation) {
-    Q.contestation_display = "";
-    for (var i = 0; i < Q.contesting_parties.length; i++) {
-        var c = Q.contesting_parties[i];
-        var intensity = c.share >= 25 ? "strongly pushes for" : "is pushing for";
-        Q.contestation_display += "- **" + c.party + "** " + intensity + " **" + c.candidate + "** as Chancellor (" + Math.round(c.share) + "% of coalition)\n";
-    }
-    Q.contestation_concession_available = 1;
-}
-
-Q.deferral_display = "";
-for (var p in Q.deferral_map) {
-    if (!Q.deferral_map.hasOwnProperty(p)) continue;
-    Q.deferral_display += "- **" + p + "** defers to **" + Q.deferral_map[p] + "**'s chancellor candidate.\n";
-}
-Q.any_deferral = Q.deferral_display.length > 0 ? 1 : 0;
-
-// ============================================
 // IDENTIFY CHANCELLOR CANDIDATES
 // ============================================
 
+// Helper function to get viable chancellor candidates by party
 function get_chancellor_candidates_for_party(party) {
     var candidates = [];
-
+    
     if (party === 'KPD') {
         if (Q.kpd_party_leader === "Conciliators") {
             candidates.push({name: "Neumann", weight: 100});
         } else {
             candidates.push({name: "Thälmann", weight: 100});
         }
-    }
+    } 
     else if (party === 'SAPD') {
         candidates.push({name: "Rosenfeld", weight: 100});
-    }
+    } 
     else if (party === 'SPD') {
+        // Alternative: if you need the player's preference to determine which ONE candidate appears, not multiple i guess
         if (Q.spd_chancellor_preference === "mueller" && !Q.muller_dead) {
             candidates.push({name: "Müller", weight: 100});
         } else if (Q.spd_chancellor_preference === "wels") {
@@ -2833,6 +2588,7 @@ function get_chancellor_candidates_for_party(party) {
         } else if (Q.spd_chancellor_preference === "breitscheid") {
             candidates.push({name: "Breitscheid", weight: 100});
         } else {
+            // Default fallback
             if (!Q.muller_dead) {
                 candidates.push({name: "Müller", weight: 100});
             } else {
@@ -2842,16 +2598,16 @@ function get_chancellor_candidates_for_party(party) {
     }
     else if (party === 'SRPD') {
         candidates.push({name: "Horsing", weight: 100});
-    }
+    } 
     else if (party === 'DDP') {
         candidates.push({name: "Koch-Weser", weight: 100});
-        if (Q.ddp_votes < 3) {
+        if (Q.ddp_votes < 3) { // If party not too weakened
             candidates.push({name: "Dietrich", weight: 80});
         }
         if (Q.ddp_name === "DStP") {
             candidates.push({name: "Arthur Mahraun", weight: 99});
+        } 
         }
-    }
     else if (party === 'Z') {
         if (Q.z_party_leader === "Joos") {
             candidates.push({name: "Wirth", weight: 100});
@@ -2867,14 +2623,14 @@ function get_chancellor_candidates_for_party(party) {
             candidates.push({name: "Wirth", weight: 85});
             candidates.push({name: "Marx", weight: 40});
         }
-    }
+    } 
     else if (party === 'CSRP') {
         candidates.push({name: "Heller", weight: 50});
-    }
+    } 
     else if (party === 'BVP') {
         candidates.push({name: "Held", weight: 100});
         candidates.push({name: "Schäffer", weight: 80});
-    }
+    } 
     else if (party === 'DVP') {
         if (!Q.stresemann_dead) {
             candidates.push({name: "Stresemann", weight: 100});
@@ -2883,16 +2639,16 @@ function get_chancellor_candidates_for_party(party) {
             candidates.push({name: "Curtius", weight: 100});
             candidates.push({name: "Dingeldey", weight: 85});
         }
-    }
+    } 
     else if (party === 'WP') {
         candidates.push({name: "Drewitz", weight: 100});
-    }
+    } 
     else if (party === 'CSVD') {
         candidates.push({name: "Lambach", weight: 100});
     }
     else if (party === 'CNBL') {
         candidates.push({name: "Hepp", weight: 100});
-    }
+    } 
     else if (party === 'DNVP') {
         if (Q.dnvp_line === 3) {
             candidates.push({name: "Hugenberg", weight: 100});
@@ -2901,80 +2657,85 @@ function get_chancellor_candidates_for_party(party) {
         } else {
             candidates.push({name: "Treviranus", weight: 75});
         }
+    } else if (party === 'DVFP') {
+    // Graefe is the primary political leader
+    candidates.push({name: "Graefe", weight: 60});
+    
+    // Ludendorff is the 'prestige' candidate (The General)
+    candidates.push({name: "Ludendorff", weight: 30});
+    
+    // Reventlow represents the radical 'social' wing of the völkisch movement
+    candidates.push({name: "Reventlow", weight: 10});
     }
-    else if (party === 'DVFP') {
-        candidates.push({name: "Graefe",     weight: 60});
-        candidates.push({name: "Ludendorff", weight: 30});
-        candidates.push({name: "Reventlow",  weight: 10});
-    }
-
+ 
+    
     return candidates;
 }
 
+// Build comprehensive candidate list
 var all_candidates = [];
 
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
     var votes = Q[party.toLowerCase() + '_r'];
     var party_candidates = get_chancellor_candidates_for_party(party);
-    var defer_bonus = Q.deferral_bonus[party] || 0;
-
+    
     for (var j = 0; j < party_candidates.length; j++) {
         var candidate = party_candidates[j];
-        var adjusted_votes = votes + defer_bonus;
         all_candidates.push({
-            party:  party,
-            name:   candidate.name,
-            votes:  votes,
+            party: party,
+            name: candidate.name,
+            votes: votes,
             weight: candidate.weight,
-            score:  adjusted_votes * (candidate.weight / 100)
+            score: votes * (candidate.weight / 100) // Combined score for sorting
+
         });
     }
 }
 
+// Sort by score descending
 all_candidates.sort(function(a, b) { return b.score - a.score; });
 
+// Take top 6 candidates
 Q.chancellor_candidates = [];
 Q.chancellor_candidates_display = "";
 
 var num_candidates = Math.min(10, all_candidates.length);
 for (var i = 0; i < num_candidates; i++) {
     var candidate = all_candidates[i];
-
+    
     Q.chancellor_candidates.push({
-        party:  candidate.party,
-        name:   candidate.name,
-        votes:  candidate.votes,
+        party: candidate.party,
+        name: candidate.name,
+        votes: candidate.votes,
         weight: candidate.weight
     });
-
+    
     Q.chancellor_candidates_display += (i + 1) + ". **" + candidate.name + "** (" + candidate.party + ", " + Math.round(candidate.votes * 10) / 10 + "%)";
-
-    if (candidate.name === "Müller")       Q.chancellor_candidates_display += " - Former Chancellor";
-    else if (candidate.name === "Wels")    Q.chancellor_candidates_display += " - Party Chairman";
-    else if (candidate.name === "Braun")   Q.chancellor_candidates_display += " - Prussian Minister-President";
-    else if (candidate.name === "Hilferding") Q.chancellor_candidates_display += " - Economic Expert";
-    else if (candidate.name === "Brüning") Q.chancellor_candidates_display += " - Financial Expert";
-    else if (candidate.name === "Stresemann") Q.chancellor_candidates_display += " - Foreign Policy Expert";
-
-    var is_contested = false;
-    for (var cx = 0; cx < Q.contesting_parties.length; cx++) {
-        if (Q.contesting_parties[cx].candidate === candidate.name) {
-            Q.chancellor_candidates_display += " *(contested by " + Q.contesting_parties[cx].party + ")*";
-            is_contested = true;
-        }
+    
+    // Add contextual notes
+    if (candidate.name === "Müller") {
+        Q.chancellor_candidates_display += " - Former Chancellor";
+    } else if (candidate.name === "Wels") {
+        Q.chancellor_candidates_display += " - Party Chairman";
+    } else if (candidate.name === "Braun") {
+        Q.chancellor_candidates_display += " - Prussian Minister-President";
+    } else if (candidate.name === "Hilferding") {
+        Q.chancellor_candidates_display += " - Economic Expert";
+    } else if (candidate.name === "Brüning") {
+        Q.chancellor_candidates_display += " - Financial Expert";
+    } else if (candidate.name === "Stresemann") {
+        Q.chancellor_candidates_display += " - Foreign Policy Expert";
     }
-    if (!is_contested && Q.deferral_bonus[candidate.party] > 0) {
-        Q.chancellor_candidates_display += " *(backed by deferral)*";
-    }
-
+    
     Q.chancellor_candidates_display += "\n";
 }
 
 Q.num_candidates = Q.chancellor_candidates.length;
 
-for (var i = 0; i < Q.num_candidates && i < 10; i++) {
-    Q['candidate_' + i + '_name']  = Q.chancellor_candidates[i].name;
+// Pre-calculate candidate info for display/conditionals
+for (var i = 0; i < Q.num_candidates && i < 6; i++) {
+    Q['candidate_' + i + '_name'] = Q.chancellor_candidates[i].name;
     Q['candidate_' + i + '_party'] = Q.chancellor_candidates[i].party;
 }
 
@@ -2982,26 +2743,63 @@ for (var i = 0; i < Q.num_candidates && i < 10; i++) {
 // SET COALITION FLAGS
 // ============================================
 
-Q.spd_in_government   = coalition.indexOf('SPD')  >= 0 ? 1 : 0;
-Q.kpd_in_government   = coalition.indexOf('KPD')  >= 0 ? 1 : 0;
-Q.sapd_in_government  = coalition.indexOf('SAPD') >= 0 ? 1 : 0;
-Q.srpd_in_government  = coalition.indexOf('SRPD') >= 0 ? 1 : 0;
-Q.z_in_government     = coalition.indexOf('Z')    >= 0 ? 1 : 0;
-Q.bvp_in_government   = coalition.indexOf('BVP')  >= 0 ? 1 : 0;
-Q.ddp_in_government   = coalition.indexOf('DDP')  >= 0 ? 1 : 0;
-Q.dvp_in_government   = coalition.indexOf('DVP')  >= 0 ? 1 : 0;
-Q.wp_in_government    = coalition.indexOf('WP')   >= 0 ? 1 : 0;
-Q.dnvp_in_government  = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
-Q.csvd_in_government  = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
-Q.csrp_in_government  = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
-Q.dhp_in_government   = coalition.indexOf('DHP')  >= 0 ? 1 : 0;
-Q.bb_in_government    = coalition.indexOf('BB')   >= 0 ? 1 : 0;
-Q.kvp_in_government   = coalition.indexOf('KVP')  >= 0 ? 1 : 0;
-Q.vrp_in_government   = coalition.indexOf('VRP')  >= 0 ? 1 : 0;
-Q.dvfp_in_government  = coalition.indexOf('DVFP') >= 0 ? 1 : 0;
+Q.spd_in_government = coalition.indexOf('SPD') >= 0 ? 1 : 0;
+Q.kpd_in_government = coalition.indexOf('KPD') >= 0 ? 1 : 0;
+Q.sapd_in_government = coalition.indexOf('SAPD') >= 0 ? 1 : 0;
+Q.srpd_in_government = coalition.indexOf('SRPD') >= 0 ? 1 : 0;
+Q.z_in_government = coalition.indexOf('Z') >= 0 ? 1 : 0;
+Q.bvp_in_government = coalition.indexOf('BVP') >= 0 ? 1 : 0;
+Q.ddp_in_government = coalition.indexOf('DDP') >= 0 ? 1 : 0;
+Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
+Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
+Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
+Q.csvd_in_government = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
+Q.csrp_in_government = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
+Q.dhp_in_government = coalition.indexOf('DHP') >= 0 ? 1 : 0;
+Q.bb_in_government = coalition.indexOf('BB') >= 0 ? 1 : 0;
+Q.kvp_in_government = coalition.indexOf('KVP') >= 0 ? 1 : 0;
+Q.vrp_in_government = coalition.indexOf('VRP') >= 0 ? 1 : 0;
+Q.dvfp_in_government = coalition.indexOf('DVFP') >= 0 ? 1 : 0;
+
 !}
 go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
 
+- @continue_to_negotiation: Continue to coalition negotiations
+
+@continue_to_negotiation
+on-arrival: {!
+// Recalculate display after preference boost
+Q.chancellor_candidates_display = "";
+for (var i = 0; i < Q.num_candidates; i++) {
+    var candidate = Q.chancellor_candidates[i];
+    Q.chancellor_candidates_display += (i + 1) + ". **" + candidate.name + "** (" + candidate.party + ", " + Math.round(candidate.votes * 10) / 10 + "%)";
+    
+    if (candidate.name === "Müller") {
+        Q.chancellor_candidates_display += " - Former Chancellor";
+    } else if (candidate.name === "Wels") {
+        Q.chancellor_candidates_display += " - Party Chairman";
+    } else if (candidate.name === "Braun") {
+        Q.chancellor_candidates_display += " - Prussian Minister-President";
+    } else if (candidate.name === "Hilferding") {
+        Q.chancellor_candidates_display += " - Economic Expert";
+    } else if (candidate.name === "Brüning") {
+        Q.chancellor_candidates_display += " - Financial Expert";
+    } else if (candidate.name === "Stresemann") {
+        Q.chancellor_candidates_display += " - Foreign Policy Expert";
+    }
+    
+    Q.chancellor_candidates_display += "\n";
+    
+    // Update pre-calculated vars
+    Q['candidate_' + i + '_name'] = candidate.name;
+    Q['candidate_' + i + '_party'] = candidate.party;
+}
+!}
+go-to: chancellor_negotiation_spd
+
+# ============================================
+# CHANCELLOR NEGOTIATION - SPD IN GOVERNMENT
+# ============================================
 
 @chancellor_negotiation_spd
 
@@ -3010,16 +2808,6 @@ go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_a
 **Coalition Partners:**
 
 [+ coalition_partners_list +]
-
-[? if president_has_preference : **President [+ president +]'s preference:** [+ presidential_preferred_candidate +] ([+ presidential_preferred_party +]) — choosing against this will cost presidential goodwill. ?]
-
-[? if any_contestation: **Partner contestation:** ?]
-
-[? if any_contestation: [+ contestation_display +] ?]
-
-[? if any_deferral: **Deferring parties:** ?]
-
-[? if any_deferral: [+ deferral_display +] ?]
 
 **The coalition must now select a Chancellor.**
 
@@ -3033,6 +2821,10 @@ go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_a
 [? if spd_chancellor_preference = "hilferding" : The SPD has put forward Rudolf Hilferding as their preferred candidate. ?]
 [? if spd_chancellor_preference = "breitscheid" : The SPD has put forward Rudolf Breitscheid as their preferred candidate. ?]
 
+[? if president = "Hindenburg" and year >= 1930 : **Note:** President Hindenburg has expressed strong preferences about who should lead the government. Choosing a Chancellor he opposes may create difficulties. ?]
+
+[? if president = "Hindenburg" and year >= 1932 and candidate_0_party = "SPD" : **Warning:** Hindenburg has made it clear he will not accept an SPD Chancellor under current circumstances. ?]
+
 **Who should become Chancellor?**
 
 - @choose_chancellor_1: Support [+ candidate_0_name +] ([+ candidate_0_party +])
@@ -3045,172 +2837,7 @@ go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_a
 - @choose_chancellor_8: Support [+ candidate_7_name +] ([+ candidate_7_party +])
 - @choose_chancellor_9: Support [+ candidate_8_name +] ([+ candidate_8_party +])
 - @choose_chancellor_10: Support [+ candidate_9_name +] ([+ candidate_9_party +])
-- @offer_ministry_concession: Offer a ministry concession to placate contesting partners
 
-# ============================================
-# MINISTRY CONCESSION SCENE (Block 3)
-# ============================================
-
-@offer_ministry_concession
-view-if: contestation_concession_available = 1
-on-arrival: {!
-Q.concession_party = Q.contesting_parties[0].party;
-Q.concession_party_candidate = Q.contesting_parties[0].candidate;
-
-Q.concession_options_display = "";
-Q.concession_options_display += "Offering a ministry to **" + Q.concession_party + "** (pushing **" + Q.concession_party_candidate + "**) will reduce their resistance to our chancellor choice.\n\n";
-Q.concession_options_display += "Each concession reduces their contestation dissent but costs us leverage in the ministry phase.\n\n";
-
-var ministry_list = ['labor','interior','justice','finance','economic','foreign','agriculture','transport'];
-Q.concession_available_count = 0;
-for (var i = 0; i < ministry_list.length; i++) {
-    var m = ministry_list[i];
-    if (Q[m + '_minister_party'] !== 'SPD') {
-        Q.concession_options_display += "- " + m.charAt(0).toUpperCase() + m.slice(1) + " (leverage cost: " + ({labor:5,interior:10,justice:10,finance:15,economic:15,foreign:15,agriculture:10,transport:8}[m]) + ")\n";
-        Q.concession_available_count++;
-    }
-}
-!}
-
-= Offer Ministry Concession
-
-[+ concession_options_display +]
-
-**Which ministry do you offer to [+ concession_party +]?**
-
-- @concede_labor: Offer Labor Ministry
-- @concede_interior: Offer Interior Ministry
-- @concede_justice: Offer Justice Ministry
-- @concede_finance: Offer Finance Ministry
-- @concede_economic: Offer Economic Ministry
-- @concede_foreign: Offer Foreign Ministry
-- @concede_agriculture: Offer Agriculture Ministry
-- @concede_transport: Offer Transport Ministry
-- @chancellor_negotiation_spd: Offer nothing, return to chancellor selection
-
-@concede_labor
-view-if: labor_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 5);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 5);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 5;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Labor';
-Q.concession_dissent_reduction = 3;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Labor Ministry. Their resistance to our chancellor candidate has softened.
-
-@concede_interior
-view-if: interior_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 7);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 10);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 10;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Interior';
-Q.concession_dissent_reduction = 5;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Interior Ministry.
-
-@concede_justice
-view-if: justice_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 6);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 10);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 10;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Justice';
-Q.concession_dissent_reduction = 4;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Justice Ministry.
-
-@concede_finance
-view-if: finance_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 10);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 15);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 15;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Finance';
-Q.concession_dissent_reduction = 7;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Finance Ministry. This is a significant concession.
-
-@concede_economic
-view-if: economic_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 10);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 15);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 15;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Economic Affairs';
-Q.concession_dissent_reduction = 7;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Economic Affairs Ministry.
-
-@concede_foreign
-view-if: foreign_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 10);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 15);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 15;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Foreign Affairs';
-Q.concession_dissent_reduction = 7;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Foreign Affairs Ministry.
-
-@concede_agriculture
-view-if: agriculture_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 5);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 10);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 10;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Agriculture';
-Q.concession_dissent_reduction = 4;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Agriculture Ministry.
-
-@concede_transport
-view-if: transport_minister_party != "SPD"
-on-arrival: {!
-Q[Q.concession_party.toLowerCase() + '_relation'] = Math.min(100, (Q[Q.concession_party.toLowerCase() + '_relation'] || 50) + 4);
-Q.base_ministry_leverage['SPD'] = Math.max(5, (Q.base_ministry_leverage['SPD'] || 30) - 8);
-Q.base_ministry_leverage[Q.concession_party] = (Q.base_ministry_leverage[Q.concession_party] || 20) + 8;
-Q.contestation_concession_made = 1;
-Q.concession_ministry_given = 'Transport';
-Q.concession_dissent_reduction = 3;
-Q.contestation_display = Q.contestation_display.replace(new RegExp(".*\\*\\*" + Q.concession_party + "\\*\\*.*\n"), "");
-!}
-go-to: chancellor_negotiation_spd
-
-We have signaled that [+ concession_party +] will receive the Transport Ministry.
-
-# ============================================
-# CHOOSE CHANCELLOR SCENES
-# ============================================
 
 @choose_chancellor_1
 view-if: num_candidates >= 1
@@ -3557,149 +3184,37 @@ go-to: coalition_failure
 
 @chancellor_confirmed
 on-arrival: {!
-
 // ============================================
-// CHANCELLORSHIP LEVERAGE DRAIN
-// The party that takes the chancellorship loses
-// ministry leverage proportional to coalition avg.
+// POLITICAL CONSEQUENCES
 // ============================================
 
-var coalition_size = Q.government_parties.length;
-var total_leverage_pool = 0;
-for (var i = 0; i < Q.government_parties.length; i++) {
-    total_leverage_pool += Q.base_ministry_leverage[Q.government_parties[i]] || 0;
-}
-var avg_leverage = coalition_size > 0 ? total_leverage_pool / coalition_size : 30;
-
-var drain_base    = 12;
-var chan_leverage  = Q.base_ministry_leverage[Q.chancellor_party] || avg_leverage;
-var size_premium  = Math.max(0, chan_leverage - avg_leverage) * 0.4;
-var total_drain   = drain_base + size_premium;
-
-Q.base_ministry_leverage[Q.chancellor_party] = Math.max(5, chan_leverage - total_drain);
-Q.chancellor_leverage_drain = Math.round(total_drain);
-
-var bonus_per_partner = (total_drain * 0.3) / Math.max(1, coalition_size - 1);
-for (var i = 0; i < Q.government_parties.length; i++) {
-    var p = Q.government_parties[i];
-    if (p === Q.chancellor_party) continue;
-    Q.base_ministry_leverage[p] = (Q.base_ministry_leverage[p] || 20) + bonus_per_partner;
-}
-
-// ============================================
-// PRESIDENTIAL PATIENCE PENALTY
-// ============================================
-
-Q.ignored_presidential_preference = 0;
-if (Q.president_has_preference &&
-    Q.presidential_preferred_candidate !== Q.chancellor) {
-    Q.ignored_presidential_preference = 1;
-
-    if (Q.president === 'Hindenburg') {
-        var pref_gap = 0;
-        if (Q.presidential_preferred_party !== Q.chancellor_party) pref_gap += 8;
-        if (Q.presidential_preferred_party === 'Z'   && Q.chancellor_party === 'SPD') pref_gap += 4;
-        if (Q.presidential_preferred_party === 'DVP' && Q.chancellor_party === 'SPD') pref_gap += 4;
-        Q.hindenburg_patience = Math.max(0, (Q.hindenburg_patience || 50) - 5 - pref_gap);
-    } else if (Q.president === 'Braun') {
-        if (Q.chancellor_party !== 'SPD' && Q.chancellor_party !== 'SRPD') {
-            Q.hindenburg_patience = Math.max(0, (Q.hindenburg_patience || 50) - 8);
-        }
-    } else if (Q.president === 'Westarp') {
-        if (Q.chancellor_party === 'SPD' || Q.chancellor_party === 'KPD') {
-            Q.hindenburg_patience = Math.max(0, (Q.hindenburg_patience || 50) - 10);
-        }
-    }
-}
-
-// ============================================
-// CONTESTATION DISSENT CONSEQUENCES
-// ============================================
-
-Q.contestation_dissent_total = 0;
-if (Q.chancellor_party === 'SPD' && Q.any_contestation) {
-    for (var i = 0; i < Q.contesting_parties.length; i++) {
-        var cp = Q.contesting_parties[i];
-        var was_placated = (Q.contestation_concession_made &&
-                            Q.concession_party === cp.party);
-        if (!was_placated) {
-            var dissent_amount = Math.round(cp.share / 8);
-            Q.coalition_dissent = (Q.coalition_dissent || 0) + dissent_amount;
-            Q.contestation_dissent_total += dissent_amount;
-            var rel_var = cp.party.toLowerCase() + '_relation';
-            Q[rel_var] = Math.max(0, (Q[rel_var] || 50) - 4);
-        }
-    }
-}
-
-// ============================================
-// DEFERRAL BETRAYAL TRACKING
-// ============================================
-
-Q.deferral_betrayal_check = {};
-for (var p in Q.deferral_map) {
-    if (!Q.deferral_map.hasOwnProperty(p)) continue;
-    Q.deferral_betrayal_check[p] = {
-        deferred_to: Q.deferral_map[p],
-        betrayed: 0
-    };
-}
-
-// ============================================
-// CHANCELLOR LEGITIMACY SCORE
-// ============================================
-
-var legitimacy = 50;
-
-legitimacy += (Q.government_parties.length - 1) * 4;
-
-if (Q.coalition_votes >= 60)      legitimacy += 10;
-else if (Q.coalition_votes >= 55) legitimacy += 5;
-else if (Q.coalition_votes < 50)  legitimacy -= 8;
-
-if (!Q.ignored_presidential_preference) legitimacy += 8;
-else legitimacy -= 6;
-
-if (Q.president_vetoed) legitimacy -= 12;
-
-var chan_share = ((Q[Q.chancellor_party.toLowerCase() + '_r'] || 0) /
-                  Math.max(1, Q.coalition_votes)) * 100;
-if (chan_share >= 40)      legitimacy += 8;
-else if (chan_share < 20)  legitimacy -= 6;
-
-if (Q.contestation_concession_made)     legitimacy -= 3;
-if (Q.contestation_dissent_total > 0)   legitimacy -= Q.contestation_dissent_total;
-
-Q.chancellor_legitimacy = Math.max(5, Math.min(100, Math.round(legitimacy)));
-Q.low_legitimacy = Q.chancellor_legitimacy < 35 ? 1 : 0;
-Q.mid_legitimacy = (Q.chancellor_legitimacy >= 35 && Q.chancellor_legitimacy < 55) ? 1 : 0;
-
-// ============================================
-// POLITICAL CONSEQUENCES (unchanged)
-// ============================================
-
+// Left Front consequences
 if (Q.in_left_front) {
     Q.coup_progress += 3;
     Q.capital_strike_progress += 2;
     Q.kpd_relation += 10;
 }
+
+// Popular Front consequences
 if (Q.in_popular_front) {
     Q.coup_progress += 2;
     Q.pro_republic += 5;
     Q.kpd_relation += 10;
     Q.z_relation += 5;
 }
+
+// Far-right consequences
 if (Q.coalition_type === 'far_right') {
     Q.coup_progress += 5;
     Q.pro_republic -= 15;
 }
+
+// Bourgeois coalition (SPD excluded)
 if (Q.in_bourgeois_coalition && !Q.spd_in_government) {
     Q.workers_spd -= 5;
     Q.left_dissent += 10;
     Q.labor_dissent += 10;
 }
-
-Q.hindenburg_patience += 10;
 !}
 
 = [+ coalition_name +] Formed
@@ -3712,22 +3227,18 @@ Q.hindenburg_patience += 10;
 
 **Total Reichstag Support:** [+ coalition_votes_display +]%
 
-**Chancellor Legitimacy:** [+ chancellor_legitimacy +]/100[? if low_legitimacy : — ⚠ Low legitimacy will accelerate coalition instability. ?]
-
-[? if chancellor_leverage_drain > 0 : [+ chancellor_party +] ceded [+ chancellor_leverage_drain +] leverage points to secure the chancellorship. ?]
-
-[? if ignored_presidential_preference : President [+ president +] had preferred [+ presidential_preferred_candidate +]. Ignoring this preference has cost some presidential goodwill. ?]
-
-[? if contestation_dissent_total > 0 : Contesting partners are unhappy with the chancellor selection. Coalition dissent has risen by [+ contestation_dissent_total +]. ?]
-
-[? if contestation_concession_made : The [+ concession_party +] received the [+ concession_ministry_given +] Ministry in exchange for accepting our chancellor. ?]
-
 [? if hindenburg_forced_z : President Hindenburg insisted that the Center Party provide the Chancellor, despite another party being larger in the coalition. ?]
+
 [? if hindenburg_forced_dvp : President Hindenburg insisted that the DVP provide the Chancellor, despite another party being larger in the coalition. ?]
+
 [? if coalition_type = 'left_front' : The formation of a Left Front government including the Communists has sent shockwaves through the establishment. The right-wing may attempt a coup. ?]
+
 [? if coalition_type = 'popular_front' : The unprecedented Popular Front brings together Socialists, Communists, and Catholics in defense of democracy. ?]
+
 [? if coalition_type = 'unity' : A broad Unity Government of democratic parties has been formed to face the crisis. ?]
+
 [? if coalition_type = 'bourgeois' : The bourgeois parties have formed a government without the SPD. ?]
+
 [? if coalition_type = 'far_right' : The Nazis have entered government. This may be the end of democracy. ?]
 
 - @ministry_allocation: Proceed to ministry distribution
@@ -3736,66 +3247,68 @@ Q.hindenburg_patience += 10;
 
 
 
-
-
-
-
-
-
-
-
-
 @ministry_allocation
 on-arrival: {!
 // ============================================
-// USE PRE-CALCULATED LEVERAGE (with chancellor drain applied)
+// CALCULATE BASE SHARE FROM VOTE COUNT
 // ============================================
 
 var coalition = Q.government_parties;
 var total_coalition_votes = 0;
+
+// Calculate total coalition votes
 for (var i = 0; i < coalition.length; i++) {
-    total_coalition_votes += Q[coalition[i].toLowerCase() + '_r'] || 0;
+    var party = coalition[i];
+    var party_lower = party.toLowerCase();
+    total_coalition_votes += Q[party_lower + '_r'];
 }
 
 var leverage = {};
 
 for (var i = 0; i < coalition.length; i++) {
     var party = coalition[i];
-    if (Q.base_ministry_leverage && Q.base_ministry_leverage[party] !== undefined) {
-        leverage[party] = Q.base_ministry_leverage[party];
-    } else {
-        // Fallback: recalculate from vote share
-        var total_coalition_votes_ma = total_coalition_votes || 1;
-        var base = ((Q[party.toLowerCase() + '_r'] || 0) / total_coalition_votes_ma) * 100;
-        var rel  = Q[party.toLowerCase() + '_relation'] || 50;
-        base += (rel - 50) / 5;
-        leverage[party] = Math.max(10, base);
+    var party_lower = party.toLowerCase();
+    
+    // Base share = party's percentage of total coalition votes
+    var base = (Q[party_lower + '_r'] / total_coalition_votes) * 100;
+    
+    // Relationship modifier
+    var relation_var = party_lower + '_relation';
+    var relation = Q[relation_var] || 50;
+    base += (relation - 50) / 5;  // +/- up to 10 points
+    
+    // Chancellor bonus
+    if (Q.chancellor_party === party) {
+        base -= 10;
     }
-}
-
-// Apply president/leader bonuses on top of pre-calculated leverage
-if (Q.president === "Braun" && leverage['SPD'] !== undefined) {
-    leverage['SPD'] += 5;
-}
-if (leverage['Z'] !== undefined && Q.z_party_leader === "Brüning") {
-    leverage['Z'] += 5;
-}
-if (leverage['DVP'] !== undefined && !Q.stresemann_dead) {
-    leverage['DVP'] += 3;
-}
-if (leverage['KPD'] !== undefined && Q.kpd_party_leader === "Conciliators") {
-    leverage['KPD'] += 5;
-}
-if (Q.in_grand_coalition && leverage['DVP'] !== undefined && Q.capital_strike_progress >= 3) {
-    leverage['DVP'] += 5;
-}
-if (Q.in_left_front && leverage['KPD'] !== undefined) {
-    leverage['KPD'] -= 5;
-}
-
-// Floor
-for (var i = 0; i < coalition.length; i++) {
-    leverage[coalition[i]] = Math.max(leverage[coalition[i]] || 10, 10);
+    
+    // President bonus
+    if (Q.president === "Braun" && party === "SPD") {
+        base += 5;
+    }
+    
+    // Party leader bonuses
+    if (party === "Z" && Q.z_party_leader === "Brüning") {
+        base += 5;
+    }
+    if (party === "DVP" && !Q.stresemann_dead) {
+        base += 3;
+    }
+    if (party === "KPD" && Q.kpd_party_leader === "Conciliators") {
+        base += 5;
+    }
+    
+    // Special conditions
+    if (Q.in_grand_coalition && party === "DVP" && Q.capital_strike_progress >= 3) {
+        base += 5;
+    }
+    
+    if (Q.in_left_front && party === "KPD") {
+        base -= 5;
+    }
+    
+    // Floor
+    leverage[party] = Math.max(base, 10);
 }
 
 // ============================================
@@ -3939,6 +3452,12 @@ Q.agriculture_minister_party = assignments.agriculture || 'I';
 Q.transport_minister_party = assignments.transport || 'I';
 Q.reichswehr_minister_party = 'I';
 
+// [Keep all your minister name assignment code here - it's unchanged]
+
+// Store allocation for display
+Q.ministry_allocation = allocation;
+Q.ministry_leverage = leverage;
+
 // ============================================
 // ASSIGN MINISTER NAMES
 // ============================================
@@ -4062,33 +3581,6 @@ Q.reichswehr_minister_party = 'I';
 // Store allocation for display
 Q.ministry_allocation = allocation;
 Q.ministry_leverage = leverage;
-
-// ============================================
-// DEFERRAL BETRAYAL CHECK
-// If a party deferred their chancellor vote to
-// a larger partner, check whether that partner
-// reciprocated in ministry allocation.
-// ============================================
-
-if (Q.deferral_betrayal_check) {
-    for (var small_p in Q.deferral_betrayal_check) {
-        if (!Q.deferral_betrayal_check.hasOwnProperty(small_p)) continue;
-        var entry = Q.deferral_betrayal_check[small_p];
-
-        var small_p_ministries = 0;
-        var ministry_list_b = ['foreign','interior','justice','labor','economic','finance','agriculture','transport'];
-        for (var mi = 0; mi < ministry_list_b.length; mi++) {
-            if (Q[ministry_list_b[mi] + '_minister_party'] === small_p) small_p_ministries++;
-        }
-
-        if (small_p_ministries === 0) {
-            entry.betrayed = 1;
-            var rel_var_b = small_p.toLowerCase() + '_relation';
-            Q[rel_var_b] = Math.max(0, (Q[rel_var_b] || 50) - 5);
-            Q.coalition_dissent = (Q.coalition_dissent || 0) + 1;
-        }
-    }
-}
 
 // HINDENBURG'S STATUS UPDATE
 Q.hindenburg_patience += 10
@@ -4247,22 +3739,6 @@ on-arrival: coalition_dissent += 3; left_dissent += 5
 New elections have been scheduled. The campaign will be dominated by questions about governmental stability.
 
 Our party must prepare for what may be a crucial electoral test.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5083,6 +4559,27 @@ on-arrival: {!
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ============================================
 // MINISTRY RENEGOTIATION SCENE
 // ============================================
@@ -5866,5 +5363,3 @@ The ministry reshuffle is complete.
 @cancel_shuffle
 
 The current arrangement will remain unchanged.
-
- 
