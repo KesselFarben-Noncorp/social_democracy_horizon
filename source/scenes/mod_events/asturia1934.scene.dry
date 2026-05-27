@@ -1,38 +1,33 @@
-title: Asturian Siege
+title: Unrest in the Spanish Republic
 new-page: true
-subtitle: Spain is facing Red Asturian revolt
-view-if: year = 1934 and (month = 10) and ((spd_in_government and foreign_minister_party = "SPD") or (eu = 1))
+subtitle: Spain is facing an internal crisis
+view-if: year = 1934 and (month = 10)
 max-visits: 1
 on-arrival: asturia_seen = 1
 face-image: img/Dollfuss.jpg
 tags: event
 
-= The Siege of Asturias: A Call to Action
+= Unrest in Spain: A Call to Action
                                            
-​The "October Revolution" is upon us. Following the entry of the right-wing CEDA into the government cabinet, the workers of Asturias have risen to defend the Republic from those who wish to dismantle it. Unlike the parliamentary deadlock in Vienna, our crisis was born from a unified cry of UHP (Uníos Hermanos Proletarios).
+Following the election last year in Spain, right-wing parties managed to obtain large amount of seats ousting the previous Republican-Socialist coalition with the Radical Republican Party entering into a coalition with CEDA. Following the formation of the new government, people upset over the result began militant preperations to resist against the rightist government.
                                            
-​The miners of Mieres and Langreo have taken up arms, seizing control of the local centers of power. However, the government in Madrid has responded with unprecedented brutality, deploying the African Army and the Foreign Legion under General Franco. Our comrades are being met with aerial bombardments and a ruthless crackdown that ignores the laws of war. The "Commune of Asturias" is fighting for its very existence.
+​According to rumors, people in Asturias & Catalonia plan to take up arms, seizing control of local centers of power. However, it is expected the government in Madrid will respond in kind with military force.
 
-Should we help them out?
+Should we intervene in this ongoing crisis in Spain?
 
-- @aid: Aid the Asturian Cause
-- @abstain: Remain on the side
+- @aid: Aid the Spanish Worker's Cause.
+- @abstain: We will not intervene.
 
 @aid
-subtitle: We might be involving in not our affairs, especially considering Spain is democratic regime. (- 1 budget)
-unavailable-subtitle: [? if left_strength + center_strength < reformist_strength + labor_strength + neorevisionist_strength: This ordeal is blocked by the Right of our Party. We may not assist them. ?]
-choose-if: left_strength + center_strength > reformist_strength + labor_strength + neorevisionist_strength and budget >= 1                                      
+subtitle: Considering the Spainish Republic was meant to be a democratic regime, we will aid in defending against the bourgeoisie state. (- 1 budget)
+unavailable-subtitle: [? if budget < 1: We do not have the resources to support dissidents in Spain. ?]
+choose-if: budget >= 1                                      
 on-arrival: asturia_continue = 1; britain_relation -= 1; france_relation -= 2; budget -= 1            
-
-​"Solidaridad Obrera!"
                                            
-Despite the protests from our more conservative members, we have authorized the transfer of funds. We are utilizing the "Iron Front" logistics to smuggle essentials through the French border. London and Paris are furious at our interference in "Spanish internal affairs," and the press in Berlin is already calling us "agents of chaos." But for the miners in the pits of Oviedo, the German SPD has proven it still has a revolutionary heart.   
+Despite concerns from various members of the party, we have authorized the transfer of resources. Utilizing the necessary logistics, we managed go smuggle essentials & weapons to dissidents in Spain. Though the governments in London and Paris cannot fully openly proof our interference in "Spanish internal affairs," they suspect we are providing aid. Despite this we proven the German SPD still aids those in the struggle against the bourgeoisie.   
 
 @abstain
-subtitle: We cannot risk our standing or our treasury on a foreign civil war. We must remain neutral.
-unavailable-subtitle: [? if left_strength + center_strength > reformist_strength + labor_strength + neorevisionist_strength: The Radical and Centrist factions demand we show solidarity with our Spanish brothers! ?]
-choose-if: (reformist_strength + labor_strength + neorevisionist_strength >= left_strength + center_strength) or budget < 1
 on-arrival: asturia_solidarity = 0; left_dissent += 5; center_dissent += 2        
 
-With a heavy heart, the Executive Committee has decided to remain on the sidelines. We cannot risk the diplomatic fallout or the drain on our budget while our own Republic stands on a knife's edge. Our comrades in the PSOE will have to fight their battle alone. The Left-wing of our party is embittered, accusing the leadership of the same "parliamentary cretinism" that led to the fall of the Austrian Socialists.
+Unfortunately, there is nothing we can do for our Spanish comrades.
 
