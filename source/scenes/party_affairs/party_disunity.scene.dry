@@ -2,7 +2,7 @@ title: Party Disunity
 new-page: true
 is-card: true
 view-if: party_disunity_timer = 0 and (dissent >= 0.3 or (reformist_dissent > 30 and not reformists_resign) or (center_dissent > 30 and not centrists_resign) or (left_dissent > 30 and not sapd_formed) or (labor_dissent > 30 and not unions_independent) or (neorevisionist_dissent > 30 and neorevisionism and not neorev_split))
-on-arrival: month_actions += 1; party_disunity_timer = 8 + austerity_fortimers
+on-arrival: month_actions += 1; party_disunity_timer = 10 + austerity_fortimers
 card-image: img/Reichstagsfraktion_der_SPD.jpg
 frequency: 200
 tags: party_affairs
@@ -125,3 +125,8 @@ view-if: neorevisionist_dissent > 45 and neorevisionism = 1 and neorev_split = 0
 on-arrival: neorevisionist_dissent = 65; neorevisionist_strength -= 100; neorevisionist_dissent = 0 if neorev_split
 
 We have expelled the members of Neorevisionist Fraction.
+
+@restore_reformists
+title: Restore the reformists
+view-if: reformist_dissent < 5 ans reformists_resign >= 1
+on-arrival: reformists_resign = 0
