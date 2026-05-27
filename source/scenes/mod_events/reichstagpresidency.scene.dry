@@ -1,4 +1,4 @@
-title: Reichstag Parliamentary Formation
+Title: Reichstag Parliamentary Formation
 new-page: true
 tags: event
 view-if: tag_1 = 1
@@ -125,7 +125,7 @@ for (var i = 0; i < all_parties_with_seats.length; i++) {
         NSDAP:'#954B00', DTSP:'#3B1A00', DtsP:'#3B1A00', DVFP:'#1A0F00'
     };
     party_seat_data.push({
-        id:    p.party.toLowerCase(),
+        id:    p.id || p.party.toLowerCase(),
         seats: p.seats,
         color: color_map[p.party] || '#888888'
     });
@@ -246,6 +246,8 @@ Q.tag_1 = 0;
 !}
 on-display: {!
 var data = JSON.parse(Q._rt_seat_data_json || '[]');
+var ideology = JSON.parse(Q._ideology_pos_json || '{}');
+
 var labels = {};
 for (var i = 0; i < data.length; i++) { labels[data[i].id] = data[i].id.toUpperCase(); }
 labels['ddp'] = Q.ddp_name || 'DDP';
@@ -253,7 +255,19 @@ labels['z']   = 'Center';
 labels['other'] = 'Other';
 
 var diagram_data = data.map(function(p) {
-    return { id: p.id, legend: labels[p.id] || p.id, name: labels[p.id] || p.id, seats: p.seats };
+    return { 
+        id: p.id, 
+        legend: labels[p.id] || p.id, 
+        name: labels[p.id] || p.id, 
+        seats: p.seats,
+        ideo: ideology[p.id.toUpperCase()] || 5
+    };
+});
+
+// SORT BASED ON IDEOLOGICAL POSITION (Left-to-Right)
+diagram_data.sort(function(a, b) {
+    if (a.ideo !== b.ideo) return a.ideo - b.ideo;
+    return b.seats - a.seats; // Secondary fallback sort by size
 });
 
 if (window && d3) {
@@ -591,6 +605,7 @@ Q.parliament_summary =
 on-display: {!
 var council_seats   = JSON.parse(Q._council_seats_json || '{}');
 var all_parties     = Q._all_rt_parties || [];
+var ideology        = JSON.parse(Q._ideology_pos_json || '{}');
 
 var color_map = {
     KPD:'#8B0000', LB:'#6B0000', KPO:'#990000',
@@ -614,9 +629,16 @@ for (var i = 0; i < all_parties.length; i++) {
         id:    p.party.toLowerCase(),
         name:  p.party === 'Z' ? 'Center' : (p.party === 'DDP' ? (Q.ddp_name || 'DDP') : p.party),
         color: color_map[p.party] || '#888888',
-        seats: cs
+        seats: cs,
+        ideo:  ideology[p.party] || 5
     });
 }
+
+// SORT BASED ON IDEOLOGICAL POSITION (Left-to-Right)
+visibleParties.sort(function(a, b) {
+    if (a.ideo !== b.ideo) return a.ideo - b.ideo;
+    return b.seats - a.seats; // Secondary fallback sort by size
+});
 
 var data = visibleParties.map(function(p) {
     return { id: p.id, legend: p.name, name: p.name, seats: p.seats };
