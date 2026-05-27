@@ -3567,6 +3567,7 @@ function computeTarget(party, c) {
             let unemployedc_m = 0.57 * (Q.peoples_party === 1 ? 1.02 : 1);
 
             const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
+            if (Q.dem_challenge === 1) base *= 0.80;
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
@@ -3746,6 +3747,17 @@ function computeTarget(party, c) {
             } else {
                 m = 1.0;
             }
+
+            if (Q.dem_challenge === 1) base *= 0.80;
+            if (Q.new_partei_challenge) {
+                const START_YEAR = 1928;
+                const END_YEAR = 1935;
+                const totalWeeks = (END_YEAR - START_YEAR) * 26;
+                const elapsedWeeks = (Q.year - START_YEAR) * 26 + Q.month * 2 + (Q.weeks / 2);
+                const debuffPercent = Math.max(0, 99 * (1 - elapsedWeeks / totalWeeks));
+                base *= (1 - debuffPercent / 100);
+            }
+
             return _applyQOL(base * m * 0.93, party, c);
         }
 
