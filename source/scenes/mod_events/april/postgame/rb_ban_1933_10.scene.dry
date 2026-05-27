@@ -1,0 +1,131 @@
+title: Reichsbanner Ban Act
+subtitle: Our demise is coming close in...
+view-if: year = 1933 and month >= 10 and month < 12 and april_challenge = 1 and civil_war_socfac = 1 and spd_in_government != 1
+tags: event
+on-arrival: {!
+Q.reichsbanner_ban_points = 0;
+Q.reichsbanner_unban_points = 0;
+
+// ==========================================
+// 1. VOTING BLOCK: REICHSBANNER BAN ACT
+// ==========================================
+
+// --- THE ANTI-BAN BLOCK (Democratic Left, Socialists, & Minorities) ---
+Q.reichsbanner_unban_points += Q.spd_votes + Q.csrp_votes + Q.rdp_votes;
+Q.reichsbanner_unban_points += Q.sapd_votes + Q.kpo_votes + Q.lb_votes;
+Q.reichsbanner_unban_points += Q.sl_votes;   
+Q.reichsbanner_unban_points += Q.srpd_votes; 
+Q.reichsbanner_unban_points += Q.sls_votes + Q.dhp_votes;  
+Q.reichsbanner_unban_points += Q.kpd_votes;
+
+// --- THE PRO-BAN BLOCK (Nationalists, Conservatives, & Reactionaries) ---
+Q.reichsbanner_ban_points += Q.dvfp_votes + Q.dnvp_votes + Q.aspd_votes;
+Q.reichsbanner_ban_points += Q.nsdap_votes + Q.dvp_votes + Q.wp_votes + Q.bvp_votes;
+Q.reichsbanner_ban_points += Q.csvd_votes + Q.kvp_votes + Q.cnbl_votes + Q.bb_votes;
+Q.reichsbanner_ban_points += Q.dtsp_votes;
+Q.reichsbanner_ban_points += Q.hl_votes;   
+Q.reichsbanner_ban_points += Q.vrp_votes;
+
+// --- THE SWING BLOCK (Centrists & Liberals) ---
+if (Q.weimar_coalition_collapse == 1) { 
+    Q.reichsbanner_ban_points += Q.z_votes + Q.ddp_votes + Q.cvp_votes + Q.vnr_votes; 
+} else { 
+    Q.reichsbanner_unban_points += Q.z_votes + Q.ddp_votes + Q.cvp_votes + Q.vnr_votes; 
+}
+
+Q.reichsbanner_unban_points += (Q.z_relation + Q.ddp_relation) * 0.01;
+
+
+// ==========================================
+// 2. PARAMILITARY STRENGTH & DETERRENCE
+// ==========================================
+if (Q.rpb_formed) {
+    Q.reichsbanner_ban_points += (Q.rpb_strength * Q.rpb_militancy) * 0.5;
+}
+
+Q.reichsbanner_unban_points += (Q.rb_strength * Q.rb_militancy) * 0.05;
+Q.reichsbanner_ban_points += (Q.sh_strength * Q.sh_militancy) * 0.05;
+
+
+// ==========================================
+// 3. EXECUTIVE BRANCH LEADERSHIP
+// ==========================================
+if (Q.president_party == "SPD") {
+    Q.reichsbanner_unban_points += 20;
+} else if (Q.president_party == "DVFP" || Q.president_party == "DNVP" || Q.president_party == "I" || Q.president_party == "DVP") {
+    Q.reichsbanner_ban_points += 20;
+} else {
+    Q.reichsbanner_ban_points += 10;
+}
+
+if (Q.chancellor_party == "SPD") {
+    Q.reichsbanner_unban_points += 10;
+} else if (Q.chancellor_party == "DVFP" || Q.chancellor_party == "DNVP" || Q.chancellor_party == "I" || Q.chancellor_party == "DVP") {
+    Q.reichsbanner_ban_points += 10;
+} else {
+    Q.reichsbanner_ban_points += 5;
+}
+
+
+// ==========================================
+// 4. REICHSWEHR LOYALTY
+// ==========================================
+if (Q.reichswehr_loyalty > 0.49999) {
+    Q.reichsbanner_unban_points += Q.reichswehr_loyalty * 15; 
+} else {
+    Q.reichsbanner_ban_points += (1 - Q.reichswehr_loyalty) * 25; 
+}
+
+
+// ==========================================
+// 5. INSTITUTIONAL CONTROL
+// ==========================================
+if (Q.judicial_reform <= 2) {
+    // Less reform = more ban points. If 0 reform, adds 15 points.
+    Q.reichsbanner_ban_points += (3 - Q.judicial_reform) * 5;
+} else {
+    Q.reichsbanner_unban_points += Q.judicial_reform * 4;
+}
+
+if (Q.prussia_spd == 0 || Q.prussian_government != "SPD") {
+    Q.reichsbanner_ban_points += 10;
+} else if (Q.prussia_spd == 1 || Q.prussian_government == "SPD") {
+    Q.reichsbanner_unban_points += 10; 
+}
+
+
+// ==========================================
+// 6. FINAL RESOLUTION CALCULATION
+// ==========================================
+if (Q.reichsbanner_ban_points > Q.reichsbanner_unban_points) {
+    Q.rb_ban_passed = 1;
+} else {
+    Q.rb_ban_passed = 0;
+}
+!}
+
+= Reichsbanner Dismantlement Act
+
+WIP.
+
+[+ reichsbanner_unban_points +] Anti Ban
+
+[+ reichsbanner_ban_points +] For Ban
+
+- @cooked: Reichsbanner is ...
+
+@cooked
+go-to: banned_rb if rb_ban_passed = 1; unbanned_rb if rb_ban_passed = 0
+
+@banned_rb
+on-arrival: rb_banned = 1
+
+= Text
+
+text
+
+@unbanned_rb
+
+= Text
+
+text
