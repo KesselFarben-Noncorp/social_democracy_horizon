@@ -4,125 +4,10 @@ tags: event
 view-if: tag_1 = 1
 on-arrival: {!
 
-// ============================================
-// SEAT & FACTION CALCULATIONS
-// ============================================
-
 var total_seats = Q.total_seats_filled || 600;
 
-var party_seat_data = [];
-var all_display_parties = [
-    {id: 'kpd',  color: '#8B0000'},
-    {id: 'sapd', color: '#C40000',  cond: Q.sapd_formed && Q.sapd_r > 0},
-    {id: 'spd',  color: '#E3000F'},
-    {id: 'srpd', color: '#FF6B6B',  cond: Q.srpd_formed && Q.srpd_r > 0},
-    {id: 'ddp',  color: '#DCCA4A'},
-    {id: 'z',    color: '#000000'},
-    {id: 'bb',   color: '#69A2BE',  cond: Q.bb_r > 0},
-    {id: 'bvp',  color: '#69A2BE'},
-    {id: 'csrp', color: '#FFCCFF',  cond: Q.csrp_r > 0},
-    {id: 'dhp',  color: '#69A2BE',  cond: Q.dhp_r > 0},
-    {id: 'dvp',  color: '#D5AC27'},
-    {id: 'vrp',  color: '#8B7355',  cond: Q.vrp_r > 0},
-    {id: 'wp',   color: '#424242',  cond: Q.wp_r > 0},
-    {id: 'cnbl', color: '#5D4E37',  cond: Q.cnbl_r > 0},
-    {id: 'csvd', color: '#3f7bc1',  cond: Q.csvd_flee && Q.csvd_r > 0},
-    {id: 'kvp',  color: '#3f7bc1',  cond: Q.kvp_flee && Q.kvp_r > 0},
-    {id: 'dnvp', color: '#3f7bc1'},
-    {id: 'other',color: '#a0a0a0'},
-    {id: 'nsdap',color: '#954B00'},
-    {id: 'dvfp', color: '#7A5C12',  cond: Q.dvfp_r > 0}, // Add this line
-
-];
-
-for (var i = 0; i < all_display_parties.length; i++) {
-    var p = all_display_parties[i];
-    if (p.cond === false) continue;
-    var seats = Math.round((Q[p.id + '_r'] || 0) * 6);
-    if (seats <= 0) continue;
-    party_seat_data.push({id: p.id, seats: seats, color: p.color});
-}
-
-Q._rt_seat_data_json = JSON.stringify(party_seat_data);
-
 // ============================================
-// FACTION TOTALS
-// ============================================
-
-var left_seats =
-    Math.round((Q.kpd_r  || 0) * 6) +
-    Math.round((Q.sapd_r || 0) * 6) +
-    Math.round((Q.spd_r  || 0) * 6) +
-    Math.round((Q.srpd_r || 0) * 6);
-
-var center_seats =
-    Math.round((Q.ddp_r  || 0) * 6) +
-    Math.round((Q.z_r    || 0) * 6) +
-    Math.round((Q.bvp_r  || 0) * 6) +
-    Math.round((Q.csrp_r || 0) * 6) +
-    Math.round((Q.csvd_r || 0) * 6) +
-    Math.round((Q.kvp_r  || 0) * 6);
-
-var lib_right_seats =
-    Math.round((Q.dvp_r  || 0) * 6) +
-    Math.round((Q.wp_r   || 0) * 6) +
-    Math.round((Q.vrp_r  || 0) * 6) +
-    Math.round((Q.dhp_r  || 0) * 6);
-
-var nationalist_seats =
-    Math.round((Q.dnvp_r || 0) * 6) +
-    Math.round((Q.cnbl_r || 0) * 6) +
-    Math.round((Q.bb_r   || 0) * 6);
-
-var far_right_seats = 
-    Math.round((Q.nsdap_r || 0) * 6) + 
-    Math.round((Q.dvfp_r  || 0) * 6); // Include DVFP here
-
-var other_seats     = Math.round((Q.other_r || 0) * 6);
-
-var faction_total = left_seats + center_seats + lib_right_seats +
-                    nationalist_seats + far_right_seats + other_seats;
-if (faction_total === 0) faction_total = 600;
-
-var council_total = 21;
-Q.council_left        = Math.round((left_seats        / faction_total) * council_total);
-Q.council_center      = Math.round((center_seats      / faction_total) * council_total);
-Q.council_lib_right   = Math.round((lib_right_seats   / faction_total) * council_total);
-Q.council_nationalist = Math.round((nationalist_seats / faction_total) * council_total);
-Q.council_far_right   = Math.round((far_right_seats   / faction_total) * council_total);
-Q.council_other       = Math.round((other_seats       / faction_total) * council_total);
-
-var council_sum = Q.council_left + Q.council_center + Q.council_lib_right +
-                  Q.council_nationalist + Q.council_far_right + Q.council_other;
-var factions_by_size = [
-    {key: 'council_left',        val: Q.council_left},
-    {key: 'council_center',      val: Q.council_center},
-    {key: 'council_lib_right',   val: Q.council_lib_right},
-    {key: 'council_nationalist', val: Q.council_nationalist},
-    {key: 'council_far_right',   val: Q.council_far_right},
-];
-factions_by_size.sort(function(a,b){ return b.val - a.val; });
-Q[factions_by_size[0].key] += (council_total - council_sum);
-
-// ============================================
-// GOVERNMENT / OPPOSITION SEAT SPLIT
-// ============================================
-
-var gov_parties = Q.government_parties || ['SPD'];
-var gov_seats = 0;
-for (var i = 0; i < gov_parties.length; i++) {
-    gov_seats += Math.round((Q[gov_parties[i].toLowerCase() + '_r'] || 0) * 6);
-}
-var opp_seats = total_seats - gov_seats;
-
-Q.gov_reichstag_seats = gov_seats;
-Q.opp_reichstag_seats = opp_seats;
-Q.gov_seat_majority   = gov_seats > (total_seats / 2) ? 1 : 0;
-Q.gov_seats_pct       = Math.round((gov_seats / total_seats) * 1000) / 10;
-Q.opp_seats_pct       = Math.round((opp_seats / total_seats) * 1000) / 10;
-
-// ============================================
-// CANDIDATE NAME LOOKUP
+// CANDIDATE NAME LOOKUP — complete, fixed
 // ============================================
 
 function get_rt_president_name(party) {
@@ -142,55 +27,174 @@ function get_rt_president_name(party) {
     if (party === 'DHP')   return 'Otto Hamkens';
     if (party === 'BB')    return 'Georg Eisenberger';
     if (party === 'CNBL')  return 'Karl Hepp';
-    if (p === 'DNVP')  return (Q.dnvp_line === 3) ? 'Alfred Hugenberg' : 'Kuno von Westarp';
-    if (p === 'NSDAP') return 'Hermann Göring';
-    if (p === 'DVFP')  return 'Albrecht von Graefe'; // Add this line
-    return party + ' representative';
-
+    if (party === 'DNVP')  return (Q.dnvp_line === 3) ? 'Alfred Hugenberg' : 'Kuno von Westarp';
+    if (party === 'NSDAP') return 'Hermann Göring';
+    if (party === 'DVFP')  return 'Albrecht von Graefe';
+    if (party === 'LB')    return 'Ernst Thälmann';
+    if (party === 'SL')    return 'Kurt Rosenfeld';
+    if (party === 'KPO')   return 'Heinrich Brandler';
+    if (party === 'ASPD')  return 'Eduard Bernstein';
+    if (party === 'RDP')   return 'Anton Erkelenz';
+    if (party === 'CVP')   return 'Adam Stegerwald';
+    if (party === 'SLS')   return 'Carl Severing';
+    if (party === 'DtsP')  return 'Gregor Strasser';
+    if (party === 'VNR')   return 'Franz Seldte';
+    if (party === 'HL')    return 'Claus Heim';
+    if (party === 'DTSP')  return 'Gregor Strasser';
+    if (party === 'DVFP')  return 'Albrecht von Graefe';
+    if (party === 'OTHER') return 'Independent';
     return party + ' representative';
 }
 
 // ============================================
-// BUILD PARTY LIST
+// BUILD ALL PARTIES WITH SEATS
+// Uses Q.parties (same source as election) so
+// every party in the game is automatically included
 // ============================================
 
 var ideology_pos = {
-    KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
-    DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
+    KPD: 1, LB: 1, KPO: 1,
+    SAPD: 2, SL: 2,
+    SPD: 3, SRPD: 3, ASPD: 3,
+    RDP: 4,
+    DDP: 5, CSRP: 5, CVP: 5, SLS: 5,
+    Z: 5, BVP: 6, CSVD: 6, KVP: 6,
     DVP: 7, WP: 7, VRP: 7, DHP: 7,
-    BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10
+    BB: 7, CNBL: 8, VNR: 8, HL: 8,
+    DNVP: 9, DTSP: 9, DtsP: 9,
+    NSDAP: 10, DVFP: 10,
+    OTHER: 5
 };
 
+var gov_parties = Q.government_parties || ['SPD'];
+
+// Use Q.parties if available, else fall back to hardcoded list
+var source_parties = Q.parties || [
+    'kpd','sapd','lb','sl','kpo','spd','srpd','rdp','ddp','cvp',
+    'z','bb','bvp','csrp','sls','aspd','dhp','dvp','vrp','wp',
+    'hl','vnr','cnbl','csvd','kvp','dnvp','other','nsdap','dtsp','dvfp'
+];
+
 var all_parties_with_seats = [];
-var party_list = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','CSVD','KVP',
-                  'DVP','WP','VRP','DHP','BB','CNBL','DNVP','NSDAP', 'DVFP'];
 
-
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i];
-    var r = Q[p.toLowerCase() + '_r'] || 0;
+for (var i = 0; i < source_parties.length; i++) {
+    var pid_lower = source_parties[i].toLowerCase();
+    var pid_upper = source_parties[i].toUpperCase();
+    var r = Q[pid_lower + '_r'] || 0;
     if (r <= 0) continue;
-    if (p === 'SAPD' && !Q.sapd_formed) continue;
-    if (p === 'SRPD' && !Q.srpd_formed) continue;
-    if (p === 'CSVD' && !Q.csvd_flee)   continue;
-    if (p === 'KVP'  && !Q.kvp_flee)    continue;
+
+    // Conditional parties
+    if (pid_upper === 'SAPD' && !Q.sapd_formed) continue;
+    if (pid_upper === 'SRPD' && !Q.srpd_formed) continue;
+    if (pid_upper === 'CSVD' && !Q.csvd_flee)   continue;
+    if (pid_upper === 'KVP'  && !Q.kvp_flee)    continue;
+    if (pid_upper === 'DVFP' && !Q.dvfp_formed) continue;
 
     all_parties_with_seats.push({
-        party:     p,
+        party:     pid_upper,
         seats:     Math.round(r * 6),
         r:         r,
-        in_gov:    (gov_parties.indexOf(p) >= 0) ? 1 : 0,
-        candidate: get_rt_president_name(p),
-        ideo:      ideology_pos[p] || 5
+        in_gov:    (gov_parties.indexOf(pid_upper) >= 0) ? 1 : 0,
+        candidate: get_rt_president_name(pid_upper),
+        ideo:      ideology_pos[pid_upper] || 5
     });
 }
 
-all_parties_with_seats.sort(function(a,b) { return b.seats - a.seats; });
+all_parties_with_seats.sort(function(a, b) { return b.seats - a.seats; });
 Q._all_rt_parties    = all_parties_with_seats;
 Q._ideology_pos_json = JSON.stringify(ideology_pos);
 
 // ============================================
-// LARGEST GOV / OPP
+// SEAT & FACTION CALCULATIONS
+// ============================================
+
+var party_seat_data = [];
+for (var i = 0; i < all_parties_with_seats.length; i++) {
+    var p = all_parties_with_seats[i];
+    if (p.seats <= 0) continue;
+    var color_map = {
+        KPD:'#8B0000', LB:'#6B0000', KPO:'#990000',
+        SAPD:'#C40000', SL:'#005B96',
+        SPD:'#E3000F', SRPD:'#FF6B6B', ASPD:'#B22222',
+        RDP:'#B8B000', DDP:'#DCCA4A', CVP:'#1A1A1A',
+        Z:'#000000', BVP:'#69A2BE', BB:'#69A2BE', CSRP:'#FFCCFF',
+        SLS:'#4A7C59', DHP:'#69A2BE', DVP:'#D5AC27',
+        VRP:'#8B7355', WP:'#424242', HL:'#2E8B57',
+        VNR:'#4B5320', CNBL:'#5D4E37', CSVD:'#3f7bc1',
+        KVP:'#3f7bc1', DNVP:'#3f7bc1', OTHER:'#a0a0a0',
+        NSDAP:'#954B00', DTSP:'#3B1A00', DtsP:'#3B1A00', DVFP:'#1A0F00'
+    };
+    party_seat_data.push({
+        id:    p.party.toLowerCase(),
+        seats: p.seats,
+        color: color_map[p.party] || '#888888'
+    });
+}
+Q._rt_seat_data_json = JSON.stringify(party_seat_data);
+
+// ============================================
+// FACTION TOTALS
+// ============================================
+
+var left_seats = 0, center_seats = 0, lib_right_seats = 0,
+    nationalist_seats = 0, far_right_seats = 0, other_seats_f = 0;
+
+for (var i = 0; i < all_parties_with_seats.length; i++) {
+    var p = all_parties_with_seats[i];
+    var pos = p.ideo;
+    if      (pos <= 3)  left_seats         += p.seats;
+    else if (pos <= 6)  center_seats       += p.seats;
+    else if (pos <= 7)  lib_right_seats    += p.seats;
+    else if (pos <= 8)  nationalist_seats  += p.seats;
+    else if (pos <= 9)  nationalist_seats  += p.seats;
+    else                far_right_seats    += p.seats;
+}
+// OTHER bucket
+var other_p = Q['other_r'] || 0;
+other_seats_f = Math.round(other_p * 6);
+
+var faction_total = left_seats + center_seats + lib_right_seats +
+                    nationalist_seats + far_right_seats + other_seats_f;
+if (faction_total === 0) faction_total = 600;
+
+var council_total = 21;
+Q.council_left        = Math.round((left_seats        / faction_total) * council_total);
+Q.council_center      = Math.round((center_seats      / faction_total) * council_total);
+Q.council_lib_right   = Math.round((lib_right_seats   / faction_total) * council_total);
+Q.council_nationalist = Math.round((nationalist_seats / faction_total) * council_total);
+Q.council_far_right   = Math.round((far_right_seats   / faction_total) * council_total);
+Q.council_other       = Math.round((other_seats_f     / faction_total) * council_total);
+
+var council_sum = Q.council_left + Q.council_center + Q.council_lib_right +
+                  Q.council_nationalist + Q.council_far_right + Q.council_other;
+var factions_by_size = [
+    {key: 'council_left',        val: Q.council_left},
+    {key: 'council_center',      val: Q.council_center},
+    {key: 'council_lib_right',   val: Q.council_lib_right},
+    {key: 'council_nationalist', val: Q.council_nationalist},
+    {key: 'council_far_right',   val: Q.council_far_right},
+];
+factions_by_size.sort(function(a, b) { return b.val - a.val; });
+Q[factions_by_size[0].key] += (council_total - council_sum);
+
+// ============================================
+// GOVERNMENT / OPPOSITION SEAT SPLIT
+// ============================================
+
+var gov_seats = 0;
+for (var i = 0; i < all_parties_with_seats.length; i++) {
+    if (all_parties_with_seats[i].in_gov) gov_seats += all_parties_with_seats[i].seats;
+}
+var opp_seats = total_seats - gov_seats;
+
+Q.gov_reichstag_seats = gov_seats;
+Q.opp_reichstag_seats = opp_seats;
+Q.gov_seat_majority   = gov_seats > (total_seats / 2) ? 1 : 0;
+Q.gov_seats_pct       = Math.round((gov_seats / total_seats) * 1000) / 10;
+Q.opp_seats_pct       = Math.round((opp_seats / total_seats) * 1000) / 10;
+
+// ============================================
+// LARGEST GOV / OPP — used for auto-nomination
 // ============================================
 
 var largest_gov = null, largest_gov_seats = 0;
@@ -214,48 +218,6 @@ Q.largest_opp_candidate = largest_opp ? largest_opp.candidate : '';
 Q.largest_opp_seats     = largest_opp_seats;
 
 // ============================================
-// PLAYER CANDIDATE LIST
-// ============================================
-
-Q.rt_candidate_options = [];
-
-// All coalition parties, largest first
-for (var i = 0; i < all_parties_with_seats.length; i++) {
-    var p = all_parties_with_seats[i];
-    if (!p.in_gov) continue;
-    Q.rt_candidate_options.push({
-        party: p.party, name: p.candidate, seats: p.seats, is_opp: 0
-    });
-}
-
-// Top 2 tolerable opposition parties (not NSDAP, relations >= 30)
-var opp_added = 0;
-for (var i = 0; i < all_parties_with_seats.length; i++) {
-    var p = all_parties_with_seats[i];
-    if (p.in_gov || opp_added >= 2) continue;
-    var rel = Q[p.party.toLowerCase() + '_relation'] || 50;
-    if (rel >= 30 && p.party !== 'NSDAP') {
-        Q.rt_candidate_options.push({
-            party: p.party, name: p.candidate, seats: p.seats, is_opp: 1
-        });
-        opp_added++;
-    }
-}
-
-Q.num_rt_candidates = Q.rt_candidate_options.length;
-
-Q.rt_candidates_display = "";
-for (var i = 0; i < Q.rt_candidate_options.length && i < 10; i++) {
-    var c = Q.rt_candidate_options[i];
-    Q.rt_candidates_display += (i+1) + ". **" + c.name + "** (" + c.party + ", " + c.seats + " seats)";
-    if (c.is_opp) Q.rt_candidates_display += " *(opposition)*";
-    Q.rt_candidates_display += "\n";
-    Q['rt_cand_' + i + '_name']  = c.name;
-    Q['rt_cand_' + i + '_party'] = c.party;
-    Q['rt_cand_' + i + '_seats'] = c.seats;
-}
-
-// ============================================
 // OPPOSITION CONTEST FLAGS
 // ============================================
 
@@ -274,37 +236,42 @@ Q.council_display =
     " | Far-Right: " + Q.council_far_right;
 if (Q.council_other > 0) Q.council_display += " | Other: " + Q.council_other;
 
-Q.spd_in_gov_rt = (gov_parties.indexOf('SPD') >= 0) ? 1 : 0;
-Q.tag_1 = 0;
+// ============================================
+// AUTO-NOMINATE largest government party
+// ============================================
+Q.rt_nominated_name  = Q.largest_gov_candidate;
+Q.rt_nominated_party = Q.largest_gov_party;
 
+Q.tag_1 = 0;
 !}
 on-display: {!
-
 var data = JSON.parse(Q._rt_seat_data_json || '[]');
-var labels = {
-    kpd:'KPD', sapd:'SAPD', spd:'SPD', srpd:'SRPD',
-    ddp: Q.ddp_name || 'DDP', z:'Z', bb:'BB', bvp:'BVP',
-    csrp:'CSRP', dhp:'DHP', dvp:'DVP', vrp:'VRP',
-    wp:'WP', cnbl:'CNBL', csvd:'CSVD', kvp:'KVP',
-    dnvp:'DNVP', other:'Other', nsdap:'NSDAP'
-};
+var labels = {};
+for (var i = 0; i < data.length; i++) { labels[data[i].id] = data[i].id.toUpperCase(); }
+labels['ddp'] = Q.ddp_name || 'DDP';
+labels['z']   = 'Center';
+labels['other'] = 'Other';
+
 var diagram_data = data.map(function(p) {
     return { id: p.id, legend: labels[p.id] || p.id, name: labels[p.id] || p.id, seats: p.seats };
 });
+
 if (window && d3) {
-    var width = 500, height = 500;
+    var width = 500, height = 250;
     var screenWidth = document.getElementById('content').offsetWidth;
     if (screenWidth < width - 50) {
-        width = screenWidth - 50; height = width;
-        document.getElementById("reichstag-seats").style.height = (screenWidth / 2) + "px";
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
     }
+    var el = document.getElementById("reichstag-seats");
+    el.style.width  = width  + "px";
+    el.style.height = height + "px";
     var parliament = d3.parliament();
     parliament.width(width).height(height).innerRadiusCoef(0.4);
     parliament.enter.fromCenter(true).smallToBig(true);
     parliament.exit.toCenter(false).bigToSmall(true);
     d3.select("#reichstag-seats").datum(diagram_data).call(parliament);
 }
-
 !}
 
 = The New Reichstag
@@ -322,65 +289,16 @@ if (window && d3) {
 [? if gov_seat_majority : The coalition commands a working majority. ?]
 [? if not gov_seat_majority : The coalition falls short of a majority. Legislation will require opposition support or abstentions. ?]
 
-- @rt_nominate_candidate: Proceed to nominate a Reichstag President
-
-
-@rt_nominate_candidate
-go-to: rt_auto_nominate if not spd_in_gov_rt
-
-= Nominating a Reichstag President
-
-The Reichstag President is elected by the full chamber. By convention, the largest government party nominates first. Any faction may put forward a counter-candidate. If no nominee achieves an absolute majority in the first two rounds, the third round is decided by simple plurality.
+The largest government party, **[+ largest_gov_party +]**, will put forward **[+ largest_gov_candidate +]** for the Reichstag Presidency.
 
 [? if rt_opp_will_contest : **The opposition intends to contest this election.** [+ largest_opp_candidate +] ([+ largest_opp_party +]) is expected to be put forward. ?]
 [? if rt_goering_scenario : ⚠ The NSDAP, as the largest party, is demanding the Presidency by right of electoral strength. Göring has been put forward. ?]
 [? if rt_hugenberg_scenario : ⚠ Hugenberg's DNVP is strong enough to mount a credible challenge. ?]
 
-**Choose your nominee:**
-
-[+ rt_candidates_display +]
-
-- @rt_choose_cand_0: Nominate [+ rt_cand_0_name +] ([+ rt_cand_0_party +])
-- @rt_choose_cand_1: Nominate [+ rt_cand_1_name +] ([+ rt_cand_1_party +])
-- @rt_choose_cand_2: Nominate [+ rt_cand_2_name +] ([+ rt_cand_2_party +])
-- @rt_choose_cand_3: Nominate [+ rt_cand_3_name +] ([+ rt_cand_3_party +])
-- @rt_choose_cand_4: Nominate [+ rt_cand_4_name +] ([+ rt_cand_4_party +])
-- @rt_choose_cand_5: Nominate [+ rt_cand_5_name +] ([+ rt_cand_5_party +])
+- @rt_proceed_to_vote: Proceed to the vote
 
 
-@rt_choose_cand_0
-view-if: num_rt_candidates >= 1
-on-arrival: rt_nominated_name = rt_cand_0_name; rt_nominated_party = rt_cand_0_party
-go-to: rt_vote_simulation
-
-@rt_choose_cand_1
-view-if: num_rt_candidates >= 2
-on-arrival: rt_nominated_name = rt_cand_1_name; rt_nominated_party = rt_cand_1_party
-go-to: rt_vote_simulation
-
-@rt_choose_cand_2
-view-if: num_rt_candidates >= 3
-on-arrival: rt_nominated_name = rt_cand_2_name; rt_nominated_party = rt_cand_2_party
-go-to: rt_vote_simulation
-
-@rt_choose_cand_3
-view-if: num_rt_candidates >= 4
-on-arrival: rt_nominated_name = rt_cand_3_name; rt_nominated_party = rt_cand_3_party
-go-to: rt_vote_simulation
-
-@rt_choose_cand_4
-view-if: num_rt_candidates >= 5
-on-arrival: rt_nominated_name = rt_cand_4_name; rt_nominated_party = rt_cand_4_party
-go-to: rt_vote_simulation
-
-@rt_choose_cand_5
-view-if: num_rt_candidates >= 6
-on-arrival: rt_nominated_name = rt_cand_5_name; rt_nominated_party = rt_cand_5_party
-go-to: rt_vote_simulation
-
-
-@rt_auto_nominate
-on-arrival: rt_nominated_name = largest_gov_candidate; rt_nominated_party = largest_gov_party
+@rt_proceed_to_vote
 go-to: rt_vote_simulation
 
 
@@ -390,114 +308,72 @@ on-arrival: {!
 var nominated_party = Q.rt_nominated_party;
 var nominated_name  = Q.rt_nominated_name;
 
-var ideology_pos = JSON.parse(Q._ideology_pos_json || '{}');
-var nom_pos      = ideology_pos[nominated_party] || 5;
-var gov_parties  = Q.government_parties || ['SPD'];
-var all_parties  = Q._all_rt_parties || [];
-var total_seats  = Q.total_seats_filled || 600;
+var ideology_pos    = JSON.parse(Q._ideology_pos_json || '{}');
+var nom_pos         = ideology_pos[nominated_party] || 5;
+var gov_parties     = Q.government_parties || ['SPD'];
+var all_parties     = Q._all_rt_parties || [];
+var total_seats     = Q.total_seats_filled || 600;
 
-// ============================================
-// DETERMINE OPPOSITION NOMINEES
-// Convention: largest opposition party nominates.
-// A second nomination emerges if another opp faction
-// is large enough and ideologically distant from the
-// primary opp nominee.
-// ============================================
-
-// Primary opp nominee — largest opposition party
-// that is NOT in government and NOT the coalition's own nominee
-var opp_nominee_party = null;
-var opp_nominee_name  = null;
-
+// Primary opposition nominee — largest non-gov party
+var opp_nominee_party = null, opp_nominee_name = null;
 for (var i = 0; i < all_parties.length; i++) {
     var p = all_parties[i];
-    if (p.in_gov)                      continue;
-    if (p.party === nominated_party)   continue;
+    if (p.in_gov || p.party === nominated_party) continue;
     opp_nominee_party = p.party;
     opp_nominee_name  = p.candidate;
-    break; // sorted by seats desc, so first match is largest
+    break;
 }
-
-// If no opposition party found at all (unlikely but safe)
-if (!opp_nominee_party) {
-    opp_nominee_party = 'none';
-    opp_nominee_name  = '';
-}
-
+if (!opp_nominee_party) { opp_nominee_party = 'none'; opp_nominee_name = ''; }
 var opp_pos = ideology_pos[opp_nominee_party] || 5;
 
-// Does a counter-nomination actually happen?
-// Triggered by: opp_will_contest flag, or large ideological gap
-// between the coalition nominee and the primary opp party
 var counter_nomination_happens = Q.rt_opp_will_contest ? true : false;
 if (!counter_nomination_happens && opp_nominee_party !== 'none') {
-    var nom_opp_ideo_gap  = Math.abs(nom_pos - opp_pos);
-    var nom_opp_rel       = Q[opp_nominee_party.toLowerCase() + '_relation'] || 30;
-    if (nom_opp_ideo_gap >= 4 && nom_opp_rel < 45) counter_nomination_happens = true;
+    if (Math.abs(nom_pos - opp_pos) >= 4 && (Q[opp_nominee_party.toLowerCase() + '_relation'] || 30) < 45)
+        counter_nomination_happens = true;
 }
 
-Q.rt_counter_nomination  = counter_nomination_happens ? 1 : 0;
-Q.rt_opp_nominee_party   = opp_nominee_party;
-Q.rt_opp_nominee_name    = opp_nominee_name;
+Q.rt_counter_nomination = counter_nomination_happens ? 1 : 0;
+Q.rt_opp_nominee_party  = opp_nominee_party;
+Q.rt_opp_nominee_name   = opp_nominee_name;
 
-// Second opposition nominee — emerges when:
-// 1. A counter-nomination is already happening
-// 2. There is a significant opposition faction (30+ seats)
-//    ideologically distant from the primary opp nominee (gap >= 3)
-//    with poor relations toward that party (< 45)
-var second_opp_party = null;
-var second_opp_name  = null;
-
+// Second opposition nominee
+var second_opp_party = null, second_opp_name = null, second_opp_pos = null;
 if (counter_nomination_happens) {
     for (var i = 0; i < all_parties.length; i++) {
         var p2 = all_parties[i];
-        if (p2.in_gov)                        continue;
-        if (p2.party === opp_nominee_party)   continue;
-        if (p2.party === nominated_party)     continue;
-        var p2_pos           = ideology_pos[p2.party] || 5;
-        var dist_from_primary = Math.abs(p2_pos - opp_pos);
-        var rel_to_primary    = Q[p2.party.toLowerCase() + '_relation'] || 50;
-        if (p2.seats >= 30 && dist_from_primary >= 3 && rel_to_primary < 45) {
+        if (p2.in_gov || p2.party === opp_nominee_party || p2.party === nominated_party) continue;
+        var p2_pos = ideology_pos[p2.party] || 5;
+        if (p2.seats >= 30 && Math.abs(p2_pos - opp_pos) >= 3 &&
+            (Q[p2.party.toLowerCase() + '_relation'] || 50) < 45) {
             second_opp_party = p2.party;
             second_opp_name  = p2.candidate;
+            second_opp_pos   = p2_pos;
             break;
         }
     }
 }
-
 Q.rt_second_opp_party = second_opp_party || '';
 Q.rt_second_opp_name  = second_opp_name  || '';
 Q.rt_three_way_race   = second_opp_party ? 1 : 0;
-var second_opp_pos    = second_opp_party ? (ideology_pos[second_opp_party] || 5) : null;
 
 // ============================================
-// VOTE SCORING FUNCTION
-// Returns one of: 'for', 'against', 'second', 'abstain'
-// for a given party voting in this election
+// VOTE SCORING
 // ============================================
 
 function score_vote(party, seats, in_gov) {
     var p_pos      = ideology_pos[party] || 5;
     var rel_to_nom = Q[party.toLowerCase() + '_relation'] || 30;
+    var score_for  = (rel_to_nom - 50) * 0.8 - Math.abs(p_pos - nom_pos) * 6;
 
-    // Score for supporting the coalition nominee
-    // Relations matter, ideology distance matters
-    var score_for = (rel_to_nom - 50) * 0.8 - Math.abs(p_pos - nom_pos) * 6;
+    var rel_to_opp    = Q[(opp_nominee_party || '').toLowerCase() + '_relation'] || 50;
+    var rel_to_second = second_opp_party ? (Q[second_opp_party.toLowerCase() + '_relation'] || 50) : 50;
+    var score_opp     = counter_nomination_happens
+        ? ((rel_to_opp - 50) * 0.3 - Math.abs(p_pos - opp_pos) * 6) : -999;
+    var score_second  = (counter_nomination_happens && second_opp_party)
+        ? ((rel_to_second - 50) * 0.3 - Math.abs(p_pos - second_opp_pos) * 6) : -999;
 
-var rel_to_opp    = Q[opp_nominee_party.toLowerCase()    + '_relation'] || 50;
-var rel_to_second = second_opp_party ? (Q[second_opp_party.toLowerCase() + '_relation'] || 50) : 50;
-
-var score_opp = counter_nomination_happens
-    ? ((rel_to_opp - 50) * 0.3 - Math.abs(p_pos - opp_pos) * 6)
-    : -999;
-
-var score_second = (counter_nomination_happens && second_opp_party)
-    ? ((rel_to_second - 50) * 0.3 - Math.abs(p_pos - second_opp_pos) * 6)
-    : -999;
-
-    // Government parties: vote for coalition nominee unless high dissent or poor relations
     if (in_gov) {
-        var dissent       = Q.coalition_dissent || 0;
+        var dissent = Q.coalition_dissent || 0;
         var defect_chance = 0;
         if (dissent >= 1) defect_chance = 0.15;
         if (dissent >= 3) defect_chance = 0.30;
@@ -506,122 +382,67 @@ var score_second = (counter_nomination_happens && second_opp_party)
         return 'for';
     }
 
-    // NSDAP: will never support left/centre nominees
-    // Backs whoever is furthest right among the nominees
     if (party === 'NSDAP') {
-        if (nom_pos > 7) return 'for'; // rare — coalition nominated a right-winger
+        if (nom_pos > 7) return 'for';
         if (!counter_nomination_happens) return 'abstain';
-        // Prefer whichever opposition candidate is further right
         if (second_opp_party && second_opp_pos >= opp_pos) return 'second';
         return 'against';
     }
 
-    // Own-party loyalty
     if (party === opp_nominee_party && counter_nomination_happens) return 'against';
-    if (party === second_opp_party)                                 return 'second';
+    if (party === second_opp_party)                                  return 'second';
 
-    // All other opposition: pick highest-scoring option with a margin threshold
     if (!counter_nomination_happens) {
-    if (score_for >= 15)  return 'for';
-    if (score_for >= -10) return 'abstain';
-    return 'abstain'; // no candidate to vote FOR, so they stay home
-}
+        if (score_for >= 15)  return 'for';
+        return 'abstain';
+    }
 
-    // Three or more candidates: pick best with a decisiveness margin
-    var best        = 'abstain';
-    var best_score  = -15; // must beat this floor to vote at all
-
-    if (score_for    > best_score) { best = 'for';     best_score = score_for;    }
-    if (score_opp    > best_score + 8) { best = 'against'; best_score = score_opp;    }
-    if (score_second > best_score + 8) { best = 'second';  best_score = score_second; }
-
+    var best = 'abstain', best_score = -15;
+    if (score_for    > best_score)         { best = 'for';     best_score = score_for;    }
+    if (score_opp    > best_score + 8)     { best = 'against'; best_score = score_opp;    }
+    if (score_second > best_score + 8)     { best = 'second';  best_score = score_second; }
     return best;
 }
 
-// ============================================
-// SIMULATE VOTES
-// Historical procedure:
-// Round 1 & 2: absolute majority required (> total_seats / 2)
-// Round 3:     simple plurality
-// We simulate round 1 first. If no majority, simulate
-// a second round (parties may consolidate). If still
-// no majority, the plurality winner takes it.
-// ============================================
-
 function run_round(parties, consolidate_to) {
-    // consolidate_to: if set, smaller opp candidates drop out
-    // and their voters shift to the specified alternative
-    var votes = {};
-    var detail = [];
-
+    var votes = {}, detail = [];
     for (var i = 0; i < parties.length; i++) {
-        var p      = parties[i];
+        var p = parties[i];
         var result = score_vote(p.party, p.seats, p.in_gov);
-
-        // Consolidation: if a candidate dropped out, redirect their votes
-        if (consolidate_to && result === 'second' && !second_opp_party) {
-            result = consolidate_to;
-        }
-        if (consolidate_to && result === 'against' && consolidate_to === 'second') {
-            // primary opp dropped, redirect to second
-            result = 'second';
-        }
-
+        if (consolidate_to && result === 'second' && !second_opp_party) result = consolidate_to;
+        if (consolidate_to && result === 'against' && consolidate_to === 'second') result = 'second';
         votes[result] = (votes[result] || 0) + p.seats;
         detail.push({party: p.party, result: result, seats: p.seats});
     }
     return {votes: votes, detail: detail};
 }
 
-// Round 1
-var r1        = run_round(all_parties, null);
-var r1_for    = r1.votes['for']     || 0;
-var r1_opp    = r1.votes['against'] || 0;
-var r1_second = r1.votes['second']  || 0;
-var r1_abs    = r1.votes['abstain'] || 0;
-var r1_total  = r1_for + r1_opp + r1_second + r1_abs;
-var majority  = Math.floor(total_seats / 2) + 1;
-
+var r1 = run_round(all_parties, null);
+var majority = Math.floor(total_seats / 2) + 1;
 var round_needed = 1;
 var final_detail = r1.detail;
-var final_for    = r1_for;
-var final_opp    = r1_opp;
-var final_second = r1_second;
-var final_abs    = r1_abs;
+var final_for    = r1.votes['for']     || 0;
+var final_opp    = r1.votes['against'] || 0;
+var final_second = r1.votes['second']  || 0;
+var final_abs    = r1.votes['abstain'] || 0;
 
-if (r1_for < majority && r1_opp < majority && r1_second < majority) {
-    // No majority in round 1 — round 2 (same rules, slight consolidation)
-    // Smallest candidate may drop if far behind
-    var min_opp = Math.min(
-        counter_nomination_happens ? r1_opp    : 9999,
-        second_opp_party           ? r1_second : 9999
-    );
+if (final_for < majority && final_opp < majority && final_second < majority) {
     var consolidate = null;
-    if (second_opp_party && r1_second < r1_opp * 0.4) {
-        // Second opp candidate drops; their supporters shift to primary opp
+    if (second_opp_party && final_second < final_opp * 0.4) {
         Q.rt_second_dropped = 1;
-        second_opp_party    = null;
-        second_opp_pos      = null;
-        consolidate         = 'against';
+        second_opp_party = null; second_opp_pos = null;
+        consolidate = 'against';
     }
+    var r2 = run_round(all_parties, consolidate);
+    round_needed = 2;
+    final_detail = r2.detail;
+    final_for    = r2.votes['for']     || 0;
+    final_opp    = r2.votes['against'] || 0;
+    final_second = r2.votes['second']  || 0;
+    final_abs    = r2.votes['abstain'] || 0;
 
-    var r2        = run_round(all_parties, consolidate);
-    var r2_for    = r2.votes['for']     || 0;
-    var r2_opp    = r2.votes['against'] || 0;
-    var r2_second = r2.votes['second']  || 0;
-    var r2_abs    = r2.votes['abstain'] || 0;
-    round_needed  = 2;
-    final_detail  = r2.detail;
-    final_for     = r2_for;
-    final_opp     = r2_opp;
-    final_second  = r2_second;
-    final_abs     = r2_abs;
-
-    if (r2_for < majority && r2_opp < majority && r2_second < majority) {
-        // Round 3 — plurality decides, no more drop-outs
+    if (final_for < majority && final_opp < majority && final_second < majority)
         round_needed = 3;
-        // Reuse round 2 results for plurality — no further movement needed
-    }
 }
 
 Q.rt_round_needed    = round_needed;
@@ -629,103 +450,68 @@ Q.rt_votes_for       = final_for;
 Q.rt_votes_opp       = final_opp;
 Q.rt_votes_second    = final_second;
 Q.rt_votes_abs       = final_abs;
-Q.rt_total_voted     = final_for + final_opp + final_second + final_abs;
 Q.rt_majority_needed = majority;
 
-// ============================================
-// DETERMINE WINNER
-// ============================================
-
-var nominee_wins     = false;
-var primary_opp_wins = false;
-var second_opp_wins  = false;
-
+// Determine winner
+var nominee_wins = false, primary_opp_wins = false, second_opp_wins = false;
 if (round_needed <= 2) {
-    // Majority required
     nominee_wins     = final_for    >= majority;
     primary_opp_wins = final_opp    >= majority && !nominee_wins;
     second_opp_wins  = final_second >= majority && !nominee_wins && !primary_opp_wins;
 } else {
-    // Plurality
     var max_v = Math.max(final_for, final_opp, final_second);
     nominee_wins     = (final_for    === max_v);
     primary_opp_wins = (final_opp    === max_v && !nominee_wins);
     second_opp_wins  = (final_second === max_v && !nominee_wins && !primary_opp_wins);
 }
-
-// Edge case: complete tie — coalition nominee wins by chair's casting convention
 if (!nominee_wins && !primary_opp_wins && !second_opp_wins) nominee_wins = true;
 
 Q.rt_nominee_wins     = nominee_wins     ? 1 : 0;
 Q.rt_primary_opp_wins = primary_opp_wins ? 1 : 0;
 Q.rt_second_opp_wins  = second_opp_wins  ? 1 : 0;
 
-// ============================================
-// SET REICHSTAG PRESIDENT
-// ============================================
-
 var winner_party, winner_name;
-if (nominee_wins) {
-    winner_party = nominated_party;
-    winner_name  = nominated_name;
-} else if (primary_opp_wins) {
-    winner_party = Q.rt_opp_nominee_party;
-    winner_name  = Q.rt_opp_nominee_name;
-} else {
-    winner_party = Q.rt_second_opp_party;
-    winner_name  = Q.rt_second_opp_name;
-}
-
-// Final safety net
-if (!winner_party || winner_party === 'none') {
-    winner_party = nominated_party;
-    winner_name  = nominated_name;
-    Q.rt_nominee_wins = 1;
-}
+if (nominee_wins)     { winner_party = nominated_party;          winner_name = nominated_name; }
+else if (primary_opp_wins) { winner_party = Q.rt_opp_nominee_party;  winner_name = Q.rt_opp_nominee_name; }
+else                  { winner_party = Q.rt_second_opp_party;    winner_name = Q.rt_second_opp_name; }
+if (!winner_party || winner_party === 'none') { winner_party = nominated_party; winner_name = nominated_name; Q.rt_nominee_wins = 1; }
 
 Q.reichstag_president       = winner_name;
 Q.reichstag_president_party = winner_party;
 
-var left_parties = ['KPD','SAPD','SPD','SRPD'];
+var left_parties = ['KPD','SAPD','SPD','SRPD','LB','SL','KPO','ASPD'];
 Q.reichstag_president_stance =
     (left_parties.indexOf(winner_party) >= 0 && gov_parties.indexOf(winner_party) >= 0) ? 'friendly' :
     (gov_parties.indexOf(winner_party) >= 0)                                             ? 'neutral'  :
-    (['NSDAP','DNVP', 'DVFP'].indexOf(winner_party) >= 0)                                        ? 'hostile'  : 'neutral';
+    (['NSDAP','DNVP','DVFP','DTSP','DtsP'].indexOf(winner_party) >= 0)                   ? 'hostile'  : 'neutral';
 
-Q.loebe_president     = (winner_name  === 'Paul Löbe')                         ? 1 : 0;
-Q.goering_president   = (winner_party === 'NSDAP')                             ? 1 : 0;
-Q.dvfp_president      = (winner_party === 'DVFP')                              ? 1 : 0; // Add this
-Q.hugenberg_president = (winner_party === 'DNVP' && Q.dnvp_line === 3)        ? 1 : 0;
+Q.loebe_president     = (winner_name  === 'Paul Löbe')                  ? 1 : 0;
+Q.goering_president   = (winner_party === 'NSDAP')                      ? 1 : 0;
+Q.dvfp_president      = (winner_party === 'DVFP')                       ? 1 : 0;
+Q.hugenberg_president = (winner_party === 'DNVP' && Q.dnvp_line === 3) ? 1 : 0;
 
-if (Q.goering_president)   { Q.pro_republic -= 10; Q.coup_progress += 2; }
-if (Q.dvfp_president)      { Q.pro_republic -= 8;  Q.coup_progress += 1.5; }
-if (Q.hugenberg_president) { Q.pro_republic -= 5;  Q.coup_progress += 1; }
-
-// ============================================
-// VOTE BREAKDOWN STRINGS
-// ============================================
+if (Q.goering_president)   { Q.pro_republic -= 10; Q.coup_progress += 1;   }
+if (Q.dvfp_president)      { Q.pro_republic -= 8;  Q.nationalism += 12; }
+if (Q.hugenberg_president) { Q.pro_republic -= 5;  Q.nationalism += 8; Q.capital_strike_progress += 1 }
 
 var for_list = [], opp_list = [], second_list = [], abs_list = [];
 for (var i = 0; i < final_detail.length; i++) {
-    var vd    = final_detail[i];
+    var vd = final_detail[i];
     var label = vd.party + ' (' + vd.seats + ')';
     if      (vd.result === 'for')     for_list.push(label);
     else if (vd.result === 'against') opp_list.push(label);
     else if (vd.result === 'second')  second_list.push(label);
     else                              abs_list.push(label);
 }
-
 Q.rt_vote_for_list    = for_list.join(', ')    || '—';
 Q.rt_vote_opp_list    = opp_list.join(', ')    || '—';
 Q.rt_vote_second_list = second_list.join(', ') || '—';
 Q.rt_vote_abs_list    = abs_list.join(', ')    || '—';
 
-// Round description for display
 Q.rt_round_desc =
     round_needed === 1 ? "decided in the first round" :
     round_needed === 2 ? "decided in the second round" :
     "decided by plurality in the third round — no candidate achieved an absolute majority";
-
 !}
 
 = The Vote for Reichstag President
@@ -758,52 +544,35 @@ Q.rt_round_desc =
 
 @parliament_formation_complete
 on-arrival: {!
-
 var gov_parties = Q.government_parties || [];
-
-// Calculate per-party council seats (proportional from 21)
 var total_seats = Q.total_seats_filled || 600;
-var party_list = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','CSVD','KVP',
-                  'DVP','WP','VRP','DHP','BB','CNBL','DNVP','NSDAP','DVFP','OTHER'];
+var all_parties = Q._all_rt_parties || [];
 
-var party_reichstag_seats = {};
+// Council of Elders — 21 seats, largest-remainder
+var council_total = 21;
 var grand_total = 0;
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i];
-    var s = Math.round((Q[p.toLowerCase() + '_r'] || 0) * 6);
-    party_reichstag_seats[p] = s;
-    grand_total += s;
-}
+for (var i = 0; i < all_parties.length; i++) grand_total += all_parties[i].seats;
 if (grand_total === 0) grand_total = 600;
 
-// Assign 21 council seats proportionally per party, largest-remainder method
-var council_total = 21;
-var raw = {};
-var floor_sum = 0;
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i];
-    var exact = (party_reichstag_seats[p] / grand_total) * council_total;
-    raw[p] = { floor: Math.floor(exact), remainder: exact - Math.floor(exact), party: p };
+var raw = {}, floor_sum = 0, council_seats = {};
+for (var i = 0; i < all_parties.length; i++) {
+    var p = all_parties[i];
+    var exact = (p.seats / grand_total) * council_total;
+    raw[p.party] = { floor: Math.floor(exact), remainder: exact - Math.floor(exact) };
     floor_sum += Math.floor(exact);
+    council_seats[p.party] = Math.floor(exact);
 }
 var remainder_needed = council_total - floor_sum;
-var sorted_rem = party_list.slice().sort(function(a,b) {
-    return raw[b].remainder - raw[a].remainder;
+var sorted_rem = all_parties.slice().sort(function(a, b) {
+    return raw[b.party].remainder - raw[a.party].remainder;
 });
-var council_seats = {};
-for (var i = 0; i < party_list.length; i++) {
-    council_seats[party_list[i]] = raw[party_list[i]].floor;
-}
-for (var i = 0; i < remainder_needed; i++) {
-    council_seats[sorted_rem[i]]++;
+for (var i = 0; i < remainder_needed && i < sorted_rem.length; i++) {
+    council_seats[sorted_rem[i].party]++;
 }
 Q._council_seats_json = JSON.stringify(council_seats);
 
-// Government council influence
 var gov_council = 0;
-for (var i = 0; i < gov_parties.length; i++) {
-    gov_council += council_seats[gov_parties[i]] || 0;
-}
+for (var i = 0; i < gov_parties.length; i++) gov_council += council_seats[gov_parties[i]] || 0;
 Q.council_gov_influence = gov_council;
 Q.council_opp_influence = 21 - gov_council;
 
@@ -818,47 +587,37 @@ Q.parliament_constitution_month = Q.month;
 Q.parliament_summary =
     "Reichstag President: " + Q.reichstag_president +
     " (" + Q.reichstag_president_party + ", " + Q.reichstag_president_stance + ")";
-
 !}
 on-display: {!
+var council_seats   = JSON.parse(Q._council_seats_json || '{}');
+var all_parties     = Q._all_rt_parties || [];
 
-var council_seats = JSON.parse(Q._council_seats_json || '{}');
+var color_map = {
+    KPD:'#8B0000', LB:'#6B0000', KPO:'#990000',
+    SAPD:'#C40000', SL:'#005B96',
+    SPD:'#E3000F', SRPD:'#FF6B6B', ASPD:'#B22222',
+    RDP:'#B8B000', DDP:'#DCCA4A', CVP:'#1A1A1A',
+    Z:'#000000', BVP:'#69A2BE', BB:'#69A2BE', CSRP:'#FFCCFF',
+    SLS:'#4A7C59', DHP:'#69A2BE', DVP:'#D5AC27',
+    VRP:'#8B7355', WP:'#424242', HL:'#2E8B57',
+    VNR:'#4B5320', CNBL:'#5D4E37', CSVD:'#3f7bc1',
+    KVP:'#3f7bc1', DNVP:'#3f7bc1', OTHER:'#a0a0a0',
+    NSDAP:'#954B00', DTSP:'#3B1A00', DtsP:'#3B1A00', DVFP:'#1A0F00'
+};
 
-var partyMeta = [
-    { id: "kpd",   name: "KPD",   color: "#8B0000", show: true },
-    { id: "sapd",  name: "SAPD",  color: "#C40000", show: !!(Q.sapd_formed && Q.sapd_r > 0) },
-    { id: "spd",   name: "SPD",   color: "#E3000F", show: true },
-    { id: "srpd",  name: "SRPD",  color: "#FF6B6B", show: !!(Q.srpd_formed && Q.srpd_r > 0) },
-    { id: "ddp",   name: Q.ddp_name || "DDP", color: "#DCCA4A", show: true },
-    { id: "z",     name: "Center",color: "#000000", show: true },
-    { id: "bb",    name: "BB",    color: "#69A2BE", show: !!(Q.bb_r > 0) },
-    { id: "bvp",   name: "BVP",   color: "#69A2BE", show: true },
-    { id: "csrp",  name: "CSRP",  color: "#FFCCFF", show: !!(Q.csrp_r > 0) },
-    { id: "dhp",   name: "DHP",   color: "#69A2BE", show: !!(Q.dhp_r > 0) },
-    { id: "dvp",   name: "DVP",   color: "#D5AC27", show: true },
-    { id: "vrp",   name: "VRP",   color: "#8B7355", show: !!(Q.vrp_r > 0) },
-    { id: "wp",    name: "WP",    color: "#424242", show: !!(Q.wp_r > 0) },
-    { id: "cnbl",  name: "CNBL",  color: "#5D4E37", show: !!(Q.cnbl_r > 0) },
-    { id: "csvd",  name: "CSVD",  color: "#3f7bc1", show: !!Q.csvd_flee },
-    { id: "kvp",   name: "KVP",   color: "#3f7bc1", show: !!Q.kvp_flee },
-    { id: "dnvp",  name: "DNVP",  color: "#3f7bc1", show: true },
-    { id: "other", name: "Other", color: "#a0a0a0", show: true },
-    { id: "nsdap", name: "NSDAP", color: "#954B00", show: true },
-    { id: "dvfp",  name: "DVFP",  color: "#1A0F00", show: !!(Q.dvfp_r > 0) },
-];
+var visibleParties = [];
+for (var i = 0; i < all_parties.length; i++) {
+    var p = all_parties[i];
+    var cs = council_seats[p.party] || 0;
+    if (cs <= 0) continue;
+    visibleParties.push({
+        id:    p.party.toLowerCase(),
+        name:  p.party === 'Z' ? 'Center' : (p.party === 'DDP' ? (Q.ddp_name || 'DDP') : p.party),
+        color: color_map[p.party] || '#888888',
+        seats: cs
+    });
+}
 
-var visibleParties = partyMeta.filter(function(p) {
-    return p.show && (council_seats[p.id.toUpperCase()] || 0) > 0;
-}).map(function(p) {
-    return {
-        id: p.id,
-        name: p.name,
-        color: p.color,
-        seats: council_seats[p.id.toUpperCase()] || 0
-    };
-});
-
-// Parliament diagram (21 seats)
 var data = visibleParties.map(function(p) {
     return { id: p.id, legend: p.name, name: p.name, seats: p.seats };
 });
@@ -866,57 +625,33 @@ var data = visibleParties.map(function(p) {
 if (window && d3) {
     var width = 500, height = 250;
     var screenWidth = document.getElementById('content').offsetWidth;
-    if (screenWidth < width - 50) {
-        width = screenWidth - 50;
-        height = Math.round(width / 2);
-    }
+    if (screenWidth < width - 50) { width = screenWidth - 50; height = Math.round(width / 2); }
     var el = document.getElementById("council-seats");
-    el.style.width  = width  + "px";
-    el.style.height = height + "px";
-
+    el.style.width = width + "px"; el.style.height = height + "px";
     var parliament = d3.parliament();
     parliament.width(width).height(height).innerRadiusCoef(0.4);
     parliament.enter.fromCenter(true).smallToBig(true);
     parliament.exit.toCenter(false).bigToSmall(true);
     d3.select("#council-seats").datum(data).call(parliament);
 
-    // Color bar
     var bar = document.getElementById("council-color-bar");
     bar.innerHTML = "";
-    bar.style.display = "flex";
-    bar.style.width   = "100%";
-    bar.style.height  = "28px";
-    bar.style.marginTop = "8px";
-    bar.style.overflow = "hidden";
-    bar.style.borderRadius = "3px";
-
+    bar.style.cssText = "display:flex;width:100%;height:28px;margin-top:8px;overflow:hidden;border-radius:3px;";
     visibleParties.forEach(function(p) {
         var pct = p.seats / 21;
         var seg = document.createElement("div");
-        seg.style.width           = (pct * 100) + "%";
-        seg.style.height          = "100%";
-        seg.style.backgroundColor = p.color;
-        seg.style.display         = "flex";
-        seg.style.alignItems      = "center";
-        seg.style.justifyContent  = "center";
-        seg.style.overflow        = "hidden";
-        seg.style.boxSizing       = "border-box";
+        seg.style.cssText = "width:" + (pct*100) + "%;height:100%;background-color:" + p.color +
+            ";display:flex;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;";
         seg.title = p.name + ": " + p.seats + " seat" + (p.seats !== 1 ? "s" : "");
-
         if (pct > 0.06) {
             var label = document.createElement("span");
-            label.style.fontSize   = "10px";
-            label.style.fontWeight = "bold";
-            label.style.color      = "#fff";
-            label.style.textShadow = "0 0 2px #000, 0 0 2px #000";
-            label.style.whiteSpace = "nowrap";
+            label.style.cssText = "font-size:10px;font-weight:bold;color:#fff;text-shadow:0 0 2px #000;white-space:nowrap;";
             label.textContent = p.name + " " + p.seats;
             seg.appendChild(label);
         }
         bar.appendChild(seg);
     });
 }
-
 !}
 
 = The Reichstag Is Constituted
@@ -928,8 +663,8 @@ Council of Elders: [+ council_display +]
 {!<svg id="council-seats" style="width:500px; height:250px;"></svg>
 <div id="council-color-bar"></div>!}
 
-[? if reichstag_president_stance = "friendly" : With a friendly Reichstag President to us, the government's legislative agenda should proceed smoothly, at least we hope so. ?]
+[? if reichstag_president_stance = "friendly" : With a friendly Reichstag President, the government's legislative agenda should proceed smoothly. ?]
 [? if reichstag_president_stance = "neutral" : The President will apply procedural rules impartially. That should be tolerable for us. ?]
-[? if reichstag_president_stance = "hostile" : The hostile Reichstag President is a serious obstacle to the government's agenda. They will do eveything in power to make our influence as small as possible.?]
+[? if reichstag_president_stance = "hostile" : The hostile Reichstag President is a serious obstacle to the government's agenda. They will do everything in their power to make our influence as small as possible. ?]
 
 The Reichstag is now in session.
