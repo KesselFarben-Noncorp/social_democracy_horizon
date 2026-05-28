@@ -921,7 +921,7 @@ if (Q.inflation > 10) {
         Q.inflation_crisis_event = 0;
         }
 
-if (Q.year >= 1928 && Q.month == 1 && Q.weeks >= 2 && Q.bayernbund_flavor_1 == 0) {
+if (Q.year == 1928 && Q.month >= 1 && Q.bayernbund_flavor_1 == 0 && Q.weeks >= 0) {
     Q.bayernbund_flavor_1 = 1;
     Q.parties.push('dbp');
 }
@@ -3571,26 +3571,34 @@ function computeTarget(party, c) {
                 base = ((nat * 60) + (rep * 36) - chaos_penalty) * im.dnvp;
             }
 
-            let workers_m     = 0.60
-                * (Q.peoples_party    === 1                              ? 1.05 : 1)
-                * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
-                * (Q.lambach_momentum  && Q.year < 1929                  ? 1.55 : 1)
-                * (Q.dnvp_party_leader == "Walther Lambach" ? 1.25 : 1.00);
-            let old_middle_m  = 1.52 * (1 + Math.min(Q.nationalism/100,1)*0.28) * (Q.peoples_party === 1 ? 0.95 : 1);
-            let new_middle_m  = 0.98 * (1 + Math.min(Q.nationalism/100,1)*0.18)
-                * (Q.peoples_party    === 1                              ? 0.95 : 1)
-                * (Q.lambach_reinstated && Q.year < 1929                 ? 1.15 : 1)
-                * (Q.lambach_momentum  && Q.year < 1929                  ? 2.45 : 1)
-                * (Q.dnvp_party_leader == "Walther Lambach" ? 1.45 : 1.00);
-            let rural_m       = 1.72 * (1 + Math.min(Q.nationalism/100,1)*0.30)
-                * (Q.peoples_party === 1 ? 0.95 : 1)
-                * (Q.parties.includes('cnbl') ? 0.7953 : 1);
-            let unemployedc_m = 0.57 * (Q.peoples_party === 1 ? 1.02 : 1);
+            const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
+            const lambachEarly = Q.year < 1929;
 
-            const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
-            if (Q.dem_challenge === 1) base *= 0.80;
-            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
-        }
+            let workers_m     = 0.60
+                * (Q.peoples_party                      === 1 ? 1.05 : 1)
+                * (Q.lambach_reinstated && lambachEarly        ? 1.15 : 1)
+                * (Q.lambach_momentum   && lambachEarly        ? 1.55 : 1)
+                * (isLambach                                   ? 1.25 : 1.00);
+            let old_middle_m  = 1.52 * (1 + Math.min(Q.nationalism/100,1)*0.28)
+                * (Q.peoples_party                      === 1 ? 0.95 : 1)
+                * (isLambach                                   ? 0.89 : 1.00);
+            let new_middle_m  = 0.98 * (1 + Math.min(Q.nationalism/100,1)*0.18)
+                * (Q.peoples_party                      === 1 ? 0.95 : 1)
+                * (Q.lambach_reinstated && lambachEarly        ? 1.15 : 1)
+                * (Q.lambach_momentum   && lambachEarly        ? 2.45 : 1)
+                * (isLambach                                   ? 1.45 : 1.00);
+            let rural_m       = 1.72 * (1 + Math.min(Q.nationalism/100,1)*0.30)
+                * (Q.peoples_party                      === 1 ? 0.95 : 1)
+                * (Q.parties.includes('dbp')                  ? 0.9111 : 1)
+                * (Q.parties.includes('cnbl')                  ? 0.7953 : 1)
+                * (isLambach                                   ? 0.89 : 1.00);
+            let unemployedc_m = 0.57
+                * (Q.peoples_party                      === 1 ? 1.02 : 1);
+
+    const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
+    if (Q.dem_challenge === 1) base *= 0.80;
+    return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+}
 
         case 'dvp': {
             if (Q.dvp_banned) return 0;
