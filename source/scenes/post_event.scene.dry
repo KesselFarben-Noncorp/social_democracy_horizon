@@ -64,7 +64,7 @@ Q.random_factor = function(f, variance = 0.65) {
 const ALL_PARTIES = [
     'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
     'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
-    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'rdp', 'cvp', 'sls', 'lb', 'dtsp'
+    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'rdp', 'cvp', 'sls', 'lb', 'dbp', 'dtsp'
 ];
 
 // === MASTER CHANCELLOR LIST ===
@@ -537,6 +537,7 @@ SLS:  ['interior', 'justice', 'labor', 'agriculture', 'economic', 'finance', 'fo
 RDP:  ['justice', 'interior', 'labor', 'foreign', 'economic', 'finance', 'agriculture', 'transport'],
 CVP:  ['interior', 'agriculture', 'justice', 'finance', 'labor', 'economic', 'foreign', 'transport'],
 LB:   ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
+DBP:  labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
 };
 
 // ========================================
@@ -810,6 +811,12 @@ Q.ministry_integrity_check = function() {
 
 
 
+
+
+
+
+
+
 // ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
 
 Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
@@ -826,8 +833,6 @@ for (const name of CABINET_CHANCELLORS) {
 }
 
 
-
-
 /// FOR COALITION DISSENT SCENE OF MAX DISSENT.
 
 var max_dissent = 0;
@@ -841,6 +846,11 @@ for (var i = 0; i < party_list.length; i++) {
 }
 
 Q.max_coalition_dissent = max_dissent;
+
+
+
+
+
 
 
 
@@ -911,9 +921,9 @@ if (Q.inflation > 10) {
         Q.inflation_crisis_event = 0;
         }
 
-if (Q.year >= 1928 && Q.month == 2 && Q.weeks >= 0 && Q.bayernbund_flavor_1 == 0) {
+if (Q.year >= 1928 && Q.month == 1 && Q.weeks >= 2 && Q.bayernbund_flavor_1 == 0) {
     Q.bayernbund_flavor_1 = 1;
-    Q.parties.push('bb');
+    Q.parties.push('dbp');
 }
 
 if (Q.year >= 1929 && Q.vnr_momentum_trigger_flavor_1 == 0) { 
@@ -1966,6 +1976,7 @@ if (Q.hl_in_government)   centrist_party_count++;
 if (Q.sls_in_government)   centrist_party_count++;
 if (Q.cvp_in_government)   centrist_party_count++;
 if (Q.rdp_in_government)   centrist_party_count++;
+if (Q.dbp_in_government)   centrist_party_count++;
 
 if (Q.vnr_in_government)  nationalist_party_count++;
 if (Q.dtsp_in_government)  nationalist_party_count++;
@@ -2549,6 +2560,7 @@ Q.party_relations.SPD.KVP  = Q.kvp_relation;
 Q.party_relations.SPD.DHP  = Q.dhp_relation;
 Q.party_relations.SPD.BB   = Q.bb_relation;
 Q.party_relations.SPD.DVFP = Q.dvfp_relation;
+Q.party_relations.SPD.DBP = Q.dbp_relation;
 
 // SRPD
 Q.party_relations.SRPD.KPD  = Q.kpd_relation - 10;
@@ -3998,6 +4010,25 @@ function computeTarget(party, c) {
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
+       case 'dbp': {
+    if (Q.dbp_banned) return 0;
+
+    let rural_weight    = Q.rural / 70;  // slightly less rural-dependent than BB (Q.rural/60)
+    let deflation_bonus = Q.inflation < 0 ? (1 + Math.abs(Q.inflation) * 0.06) : 1.0;
+    let lib_bonus       = (rep * 0.4) + ((100 - Q.nationalism) / 100) * 0.15;
+
+    base = (rep * 12 + nat * 8) * rural_weight * deflation_bonus * lib_bonus * (im.dbp || 1);
+
+    const class_mods = {
+        workers:     0.15,   // minimal worker base
+        old_middle:  0.65,   // small traders, rural artisans — present but not the core
+        new_middle:  0.35,   // modest white-collar presence
+        rural:       2.20,   // rural core, slightly softer than BB's 2.10 since more liberal
+        unemployedc: 0.25,
+    };
+    return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+}
+
         default: {
             if (Q.other_banned) return 0;
             base = (nat + rep) * 6 * im.other;
@@ -4041,6 +4072,7 @@ function computeSpeed(party, c) {
         kvp:    0.08,
 
         // Very stable / niche
+        dbp:    0.08,
         bb:     0.05,
         dhp:    0.05,
         sls:    0.04,
@@ -4069,7 +4101,7 @@ function computeSpeed(party, c) {
     }
 
     // Stable parties slow down further under crisis (confusion, fragmentation)
-    const stable_parties = ['z', 'bvp', 'cnbl', 'wp', 'bb'];
+    const stable_parties = ['z', 'bvp', 'cnbl', 'wp', 'bb', 'dbp'];
     if (stable_parties.includes(party) && unr > 1.5) {
         speed *= Math.max(0.60, 1 - (unr - 1.5) * 0.08);
     }
