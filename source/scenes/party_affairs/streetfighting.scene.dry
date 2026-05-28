@@ -14,8 +14,8 @@ We must do something to protect the workers against these predations.
 
 [? if prussian_police_training < 1: Without the training of the prussian police units, the discipline of our Reichsbanner units will never be more than of street crowd's. ?]
 
-# - @battle: Test our defense units in battle against the fascists!
 - @arm_rb: Increase training and armaments for the Reichsbanner.
+- @attack_rfb: Attack the Red Front Fighters!
 - @coordinate_sh: Coordinate with the Stahlhelm.
 - @if_training: Train union members to fight as part of the Iron Front.
 - @prussian_police_training: Use the Prussian police to help train the Reichsbanner.
@@ -23,12 +23,19 @@ We must do something to protect the workers against these predations.
 - @truce_rfb: Try to make peace with the RFB.
 - @easy_discard
 
-@battle
-view-if: rb_militancy > 0.1 and rb_militancy < 0.5
-on-arrival: rb_militancy += 0.1; sa_strength += 40; rb_strength -= 100; 
-max-visits: 1
+@attack_rfb
+subtitle: Only use when you are actually prepared for this.
+view-if: social_fascism_adopted and april_challenge = 1 and (rfb_strength * rfb_militancy) > 100 and (rb_strength * rb_militancy) > 100
+on-arrival: rb_power = rb_strength * rb_militancy; rfb_power = rfb_strength * rfb_militancy; rb_power += (sh_strength * sh_militancy) if rb_sh_front == 1; rb_loss = rb_strength * (0.5 - rb_militancy); rfb_loss = rfb_strength * (0.6 - rfb_militancy); rb_loss = rb_loss * 0.6 if rb_sh_front == 1; rfb_loss = rfb_loss * 1.4 if rb_sh_front == 1; rb_strength -= rb_loss; rfb_strength -= rfb_loss; rfb_strength -= 120 if rb_power > rfb_power; rb_strength -= 100 if rb_power <= rfb_power; sh_strength -= 50 if rb_sh_front == 1; kpd_relation -= 15; kpd_relation -= 15 if rb_sh_front == 1; workers_spd -= 3; workers_spd -= 2 if rb_sh_front == 1; left_dissent += 10; left_dissent += 15 if rb_sh_front == 1; sh_relation += 5 if rb_sh_front == 1
 
-Many Reichsbanner members are not ready for actual fighting, and thus quit. However, the remainder are toughened as a result. Our confrontations also provide ample recruiting material for the Nazi SA.
+We have ordered the Reichsbanner to directly assault the Red Front Fighters.
+
+[? if rb_sh_front == 1 : In an unprecedented and controversial move, the nationalist Stahlhelm marches shoulder-to-shoulder with our Reichsbanner columns. The sight of republicans and right-wing monarchists uniting to purge the far-left shocks the public. ?]
+
+[? if rb_power > rfb_power : Because our forces are stronger and better organized than the RFB, we successfully rout them from the streets. They suffer devastating losses as their defensive lines collapse under our coordinated assault. ?]
+[? if rb_power <= rfb_power : However, the RFB's fanaticism and raw militancy catch our forces off guard. Despite our efforts, the Reichsbanner is forced into a humiliating retreat from the working-class districts, sustaining heavy extra casualties as the communists hunt down our retreating members. ?]
+
+The open violence severely alienates our left wing. [? if rb_sh_front == 1 : The party's left-militants are utterly furious, viewing the alliance with the Stahlhelm as an absolute betrayal of working-class solidarity. ?] Meanwhile, the right wing of our party feels completely vindicated in crushing the "totalitarian left."
 
 @arm_rb
 subtitle: -[+ rb_militarization_cost +] resource
