@@ -44,6 +44,7 @@ Corruption in big business is rampant, of course. We have uncovered a number of 
 Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
 
 @investigate_far_right
+view-if: april_challenge = 0
 go-to: investigate_far_right_success if interior_police_loyalty >= 0.55; investigate_far_right_failure if interior_police_loyalty < 0.55
 
 @investigate_far_right_success
@@ -62,8 +63,9 @@ on-arrival: investigate_far_right += 1; sa_strength -= 20; workers_nsdap -= 3; n
 Unfortunately, our investigations have failed to turn up anything. Rumors are that the targets of our investigation were tipped off by infiltrators within the police.
 
 @investigate_far_left
+subtitle: [? if kpd_relation < 0 and (rfb_strength + rfb_militancy) > 200: It does not matter anymore, police understands clearly what communists ARE up to. ?]
 view-if: far_left_investigated < 3 and april_challenge = 1
-on-arrival: far_left_investigated += 1 if interior_police_loyalty >= 0.55
+on-arrival: far_left_investigated += 1 if interior_police_loyalty >= 0.55; far_right_investigated = 3 if kpd_relation < 0 and (rfb_strength + rfb_militancy) > 200
 go-to: investigate_far_left_success if interior_police_loyalty >= 0.55; investigate_far_left_failure if interior_police_loyalty < 0.55
 
 @investigate_far_left_success
