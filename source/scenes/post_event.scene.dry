@@ -1135,10 +1135,16 @@ if (Q.phase_duration >= MIN_PHASE_DURATION) {
     }
 
     if (Q.phase !== prev) {
-        if (prev === "depression" || prev === "hyperinflation")
-            Q.post_crisis_ticks = 0;
-        Q.phase_duration = 0;
+    if (prev === "depression" || prev === "hyperinflation")
+        Q.post_crisis_ticks = 0;
+    Q.phase_duration = 0;
+
+    if (Q.phase === "depression") {
+        Q.capital_pressure = Math.min(Q.capital_pressure, 0.6);
+        Q.demand_pressure  = Math.max(Q.demand_pressure, -0.3);
+        }
     }
+
 }
 
 if (Q.phase === "correction") {
@@ -1530,7 +1536,9 @@ if (Q.phase === "correction" && (Q.post_crisis_ticks || 0) < 10) {
     };
 }
 
-Q.demand_pressure    = (Q.demand_pressure   || 0) * Math.exp(-dr.demand * dt);
+Q.demand_pressure = (Q.demand_pressure || 0) < 0
+    ? Q.demand_pressure * Math.exp(-0.25 * dt)
+    : Q.demand_pressure * Math.exp(-dr.demand * dt);
 Q.supply_pressure    = (Q.supply_pressure   || 0) * Math.exp(-dr.supply * dt);
 Q.price_pressure     = (Q.price_pressure    || 0) * Math.exp(-dr.price  * dt);
 Q.trade_pressure     = (Q.trade_pressure    || 0) * Math.exp(-dr.trade  * dt);
@@ -1549,6 +1557,7 @@ if (!Q.math_broken) {
     Q.economic_growth        = Math.max(-15, Math.min(20, Q.economic_growth));
     Q.inflation_expectations = Math.max(-9,  Math.min(99, Q.inflation_expectations));
     Q.capital_pressure       = Math.max(0,   Math.min(1.2, Q.capital_pressure));
+    if (Q.phase === "depression") Q.demand_pressure = Math.max(-0.5, Q.demand_pressure);
     Q.supply_cost_drag       = Math.max(0,   Math.min(0.5, Q.supply_cost_drag));
     Q.credit_expansion       = Math.max(0,   Math.min(0.8, Q.credit_expansion));
 } else {
