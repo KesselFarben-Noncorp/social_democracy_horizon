@@ -298,6 +298,7 @@ var partyData = [
     { id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: true },
     { id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: true },
     { id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: true },
+    { id: "dbp",  name: "DBP",        color: "#03A331" , seats: Q.dbp_seats,show: !!(Q.dbp_formed && Q.dbp_r > 0) },
     { id: "sls",  name: "SLS",  color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) }, 
     { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
     { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r && Q.dhp_r > 0) },
@@ -482,12 +483,21 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_z_seats_num > 0 : color: green; ?][? if change_z_seats_num < 0 : color: red; ?]">[+ str_change_z_seats_num +]</td>
 </tr>
 [? if cvp_votes > 0 :
-<tr class="row-liberal">
+<tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#1A1A1A; display:inline-block; margin-right:8px;'> </div>CVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cvp_r_disp +]%</td>
     <td style="padding: 8px; text-align: right; [? if change_cvp_r > 0 : color: green; ?][? if change_cvp_r < 0 : color: red; ?]">[+ str_change_cvp +]</td>
     <td style="padding: 8px; text-align: right;">[+ cvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_cvp_seats_num > 0 : color: green; ?][? if change_cvp_seats_num < 0 : color: red; ?]">[+ str_change_cvp_seats_num +]</td>
+</tr>
+?]
+[? if dbp_votes > 0 :
+<tr class="row-liberal">
+    <td style="padding: 8px;"><div class="box" style='background-color:#03A331; display:inline-block; margin-right:8px;'> </div>DBP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dbp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_dbp_r > 0 : color: green; ?][? if change_dbp_r < 0 : color: red; ?]">[+ str_change_dbp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dbp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dbp_seats_num > 0 : color: green; ?][? if change_dbp_seats_num < 0 : color: red; ?]">[+ str_change_dbp_seats_num +]</td>
 </tr>
 ?]
 <tr class="row-liberal">
@@ -704,6 +714,7 @@ if (Q.rdp_seats  > 0) Q.party_votes.push({party: 'RDP',  votes: (Q.rdp_seats  / 
 if (Q.cvp_seats  > 0) Q.party_votes.push({party: 'CVP',  votes: (Q.cvp_seats  / seat_total) * 100});
 if (Q.sls_seats  > 0) Q.party_votes.push({party: 'SLS',  votes: (Q.sls_seats  / seat_total) * 100});
 if (Q.dtsp_seats > 0) Q.party_votes.push({party: 'DtsP', votes: (Q.dtsp_seats / seat_total) * 100});
+if (Q.dbp_seats > 0) Q.party_votes.push({party: 'DBP', votes: (Q.dbp_seats / seat_total) * 100});
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 // ============================================================
