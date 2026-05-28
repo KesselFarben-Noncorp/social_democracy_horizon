@@ -5,19 +5,50 @@ tags: event
 view-if: year >= 1928 and year <= 1929 and month = 3 and weeks >= 1
 max-visits: 1
 on-arrival: {!
+  console.log("=== INDIVIDUAL RURAL CRISIS VARIABLE CHECK ===");
+  console.log("1. Q.commercialized_media =", Q.commercialized_media, "| >= 2? ->", Q.commercialized_media >= 2);
+  console.log("2. Q.radio =", Q.radio, "| >= 1? ->", Q.radio >= 1);
+  console.log("3. Q.rural_spd_display =", Q.rural_spd_display, "| >= 16.3? ->", Q.rural_spd_display >= 16.3);
+  console.log("4. Q.local_rally =", Q.local_rally, "| >= 1? ->", Q.local_rally >= 1);
+  console.log("5. Q.nationalism =", Q.nationalism, "| > 15.4? ->", Q.nationalism > 15.4);
+  console.log("6. Q.dnvp_votes =", Q.dnvp_votes, "| >= 19.3? ->", Q.dnvp_votes >= 19.3);
+  console.log("7. Q.pro_republic =", Q.pro_republic, "| <= 67.2? ->", Q.pro_republic <= 67.2);
+  console.log("8. Q.enemies =", Q.enemies, "| == 'DNVP' or 'far right'? ->", (Q.enemies == "DNVP" || Q.enemies == "far right"));
+  console.log("9. Q.peoples_party =", Q.peoples_party, "| == 1? ->", Q.peoples_party == 1);
+  console.log("10. Q.ideology =", Q.ideology, "| == 'reformist'? ->", Q.ideology == "reformist");
+  console.log("11. Q.landvolk_fury =", Q.landvolk_fury, "| > 4? ->", Q.landvolk_fury > 4);
+
   const conditions = [
-  Q.commercialized_media >= 2,
-  Q.radio >= 1,
-  Q.rural_spd >= 16.3,
-  Q.local_rally >= 1,
-  Q.nationalism > 15.4,
-  Q.dnvp_votes >= 19.3,
-  Q.pro_republic <= 67.2,
-  (Q.enemies == "DNVP" || Q.enemies == "far right"),
-  Q.peoples_party == 1,
-  Q.ideology == "reformist",
-  Q.landvolk_fury > 3
-];
+    Q.commercialized_media >= 2,
+    Q.radio >= 1,
+    Q.rural_spd_display >= 16.3,
+    Q.local_rally >= 1,
+    Q.nationalism > 15.4,
+    Q.dnvp_votes >= 19.3,
+    Q.pro_republic <= 67.2,
+    (Q.enemies == "DNVP" || Q.enemies == "far right"),
+    Q.peoples_party == 1,
+    Q.ideology == "reformist",
+    Q.landvolk_fury > 4
+  ];
+
+  let base_score = conditions.filter(Boolean).length;
+  console.log("----------------------------------------------");
+  console.log("Base Conditions Met:", base_score);
+  console.log("Minus Landvolk Suppression:", Q.landvolk_suppress || 0);
+
+  Q.triggered = base_score - (Q.landvolk_suppress || 0);
+  console.log("Final Adjusted Trigger Score:", Q.triggered);
+
+  if (Q.triggered >= 4) { 
+    Q.cnbl_crisis = 1;
+    console.log("CRISIS TRIGGERED: Q.cnbl_crisis set to 1");
+  } else {
+    Q.cnbl_crisis = 0;
+    console.log("CRISIS FAILED: Q.cnbl_crisis set to 0");
+  }
+  console.log("==============================================");
+!}
 
 Q.triggered = conditions.filter(Boolean).length;
 Q.triggered -= (Q.landvolk_suppress || 0);
