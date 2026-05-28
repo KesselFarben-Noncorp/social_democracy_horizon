@@ -40,7 +40,7 @@ if (Q.lambach_reinstated == 1) {
     Q.leader_b_title = "Former Reich Interior Minister";
     if (Q.pro_republic >= 89) {
         Q.leader_b = "Gottfried Treviranus";
-        Q.leader_b_title = "Young Conservative Fraction Member";
+        Q.leader_b_title = "Young Conservative Faction Member";
     }
 }
 
@@ -73,8 +73,9 @@ if (Q.lambach_exile == 1) {
 } else if (Q.lambach_reinstated == 1) {
     Q.hugenberg_momentum += 8;
     Q.delegate_power_a += 5;
+    Q.delegate_power_c += 3;
 } else if (Q.lambach_exile == 0) {
-    Q.delegate_power_c += 15;
+    Q.delegate_power_c += 25;
 } else {
     Q.hugenberg_momentum += 10;
 }
@@ -84,6 +85,26 @@ if (Q.cnbl_crisis == 1) {
     Q.hugenberg_momentum += 20;
 } else {
     Q.delegate_power_b += 10;
+}
+
+if (Q.vnr_momentum == 0) { 
+    Q.delegate_power_c += 10;
+    Q.delegate_power_a += 5;
+} else {
+    Q.delegate_power_b += 10;
+    Q.hugenberg_momentum += 10;
+}
+
+if (Q.geest_wildfire == 0) {
+    Q.delegate_power_c += 5;
+    Q.delegate_power_a += 5;
+    Q.delegate_power_b += 10;
+    Q.hugenberg_momentum -= 5;
+} else {
+    Q.hugenberg_momentum += 20;
+    Q.delegate_power_c += 10
+    Q.delegate_power_a += 5;
+    Q.delegate_power_b -= 15;
 }
 
 // 3b. Media Dominance Check
@@ -114,7 +135,7 @@ Q.delegate_power_a += (Q.old_middle_dnvp * 0.55);
 Q.delegate_power_b += (Q.rural_dnvp * 1.24);
 Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
 
-Q.delegate_power_c += (Q.workers_dnvp * 2.2 + Q.new_middle_dnvp * 0.73);
+Q.delegate_power_c += (Q.workers_dnvp * 2.3 + Q.new_middle_dnvp * 0.73);
 
 // 5. Ideological Reinforcements
 Q.hugenberg_momentum += Q.nationalism * 1.5;
