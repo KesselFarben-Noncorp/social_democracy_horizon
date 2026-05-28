@@ -1144,6 +1144,101 @@ if (Q.lb_r > 0) {
     }
 }
 
+// ========================================
+    // DBP (GERMAN AGRARIAN PARTY)
+    // ========================================
+    if (Q.dbp_r > 0 && !Q.dbp_banned) {
+
+        Q.dbp_own_candidate = "Fehr"; // Anton Fehr, DBP chairman
+
+        if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate) {
+            // Conservative unity ticket exists
+
+            if (Q.bb_candidate === Q.z_dnvp_joint_candidate && Q.bb_relation >= 40) {
+                // BB already in — agrarian solidarity, DBP follows
+                Q.dbp_candidate = Q.z_dnvp_joint_candidate;
+                Q.dbp_default_candidate = Q.z_dnvp_joint_candidate;
+
+            } else if (Q.cnbl_candidate === Q.z_dnvp_joint_candidate && Q.cnbl_relation >= 40) {
+                // CNBL already in — same reasoning
+                Q.dbp_candidate = Q.z_dnvp_joint_candidate;
+                Q.dbp_default_candidate = Q.z_dnvp_joint_candidate;
+
+            } else if (Q.dnvp_line === 3) {
+                // Hugenberg ticket — DBP refuses; too radical for a liberal agrarian
+                if (Q.bb_candidate && Q.bb_candidate !== Q.z_dnvp_joint_candidate) {
+                    Q.dbp_candidate = Q.bb_candidate;
+                    Q.dbp_default_candidate = Q.bb_candidate;
+                } else if (Q.ddp_candidate) {
+                    Q.dbp_candidate = Q.ddp_candidate;
+                    Q.dbp_default_candidate = Q.ddp_candidate;
+                } else {
+                    Q.dbp_candidate = Q.dbp_own_candidate;
+                    Q.dbp_default_candidate = Q.dbp_own_candidate;
+                }
+
+            } else if (Q.ddp_candidate === Q.z_dnvp_joint_candidate) {
+                // DDP also joined — liberal-agrarian comfort zone, DBP follows
+                Q.dbp_candidate = Q.z_dnvp_joint_candidate;
+                Q.dbp_default_candidate = Q.z_dnvp_joint_candidate;
+
+            } else {
+                // Unity ticket exists but none of DBP's natural allies are in — stay independent
+                Q.dbp_candidate = Q.dbp_own_candidate;
+                Q.dbp_default_candidate = Q.dbp_own_candidate;
+            }
+
+        } else {
+            // No unity ticket — normal DBP logic
+
+            if (Q.nsdap_r >= 30 && Q.rural_nsdap_support >= 20) {
+                // Agrarian base bleeding to Nazis — DBP holds out,
+                // anchors around liberal-agrarian allies rather than capitulating
+                if (Q.bb_candidate && Q.bb_candidate !== "Hitler") {
+                    Q.dbp_candidate = Q.bb_candidate;
+                    Q.dbp_default_candidate = Q.bb_candidate;
+                } else if (Q.ddp_candidate && Q.ddp_candidate !== "Hitler") {
+                    Q.dbp_candidate = Q.ddp_candidate;
+                    Q.dbp_default_candidate = Q.ddp_candidate;
+                } else if (Q.cnbl_candidate && Q.cnbl_candidate !== "Hitler") {
+                    Q.dbp_candidate = Q.cnbl_candidate;
+                    Q.dbp_default_candidate = Q.cnbl_candidate;
+                } else {
+                    // Last resort anti-Nazi stand — own candidate
+                    Q.dbp_candidate = Q.dbp_own_candidate;
+                    Q.dbp_default_candidate = Q.dbp_own_candidate;
+                }
+
+            } else if (Q.bb_candidate && Q.bb_candidate !== "Hitler"
+                       && Q.bb_candidate !== Q.kpd_candidate) {
+                // Normal times — follow BB as closest agrarian ally
+                Q.dbp_candidate = Q.bb_candidate;
+                Q.dbp_default_candidate = Q.bb_candidate;
+
+            } else if (Q.cnbl_candidate && Q.cnbl_candidate !== "Hitler") {
+                // CNBL as secondary agrarian fallback
+                Q.dbp_candidate = Q.cnbl_candidate;
+                Q.dbp_default_candidate = Q.cnbl_candidate;
+
+            } else if (Q.ddp_candidate && Q.ddp_relation >= 40) {
+                // Liberal fallback if agrarian options exhausted
+                Q.dbp_candidate = Q.ddp_candidate;
+                Q.dbp_default_candidate = Q.ddp_candidate;
+
+            } else {
+                // Independent
+                Q.dbp_candidate = Q.dbp_own_candidate;
+                Q.dbp_default_candidate = Q.dbp_own_candidate;
+            }
+        }
+
+    } else {
+        Q.dbp_candidate = null;
+        Q.dbp_default_candidate = null;
+    }
+
+
+
 
 !}
 
@@ -1156,7 +1251,7 @@ The parties are preparing their candidates:
 
 [? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
 
-[? if not dvfp_banned and dvfp_formed: - DVFP: [+ dvfp_candidate +] ?]
+[? if not dvfp_banned and dvfp_formed and dvfp_r > 0: - DVFP: [+ dvfp_candidate +] ?]
 
 [? if dtsp_r > 0 : - DtsP: [+ dtsp_candidate +] ?]
 
@@ -1173,9 +1268,9 @@ The parties are preparing their candidates:
 
 [? if cvp_r > 0 : CVP: [+ cvp_candidate +] ?]
 
- BVP: [+ bvp_candidate +]
+BVP: [+ bvp_candidate +]
 
- [+ ddp_name +]: [+ ddp_candidate +]
+[+ ddp_name +]: [+ ddp_candidate +]
 
 [? if rdp_r > 0 : RDP: [+ rdp_candidate +] ?]
 
@@ -1585,7 +1680,7 @@ if (Q.hindenburg_dead) {
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
                'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp'];
+               'lb','rdp','cvp','sls','dtsp','dbp'];
     for (var i = 0; i < all_parties.length; i++) {
         if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
             Q[all_parties[i] + '_candidate'] = null;
@@ -1595,57 +1690,43 @@ if (Q.hindenburg_dead) {
         }
     }
 }
+
     // ========================================
     // FINALIZE BASED ON SPD CHOICE
     // ========================================
-    
+
     // ========================================
     // Z (CENTER PARTY)
     // ========================================
     if (Q.spd_candidate === Q.kpd_candidate) {
-        // SPD supporting communists - Z runs own
         Q.z_candidate = Q.z_default_candidate;
-        
     } else if (Q.is_unity_candidate) {
-        // SPD proposing unity candidate
         if (Q.spd_candidate === Q.z_default_candidate) {
-            // SPD directly supports Z candidate - accept
             Q.z_candidate = Q.spd_candidate;
         } else if (Q.z_relation >= 50 || (Q.z_relation >= 35 && Q.z_party_leader === "Joos")) {
-            // Good relations - join unity
             Q.z_candidate = Q.spd_candidate;
         } else if (Q.z_relation >= 30) {
-            // Moderate relations - might join with incentive
             if (Q.spd_candidate === "Eckener" || Q.spd_candidate === "Gessler") {
                 Q.z_candidate = Q.spd_candidate;
             } else {
                 Q.z_candidate = Q.z_default_candidate;
             }
         } else {
-            // Poor relations - run own
             Q.z_candidate = Q.z_default_candidate;
         }
-        
     } else if (Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate) {
-        // SPD running own candidate
         if (Q.z_relation >= 60 || (Q.z_relation >= 45 && Q.z_party_leader === "Joos")) {
-            // Excellent relations - support SPD
             Q.z_candidate = Q.spd_candidate;
         } else {
-            // Run own candidate
             Q.z_candidate = Q.z_default_candidate;
         }
-        
     } else if (Q.spd_candidate === "Juchacz") {
-        // Woman candidate - higher threshold
         if (Q.z_relation >= 65 || (Q.z_relation >= 50 && Q.z_party_leader === "Joos")) {
             Q.z_candidate = Q.spd_candidate;
         } else {
             Q.z_candidate = Q.z_default_candidate;
         }
-        
     } else {
-        // Default - run own
         Q.z_candidate = Q.z_default_candidate;
     }
 
@@ -1653,25 +1734,21 @@ if (Q.hindenburg_dead) {
     // CSRP (CHRISTIAN SOCIAL REICH PARTY)
     // ========================================
     Q.csrp_candidate = Q.z_candidate;
-    
+
     // ========================================
     // BVP (BAVARIAN PEOPLE'S PARTY)
     // ========================================
     if (Q.z_candidate === Q.spd_candidate && Q.bvp_relation < 40) {
-        // Conservative BVP breaks with Z over SPD support
         if (!Q.dnvp_banned && Q.dnvp_candidate) {
             Q.bvp_candidate = Q.dnvp_candidate;
         } else {
             Q.bvp_candidate = Q.bvp_default_candidate;
         }
     } else if (Q.z_candidate === Q.kpd_candidate) {
-        // Never support communists
         Q.bvp_candidate = Q.bvp_default_candidate;
     } else if (Q.z_candidate) {
-        // Follow Z (usual case)
         Q.bvp_candidate = Q.z_candidate;
     } else {
-        // Independent
         Q.bvp_candidate = Q.bvp_default_candidate;
     }
 
@@ -1680,28 +1757,20 @@ if (Q.hindenburg_dead) {
     // ========================================
     if (Q.vrp_formed) {
         var vrp_desperate = Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3;
-        
+
         if (vrp_desperate) {
-            // Crisis locks in protest vote regardless of SPD
             Q.vrp_candidate = "Böhm";
-            
         } else if (Q.vrp_default_candidate && Q.vrp_default_candidate !== "Böhm") {
-            // Already aligned with a liberal candidate - check if SPD disrupts that
             if (Q.spd_candidate === Q.kpd_candidate) {
-                // SPD went left - VRP breaks from any SPD-adjacent candidate
                 Q.vrp_candidate = Q.ddp_candidate !== Q.spd_candidate
                     ? Q.ddp_candidate || "Böhm"
                     : "Böhm";
             } else if (Q.is_unity_candidate && Q.vrp_relation >= 40 && Q.ddp_candidate === Q.spd_candidate) {
-                // Unity candidate with DDP support - VRP joins
                 Q.vrp_candidate = Q.spd_candidate;
             } else {
-                // Keep pre-SPD choice
                 Q.vrp_candidate = Q.vrp_default_candidate;
             }
-            
         } else {
-            // Was running Böhm - only abandon if SPD proposes DDP-style unity
             if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate && Q.vrp_relation >= 45) {
                 Q.vrp_candidate = Q.spd_candidate;
             } else {
@@ -1709,15 +1778,13 @@ if (Q.hindenburg_dead) {
             }
         }
     }
-    
+
     // ========================================
     // DVP (PEOPLE'S PARTY)
     // ========================================
     if (Q.dvp_candidate) {
-        // Already decided (Stresemann running, or independent)
-        // Keep existing choice
+        // Already decided - keep
     } else if (Q.is_unity_candidate && Q.spd_candidate !== Q.kpd_candidate) {
-        // SPD proposing unity, DVP considering
         if (Q.dvp_relation >= 45) {
             Q.dvp_candidate = Q.spd_candidate;
         } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate) {
@@ -1726,24 +1793,19 @@ if (Q.hindenburg_dead) {
             Q.dvp_candidate = "Gessler";
         }
     } else if (Q.dvp_relation >= 55 && Q.spd_candidate !== Q.kpd_candidate) {
-        // Excellent SPD relations - support them
         Q.dvp_candidate = Q.spd_candidate;
     } else if (Q.z_candidate && Q.z_relation >= 35) {
-        // Support Z instead
         Q.dvp_candidate = Q.z_candidate;
     } else {
-        // Independent liberal
         Q.dvp_candidate = "Gessler";
     }
-    
+
     // ========================================
     // DDP/DStP (DEMOCRATS)
     // ========================================
     if (Q.ddp_candidate) {
-        // Already decided (running own or Gessler)
-        // Keep existing choice
+        // Already decided - keep
     } else if (Q.is_unity_candidate && Q.spd_candidate !== Q.kpd_candidate) {
-        // SPD proposing unity
         if (Q.ddp_relation >= 35) {
             Q.ddp_candidate = Q.spd_candidate;
         } else if (Q.z_candidate) {
@@ -1752,91 +1814,75 @@ if (Q.hindenburg_dead) {
             Q.ddp_candidate = "Gessler";
         }
     } else if (Q.ddp_relation >= 50 && Q.spd_candidate !== Q.kpd_candidate) {
-        // Excellent SPD relations
         Q.ddp_candidate = Q.spd_candidate;
     } else if (Q.z_candidate && Q.z_relation >= 30) {
-        // Support Z
         Q.ddp_candidate = Q.z_candidate;
     } else {
-        // Independent liberal
         Q.ddp_candidate = Q.ddp_name === "DStP" ? "Koch-Weser" : "Gessler";
     }
-    
+
     // ========================================
     // WP (ECONOMIC PARTY)
     // ========================================
     if (Q.wp_default_candidate && Q.wp_default_candidate === "Drewitz") {
-        // Running protest candidate - keep it
         Q.wp_candidate = "Drewitz";
     } else if (Q.dvp_candidate) {
-        // Follow DVP
         Q.wp_candidate = Q.dvp_candidate;
     } else if (Q.is_unity_candidate && Q.wp_relation >= 40) {
         Q.wp_candidate = Q.spd_candidate;
     } else {
         Q.wp_candidate = Q.dvp_candidate || "Gessler";
     }
-    
+
     // ========================================
     // CNBL (AGRARIAN PARTY)
     // ========================================
     if (Q.cnbl_default_candidate && (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens")) {
-        // Running protest - keep it
         Q.cnbl_candidate = Q.cnbl_default_candidate;
     } else if (Q.cnbl_default_candidate === Q.nsdap_candidate || Q.cnbl_default_candidate === Q.dnvp_candidate) {
-        // Already aligned with conservatives
         Q.cnbl_candidate = Q.cnbl_default_candidate;
     } else if (Q.z_candidate && Q.cnbl_relation >= 35) {
         Q.cnbl_candidate = Q.z_candidate;
     } else {
         Q.cnbl_candidate = Q.cnbl_default_candidate || "Hamkens";
     }
-    
+
     // ========================================
     // SAPD
     // ========================================
     if (Q.sapd_formed) {
         if (Q.sapd_candidate === Q.kpd_candidate && Q.spd_candidate === Q.kpd_candidate) {
-            // United left
             Q.sapd_candidate = Q.kpd_candidate;
         } else if (Q.spd_sapd_relation >= 55) {
-            // Good SPD relations - support them
             Q.sapd_candidate = Q.spd_candidate;
         } else {
-            // Independent or stay with KPD
             Q.sapd_candidate = Q.sapd_candidate || "Rosenfeld";
         }
     }
-    
+
     // ========================================
     // SRPD
     // ========================================
     if (Q.srpd_formed) {
         if (Q.srpd_relation >= 60) {
-            // Very close - follow SPD
             Q.srpd_candidate = Q.spd_candidate;
         } else if (Q.is_unity_candidate && Q.srpd_relation >= 45) {
-            // Unity candidate appeal
             Q.srpd_candidate = Q.spd_candidate;
         } else {
-            // Independent
             Q.srpd_candidate = "Horsing";
         }
     }
 
-// ========================================
+    // ========================================
     // KVP - finalize after SPD choice
     // ========================================
     if (Q.kvp_flee === 1 && !Q.kvp_banned) {
         if (Q.kvp_default_candidate && Q.kvp_default_candidate !== "Hitler"
             && Q.kvp_default_candidate !== "Hugenberg") {
-            // Already aligned with moderate conservative - keep unless SPD disrupts
             if (Q.spd_candidate === Q.kpd_candidate) {
-                // SPD went far left - KVP will not follow any SPD-adjacent candidate
                 Q.kvp_candidate = Q.kvp_default_candidate;
             } else if (Q.is_unity_candidate && Q.z_candidate === Q.spd_candidate
                        && Q.dnvp_line !== 3) {
-                // Unity candidate with Z - KVP joins if moderate enough
                 Q.kvp_candidate = Q.spd_candidate;
             } else {
                 Q.kvp_candidate = Q.kvp_default_candidate;
@@ -1851,14 +1897,12 @@ if (Q.hindenburg_dead) {
     // ========================================
     if (!Q.dhp_banned) {
         if (Q.spd_candidate === Q.kpd_candidate) {
-            // Far left SPD - DHV locks in conservative agrarian choice
             Q.dhp_candidate = Q.dhp_default_candidate || "Hamkens";
         } else if (Q.is_unity_candidate && Q.cnbl_candidate === Q.spd_candidate
                    && Q.dnvp_line !== 3) {
-            // CNBL joined unity - DHV follows agrarian allies
             Q.dhp_candidate = Q.spd_candidate;
         } else {
-            Q.dhp_candidate = Q.dhv_default_candidate || "Hamkens";
+            Q.dhp_candidate = Q.dhp_default_candidate || "Hamkens";
         }
     }
 
@@ -1867,18 +1911,48 @@ if (Q.hindenburg_dead) {
     // ========================================
     if (!Q.bb_banned) {
         var bb_crisis = Q.inflation < 0 || Q.unemployed >= 15;
-        
+
         if (bb_crisis) {
-            // Crisis locks protest vote regardless of SPD
             Q.bb_candidate = "Hamkens";
         } else if (Q.spd_candidate === Q.kpd_candidate) {
-            // Far left - BB retreats to BVP or CNBL
             Q.bb_candidate = Q.bvp_candidate || Q.cnbl_candidate || "Hamkens";
         } else if (Q.bvp_candidate === Q.spd_candidate && Q.z_candidate === Q.spd_candidate) {
-            // Broad Catholic unity including BVP - BB joins
             Q.bb_candidate = Q.spd_candidate;
         } else {
             Q.bb_candidate = Q.bb_default_candidate || "Hamkens";
+        }
+    }
+
+    // ========================================
+    // DBP - finalize after SPD choice
+    // ========================================
+    if (Q.dbp_r > 0 && !Q.dbp_banned) {
+        var dbp_crisis = Q.inflation < 0 || Q.unemployed >= 15;
+
+        if (dbp_crisis) {
+            // Agricultural crisis locks in protest vote
+            Q.dbp_candidate = "Fehr";
+
+        } else if (Q.spd_candidate === Q.kpd_candidate) {
+            // Far-left SPD — DBP retreats to agrarian allies
+            Q.dbp_candidate = Q.bb_candidate && Q.bb_candidate !== Q.kpd_candidate
+                ? Q.bb_candidate
+                : Q.cnbl_candidate || Q.ddp_candidate || "Fehr";
+
+        } else if (Q.bb_candidate === Q.spd_candidate
+                   && Q.cnbl_candidate === Q.spd_candidate) {
+            // Both main agrarian allies joined SPD — DBP follows
+            Q.dbp_candidate = Q.spd_candidate;
+
+        } else if (Q.is_unity_candidate
+                   && (Q.bb_candidate === Q.spd_candidate || Q.ddp_candidate === Q.spd_candidate)
+                   && Q.dbp_relation >= 40) {
+            // Unity ticket with agrarian or liberal anchor — DBP joins
+            Q.dbp_candidate = Q.spd_candidate;
+
+        } else {
+            // Keep pre-SPD choice from arrival logic
+            Q.dbp_candidate = Q.dbp_default_candidate || "Fehr";
         }
     }
 
@@ -1888,39 +1962,26 @@ if (Q.hindenburg_dead) {
     if (Q.dvfp_banned) {
         Q.dvfp_candidate = null;
     } else if (Q.spd_candidate === Q.kpd_candidate) {
-        // SPD went Communist - DVFP doubles down on radical right
-        // They will never follow a Red Front.
         Q.dvfp_candidate = Q.dvfp_default_candidate || "Ludendorff";
-        
     } else if (Q.is_unity_candidate) {
-        // SPD proposing a "Unity" candidate (e.g., a moderate liberal)
-        // DVFP views "Unity" as a betrayal of the national cause.
         if (Q.dnvp_line === 3 && Q.dnvp_candidate === Q.nsdap_candidate) {
-            // Far-right is united - DVFP stays with the radical bloc
             Q.dvfp_candidate = Q.nsdap_candidate;
         } else if (Q.dnvp_candidate === Q.spd_candidate && Q.dnvp_line !== 3) {
-            // DNVP went moderate and joined SPD unity - DVFP BREAKS with DNVP
-            // They run Ludendorff as the 'true' nationalist protest.
             Q.dvfp_candidate = "Ludendorff";
         } else {
-            // Otherwise, keep their pre-decided radical choice
             Q.dvfp_candidate = Q.dvfp_default_candidate;
         }
-        
     } else {
-        // Default: keep the choice from the arrival logic (Hitler, Hugenberg, or Ludendorff)
         Q.dvfp_candidate = Q.dvfp_default_candidate;
     }
 
-       // ========================================
+    // ========================================
     // KPO - Finalize
     // ========================================
     if (Q.kpo_r > 0) {
         if (Q.spd_candidate === Q.kpd_candidate && !Q.kpd_banned) {
-            // United Front - KPO joins the left bloc
             Q.kpo_candidate = Q.kpd_candidate;
         } else if (Q.sapd_candidate === Q.spd_candidate) {
-            // If SAPD joins SPD, KPO remains independent or with KPD
             Q.kpo_candidate = Q.kpd_candidate || "Münzenberg";
         }
     }
@@ -1930,10 +1991,8 @@ if (Q.hindenburg_dead) {
     // ========================================
     if (Q.sl_r > 0) {
         if (Q.spd_candidate === Q.kpd_candidate) {
-            // If SPD goes communist, SL retreats to independent left
             Q.sl_candidate = "Rosenfeld";
         } else if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate) {
-            // Follow democratic unity
             Q.sl_candidate = Q.spd_candidate;
         }
     }
@@ -1943,10 +2002,8 @@ if (Q.hindenburg_dead) {
     // ========================================
     if (Q.aspd_r > 0) {
         if (Q.spd_candidate === Q.kpd_candidate) {
-            // Never support "Social Fascist" / Communist alliance
             Q.aspd_candidate = Q.z_dnvp_joint_candidate || Q.dvp_candidate || "Noske";
         } else if (Q.is_unity_candidate && Q.dvp_candidate === Q.spd_candidate) {
-            // Join unity if national liberals are in
             Q.aspd_candidate = Q.spd_candidate;
         }
     }
@@ -1956,10 +2013,8 @@ if (Q.hindenburg_dead) {
     // ========================================
     if (Q.vnr_r > 0) {
         if (Q.spd_candidate === Q.kpd_candidate) {
-            // Shift to conservative/liberal anchor
             Q.vnr_candidate = Q.dvp_candidate || Q.z_candidate || "Gessler";
         } else if (Q.dvp_candidate === Q.spd_candidate) {
-            // Stay with DVP
             Q.vnr_candidate = Q.spd_candidate;
         }
     }
@@ -1976,191 +2031,177 @@ if (Q.hindenburg_dead) {
     }
 
     // ========================================
-// LB - Finalize
-// ========================================
-if (Q.lb_r > 0) {
-    if (Q.kpd_banned || Q.kpd_candidate === "Thälmann") {
-        Q.lb_candidate = Q.sapd_candidate || Q.spd_candidate || null;
-    } else {
-        Q.lb_candidate = Q.kpd_candidate;
+    // LB - Finalize
+    // ========================================
+    if (Q.lb_r > 0) {
+        if (Q.kpd_banned || Q.kpd_candidate === "Thälmann") {
+            Q.lb_candidate = Q.sapd_candidate || Q.spd_candidate || null;
+        } else {
+            Q.lb_candidate = Q.kpd_candidate;
+        }
     }
-}
 
-// ========================================
-// RDP - Finalize
-// ========================================
-if (Q.rdp_r > 0) {
-    if (Q.spd_candidate === Q.kpd_candidate) {
-        // Far left SPD — RDP breaks away entirely
-        Q.rdp_candidate = Q.ddp_candidate !== Q.kpd_candidate
-            ? Q.ddp_candidate || "Quidde"
-            : "Quidde";
-    } else if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate) {
-        Q.rdp_candidate = Q.spd_candidate;
-    } else if (Q.ddp_relation >= 45) {
-        Q.rdp_candidate = Q.ddp_candidate || "Quidde";
-    } else if (Q.spd_relation >= 50) {
-        Q.rdp_candidate = Q.spd_candidate;
-    } else {
-        Q.rdp_candidate = "Quidde";
+    // ========================================
+    // RDP - Finalize
+    // ========================================
+    if (Q.rdp_r > 0) {
+        if (Q.spd_candidate === Q.kpd_candidate) {
+            Q.rdp_candidate = Q.ddp_candidate !== Q.kpd_candidate
+                ? Q.ddp_candidate || "Quidde"
+                : "Quidde";
+        } else if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate) {
+            Q.rdp_candidate = Q.spd_candidate;
+        } else if (Q.ddp_relation >= 45) {
+            Q.rdp_candidate = Q.ddp_candidate || "Quidde";
+        } else if (Q.spd_relation >= 50) {
+            Q.rdp_candidate = Q.spd_candidate;
+        } else {
+            Q.rdp_candidate = "Quidde";
+        }
     }
-}
 
-// ========================================
-// CVP - Finalize
-// ========================================
-if (Q.cvp_r > 0) {
-    if (Q.z_in_government && Q.spd_in_government) {
-        // Their founding grievance — refuse to follow Z if it supports SPD
-        Q.cvp_candidate = Q.bvp_candidate !== Q.spd_candidate
-            ? Q.bvp_candidate || "Schäffer"
-            : "Schäffer";
-    } else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) {
-        Q.cvp_candidate = Q.z_candidate;
-    } else {
-        Q.cvp_candidate = Q.bvp_default_candidate || "Schäffer";
+    // ========================================
+    // CVP - Finalize
+    // ========================================
+    if (Q.cvp_r > 0) {
+        if (Q.z_in_government && Q.spd_in_government) {
+            Q.cvp_candidate = Q.bvp_candidate !== Q.spd_candidate
+                ? Q.bvp_candidate || "Schäffer"
+                : "Schäffer";
+        } else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) {
+            Q.cvp_candidate = Q.z_candidate;
+        } else {
+            Q.cvp_candidate = Q.bvp_default_candidate || "Schäffer";
+        }
     }
-}
 
-// ========================================
-// SLS - Finalize
-// ========================================
-if (Q.sls_r > 0) {
-    if (Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate) {
-        Q.sls_candidate = Q.spd_candidate;
-    } else if (Q.ddp_candidate && Q.ddp_candidate !== Q.kpd_candidate) {
-        Q.sls_candidate = Q.ddp_candidate;
-    } else {
-        Q.sls_candidate = Q.z_candidate || null;
+    // ========================================
+    // SLS - Finalize
+    // ========================================
+    if (Q.sls_r > 0) {
+        if (Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate) {
+            Q.sls_candidate = Q.spd_candidate;
+        } else if (Q.ddp_candidate && Q.ddp_candidate !== Q.kpd_candidate) {
+            Q.sls_candidate = Q.ddp_candidate;
+        } else {
+            Q.sls_candidate = Q.z_candidate || null;
+        }
     }
-}
 
-// ========================================
-// DtsP - Finalize
-// ========================================
-if (Q.dtsp_r > 0) {
-    if (Q.nsdap_banned) {
-        Q.dtsp_candidate = Q.dvfp_candidate || "Kunze";
-    } else if (Q.dvfp_formed && Q.dvfp_candidate && Q.dvfp_candidate !== "Hindenburg") {
-        Q.dtsp_candidate = Q.dvfp_candidate;
-    } else {
-        Q.dtsp_candidate = Q.nsdap_candidate;
+    // ========================================
+    // DTSP - Finalize
+    // ========================================
+    if (Q.dtsp_r > 0) {
+        if (Q.nsdap_banned) {
+            Q.dtsp_candidate = Q.dvfp_candidate || "Kunze";
+        } else if (Q.dvfp_formed && Q.dvfp_candidate && Q.dvfp_candidate !== "Hindenburg") {
+            Q.dtsp_candidate = Q.dvfp_candidate;
+        } else {
+            Q.dtsp_candidate = Q.nsdap_candidate;
+        }
     }
-}
 
     // ========================================
     // 1932 HINDENBURG LOGIC
     // ========================================
     if (!Q.hindenburg_dead && Q.year >= 1932) {
-        if (Q.kpo_r > 0) Q.kpo_candidate = Q.kpd_candidate; // KPO opposes Hindenburg
-        if (Q.sl_r > 0) Q.sl_candidate = "Hindenburg";     // Regionalist stability
-        if (Q.aspd_r > 0) Q.aspd_candidate = "Hindenburg"; // Nationalist-Socialist support
-        if (Q.vnr_r > 0) Q.vnr_candidate = "Hindenburg";   // National Liberal support
-        if (Q.hl_r > 0) Q.hl_candidate = "Hindenburg";     // Regionalist support
+        if (Q.kpo_r > 0) Q.kpo_candidate = Q.kpd_candidate;
+        if (Q.sl_r > 0) Q.sl_candidate = "Hindenburg";
+        if (Q.aspd_r > 0) Q.aspd_candidate = "Hindenburg";
+        if (Q.vnr_r > 0) Q.vnr_candidate = "Hindenburg";
+        if (Q.hl_r > 0) Q.hl_candidate = "Hindenburg";
     }
-
-
 
     // ========================================
     // HINDENBURG (INDEPENDENT) - 1932 only
     // ========================================
     if (!Q.hindenburg_dead && Q.year >= 1932) {
-    Q.hindenburg_running = 1;
-    Q.hindenburg_candidate = "Hindenburg";
-    
-    // Most parties support Hindenburg automatically
-    // Only extremes (KPD, NSDAP if strong) and far-left SPD refuse
-    
-    // Z, BVP - automatic support
-    if (Q.z_party_leader !== "Joos" || Q.z_relation < 35) {
-        Q.z_candidate = "Hindenburg";
-        Q.z_default_candidate = "Hindenburg";
-    }
-    Q.bvp_candidate = "Hindenburg";
-    Q.bvp_default_candidate = "Hindenburg";
-    
-    // DVP, DDP - automatic support
-    Q.dvp_candidate = "Hindenburg";
-    Q.dvp_default_candidate = "Hindenburg";
-    Q.ddp_candidate = "Hindenburg";
-    Q.ddp_default_candidate = "Hindenburg";
-    
-    // DNVP - support unless line 3 (Hugenberg)
-    if (Q.dnvp_line !== 3) {
-        Q.dnvp_candidate = "Hindenburg";
-    }
-    
-    // WP, CNBL, CSVD - automatic support
-    if (Q.wp_r && Q.wp_r > 2) {
-        Q.wp_candidate = "Hindenburg";
-        Q.wp_default_candidate = "Hindenburg";
-    }
-    if (Q.cnbl_r && Q.cnbl_r > 1.5) {
-        Q.cnbl_candidate = "Hindenburg";
-        Q.cnbl_default_candidate = "Hindenburg";
-    }
-    if (Q.csvd_flee === 1) {
-        Q.csvd_candidate = "Hindenburg";
-        Q.csvd_default_candidate = "Hindenburg";
-    }
-    
-    // SRPD - likely support
-    if (Q.srpd_formed && Q.reformist_strength >= 30) {
-        Q.srpd_candidate = "Hindenburg";
-    }
-    // CSRP sure.
-    Q.csrp_candidate = "Hindenburg";
+        Q.hindenburg_running = 1;
+        Q.hindenburg_candidate = "Hindenburg";
 
-    // VRP - savers are broadly pro-Hindenburg as a stable constitutional figure.
-    Q.vrp_candidate = "Hindenburg";
-    Q.vrp_default_candidate = "Hindenburg";
+        if (Q.z_party_leader !== "Joos" || Q.z_relation < 35) {
+            Q.z_candidate = "Hindenburg";
+            Q.z_default_candidate = "Hindenburg";
+        }
+        Q.bvp_candidate = "Hindenburg";
+        Q.bvp_default_candidate = "Hindenburg";
 
-    // DVFP - 1932 Hindenburg Logic
-    if (Q.dvfp_r && Q.dvfp_r > 0) {
-        if (Q.dnvp_line === 3 && Q.dnvp_candidate !== "Hindenburg") {
-            // If Hugenberg and Hitler are opposing Hindenburg, DVFP joins them.
-            // This reflects the Harzburg Front alignment.
-            Q.dvfp_candidate = Q.dnvp_candidate;
-            Q.dvfp_default_candidate = Q.dnvp_candidate;
-        } else if (Q.nationalism >= 60 && Q.unrest_factor >= 2.5) {
-            // In high-tension nationalist scenarios, they run Ludendorff
-            // as the radical alternative to the 'Constitutional' Hindenburg.
-            Q.dvfp_candidate = "Ludendorff";
-            Q.dvfp_default_candidate = "Ludendorff";
-        } else {
-            // If the right is fragmented or Hindenburg seems like the only 
-            // "National" winner, they reluctantly support the Field Marshal.
-            Q.dvfp_candidate = "Hindenburg";
-            Q.dvfp_default_candidate = "Hindenburg";
+        Q.dvp_candidate = "Hindenburg";
+        Q.dvp_default_candidate = "Hindenburg";
+        Q.ddp_candidate = "Hindenburg";
+        Q.ddp_default_candidate = "Hindenburg";
+
+        if (Q.dnvp_line !== 3) {
+            Q.dnvp_candidate = "Hindenburg";
+        }
+
+        if (Q.wp_r && Q.wp_r > 2) {
+            Q.wp_candidate = "Hindenburg";
+            Q.wp_default_candidate = "Hindenburg";
+        }
+        if (Q.cnbl_r && Q.cnbl_r > 1.5) {
+            Q.cnbl_candidate = "Hindenburg";
+            Q.cnbl_default_candidate = "Hindenburg";
+        }
+        if (Q.csvd_flee === 1) {
+            Q.csvd_candidate = "Hindenburg";
+            Q.csvd_default_candidate = "Hindenburg";
+        }
+
+        if (Q.srpd_formed && Q.reformist_strength >= 30) {
+            Q.srpd_candidate = "Hindenburg";
+        }
+        Q.csrp_candidate = "Hindenburg";
+
+        Q.vrp_candidate = "Hindenburg";
+        Q.vrp_default_candidate = "Hindenburg";
+
+        if (Q.dvfp_r && Q.dvfp_r > 0) {
+            if (Q.dnvp_line === 3 && Q.dnvp_candidate !== "Hindenburg") {
+                Q.dvfp_candidate = Q.dnvp_candidate;
+                Q.dvfp_default_candidate = Q.dnvp_candidate;
+            } else if (Q.nationalism >= 60 && Q.unrest_factor >= 2.5) {
+                Q.dvfp_candidate = "Ludendorff";
+                Q.dvfp_default_candidate = "Ludendorff";
+            } else {
+                Q.dvfp_candidate = "Hindenburg";
+                Q.dvfp_default_candidate = "Hindenburg";
+            }
+        }
+
+        if (Q.rdp_r > 0) {
+            Q.rdp_candidate = "Hindenburg";
+        }
+
+        if (Q.cvp_r > 0) {
+            Q.cvp_candidate = "Hindenburg";
+            Q.cvp_default_candidate = "Hindenburg";
+        }
+
+        if (Q.sls_r > 0) {
+            Q.sls_candidate = "Hindenburg";
+        }
+
+        if (Q.dtsp_r > 0) {
+            Q.dtsp_candidate = Q.nsdap_candidate || Q.dvfp_candidate || "Kunze";
+            Q.dtsp_default_candidate = Q.dtsp_candidate;
+        }
+
+        // DBP - backs Hindenburg as constitutional agrarian-liberal default
+        // Holds out longer than most, but ultimately joins the anti-Hitler bloc
+        if (Q.dbp_r > 0 && !Q.dbp_banned) {
+            if (Q.dnvp_line === 3 && Q.rural_nsdap_support >= 25) {
+                // Heavy agrarian Nazi pressure — DBP still refuses Hitler,
+                // but runs Fehr as independent protest rather than endorsing Hindenburg
+                Q.dbp_candidate = "Fehr";
+                Q.dbp_default_candidate = "Fehr";
+            } else {
+                // Hindenburg is the natural anti-Nazi anchor for a liberal agrarian
+                Q.dbp_candidate = "Hindenburg";
+                Q.dbp_default_candidate = "Hindenburg";
+            }
         }
     }
-
-// RDP - pacifists broadly back Hindenburg as constitutional bulwark
-if (Q.rdp_r > 0) {
-    Q.rdp_candidate = "Hindenburg";
-}
-
-// CVP - Catholic conservatives back Hindenburg automatically
-if (Q.cvp_r > 0) {
-    Q.cvp_candidate = "Hindenburg";
-    Q.cvp_default_candidate = "Hindenburg";
-}
-
-// SLS - minority protection, backs stability
-if (Q.sls_r > 0) {
-    Q.sls_candidate = "Hindenburg";
-}
-
-// LB - Trotskyists will never back Hindenburg
-// (no override — keeps KPD/left candidate from finalize block)
-
-// DtsP - joins radical right opposition to Hindenburg
-if (Q.dtsp_r > 0) {
-    Q.dtsp_candidate = Q.nsdap_candidate || Q.dvfp_candidate || "Kunze";
-    Q.dtsp_default_candidate = Q.dtsp_candidate;
-}
-
-}
 !}
 go-to: r1_finalized
 
@@ -2356,6 +2397,7 @@ on-arrival: {!
     Lambach2: "Walther Lambach (CSVD)",
     Graefe: "Albrecht von Graefe (DVFP)",
     Ludendorff: "Erich Ludendorff (DVFP/Völkisch)",
+    Fehr: "Anton Fehr (DBP)"
 };
     
     // Mark running candidates
@@ -2368,7 +2410,7 @@ on-arrival: {!
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
                'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp'];
+               'lb','rdp','cvp','sls','dtsp', 'dbp'];
     
     for (var i = 0; i < all_parties.length; i++) {
         var party = all_parties[i];
@@ -2498,7 +2540,7 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331"
 };
 
 var partyLabels = {
@@ -2507,13 +2549,13 @@ var partyLabels = {
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
     aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP"
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP"
 };
 
 var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
                   'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-                  'lb','rdp','cvp','sls','dtsp'];
+                  'lb','rdp','cvp','sls','dtsp', 'dbp'];
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -2699,7 +2741,7 @@ on-arrival: {!
     var far_left = ["Thälmann", "Thalmann", "Münzenberg", "Munzenberg"];
     var left = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"];
-    var center = ["Adenauer", "Kaas", "Brüning", "Bruning", "Noske"];
+    var center = ["Adenauer", "Kaas", "Brüning", "Bruning", "Noske", "Fehr"];
     var center_right = ["Schäffer", "Schaffer", "Westarp", "Drewitz", "Hamkens", "Behrens", "Lambach2"];
     var far_right = ["Hitler", "Göring", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
     var cultural = ["Einstein", "Mann", "Ossietzky"];
@@ -2861,11 +2903,15 @@ if (Q.dtsp_r > 0) {
     Q.dtsp_candidate = pickClosestFinalist(Q.dtsp_candidate, [far_right, center_right, center]);
 }
 
+if (Q.dbp_r > 0) {
+    Q.dtsp_candidate = pickClosestFinalist(Q.dbp_candidate, [center, center_right, center_left]);
+}
+
     if (!Q.round2_has_third) {
         var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
           'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
           'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp'];
+          'lb','rdp','cvp','sls','dtsp', 'dbp'];
         for (var i = 0; i < parties_r2.length; i++) {
             var p = parties_r2[i];
             var cand = Q[p + '_candidate'];
@@ -2922,12 +2968,12 @@ on-arrival: {!
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
           'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
           'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp'];
+          'lb','rdp','cvp','sls','dtsp', 'dbp'];
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
-    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg", "Noske"];
+    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg", "Noske", "Fehr"];
     var center_right = ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Lambach2"];
     // Added Graefe and Ludendorff to far_right
     var far_right    = ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
@@ -2966,12 +3012,12 @@ on-arrival: {!
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
           'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
           'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp'];
+          'lb','rdp','cvp','sls','dtsp', 'dbp'];
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
     var center_left  = ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid", "Hindenburg"];
-    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg", "Noske"];
+    var center       = ["Adenauer", "Kaas", "Bruning", "Hindenburg", "Noske", "Fehr"];
     var center_right = ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Lambach2"];
     // Added Graefe and Ludendorff to far_right
     var far_right    = ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"];
@@ -3046,6 +3092,7 @@ We now support [+ round1_third +].
 - @convince_dvp_r2: Try to convince the DVP.
 - @convince_kpd_r2: Try to convince the KPD.
 - @convince_csrp_r2: Try to convince the CSRP.
+- @convince_dbp_r2: Try to convince the DBP.
 - @r2_menu: Back.
 
 @convince_csrp_r2
@@ -3055,6 +3102,14 @@ go-to: r2_convince
 
 [? if csrp_candidate == spd_candidate : The CSRP now supports [+ spd_candidate +]! ?]
 [? if csrp_candidate != spd_candidate : The CSRP refuses. ?]
+
+@convince_dbp_r2
+view-if: dbp_candidate != spd_candidate
+on-arrival: dbp_candidate = spd_candidate if dbp_relation >= 50;
+go-to: r2_convince
+
+[? if dbp_candidate == spd_candidate : The DBP now supports [+ spd_candidate +]! ?]
+[? if dbp_candidate != spd_candidate : The DBP refuses. ?]
 
 
 @convince_z_r2
@@ -3109,7 +3164,7 @@ on-arrival: {!
     var parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
                'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp'];
+               'lb','rdp','cvp','sls','dtsp', 'dbp'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -3228,6 +3283,7 @@ on-arrival: {!
     Graefe: "Albrecht von Graefe (DVFP)",
     Ludendorff: "Erich Ludendorff (DVFP/Völkisch)",
     Noske: "Gustav Noske (SPD - SC)",
+    Fehr: "Anton Fehr (DBP)"
     
 };
     
@@ -3242,7 +3298,7 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331"
 };
 
 var partyLabels = {
@@ -3251,13 +3307,13 @@ var partyLabels = {
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
     aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP"
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp: "DBP"
 };
 
 var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
                   'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-                  'lb','rdp','cvp','sls','dtsp'];
+                  'lb','rdp','cvp','sls','dtsp','dbp'];
 
 
 var displayNames = {
@@ -3534,7 +3590,8 @@ else if (z_winners.indexOf(w)     >= 0) Q.president_party = 'Z';
 else if (bvp_winners.indexOf(w)   >= 0) Q.president_party = 'BVP';
 else if (dvp_winners.indexOf(w)   >= 0) Q.president_party = 'DVP';
 else if (ddp_winners.indexOf(w)   >= 0) Q.president_party = 'DDP';
-else if (dvfp_winners.indexOf(w)  >= 0) Q.president_party = 'DVFP'; // Added check
+else if (dvfp_winners.indexOf(w)  >= 0) Q.president_party = 'DVFP';
+else if (dbp_winners.indexOf(w)  >= 0) Q.president_party = 'DBP';
 else if (w === 'Rosenfeld')              Q.president_party = 'SAPD';
 else if (w === 'Horsing')           Q.president_party = 'SRPD';
 else if (w === 'Drewitz')               Q.president_party = 'WP';
