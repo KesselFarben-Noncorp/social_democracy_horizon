@@ -5,25 +5,36 @@ tags: event
 view-if: year = 1928 and month = 1 and weeks >= 2
 max-visits: 1 
 on-arrival: {!
-  const report = {
-    tariffs: Q.tariffs <= 0,
-    agricultural_policy: Q.agricultural_policy <= 0,
-    unemployed: Q.unemployed >= 4.8,
-    rural_dnvp: Q.rural_dnvp >= 36.6,
-    sh_strength: Q.sh_strength >= 750,
-    pro_republic: Q.pro_republic <= 53,
-    nationalism: Q.nationalism > 21,
-    socialism: Q.socialism > 10,
-    rural_z: Q.rural_z > 12.57
-  };
+  console.log("=== INDIVIDUAL LANDVOLK VARIABLE CHECK ===");
+  
+  console.log("1. Q.tariffs =", Q.tariffs, "| <= 0? ->", Q.tariffs <= 0);
+  console.log("2. Q.agricultural_policy =", Q.agricultural_policy, "| <= 0? ->", Q.agricultural_policy <= 0);
+  console.log("3. Q.unemployed =", Q.unemployed, "| >= 4.8? ->", Q.unemployed >= 4.8);
+  console.log("4. Q.rural_dnvp =", Q.rural_dnvp, "| >= 36.6? ->", Q.rural_dnvp >= 36.6);
+  console.log("5. Q.sh_strength =", Q.sh_strength, "| >= 750? ->", Q.sh_strength >= 750);
+  console.log("6. Q.pro_republic =", Q.pro_republic, "| <= 53? ->", Q.pro_republic <= 53);
+  console.log("7. Q.nationalism =", Q.nationalism, "| > 21? ->", Q.nationalism > 21);
+  console.log("8. Q.socialism =", Q.socialism, "| > 10? ->", Q.socialism > 10);
+  console.log("9. Q.rural_z =", Q.rural_z, "| > 12.57? ->", Q.rural_z > 12.57);
 
-  console.log("--- Landvolk Condition Audit ---");
-  console.log(report);
-
-  // Safely sum up the true conditions and set the game state variable
-  Q.landvolk_fury = Object.values(report).filter(Boolean).length;
-  console.log("Total Fury Score calculated:", Q.landvolk_fury);
+  // Recalculating to keep game logic running
+  const conditions = [
+    Q.tariffs <= 0,
+    Q.agricultural_policy <= 0,
+    Q.unemployed >= 4.8,
+    Q.rural_dnvp >= 36.6,
+    Q.sh_strength >= 750,
+    Q.pro_republic <= 53,
+    Q.nationalism > 21,
+    Q.socialism > 10,
+    Q.rural_z > 12.57
+  ];
+  
+  Q.landvolk_fury = conditions.filter(Boolean).length;
+  console.log("==========================================");
+  console.log("Final Engine Count:", Q.landvolk_fury);
 !}
+
 
 
 = The Eruption in Neumünster
