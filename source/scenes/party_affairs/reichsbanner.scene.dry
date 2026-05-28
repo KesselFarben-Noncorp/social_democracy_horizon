@@ -23,7 +23,6 @@ The *Reichsbanner Schwarz-Rot-Gold* is a mass organization for the defense of th
 - @militant_4: Fund more military-style training and equipment for the Reichsbanner.
 - @militant_5: Fund more military-style training and equipment for the Reichsbanner.
 - @cut_rb: Cut funding for the Reichsbanner.
-- @attack_rfb: Attack the Red Front Fighters!
 - @women_rb
 - @trans_rb: Allow transgenders to join the organization
 - @jungdo: Fund the Jungdo organization with equipment
@@ -33,20 +32,6 @@ The *Reichsbanner Schwarz-Rot-Gold* is a mass organization for the defense of th
 - @cancel_advisor_action
 
 #- Orient reichsbanner towards anti-fascism (only available if we have prioritized anti fascism)
-
-@attack_rfb
-subtitle: Only use when you are actually prepared for this.
-view-if: social_fascism_adopted and april_challenge = 1 and (rfb_strength * rfb_militancy) > 100 and (rb_strength * rb_militancy) > 100
-on-arrival: rb_power = rb_strength * rb_militancy; rfb_power = rfb_strength * rfb_militancy; rb_power += (sh_strength * sh_militancy) if rb_sh_front == 1; rb_loss = rb_strength * (0.5 - rb_militancy); rfb_loss = rfb_strength * (0.6 - rfb_militancy); rb_loss = rb_loss * 0.6 if rb_sh_front == 1; rfb_loss = rfb_loss * 1.4 if rb_sh_front == 1; rb_strength -= rb_loss; rfb_strength -= rfb_loss; rfb_strength -= 120 if rb_power > rfb_power; rb_strength -= 100 if rb_power <= rfb_power; sh_strength -= 50 if rb_sh_front == 1; kpd_relation -= 15; kpd_relation -= 15 if rb_sh_front == 1; workers_spd -= 3; workers_spd -= 2 if rb_sh_front == 1; left_dissent += 10; left_dissent += 15 if rb_sh_front == 1; sh_relation += 5 if rb_sh_front == 1
-
-We have ordered the Reichsbanner to directly assault the Red Front Fighters.
-
-[? if rb_sh_front == 1 : In an unprecedented and controversial move, the nationalist Stahlhelm marches shoulder-to-shoulder with our Reichsbanner columns. The sight of republicans and right-wing monarchists uniting to purge the far-left shocks the public. ?]
-
-[? if rb_power > rfb_power : Because our forces are stronger and better organized than the RFB, we successfully rout them from the streets. They suffer devastating losses as their defensive lines collapse under our coordinated assault. ?]
-[? if rb_power <= rfb_power : However, the RFB's fanaticism and raw militancy catch our forces off guard. Despite our efforts, the Reichsbanner is forced into a humiliating retreat from the working-class districts, sustaining heavy extra casualties as the communists hunt down our retreating members. ?]
-
-The open violence severely alienates our left wing. [? if rb_sh_front == 1 : The party's left-militants are utterly furious, viewing the alliance with the Stahlhelm as an absolute betrayal of working-class solidarity. ?] Meanwhile, the right wing of our party feels completely vindicated in crushing the "totalitarian left."
 
 @revolution
 subtitle: Are we sure? This is irreversible action.
