@@ -3595,10 +3595,10 @@ function computeTarget(party, c) {
             let unemployedc_m = 0.57
                 * (Q.peoples_party                      === 1 ? 1.02 : 1);
 
-    const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
-    if (Q.dem_challenge === 1) base *= 0.80;
-    return _applyQOL(base * (class_mods[c] || 1.0), party, c);
-}
+            const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
+            if (Q.dem_challenge === 1) base *= 0.80;
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+        }
 
         case 'dvp': {
             if (Q.dvp_banned) return 0;
@@ -3607,7 +3607,7 @@ function computeTarget(party, c) {
             let unemp_pen   = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
             let econ_conf   = Math.max(0.35, 1 - (infl_pen * 0.7) - (unemp_pen * 0.7));
             let scale       = Q.dvp_right_shift ? 2.2 : 1.8;
-            base = factor * 60 * scale * econ_conf * (im.dvp || 1);
+            base = factor * 55 * scale * econ_conf * (im.dvp || 1);
 
             const class_mods = {
                 workers:     0.40 * (Q.peoples_party === 1 ? 0.92 : 1),
