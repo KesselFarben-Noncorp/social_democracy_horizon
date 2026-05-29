@@ -1487,3 +1487,25 @@ window.csLoad = function() {
     return raw ? JSON.parse(raw) : {};
   } catch(e) { return {}; }
 };
+
+
+
+window.enableFocusMode = function () {
+  document.body.classList.add('focus-mode');
+  var link = document.getElementById('focus-link');
+  if (link) link.textContent = 'Restore';
+};
+
+window.disableFocusMode = function () {
+  document.body.classList.remove('focus-mode');
+  var link = document.getElementById('focus-link');
+  if (link) link.textContent = 'Focus';
+};
+
+window.toggleFocusMode = function () {
+  if (document.body.classList.contains('focus-mode')) {
+    window.disableFocusMode();
+  } else {
+    window.enableFocusMode();
+  }
+};
