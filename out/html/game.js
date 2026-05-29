@@ -1492,21 +1492,28 @@ window.csLoad = function() {
 
 window.enableFocusMode = function () {
   var sidebar = document.getElementById('stats_sidebar');
+  var bottomPanel = document.getElementById('bottom_panel');
   var content = document.getElementById('content');
-  document.body.classList.add('focus-mode');
 
-  setTimeout(function () {
-    if (sidebar) sidebar.style.display = 'none';
-    // pin current width as start point
-    if (content) content.style.width = content.offsetWidth + 'px';
-    // next frame: add expanded class and release width
-    requestAnimationFrame(function () {
-      document.body.classList.add('focus-mode-expanded');
-      requestAnimationFrame(function () {
-        if (content) content.style.width = '';
-      });
-    });
-  }, 350);
+  if (content) {
+    // Pin current exact pixel width as the animation starting point
+    content.style.width = content.offsetWidth + 'px';
+  }
+
+  // Instantly vanish panels and adapt body layout classes
+  document.body.classList.add('focus-mode', 'focus-mode-expanded');
+  if (sidebar) sidebar.style.display = 'none';
+  if (bottomPanel) bottomPanel.style.display = 'none';
+
+  // Trigger the slow horizontal expansion transition on the next layout paint
+  requestAnimationFrame(function () {
+    if (content) {
+      // Force a minor reflow to register the starting width lock
+      content.offsetHeight;
+      // Let it transition smoothly to fill the area
+      content.style.width = '100%';
+    }
+  });
 
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Restore';
@@ -1514,8 +1521,15 @@ window.enableFocusMode = function () {
 
 window.disableFocusMode = function () {
   var sidebar = document.getElementById('stats_sidebar');
+  var bottomPanel = document.getElementById('bottom_panel');
+  var content = document.getElementById('content');
+  
   document.body.classList.remove('focus-mode', 'focus-mode-expanded');
+  
   if (sidebar) sidebar.style.display = '';
+  if (bottomPanel) bottomPanel.style.display = '';
+  if (content) content.style.width = ''; // Clear inline tracking
+  
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Focus';
 };
@@ -1527,3 +1541,4 @@ window.toggleFocusMode = function () {
     window.enableFocusMode();
   }
 };
+
