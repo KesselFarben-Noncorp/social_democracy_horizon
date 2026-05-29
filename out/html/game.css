@@ -168,6 +168,46 @@ body.crt-mode::after {
   z-index: 9998;
 }
 
+
+
+
+
+
+/* ── Focus Mode ─────────────────────────────────────────────── */
+body.focus-mode #stats_sidebar,
+body.focus-mode #bottom_panel {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+body.focus-mode #page {
+  grid-template-columns: 1fr;
+  grid-template-areas: "main";
+  max-width: 820px;
+  transition: max-width 0.35s ease, grid-template-columns 0.35s ease;
+}
+
+body.focus-mode #main_column {
+  transition: all 0.35s ease;
+}
+
+/* Sidebar and bottom panel base transition (needed for smooth restore) */
+#stats_sidebar,
+#bottom_panel {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+#stats_sidebar {
+  transform: translateX(0);
+}
+
+
+
+
+
+
 /* =====================================================================
    PAGE LAYOUT — CSS Grid (from first CSS)
    Older HTML: #page → [#mid_panel (main)] [#stats_sidebar (sidebar)]
