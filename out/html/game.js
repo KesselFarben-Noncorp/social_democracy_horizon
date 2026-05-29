@@ -1493,15 +1493,30 @@ window.csLoad = function() {
 window.enableFocusMode = function () {
   var sidebar = document.getElementById('stats_sidebar');
   var content = document.getElementById('content');
+  var page = document.getElementById('page');
+
+  // snapshot current dimensions before anything changes
+  var currentW = content ? content.offsetWidth : 0;
+  var currentH = content ? content.offsetHeight : 0;
+
   document.body.classList.add('focus-mode');
-  // freeze content width during sidebar fade
-  if (content) content.style.width = content.offsetWidth + 'px';
+
+  // lock both dimensions so nothing jumps during sidebar fade
+  if (content) {
+    content.style.width  = currentW + 'px';
+    content.style.height = currentH + 'px';
+  }
+
   setTimeout(function () {
     if (sidebar) sidebar.style.display = 'none';
-    // release width lock so it expands smoothly
-    if (content) content.style.transition = 'width 0.35s ease';
-    if (content) content.style.width = '100%';
+    // release both at the same time
+    if (content) {
+      content.style.transition = 'width 0.35s ease, height 0.35s ease';
+      content.style.width  = '';
+      content.style.height = '';
+    }
   }, 350);
+
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Restore';
 };
@@ -1510,8 +1525,11 @@ window.disableFocusMode = function () {
   var sidebar = document.getElementById('stats_sidebar');
   var content = document.getElementById('content');
   if (sidebar) sidebar.style.display = '';
-  if (content) content.style.transition = '';
-  if (content) content.style.width = '';
+  if (content) {
+    content.style.transition = '';
+    content.style.width  = '';
+    content.style.height = '';
+  }
   document.body.classList.remove('focus-mode');
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Focus';
