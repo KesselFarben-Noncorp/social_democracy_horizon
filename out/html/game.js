@@ -1492,11 +1492,20 @@ window.csLoad = function() {
 
 window.enableFocusMode = function () {
   var sidebar = document.getElementById('stats_sidebar');
+  var content = document.getElementById('content');
   document.body.classList.add('focus-mode');
 
   setTimeout(function () {
     if (sidebar) sidebar.style.display = 'none';
-    document.body.classList.add('focus-mode-expanded');
+    // pin current width as start point
+    if (content) content.style.width = content.offsetWidth + 'px';
+    // next frame: add expanded class and release width
+    requestAnimationFrame(function () {
+      document.body.classList.add('focus-mode-expanded');
+      requestAnimationFrame(function () {
+        if (content) content.style.width = '';
+      });
+    });
   }, 350);
 
   var link = document.getElementById('focus-link');
