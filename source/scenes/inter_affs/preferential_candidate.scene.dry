@@ -2,6 +2,8 @@ title: SPD Chancellorship
 subtitle: Someone ought to be Chancellor candidate.
 card-image: img/flags.jpg
 tags: party_aff
+view-if: chancellor_spd_choice_timer <= 0
+on-arrival: month_actions += 1; chancellor_spd_choice_timer = 24
 
 = SPD Chancellor Candidate Selection
 
@@ -38,6 +40,11 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 - @prefer_horsing: Otto Hörsing - Security and Discipline
 - @prefer_sudukum: Albert Südekum - Economic Efficiency
 - @prefer_cunow: Heinrich Cunow - The Supremacy of the State
+- @partyaff2: Return back
+
+@partyaff2
+on-arrival: month_actions = 0; chancellor_spd_choice_timer = 0
+go-to: partyaff
 
 @prefer_winnig
 view-if: social_fascism_adopted = 1
