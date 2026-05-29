@@ -3425,8 +3425,11 @@ for (var i = 0; i < allParties.length; i++) {
 }
 
 // Sort candidates: winner first, then runner-up, then third
-var candOrder = [Q.winner, Q.runnerup];
-if (thirdKey && thirdKey !== Q.winner && thirdKey !== Q.runnerup) candOrder.push(thirdKey);
+var candOrder = Object.keys(grouped).sort(function(a, b) {
+    var totalA = grouped[a].reduce(function(s, x) { return s + x.votes; }, 0);
+    var totalB = grouped[b].reduce(function(s, x) { return s + x.votes; }, 0);
+    return totalB - totalA;
+});
 
 // For each candidate, render a labelled block of party rows
 candOrder.forEach(function(cand) {
