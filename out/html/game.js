@@ -1491,19 +1491,12 @@ window.csLoad = function() {
 
 
 window.enableFocusMode = function () {
-  var sidebar = document.getElementById('stats_sidebar');
   document.body.classList.add('focus-mode');
-  // let opacity fade out first, then remove from layout
-  setTimeout(function () {
-    if (sidebar) sidebar.style.display = 'none';
-  }, 350);
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Restore';
 };
 
 window.disableFocusMode = function () {
-  var sidebar = document.getElementById('stats_sidebar');
-  if (sidebar) sidebar.style.display = '';
   document.body.classList.remove('focus-mode');
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Focus';
