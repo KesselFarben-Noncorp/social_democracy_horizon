@@ -1491,12 +1491,27 @@ window.csLoad = function() {
 
 
 window.enableFocusMode = function () {
+  var sidebar = document.getElementById('stats_sidebar');
+  var content = document.getElementById('content');
   document.body.classList.add('focus-mode');
+  // freeze content width during sidebar fade
+  if (content) content.style.width = content.offsetWidth + 'px';
+  setTimeout(function () {
+    if (sidebar) sidebar.style.display = 'none';
+    // release width lock so it expands smoothly
+    if (content) content.style.transition = 'width 0.35s ease';
+    if (content) content.style.width = '100%';
+  }, 350);
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Restore';
 };
 
 window.disableFocusMode = function () {
+  var sidebar = document.getElementById('stats_sidebar');
+  var content = document.getElementById('content');
+  if (sidebar) sidebar.style.display = '';
+  if (content) content.style.transition = '';
+  if (content) content.style.width = '';
   document.body.classList.remove('focus-mode');
   var link = document.getElementById('focus-link');
   if (link) link.textContent = 'Focus';
