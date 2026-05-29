@@ -3288,6 +3288,80 @@ on-arrival: {!
 };
     
     Q.winner_desc = candidate_descs[Q.winner];
+
+
+
+
+// DISPLAY LOG CONSOLE DEBUG
+
+
+
+
+console.log("=== PRESIDENTIAL ELECTION DEBUG ===");
+console.log("--- Round 1 Results ---");
+console.log("R1 Winner:", Q.round1_winner, Q.round1_winner_votes + "%");
+console.log("R1 Runner-up:", Q.round1_runner_up, Q.round1_runner_up_votes + "%");
+console.log("R1 Third:", Q.round1_third, Q.round1_third_votes + "%");
+console.log("third_stays:", Q.third_stays, "round2_has_third:", Q.round2_has_third);
+
+console.log("--- Round 2 Computed ---");
+console.log("Winner:", Q.winner, Q.winner_votes_disp + "%");
+console.log("Runnerup:", Q.runnerup, Q.runnerup_votes_disp + "%");
+
+console.log("--- Party _r vs _votes vs _candidate ---");
+var debug_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
+    'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
+    'aspd','hl','sl','kpo','vnr','other','lb','rdp','cvp','sls','dtsp','dbp'];
+for (var i = 0; i < debug_parties.length; i++) {
+    var p = debug_parties[i];
+    var cand = Q[p + '_candidate'];
+    if (!cand) continue;
+    console.log(p.toUpperCase() + ":",
+        "candidate=" + cand,
+        "_r=" + (Q[p + '_r'] || 0).toFixed(2) + "%",
+        "_votes=" + (Q[p + '_votes'] || 0).toFixed(2) + "%",
+        "_r2_votes=" + (Q[p + '_r2_votes'] || 0).toFixed(2) + "%"
+    );
+}
+
+console.log("--- Bonuses ---");
+var debug_candidates = ["Hitler","Goring","Goebbels","Seldte","Westarp","Hindenburg",
+    "Braun","Schumacher","Juchacz","Schmid","Ollenhauer","Eckener","Gessler",
+    "Thalmann","Munzenberg","Kaas","Adenauer","Bruning","Schaffer","Horsing",
+    "Drewitz","Hamkens","Heuss","Stresemann","Hugenberg","Fehr","Noske"];
+for (var j = 0; j < debug_candidates.length; j++) {
+    var c = debug_candidates[j];
+    if (Q[c + '_bonus']) {
+        console.log(c + "_bonus:", Q[c + '_bonus']);
+    }
+}
+
+console.log("--- Display Recalculation ---");
+var debug_totals = {};
+for (var i = 0; i < debug_parties.length; i++) {
+    var p = debug_parties[i];
+    var cand = Q[p + '_candidate'];
+    if (!cand) continue;
+    var candNorm = cand.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    var r_votes = Q[p + '_r'] || 0;
+    var v_votes = Q[p + '_votes'] || 0;
+    if (!debug_totals[candNorm]) debug_totals[candNorm] = { r: 0, v: 0 };
+    debug_totals[candNorm].r += r_votes;
+    debug_totals[candNorm].v += v_votes;
+}
+var r_total = 0, v_total = 0;
+for (var k in debug_totals) { r_total += debug_totals[k].r; v_total += debug_totals[k].v; }
+console.log("Total using _r:", r_total.toFixed(2) + "%");
+console.log("Total using _votes:", v_total.toFixed(2) + "%");
+for (var k in debug_totals) {
+    console.log(k + ":",
+        "_r sum=" + debug_totals[k].r.toFixed(2) + "%",
+        "(" + (debug_totals[k].r / r_total * 100).toFixed(1) + "% of total)",
+        "_votes sum=" + debug_totals[k].v.toFixed(2) + "%",
+        "(" + (debug_totals[k].v / v_total * 100).toFixed(1) + "% of total)"
+    );
+}
+console.log("=== END DEBUG ===");
 !}
 on-display: {!
 
