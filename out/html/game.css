@@ -173,19 +173,20 @@ body.crt-mode::after {
 
 
 
+
+
+
+
+
 body.focus-mode #stats_sidebar {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
+  display: none !important;
 }
 
 body.focus-mode #bottom_panel {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
+  display: none !important;
 }
 
-/* grid only changes AFTER sidebar is gone */
+/* Grid layout updates instantly when the sidebar vanishes */
 body.focus-mode-expanded #page {
   grid-template-columns: 1fr;
   grid-template-areas: "main";
@@ -201,12 +202,14 @@ body.focus-mode-expanded #main_column {
   min-width: 0;
 }
 
+/* Main box slowly adjusts to fill the newly available space */
 body.focus-mode-expanded #content {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  transition: width 0.35s ease;
+  transition: width 0.5s ease-in-out; /* Adjusted to 0.5s for a smoother slow fit */
 }
+
 
 
 
