@@ -6,6 +6,133 @@ max-visits: 1
 new-page: true
 on-arrival: {!
 window.enableFocusMode()
+
+Q.dvp_left = Q.dvp_left || 0;
+Q.dvp_right = Q.dvp_right || 0;
+
+// 1. SPD ELECTORAL PERFORMANCE
+if (Q.spd_r >= 30) {
+    Q.dvp_left -= 5;
+    Q.dvp_right += 5;
+} else if (Q.spd_r >= 27.5) {
+    Q.dvp_left += 2;
+    Q.dvp_right += 3;
+} else if (Q.spd_r <= 27.5 && Q.spd_r > 25) {
+    Q.dvp_left += 5;
+    Q.dvp_right -= 5;
+} else { 
+    Q.dvp_left += 10;
+    Q.dvp_right -= 10;
+}
+
+// 2. Stresemann cabinet position.
+if (Q.foreign_minister_party == "DVP" || Q.kellogg_briand_signed_dvp == 1) {
+    Q.dvp_right += 30;
+    Q.dvp_left -= 5;
+}
+
+// 3. LAMBACH VICTORY OR DNVP SITUATION
+if (Q.congress_path != "capitulation") {
+    Q.dvp_left += 5;
+}
+
+if (Q.congress_path == "capitulation") {
+    Q.dvp_right += 25;
+}
+
+if (Q.congress_path == "social_nationalists" || Q.congress_path == "coalitionists") {
+    Q.dvp_left += 15;
+    if (Q.congress_path == "social_nationalists") Q.dvp_left += 5;
+}
+
+// 4. FINANCIAL TAX situation
+if (Q.upper_tax_rates > 0) {
+    Q.dvp_right += 10 * Q.upper_tax_rates;
+}
+
+if (Q.welfare > 1) {
+    Q.dvp_right += 5 * Q.welfare;
+}
+
+if (Q.working_hours > 0) {
+    Q.dvp_right += 5 * Q.working_hours;
+}
+
+if (Q.ruhr_labor > 0) Q.dvp_right += 10;
+
+if (Q.works_councils > 0) {
+    Q.dvp_right += 10 * Q.works_councils;
+}
+
+if (Q.socialization > 0) {
+    Q.dvp_right += 30 * Q.socialization;
+}
+
+if (Q.cooperatives > 0) {
+    Q.dvp_right += 10 * Q.cooperatives;
+}
+
+if (Q.major_curriculum == "vocational") Q.dvp_left += 15;
+if (Q.minor_curriculum == "vocational") Q.dvp_left += 5;
+if (Q.secularized == 1) Q.dvp_left += 25;
+
+// Patched Naked Math Operations with ( || 0 ) Fallbacks
+Q.dvp_right += (Q.capital_strike_progress || 0) * 2;
+Q.dvp_right += (Q.workers_safety || 0) * 3;
+Q.dvp_left += (Q.judicial_reform || 0) * 10;
+Q.dvp_left += (Q.reparations_negotiation || 0) * 20;
+
+if (Q.enemies == "bourgeois parties" || Q.enemies == "DVP") Q.dvp_right += 30;
+
+Q.dvp_left += (Q.radio || 0) * 15;
+Q.dvp_left += (Q.commercialized_media || 0) * 10;
+
+if (Q.unions_independent) Q.dvp_left += 50; 
+
+if (Q.ideology == "reformist") Q.dvp_left += 15;
+if (Q.ideology == "labor") {
+    Q.dvp_left -= 10;
+    Q.dvp_right += 10;
+}
+if (Q.ideology == "left") {
+    Q.dvp_right += 20;
+    Q.dvp_left -= 15;
+}
+
+Q.dvp_right += (Q.peoples_party_support || 0) * 2;
+Q.dvp_left += (Q.peoples_party_support || 0) * 5;
+
+Q.dvp_left += ((Q.dvp_relation || 0) / 3);
+Q.dvp_right += ((100 - (Q.dvp_relation || 0)) * 1.2);
+
+Q.dvp_right += (Q.dvp_dissent || 0) * 5;
+
+Q.dvp_left += (Q.pro_republic || 0) / 5;
+Q.dvp_right += (Q.nationalism || 0) * 5;
+Q.dvp_left += ((Q.new_middle_dvp || 0) + (Q.workers_dvp || 0) + (Q.unemployedc_dvp || 0)) / 2;
+Q.dvp_right += (Q.old_middle || 0) * 2 + (Q.rural_dvp || 0) * 1.5;
+
+// 5. SPD/ZENTRUM DEMOGRAPHIC WEAKNESS OVERTURE
+Q.dvp_left += (32 - (Q.new_middle_spd_display || 0)) * 0.5;
+Q.dvp_left += (20 - (Q.new_middle_z_display || 0)) * 0.5;
+Q.dvp_left += (38 - (Q.workers_spd_display || 0)) * 0.5;
+Q.dvp_left += (15 - (Q.workers_z_display || 0)) * 0.5;
+
+Q.dvp_left = Math.round(Q.dvp_left);
+Q.dvp_right = Math.round(Q.dvp_right);
+
+// 6. FINAL OUTCOME EVALUATION
+if (Q.dvp_left > Q.dvp_right + 25) {
+    Q.dvp_reform_outcome = "stresemann_success";
+    Q.dvp_party_leader = "Gustav Stresemann";
+    Q.dvp_ideology = ""National Liberalism";
+} else if (Q.dvp_right > Q.dvp_left + 25) {
+    Q.dvp_reform_outcome = "scholz_victory";
+    Q.dvp_party_leader = "Ernst Scholz";
+    Q.dvp_ideology = "National Liberalism (Scholzite)";
+} else {
+    Q.dvp_reform_outcome = "stalemate";
+}
 !}
 on-departure: {!
 window.disableFocusMode()
@@ -15,7 +142,7 @@ window.disableFocusMode()
 
 {!
 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin:1.5em 0 1em;">
-  <div style="text-align:center; width:45%;">
+  <div id="stresemann-container" style="text-align:center; width:45%; transition: all 2.5s ease-in-out;">
     <img src="img/portraits/stresemann2.jpg" alt="Stresemann"
          style="max-height:220px; object-fit:cover; object-position:top;
                 clip-path:polygon(0 0,100% 0,100% 100%,0 100%);
@@ -26,9 +153,9 @@ window.disableFocusMode()
     </div>
   </div>
 
-  <div style="font-size:2em; opacity:0.4; align-self:center;">⚔</div>
+  <div style="font-size:2em; opacity:0.4; align-self:center;">VS</div>
 
-  <div style="text-align:center; width:45%;">
+  <div id="scholz-container" style="text-align:center; width:45%; transition: all 2.5s ease-in-out;">
     <img src="img/portraits/scholz.jpg" alt="Scholz"
          style="max-height:220px; object-fit:cover; object-position:top;
                 filter:sepia(0.2) contrast(1.05);
@@ -47,4 +174,27 @@ Determined to shatter this corporate stranglehold, Stresemann launched a fierce 
 
 However it shall end, DVP will not come out of it unscathered.
 
-- @post_event: Party is shattering...
+- @router_dvp_1929: Party is shattering...
+
+@router_dvp_1929
+go-to: stresemann if dvp_reform_outcome == "stresemann_success"; scholz if dvp_reform_outcome == "scholz_victory"; stalemate if dvp_reform_outcome == "stalemate"
+
+@stresemann
+
+= Stresemann secures the victory over the reform voting.
+
+{!
+<style>#scholz-container { opacity: 0.15; filter: grayscale(100%) sepia(20%) contrast(0.9); }</style>
+!}
+
+@scholz
+
+= Scholz is triumphant, as the reform dies out.
+
+{! 
+<style>#stresemann-container { opacity: 0.15; filter: grayscale(100%) sepia(20%) contrast(0.9); }</style>
+!}
+
+@stalemate
+
+= Oof.
