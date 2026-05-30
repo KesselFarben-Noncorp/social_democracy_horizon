@@ -11,7 +11,6 @@ Q.dvp_left = Q.dvp_left || 0;
 Q.dvp_right = Q.dvp_right || 0;
 
 // 1. SPD ELECTORAL PERFORMANCE
-
 if (Q.spd_r >= 30) {
     Q.dvp_left -= 5;
     Q.dvp_right += 5;
@@ -21,20 +20,18 @@ if (Q.spd_r >= 30) {
 } else if (Q.spd_r <= 27.5 && Q.spd_r > 25) {
     Q.dvp_left += 5;
     Q.dvp_right -= 5;
- } else { 
+} else { 
     Q.dvp_left += 10;
     Q.dvp_right -= 10;
 }
 
 // 2. Stresemann cabinet position.
-
 if (Q.foreign_minister_party == "DVP" || Q.kellogg_briand_signed_dvp == 1) {
     Q.dvp_right += 10;
     Q.dvp_left -= 5;
 }
 
 // 3. LAMBACH VICTORY OR DNVP SITUATION
-
 if (Q.congress_path != "capitulation") {
     Q.dvp_left += 5;
 }
@@ -49,7 +46,6 @@ if (Q.congress_path == "social_nationalists" || Q.congress_path == "coalitionist
 }
 
 // 4. FINANCIAL TAX situation
-
 if (Q.upper_tax_rates > 0) {
     Q.dvp_right += 10 * Q.upper_tax_rates;
 }
@@ -59,7 +55,7 @@ if (Q.welfare > 1) {
 }
 
 if (Q.working_hours > 0) {
-    Q.dvp_right += 5 * Q.working_hours 
+    Q.dvp_right += 5 * Q.working_hours;
 }
 
 if (Q.ruhr_labor > 0) Q.dvp_right += 10;
@@ -69,25 +65,30 @@ if (Q.works_councils > 0) {
 }
 
 if (Q.socialization > 0) {
-    Q.dvp_right += 30 * Q.socialization
+    Q.dvp_right += 30 * Q.socialization;
 }
 
 if (Q.cooperatives > 0) {
-    Q.dvp_right += 10 * Q.cooperatives
+    Q.dvp_right += 10 * Q.cooperatives;
 }
 
 if (Q.major_curriculum == "vocational") Q.dvp_left += 15;
 if (Q.minor_curriculum == "vocational") Q.dvp_left += 5;
 if (Q.secularized == 1) Q.dvp_left += 25;
 
-Q.dvp_right += Q.capital_strike_progress * 2;
-Q.dvp_right += Q.workers_safety * 3;
-Q.dvp_left += Q.judicial_reform * 10;
-Q.dvp_left += Q.reparations_negotiation * 20;
+// Patched Naked Math Operations with ( || 0 ) Fallbacks
+Q.dvp_right += (Q.capital_strike_progress || 0) * 2;
+Q.dvp_right += (Q.workers_safety || 0) * 3;
+Q.dvp_left += (Q.judicial_reform || 0) * 10;
+Q.dvp_left += (Q.reparations_negotiation || 0) * 20;
+
 if (Q.enemies == "bourgeois parties" || Q.enemies == "DVP") Q.dvp_right += 30;
-Q.dvp_left += Q.radio * 20;
-Q.dvp_left += Q.commercialized_media * 15;
-if (Q.unions_independent) Q.dvp_left += 80; // SPD UNIONS INDEPENDENT.
+
+Q.dvp_left += (Q.radio || 0) * 20;
+Q.dvp_left += (Q.commercialized_media || 0) * 15;
+
+if (Q.unions_independent) Q.dvp_left += 80; 
+
 if (Q.ideology == "reformist") Q.dvp_left += 15;
 if (Q.ideology == "labor") {
     Q.dvp_left -= 10;
@@ -98,31 +99,26 @@ if (Q.ideology == "left") {
     Q.dvp_left -= 15;
 }
 
-Q.dvp_right += Q.peoples_party_support * 2;
-Q.dvp_left += Q.peoples_party_support * 5;
+Q.dvp_right += (Q.peoples_party_support || 0) * 2;
+Q.dvp_left += (Q.peoples_party_support || 0) * 5;
 
+Q.dvp_left += ((Q.dvp_relation || 0) / 3);
+Q.dvp_right += ((100 - (Q.dvp_relation || 0)) * 1.2);
 
-// Assumes a 0-100 scale. High relation helps left; low relation helps right.
-Q.dvp_left += (Q.dvp_relation / 3);
-Q.dvp_right += ((100 - Q.dvp_relation) * 1.2);
+Q.dvp_right += (Q.dvp_dissent || 0) * 5;
 
-Q.dvp_right += Q.dvp_dissent * 5;
-
-Q.dvp_left += Q.pro_republic / 4;
-Q.dvp_right += Q.nationalism * 4;
-Q.dvp_left += Q.new_middle_dvp + Q.workers_dvp + Q.unemployedc_dvp;
-Q.dvp_right += Q.old_middle * 3 + Q.rural_dvp * 2;
+Q.dvp_left += (Q.pro_republic || 0) / 4;
+Q.dvp_right += (Q.nationalism || 0) * 4;
+Q.dvp_left += (Q.new_middle_dvp || 0) + (Q.workers_dvp || 0) + (Q.unemployedc_dvp || 0);
+Q.dvp_right += (Q.old_middle || 0) * 3 + (Q.rural_dvp || 0) * 2;
 
 // 5. SPD/ZENTRUM DEMOGRAPHIC WEAKNESS OVERTURE
-// The lower their share, the more viable Stresemann's Volkspartei strategy becomes.
-
-Q.dvp_left += (32 - Q.new_middle_spd_display) * 0.5;
-Q.dvp_left += (20 - Q.new_middle_z_display) * 0.5;
-Q.dvp_left += (38 - Q.workers_spd_display) * 0.5;
-Q.dvp_left += (15 - Q.workers_z_display) * 0.5;
+Q.dvp_left += (32 - (Q.new_middle_spd_display || 0)) * 0.5;
+Q.dvp_left += (20 - (Q.new_middle_z_display || 0)) * 0.5;
+Q.dvp_left += (38 - (Q.workers_spd_display || 0)) * 0.5;
+Q.dvp_left += (15 - (Q.workers_z_display || 0)) * 0.5;
 
 // 6. FINAL OUTCOME EVALUATION
-
 if (Q.dvp_left > Q.dvp_right + 50) {
     Q.dvp_reform_outcome = "stresemann_success";
 } else if (Q.dvp_right > Q.dvp_left + 50) {
@@ -130,11 +126,8 @@ if (Q.dvp_left > Q.dvp_right + 50) {
 } else {
     Q.dvp_reform_outcome = "stalemate";
 }
-
-
-
-
 !}
+
 on-departure: {!
 window.disableFocusMode()
 !}
@@ -178,9 +171,9 @@ On the other side, reform is opposed by the right of the party, who would rather
 
 Whichever way the DVP goes today, it must act decisively.
 
-[? if dvp_reform_outcome = "stresemann_success": Stresemann won ?]
-[? if dvp_reform_outcome = "scholz_victory": Scholz won ?]
-[? if dvp_reform_outcome = "stalemate": Stalemate won ?]
+[? if dvp_reform_outcome == "stresemann_success": Stresemann won ?]
+[? if dvp_reform_outcome == "scholz_victory": Scholz won ?]
+[? if dvp_reform_outcome == "stalemate": Stalemate won ?]
 
 [+ dvp_left +] - DVP left
 [+ dvp_right +] - DVP Right.
