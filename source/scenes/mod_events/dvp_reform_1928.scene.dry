@@ -27,7 +27,7 @@ if (Q.spd_r >= 30) {
 
 // 2. Stresemann cabinet position.
 if (Q.foreign_minister_party == "DVP" || Q.kellogg_briand_signed_dvp == 1) {
-    Q.dvp_right += 10;
+    Q.dvp_right += 30;
     Q.dvp_left -= 5;
 }
 
@@ -117,6 +117,9 @@ Q.dvp_left += (32 - (Q.new_middle_spd_display || 0)) * 0.5;
 Q.dvp_left += (20 - (Q.new_middle_z_display || 0)) * 0.5;
 Q.dvp_left += (38 - (Q.workers_spd_display || 0)) * 0.5;
 Q.dvp_left += (15 - (Q.workers_z_display || 0)) * 0.5;
+
+Q.dvp_left = Math.round(Q.dvp_left);
+Q.dvp_right = Math.round(Q.dvp_right);
 
 // 6. FINAL OUTCOME EVALUATION
 if (Q.dvp_left > Q.dvp_right + 25) {
