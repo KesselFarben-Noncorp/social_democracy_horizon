@@ -43,7 +43,7 @@ if (Q.congress_path == "capitulation") {
     Q.dvp_right += 25;
 }
 
-if (Q.congress_path = "social_nationalists" || Q.congress_path = "coalitionists") {
+if (Q.congress_path == "social_nationalists" || Q.congress_path == "coalitionists") {
     Q.dvp_left += 15;
     if (Q.congress_path = "social_nationalists") Q.dvp_left += 5;
 }
@@ -58,12 +58,80 @@ if (Q.welfare > 1) {
     Q.dvp_right += 5 * Q.welfare;
 }
 
-if 
+if (Q.working_hours > 0) {
+    Q.dvp_right += 5 * Q.working_hours 
+}
+
+if (Q.ruhr_labor > 0) Q.dvp_right += 10;
+
+if (Q.works_councils > 0) {
+    Q.dvp_right += 10 * Q.works_councils;
+}
+
+if (Q.socialization > 0) {
+    Q.dvp_right += 30 * Q.socialization
+}
+
+if (Q.cooperatives > 0) {
+    Q.dvp_right += 10 * Q.cooperatives
+}
+
+if (Q.major_curriculum == "vocational") Q.dvp_left += 15;
+if (Q.minor_curriculum == "vocational") Q.dvp_left += 5;
+if (Q.secularized == 1) Q.dvp_left += 25;
+
+Q.dvp_right += Q.capital_strike_progress * 2;
+Q.dvp_right += Q.workers_safety * 3;
+Q.dvp_left += Q.judicial_reform * 10;
+Q.dvp_left += Q.reparations_negotiation * 20;
+if (Q.enemies == "bourgeois parties" || Q.enemies == "DVP") Q.dvp_right += 30;
+Q.dvp_left += Q.radio * 20;
+Q.dvp_left += Q.commercialized_media * 15;
+if (Q.unions_independent) Q.dvp_left += 80; // SPD UNIONS INDEPENDENT.
+if (Q.ideology == "reformist") Q.dvp_left += 15;
+if (Q.ideology == "labor") {
+    Q.dvp_left -= 10;
+    Q.dvp_right += 10;
+}
+if (Q.ideology == "left") {
+    Q.dvp_right += 20;
+    Q.dvp_left -= 15;
+}
+
+Q.dvp_right += Q.peoples_party_support * 2;
+Q.dvp_left += Q.peoples_party_support * 5;
+
+
+// Assumes a 0-100 scale. High relation helps left; low relation helps right.
+Q.dvp_left += (Q.dvp_relation / 3);
+Q.dvp_right += ((100 - Q.dvp_relation) * 1.2);
+
+Q.dvp_right += Q.dvp_dissent * 5;
 
 Q.dvp_left += Q.pro_republic / 4;
 Q.dvp_right += Q.nationalism * 4;
 Q.dvp_left += Q.new_middle_dvp + Q.workers_dvp + Q.unemployedc_dvp;
 Q.dvp_right += Q.old_middle * 3 + Q.rural_dvp * 2;
+
+// 5. SPD/ZENTRUM DEMOGRAPHIC WEAKNESS OVERTURE
+// The lower their share, the more viable Stresemann's Volkspartei strategy becomes.
+
+Q.dvp_left += (32 - Q.new_middle_spd_display) * 0.5;
+Q.dvp_left += (20 - Q.new_middle_z_display) * 0.5;
+Q.dvp_left += (38 - Q.workers_spd_display) * 0.5;
+Q.dvp_left += (15 - Q.workers_z_display) * 0.5;
+
+// 6. FINAL OUTCOME EVALUATION
+
+if (Q.dvp_left > Q.dvp_right + 50) {
+    Q.dvp_reform_outcome = "stresemann_success";
+} else if (Q.dvp_right > Q.dvp_left + 50) {
+    Q.dvp_reform_outcome = "scholz_victory";
+} else {
+    Q.dvp_reform_outcome = "stalemate";
+}
+
+
 
 
 !}
@@ -109,5 +177,12 @@ In the frustration over the industrialist wing sabotaging Grand Coalition and th
 On the other side, reform is opposed by the right of the party, who would rather join Hugenberg than surrender their votes to a potentially left-wing populace, thereby compromising and capitulating right-liberalism to general interests and repeating the fate of the DNVP. Additionally, opposition argues that this reform will push away much of Industrialists' funds, thus making party less financially solvent and reorienting party towards grassroots will make it directly compete with SPD and Z, making it very risky gamble. Scholz has voiced that he is ready to sabotage the party through his parliamentary positions if party is to accept reforms.
 
 Whichever way the DVP goes today, it must act decisively.
+
+[? if dvp_reform_outcome = "stresemann_success": Stresemann won ?]
+[? if dvp_reform_outcome = "scholz_victory": Scholz won ?]
+[? if dvp_reform_outcome = "stalemate": Stalemate won ?]
+
+[+ dvp_left +] - DVP left
+[+ dvp_right +] - DVP Right.
 
 - @post_event: Liberalism, as wonderful as it is, is not a homogenous movement.
