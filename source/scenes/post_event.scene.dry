@@ -3836,24 +3836,23 @@ function computeTarget(party, c) {
             if (Q.social_fascism_adopted == 1) {r *= 1.31; s *= 0.79}
 
             let campaign_boost = 1.1;
-            if (Q.campaign_focus === 'workers'    && ci > 0) campaign_boost += ci * 0.75;
-            if (Q.campaign_focus === 'new_middle' && ci > 0) campaign_boost += ci * 0.65;
-            if (Q.campaign_focus === 'old_middle' && ci > 0) campaign_boost += ci * 0.55;
-            if (Q.campaign_focus === 'rural'      && ci > 0) campaign_boost += ci * 0.55;
-            if (Q.campaign_focus === 'unemployed' && ci > 0) campaign_boost += ci * 0.65;
-            if (Q.campaign_focus === 'women'      && ci > 0) campaign_boost += ci * 0.45;
-            if (Q.campaign_focus === 'middle'     && ci > 0) campaign_boost += ci * 0.45;
+            if (Q.campaign_focus === 'workers'    && ci > 0) campaign_boost += ci * 0.41;
+            if (Q.campaign_focus === 'new_middle' && ci > 0) campaign_boost += ci * 0.36;
+            if (Q.campaign_focus === 'old_middle' && ci > 0) campaign_boost += ci * 0.30;
+            if (Q.campaign_focus === 'rural'      && ci > 0) campaign_boost += ci * 0.30;
+            if (Q.campaign_focus === 'unemployed' && ci > 0) campaign_boost += ci * 0.36;
+            if (Q.campaign_focus === 'women'      && ci > 0) campaign_boost += ci * 0.25;
+            if (Q.campaign_focus === 'middle'     && ci > 0) campaign_boost += ci * 0.25;
             base = (r * 105 + s * 54) * im.spd * campaign_boost;
 
-            // Per-class multiplier (inline, keeps all policy bonuses)
             let m;
             if (c === 'workers') {
                 m = 1.15;
                 if (Q.peoples_party === 1)  m *= 0.82;
                 if (Q.ideology === 'left')      m *= 1.12;
                 if (Q.ideology === 'reformist') m *= 0.92;
-                if (Q.campaign_focus === 'workers'    && ci > 0) m += ci * 0.45;
-                if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.12;
+                if (Q.campaign_focus === 'workers'    && ci > 0) m += ci * 0.25;
+                if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.07;
                 if (Q.dues_workers > 0)          m -= Q.dues_workers   * 0.086;
                 if (Q.wtb_timer > 0)             m += (Q.workers / 100) * 0.75;
                 if (Q.unions_independent === 1)  m *= 0.50;
@@ -3873,10 +3872,10 @@ function computeTarget(party, c) {
                 if (Q.ideology === 'left')       m *= 0.88;
                 if (Q.ideology === 'reformist')  m *= 1.10;
                 if (Q.ideology === 'neorev')     m *= 1.05;
-                if (Q.campaign_focus === 'old_middle' && ci > 0) m += ci * 0.16;
-                if (Q.campaign_focus === 'middle'     && ci > 0) m += ci * 0.12;
-                if (Q.campaign_focus === 'women'      && ci > 0) m += ci * 0.07;
-                if (Q.campaign_focus === 'catholics'  && ci > 0) m += ci * 0.12 * (Q.catholics / 35);
+                if (Q.campaign_focus === 'old_middle' && ci > 0) m += ci * 0.09;
+                if (Q.campaign_focus === 'middle'     && ci > 0) m += ci * 0.07;
+                if (Q.campaign_focus === 'women'      && ci > 0) m += ci * 0.04;
+                if (Q.campaign_focus === 'catholics'  && ci > 0) m += ci * 0.07 * (Q.catholics / 35);
                 if (Q.dues_old_middle > 0)  m -= Q.dues_old_middle * 0.12;
                 if (Q.land_reform > 0)      m -= Q.land_reform     * 0.15;
             } else if (c === 'new_middle') {
@@ -3885,18 +3884,18 @@ function computeTarget(party, c) {
                 if (Q.ideology === 'left')       m *= 0.88;
                 if (Q.ideology === 'reformist')  m *= 1.10;
                 if (Q.ideology === 'neorev')     m *= 1.05;
-                if (Q.campaign_focus === 'new_middle' && ci > 0) m += ci * 0.18;
-                if (Q.campaign_focus === 'women'      && ci > 0) m += ci * 0.10;
-                if (Q.campaign_focus === 'middle'     && ci > 0) m += ci * 0.12;
-                if (Q.campaign_focus === 'catholics'  && ci > 0) m += ci * 0.07 * (Q.catholics / 35);
+                if (Q.campaign_focus === 'new_middle' && ci > 0) m += ci * 0.10;
+                if (Q.campaign_focus === 'women'      && ci > 0) m += ci * 0.06;
+                if (Q.campaign_focus === 'middle'     && ci > 0) m += ci * 0.07;
+                if (Q.campaign_focus === 'catholics'  && ci > 0) m += ci * 0.04 * (Q.catholics / 35);
                 if (Q.dues_new_middle > 0)  m -= Q.dues_new_middle * 0.094;
                 if (Q.wtb_timer > 0)        m += (Q.new_middle / 100) * 0.27;
                 if (Q.reformists_resign === 1) m *= 0.50;
             } else if (c === 'rural') {
                 m = 0.76;
                 if (Q.peoples_party === 1)   m *= 1.12;
-                if (Q.campaign_focus === 'rural'     && ci > 0) m += ci * 0.20;
-                if (Q.campaign_focus === 'catholics' && ci > 0) m += ci * 0.13 * (Q.catholics / 35);
+                if (Q.campaign_focus === 'rural'     && ci > 0) m += ci * 0.11;
+                if (Q.campaign_focus === 'catholics' && ci > 0) m += ci * 0.07 * (Q.catholics / 35);
                 if (Q.dues_rural > 0)       m -= Q.dues_rural           * 0.11;
                 if (Q.land_reform > 0)      m += Q.land_reform          * 0.32;
                 if (Q.agricultural_finance > 0) m += Q.agricultural_finance * 0.22;
@@ -3906,8 +3905,8 @@ function computeTarget(party, c) {
                 m = 1.05;
                 if (Q.peoples_party === 1)   m *= 0.88;
                 if (Q.ideology === 'left')   m *= 1.10;
-                if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.22;
-                if (Q.campaign_focus === 'workers'    && ci > 0) m += ci * 0.08;
+                if (Q.campaign_focus === 'unemployed' && ci > 0) m += ci * 0.12;
+                if (Q.campaign_focus === 'workers'    && ci > 0) m += ci * 0.04;
                 if (Q.dues_unemployedc > 0)  m -= Q.dues_unemployedc * 0.086;
                 if (Q.dues_unemployedc === 0) m *= 1.17;
                 if (Q.wtb_timer > 0)         m += (Q.unemployedc / 100) * 1.03;
