@@ -23,7 +23,7 @@ The Reichswehr is a deeply reactionary institution that has been generally hosti
 subtitle: -2 budget
 view-if: sandbox = 1
 choose-if: budget >= 2 and judicial_reform > 6 and full_reform_initiated = 1 and interior_police_loyalty > 0.90 and reichwehr_loyalty > 0.80 and prussian_police_loyalty > 0.95 and reichswehr_minister_party != "I"
-unavailable-subtitle: Pay attention, you have to fully reform judiciary, bend loyalties of interior police, prussian police and reichswehr to your knees and reichswehr minister must not be independent.
+unavailable-subtitle [? if budget < 2: Insufficient budget. ?] [? if judicial_reform <= 6: Judicial reform must be advanced further. ?] [? if full_reform_initiated != 1: Full reform must be initiated. ?] [? if interior_police_loyalty <= 0.90: Interior Police loyalty must be brought to heel. ?] [? if reichwehr_loyalty <= 0.80: Reichswehr loyalty must be brought to heel. ?] [? if prussian_police_loyalty <= 0.95: Prussian Police loyalty must be brought to heel. ?] [? if reichswehr_minister_party = "I": The Reichswehr Minister must not be independent. ?]
 on-arrival: budget -= 2; reichswehr_reformed = 1; reichsbank_loyalty = 1; coup_progress -= 5; democratization += 2
 
 Reichsweht is reformed.
