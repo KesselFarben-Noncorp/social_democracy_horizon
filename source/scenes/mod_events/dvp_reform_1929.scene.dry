@@ -1,4 +1,4 @@
-title: DVP Internal Reform - [+ month +]
+title: DVP Internal Reform - [+ month: month +]
 subtitle: Internal reform disputes come to their end.
 tags: event
 view-if: month = 2 and year >= 1929 and year <= 1929 and dvp_votes > 0 and weeks >= 2
@@ -134,9 +134,6 @@ if (Q.dvp_left > Q.dvp_right + 25) {
     Q.dvp_reform_outcome = "stalemate";
 }
 !}
-on-departure: {!
-window.disableFocusMode()
-!}
 
 =  (Deutsche Volkspartei) Internal Reform Congress' result
 
@@ -153,7 +150,7 @@ window.disableFocusMode()
     </div>
   </div>
 
-  <div style="font-size:2em; opacity:0.4; align-self:center;">VS</div>
+  <div id="vs-icon" style="font-size:2em; opacity:0.4; align-self:center; transition: all 2.5s ease-in-out;">VS</div>
 
   <div id="scholz-container" style="text-align:center; width:45%; transition: all 2.5s ease-in-out;">
     <img src="img/portraits/scholz.jpg" alt="Scholz"
@@ -180,21 +177,34 @@ However it shall end, DVP will not come out of it unscathered.
 go-to: stresemann if dvp_reform_outcome == "stresemann_success"; scholz if dvp_reform_outcome == "scholz_victory"; stalemate if dvp_reform_outcome == "stalemate"
 
 @stresemann
+on-departure: {!
+window.disableFocusMode()
+!}
 
 = Stresemann secures the victory over the reform voting.
 
 {!
-<style>#scholz-container { opacity: 0.15; filter: grayscale(100%) sepia(20%) contrast(0.9); }</style>
+<style>
+  #scholz-container, #vs-icon { opacity: 0; pointer-events: none; }
+</style>
 !}
 
 @scholz
+on-departure: {!
+window.disableFocusMode()
+!}
 
 = Scholz is triumphant, as the reform dies out.
 
 {! 
-<style>#stresemann-container { opacity: 0.15; filter: grayscale(100%) sepia(20%) contrast(0.9); }</style>
+<style>
+  #stresemann-container, #vs-icon { opacity: 0; pointer-events: none; }
+</style>
 !}
 
 @stalemate
+on-departure: {!
+window.disableFocusMode()
+!}
 
 = Oof.
