@@ -6,6 +6,66 @@ max-visits: 1
 new-page: true
 on-arrival: {!
 window.enableFocusMode()
+
+Q.dvp_left = Q.dvp_left || 0;
+Q.dvp_right = Q.dvp_right || 0;
+
+// 1. SPD ELECTORAL PERFORMANCE
+
+If (Q.spd_r >= 30) {
+    Q.dvp_left -= 5;
+    Q.dvp_right += 5;
+} else if (Q.spd_r >= 27.5) {
+    Q.dvp_left += 2;
+    Q.dvp_right += 3;
+} else if (Q.spd_r <= 27.5 && Q.spd_r > 25) {
+    Q.dvp_left += 5;
+    Q.dvp_right -= 5;
+ } else { 
+    Q.dvp_left += 10;
+    Q.dvp_right -= 10;
+}
+
+// 2. Stresemann cabinet position.
+
+if (Q.foreign_minister_party == "DVP" || Q.kellogg_briand_signed_dvp == 1) {
+    Q.dvp_right += 10;
+    Q.dvp_left -= 5;
+}
+
+// 3. LAMBACH VICTORY OR DNVP SITUATION
+
+if (Q.congress_path != "capitulation") {
+    Q.dvp_left += 5;
+}
+
+if (Q.congress_path == "capitulation") {
+    Q.dvp_right += 25;
+}
+
+if (Q.congress_path = "social_nationalists" || Q.congress_path = "coalitionists") {
+    Q.dvp_left += 15;
+    if (Q.congress_path = "social_nationalists") Q.dvp_left += 5;
+}
+
+// 4. FINANCIAL TAX situation
+
+If (Q.upper_tax_rates > 0) {
+    Q.dvp_right += 10 * Q.upper_tax_rates;
+}
+
+if (Q.welfare > 1) {
+    Q.dvp_right += 5 * Q.welfare;
+}
+
+if 
+
+Q.dvp_left += Q.pro_republic / 4;
+Q.dvp_right += Q.nationalism * 4;
+Q.dvp_left += Q.new_middle_dvp + Q.workers_dvp + Q.unemployedc_dvp;
+Q.dvp_right += Q.old_middle * 3 + Q.rural_dvp * 2;
+
+
 !}
 on-departure: {!
 window.disableFocusMode()
