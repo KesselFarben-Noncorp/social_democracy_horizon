@@ -1,13 +1,14 @@
 Title: Formation of Front 1929
 subtitle: Huge news for the liberal movement...
 tags: event
-view-if: (dvp_reform_outcome = "stresemann_success" or dvp_reform_outcome = "stalemate") and year = 1929 and month >= 4 and month <= 5
+view-if: (dvp_reform_outcome == "stresemann_success" or dvp_reform_outcome == "stalemate") and year == 1929 and month >= 4 and month <= 5
 
 = Front 1929
 
 {!
 <div style="display: flex; align-items: flex-start; gap: 1.5em; margin: 1.5em 0;">
   
+  <!-- Left Side: SVG Portrait Container -->
   <div style="flex: 0 0 160px; text-align: center;">
     <svg width="160" height="220" viewBox="0 0 160 220" style="border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
       <image href="img/portraits/baron.jpg" width="160" height="220" preserveAspectRatio="xMidYMid slice" style="filter: sepia(0.15) contrast(1.02);" />
@@ -17,6 +18,7 @@ view-if: (dvp_reform_outcome = "stresemann_success" or dvp_reform_outcome = "sta
     </div>
   </div>
   
+  <!-- Right Side: First Paragraph Text -->
   <div style="flex: 1; margin: 0; line-height: 1.55;">
     In recent developments, amidst a fading liberal movement whose situation has drastically worsened with the collapse of the Liberal Association, there was seemingly little hope left for grassroots liberals. However, in early March of this year, a new umbrella organization appeared in Berlin: the <strong>Front 1929</strong>. Like its informal predecessors, it differs little from the February Club, advocating for the centralization of government, electoral reforms prioritizing the individual over rigid party machines, and the creation of a corporatist or vocational second chamber to let the grassroots combat industrial giants. Yet, its main goal remains the unification of bourgeois parties and organizations into one giant force to push through these structural changes. Its leader is Baron Rochus von Rheinbaben, a close friend and biographer of Gustav Stresemann, who has successfully gathered a following comprised mostly of the bourgeois intelligentsia.
   </div>
@@ -25,12 +27,16 @@ view-if: (dvp_reform_outcome = "stresemann_success" or dvp_reform_outcome = "sta
 
 [? if dvp_reform_outcome == "stalemate": As a direct result of the toxic internal fighting within the DVP, Stresemann has been pushed toward bypassing his own party apparatus entirely—quietly backing and helping fund the Front 1929 in a desperate bid to combat the reactionary right-wing tendencies of the industrial syndicates. ?]
 
-[? if dvp_reform_outcome = "stresemann_success": Stresemann, emboldened by the victory of liberals and reform being pushed forward in DVP, has put his weight behind this organization in hope to mitigate losses caused by special interest parties and restore power of liberalism back. ?]
+[? if dvp_reform_outcome == "stresemann_success": Stresemann, emboldened by the victory of the liberals and the reforms being pushed forward in the DVP, has thrown his full weight behind this organization in the hope of mitigating the losses caused by special-interest parties and restoring the supreme power of the liberal center. ?]
 
-Rheinbaben's initiative has been supported by the kinds of left liberal politicians Koch-Weser, Lemmer and Dietrich (who personally funded this movement), who have been longstanding supporters of liberal unity. [? if jungdo_formed == 1: This proposal has gained most support not from liberal youth movement, but from Young German Order and of it's enigmatic grand master, Arthur Mahraun, who is notably known for being syncretic national liberal with antisemitic tendencies. He assisted him in the formation of Front 1929 in order to hope to regenerate German public life and form system that opposes egoistic self-economical interests. His ultimate goal remains as is – **Volksgemeinschaft** , concept of unification of all classes under one structure - State, Nation and People of Germany. ?] 
+Rheinbaben's initiative has been enthusiastically supported by Left-Liberal politicians like Koch-Weser, Lemmer, and Dietrich (who is personally funding the movement), all of whom have been long-standing champions of total liberal unity. 
 
-[? if dnvp_party_leader = "Alfred Hugenberg": This proposal has been further strengthened by the defeat of National Conservatives and Christian Social forces in the face of victory of Alfred Hugenberg, media magnate and most relevant opponent of current republican order, causing mass defections amongsts ranks of DHV and Christian Socials. However, most of them remained in party to attempt to wrestle back party from Hugenberg. ?] [? if congress_path = "social_nationalists": This proposal has further been strengthened by the shockwave from right that is – Christian Social (members of which are also associated with DHV) victory in DNVP Congress. New vector of policies of DNVP has emboldened supporters of Front 1929, believing that **Volksgemeinschaft** is gaining momentum enough to soon be leading thought and reform Germany at some point. This event, however, is treated as double sword - Lambach and Front 1929 are now directly competing for the same base and liberals do not exactly support Lambach, who has shown to be pretty antisemitic and illiberal, despite shared beliefs of corporatism, new middle prioritization and their allegiances of "republican by reason, not by nature". ?]
+[? if jungdo_formed == 1: This proposal has gained its strongest footing not from the traditional liberal youth groups, but from the Young German Order (*Jungdeutscher Orden*) and its enigmatic Grand Master, Artur Mahraun. Notably known as a syncretic national-populist with underlying antisemitic tendencies, Mahraun has assisted Rheinbaben in the formation of the Front 1929 in hopes of regenerating German public life and forging a system that fiercely opposes narrow economic self-interests. His ultimate goal remains unchanged: the realization of the **Volksgemeinschaft**—a total unification of all classes under a singular architecture linking the State, the Nation, and the People of Germany. ?] 
 
-Neverthless, if Front 1929 is to succeed, it would change landscape of German politics and liberalism forever, mutating currents of liberalism into something else...
+[? if dnvp_party_leader == "Alfred Hugenberg": This alignment has been further accelerated by the defeat of the moderate conservatives and Christian-Social forces within the DNVP. The victory of Alfred Hugenberg, the ruthless media magnate and most dangerous opponent of the current republican order, has caused mass disillusionment among the ranks of the DHV and Christian-Social trade unionists. While many look toward the Front as an escape hatch, most have chosen to temporarily remain in the party to attempt to wrestle control back from Hugenberg's radical faction. ?] 
 
-- @post_event: New force in the process assemblage...
+[? if congress_path == "social_nationalists": This proposal has also been energized by a counter-shockwave from the right: the Christian-Social victory at the DNVP Congress under Walther Lambach. This new vector of national-conservative policy has emboldened the supporters of the Front 1929, who believe that the philosophy of the **Volksgemeinschaft** is rapidly gaining the momentum required to reshape Germany. However, this event is treated as a double-edged sword; Lambach and the Front 1929 are now competing directly for the exact same demographic. The young liberals remain deeply wary of Lambach, who exhibits illiberal and antisemitic tendencies despite their shared commitments to corporatism, prioritizing the new middle class, and their mutual pragmatism as 'republicans by reason, not by nature'. ?]
+
+Nevertheless, if the Front 1929 is to succeed, it will reshape the landscape of German politics and liberalism forever, mutating traditional individualist currents into a completely new collective force...
+
+- @post_event: A new force begins to assemble...
