@@ -32,7 +32,7 @@ if ((Q.rural_dnvp + Q.old_middle_dnvp / 3) > 34 && Q.cnbl_crisis == 0) {
 }
 
 // Faction B Leader (Aristocrats)
-if (Q.lambach_reinstated == 1) {
+if (Q.lambach_reinstated == 1 || Q.dnvp_votes_display > 16.4) {
     Q.leader_b = "Kuno von Westarp";
     Q.leader_b_title = "Incumbent Party Chairman";
 } else {
@@ -92,7 +92,7 @@ if (Q.vnr_momentum == 0) {
     Q.delegate_power_a += 5;
 } else {
     Q.delegate_power_b += 10;
-    Q.hugenberg_momentum += 10;
+    Q.hugenberg_momentum += 15;
 }
 
 if (Q.geest_wildfire == 0) {
@@ -101,7 +101,7 @@ if (Q.geest_wildfire == 0) {
     Q.delegate_power_b += 10;
     Q.hugenberg_momentum -= 5;
 } else {
-    Q.hugenberg_momentum += 20;
+    Q.hugenberg_momentum += 25;
     Q.delegate_power_c += 10
     Q.delegate_power_a += 5;
     Q.delegate_power_b -= 15;
@@ -115,7 +115,7 @@ if (Q.commercialized_media >= 1 || Q.radio >= 1) {
 // 3c. Land Reform Threat
 
 if (Q.land_reform > 0) {
-    Q.hugenberg_momentum += 15 * Q.land_reform;
+    Q.hugenberg_momentum += 20 * Q.land_reform;
 }
 
 // 3d 
@@ -126,8 +126,8 @@ if (Q.dnvp_in_government) {
 }
 
 // 4. Class Influence
-Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.25);
-Q.hugenberg_momentum += (Q.rural_dnvp * 0.8);
+Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.35);
+Q.hugenberg_momentum += (Q.rural_dnvp * 0.83);
 
 Q.delegate_power_a += (Q.new_middle_dnvp * 1.5);
 Q.delegate_power_a += (Q.old_middle_dnvp * 0.55);
@@ -138,7 +138,7 @@ Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
 Q.delegate_power_c += (Q.workers_dnvp * 2.3 + Q.new_middle_dnvp * 0.73);
 
 // 5. Ideological Reinforcements
-Q.hugenberg_momentum += Q.nationalism * 1.5;
+Q.hugenberg_momentum += Q.nationalism * 20;
 Q.delegate_power_b += Q.nationalism * 0.65 * Q.pro_republic * 0.1;
 Q.delegate_power_a += Q.pro_republic * 0.6;
 Q.delegate_power_c += Q.socialism * 1.2 + Q.pro_republic * 0.2;
@@ -173,12 +173,15 @@ Q.hugenberg_margin = Q.hugenberg_final_votes - Math.round(Q.top_moderate_score);
 
 if (Q.delegate_power_a >= Q.delegate_power_b && Q.delegate_power_a >= Q.delegate_power_c) {
     Q.leading_challenger = Q.leader_a;
+    Q.dnvp_party_leader = Q.leader_a;
     Q.congress_path = "coalitionists";
 } else if (Q.delegate_power_b >= Q.delegate_power_a && Q.delegate_power_b >= Q.delegate_power_c) {
     Q.leading_challenger = Q.leader_b;
+    Q.dnvp_party_leader = Q.leader_b;
     Q.congress_path = "traditionalists";
 } else {
     Q.leading_challenger = Q.leader_c;
+    Q.dnvp_party_leader = Q.leader_c;
     Q.congress_path = "social_nationalists";
 }
 
@@ -186,6 +189,7 @@ if (Q.delegate_power_a >= Q.delegate_power_b && Q.delegate_power_a >= Q.delegate
 if (Q.hugenberg_momentum > Q.top_moderate_score * 1.5) {
     Q.congress_path = "capitulation";
     Q.leading_challenger = "";
+    Q.dnvp_party_leader = "Alfred Hugenberg";
 }
 
 // 9. Triumvirate check — AFTER congress_path is set
@@ -193,11 +197,6 @@ Q.total_moderate_power = Q.delegate_power_a + Q.delegate_power_b + Q.delegate_po
 Q.can_push_triumvirate = 0;
 if (Q.total_moderate_power > Q.hugenberg_momentum && Q.congress_path != "capitulation") {
     Q.can_push_triumvirate = 1;
-}
-
-if (Q.hugenberg_momentum > Q.top_moderate_score * 1.5) {
-    Q.congress_path = "capitulation";
-    Q.leading_challenger = "";
 }
 
 !}
