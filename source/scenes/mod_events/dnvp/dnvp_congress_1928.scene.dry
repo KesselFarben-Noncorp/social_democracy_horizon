@@ -75,7 +75,7 @@ if (Q.lambach_exile == 1) {
     Q.delegate_power_a += 5;
     Q.delegate_power_c += 3;
 } else if (Q.lambach_exile == 0) {
-    Q.delegate_power_c += 25;
+    Q.delegate_power_c += 30;
 } else {
     Q.hugenberg_momentum += 10;
 }
@@ -85,10 +85,11 @@ if (Q.cnbl_crisis == 1) {
     Q.hugenberg_momentum += 20;
 } else {
     Q.delegate_power_b += 10;
+    Q.delegate_power_c += 5;
 }
 
 if (Q.vnr_momentum == 0) { 
-    Q.delegate_power_c += 10;
+    Q.delegate_power_c += 12;
     Q.delegate_power_a += 5;
 } else {
     Q.delegate_power_b += 10;
@@ -129,13 +130,13 @@ if (Q.dnvp_in_government) {
 Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.35);
 Q.hugenberg_momentum += (Q.rural_dnvp * 0.83);
 
-Q.delegate_power_a += (Q.new_middle_dnvp * 1.5);
+Q.delegate_power_a += (Q.new_middle_dnvp * 1.59);
 Q.delegate_power_a += (Q.old_middle_dnvp * 0.55);
 
 Q.delegate_power_b += (Q.rural_dnvp * 1.24);
 Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
 
-Q.delegate_power_c += (Q.workers_dnvp * 2.3 + Q.new_middle_dnvp * 0.73);
+Q.delegate_power_c += (Q.workers_dnvp * 2.4 + Q.new_middle_dnvp * 0.87);
 
 // 5. Ideological Reinforcements
 Q.hugenberg_momentum += Q.nationalism * 20;
@@ -153,11 +154,16 @@ if (Q.dnvp_votes < 13) {
     Q.delegate_power_b -= 5;
     Q.hugenberg_momentum += 5;
     Q.delegate_power_c += 5;
-} else {
+} else if (Q.dnvp_votes < 16) {
     Q.delegate_power_a -= 1;
     Q.delegate_power_b -= 2;
     Q.hugenberg_momentum += 3;
     Q.delegate_power_c += 8;
+} else {
+    Q.delegate_power_a += 4;
+    Q.delegate_power_b -= 6
+    Q.hugenberg_momentum -= 4;
+    Q.delegate_power_c += 15;
 };
 
 // 7. Finalize vote totals
