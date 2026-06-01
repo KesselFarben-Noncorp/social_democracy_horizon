@@ -238,6 +238,15 @@ for (var party of Q.parties) {
     }
 }
 
+for (var party of Q.parties) {
+    if (Q[party + '_support'] === 0 || Q[party + '_r'] === 0) {
+        Q[party + '_seats'] = 0;
+        Q[party + '_seat_pct'] = 0;
+        Q[party + '_r'] = 0;
+        Q[party + '_votes'] = 0;
+    }
+}
+
 // Reset government flags
 Q.coalition_dissent = 0;
 Q.kpd_coalition_dissent = 0;
