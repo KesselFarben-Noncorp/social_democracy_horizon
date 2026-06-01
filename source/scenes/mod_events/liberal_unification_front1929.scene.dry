@@ -7,6 +7,12 @@ view-if: front_1929_met and year >= 1929 and year <= 1929 and month >= 9 and dsb
 on-arrival: {!
 window.enableFocusMode()
 
+if (!Q.parties.includes('dsbp')) {
+    Q.dvp_banned = 1;
+    Q.ddp_banned = 1;
+    if (Q.jungdo_formed == 1) Q.vnr_banned = 1;
+}
+
 if (Q.jungdo_formed == 0) Q.dsbp_name = "DLP"
 else Q.dsbp_name = "DSBP";
 
