@@ -1136,6 +1136,34 @@ if (Q.rdp_r > 0) {
     }
 }
 
+if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
+    if (Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate && Q.dnvp_line !== 3) {
+        // Bourgeois unity — DSBP's natural home
+        Q.dsbp_candidate = Q.z_dnvp_joint_candidate;
+        Q.dsbp_default_candidate = Q.z_dnvp_joint_candidate;
+
+    } else if (Q.dvp_candidate && Q.ddp_candidate && Q.dvp_candidate === Q.ddp_candidate) {
+        // Both parents already converged — follow them
+        Q.dsbp_candidate = Q.dvp_candidate;
+        Q.dsbp_default_candidate = Q.dvp_candidate;
+
+    } else if (Q.dvp_candidate && Q.dvp_right_shift >= 1) {
+        // DVP has drifted too far right — DSBP stays centrist with DDP
+        Q.dsbp_candidate = Q.ddp_candidate || "Gessler";
+        Q.dsbp_default_candidate = Q.ddp_candidate || "Gessler";
+
+    } else if (Q.ddp_relation >= 45 || Q.dvp_relation >= 45) {
+        // Good relations with either parent — wait on SPD choice first
+        Q.dsbp_candidate = null;
+        Q.dsbp_default_candidate = "Gessler";
+
+    } else {
+        // Independent liberal run
+        Q.dsbp_candidate = "Gessler";
+        Q.dsbp_default_candidate = "Gessler";
+    }
+}
+
 if (Q.lb_r > 0) {
     if (Q.kpd_banned || Q.kpd_candidate === "Thälmann") {
         Q.lb_candidate = Q.sapd_candidate || Q.spd_candidate || null;
@@ -1242,67 +1270,52 @@ if (Q.lb_r > 0) {
 
 !}
 
-The parties are preparing their candidates:
+*The parties have submitted their candidates to the Electoral Commission:*
 
-**Far Right:**
-[? if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
+📰 **PRESIDENTIAL RACE — CANDIDATE DECLARATIONS**
 
-[? if dnvp_candidate and dnvp_candidate != nsdap_candidate and not dnvp_banned: - DNVP: [+ dnvp_candidate +] ?]
+🔴 **THE LEFT**
+[? if kpd_candidate : • KPD — *[+ kpd_candidate +]* <br> ?]
+[? if lb_r > 0 : • LB — *[+ lb_candidate +]* <br> ?]
+[? if kpo_r > 0 : • KPO — *[+ kpo_candidate +]* <br> ?]
+[? if sapd_candidate and sapd_candidate != kpd_candidate : • SAPD — *[+ sapd_candidate +]* <br> ?]
+[? if srpd_formed = 1 : • SRPD — *[+ srpd_candidate +]* <br> ?]
+[? if sl_r > 0 : • SL — *[+ sl_candidate +]* <br> ?]
 
-[? if dnvp_candidate == nsdap_candidate and not dnvp_banned: - DNVP: Supporting [+ nsdap_candidate +] ?]
+🌹 **SOCIAL DEMOCRATS & ALLIES**
+• SPD — *[+ spd_candidate +]* <br>
+[? if sls_r > 0 : • SLS — *[+ sls_candidate +]* <br> ?]
+[? if aspd_r > 0 : • ASPD — *[+ aspd_candidate +]* <br> ?]
 
-[? if not dvfp_banned and dvfp_formed and dvfp_r > 0: - DVFP: [+ dvfp_candidate +] ?]
+🗳️ **CENTER & LIBERALS**
+• Z (Center) — *[+ z_candidate +]* <br>
+[? if bvp_votes > 0 : • BVP — *[+ bvp_candidate +]* <br> ?]
+[? if cvp_r > 0 : • CVP — *[+ cvp_candidate +]* <br> ?]
+[? if csrp_votes > 1 : • CSRP — *[+ csrp_candidate +]* <br> ?]
+[? if ddp_votes > 0 : • [+ ddp_name +] — *[+ ddp_candidate +]* <br> ?]
+[? if dsbp_r > 0 : • DSBP — *[+ dsbp_candidate +]* <br> ?]
+[? if rdp_r > 0 : • RDP — *[+ rdp_candidate +]* <br> ?]
+• DVP — *[+ dvp_candidate +]* <br>
+[? if vrp_votes > 0.1 : • VRP — *[+ vrp_candidate +]* <br> ?]
+• WP — *[+ wp_candidate +]* <br>
 
-[? if dtsp_r > 0 : - DtsP: [+ dtsp_candidate +] ?]
+🌾 **CONSERVATIVES & AGRARIANS**
+• CNBL — *[+ cnbl_candidate +]* <br>
+• BB — *[+ bb_candidate +]* <br>
+[? if dhp_r > 0 : • DHP — *[+ dhp_candidate +]* <br> ?]
+[? if hl_r > 0 : • HL — *[+ hl_candidate +]* <br> ?]
+[? if kvp_votes > 0 : • KVP — *[+ kvp_candidate +]* <br> ?]
+[? if csvd_flee = 1 : • CSVD — *[+ csvd_candidate +]* <br> ?]
 
-**Left:**
-[? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
+🎖️ **NATIONALISTS**
+[? if not dnvp_banned and dnvp_candidate != nsdap_candidate : • DNVP — *[+ dnvp_candidate +]* <br> ?]
+[? if not dnvp_banned and dnvp_candidate = nsdap_candidate : • DNVP — *Supporting [+ nsdap_candidate +]* <br> ?]
+[? if vnr_r > 0 : • VNR — *[+ vnr_candidate +]* <br> ?]
 
-[? if lb_r > 0 : - LB: [+ lb_candidate +] ?]
-
-[? if sapd_candidate and sapd_candidate != kpd_candidate : - SAPD: [+ sapd_candidate +] ?]
-
-**Center/Liberal Parties:**
-
- Center (Z): [+ z_candidate +]
-
-[? if cvp_r > 0 : CVP: [+ cvp_candidate +] ?]
-
-BVP: [+ bvp_candidate +]
-
-[+ ddp_name +]: [+ ddp_candidate +]
-
-[? if rdp_r > 0 : RDP: [+ rdp_candidate +] ?]
-
- DVP: [+ dvp_candidate +]
-
-[? if vrp_votes > 0.1 : VRP: [+ vrp_candidate +] ?]
-
- WP: [+ wp_candidate +]
-
- CNBL: [+ cnbl_candidate +] 
-
-[? if csrp_votes > 1: CSRP: [+ csrp_candidate +] ?]
-
-[? if srpd_formed = 1: SRPD: To be determined ?]
-
-BB: [+ bb_candidate +]
-
-DHP: [+ dhp_candidate +]
-
-[? if kvp_votes > 0: KVP: [+ kvp_candidate +] ?]
-
-[? if vnr_r > 0 : - VNR: [+ vnr_candidate +] ?]
-​
-[? if kpo_r > 0 : - KPO: [+ kpo_candidate +] ?]
-
-​[? if sl_r > 0 : - SL: [+ sl_candidate +] ?]
-​
-​[? if aspd_r > 0 : ASPD: [+ aspd_candidate +] ?]
-
-[? if sls_r > 0 : SLS: [+ sls_candidate +] ?]
-
-​[? if hl_r > 0 : HL: [+ hl_candidate +] ?]
+☠️ **FAR RIGHT**
+[? if not nsdap_banned : • NSDAP — *[+ nsdap_candidate +]* <br> ?]
+[? if not dvfp_banned and dvfp_formed and dvfp_r > 0 : • DVFP — *[+ dvfp_candidate +]* <br> ?]
+[? if dtsp_r > 0 : • DtsP — *[+ dtsp_candidate +]* <br> ?]
 
 **SPD:**
 We must choose our candidate and strategy.
@@ -1454,19 +1467,21 @@ The field is now clear. Who should we support?
 
 **Available Candidates:**
 
-[? if z_candidate : - [+ z_candidate +] (Center) ?]
+[? if z_candidate : - *[+ z_candidate +]* (Center) <br> ?]
 
-[? if bvp_candidate and bvp_candidate != z_candidate : - [+ bvp_candidate +] (BVP) ?]
+[? if bvp_candidate and bvp_candidate != z_candidate : - *[+ bvp_candidate +]* (BVP) <br> ?]
 
-[? if dvp_candidate : - [+ dvp_candidate +] (DVP) ?]
+[? if dvp_candidate : - *[+ dvp_candidate +]* (DVP) <br> ?]
 
-[? if ddp_candidate : - [+ ddp_candidate +] (DDP) ?]
+[? if ddp_candidate : - *[+ ddp_candidate +]* (DDP) <br> ?]
 
-[? if dnvp_candidate and dnvp_line = 1 : - [+ dnvp_candidate +] (DNVP) ?]
+[? if dsbp_candidate : - *[+ dsbp_candidate +]* (DSBP) <br> ?]
 
-[? if kpd_candidate : - [+ kpd_candidate +] (KPD) ?]
+[? if dnvp_candidate and dnvp_line = 1 : - *[+ dnvp_candidate +]* (DNVP) <br> ?]
 
-[? if nsdap_candidate : - [+ nsdap_candidate +] (NSDAP) - NEVER ?]
+[? if kpd_candidate : - *[+ kpd_candidate +]* (KPD) <br> ?]
+
+[? if nsdap_candidate : - *[+ nsdap_candidate +]* (NSDAP) — NEVER <br> ?]
 
 - @support_z_late: Support [+ z_candidate +]
 - @support_dvp_late: Support [+ dvp_candidate +] (if DVP not supporting Z)
@@ -1680,7 +1695,7 @@ if (Q.hindenburg_dead) {
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
                'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp','dbp'];
+               'lb','rdp','cvp','sls','dtsp','dbp', 'dsbp'];
     for (var i = 0; i < all_parties.length; i++) {
         if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
             Q[all_parties[i] + '_candidate'] = null;
@@ -2102,6 +2117,36 @@ if (Q.hindenburg_dead) {
     }
 
     // ========================================
+    // DSBP - finalize after SPD choice
+    // ========================================
+    if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
+        var dsbp_crisis = Q.inflation < 0 || Q.unemployed >= 15;
+
+        if (dsbp_crisis) {
+            Q.dsbp_candidate = "Gessler";
+
+        } else if (Q.spd_candidate === Q.kpd_candidate) {
+            // Far-left SPD — DSBP retreats to liberal center
+            Q.dsbp_candidate = Q.ddp_candidate !== Q.kpd_candidate
+                ? Q.ddp_candidate || Q.dvp_candidate || "Gessler"
+                : Q.dvp_candidate || "Gessler";
+
+        } else if (Q.ddp_candidate && Q.dvp_candidate && Q.ddp_candidate === Q.dvp_candidate) {
+            // Both parents converged — follow them
+            Q.dsbp_candidate = Q.ddp_candidate;
+
+        } else if (Q.is_unity_candidate
+                   && (Q.ddp_candidate === Q.spd_candidate || Q.dvp_candidate === Q.spd_candidate)
+                   && Q.dsbp_relation >= 40) {
+            // Unity ticket with at least one liberal parent — DSBP joins
+            Q.dsbp_candidate = Q.spd_candidate;
+
+        } else {
+            Q.dsbp_candidate = Q.dsbp_default_candidate || "Gessler";
+        }
+    }
+
+    // ========================================
     // 1932 HINDENBURG LOGIC
     // ========================================
     if (!Q.hindenburg_dead && Q.year >= 1932) {
@@ -2187,6 +2232,12 @@ if (Q.hindenburg_dead) {
             Q.dtsp_default_candidate = Q.dtsp_candidate;
         }
 
+        // DSBP - natural fit for Hindenburg as liberal-center anti-Hitler bloc
+        if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
+            Q.dsbp_candidate = "Hindenburg";
+            Q.dsbp_default_candidate = "Hindenburg";
+        }
+
         // DBP - backs Hindenburg as constitutional agrarian-liberal default
         // Holds out longer than most, but ultimately joins the anti-Hitler bloc
         if (Q.dbp_r > 0 && !Q.dbp_banned) {
@@ -2207,55 +2258,74 @@ go-to: r1_finalized
 
 @r1_finalized
 
-The candidates have been finalized:
+*The Electoral Commission has closed nominations. The candidates are confirmed:*
 
-**Far Right:**
-[? if not nsdap_banned : - NSDAP: [+ nsdap_candidate +] ?]
+📰 **FIRST ROUND — FINAL CANDIDATE LIST**
 
-[? if not dvfp_banned and dvfp_formed : - DVFP: [+ dvfp_candidate +] ?]
+☠️ **FAR RIGHT**
+[? if not nsdap_banned : • NSDAP — *[+ nsdap_candidate +]* <br> ?]
+[? if dtsp_r > 0 : • DtsP — *[+ dtsp_candidate +]* <br> ?]
+[? if not dvfp_banned and dvfp_formed and dvfp_r > 0 : • DVFP — *[+ dvfp_candidate +]* <br> ?]
+[? if not dnvp_banned and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate : • DNVP — *[+ dnvp_candidate +]* <br> ?]
+[? if not dnvp_banned and dnvp_candidate == nsdap_candidate : • DNVP — *Supporting [+ nsdap_candidate +]* <br> ?]
 
-[? if dnvp_candidate and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate and not dnvp_banned : - DNVP: [+ dnvp_candidate +] ?]
-[? if dnvp_candidate == nsdap_candidate and not dnvp_banned : - DNVP: Supporting [+ nsdap_candidate +] ?]
+🎖️ **NATIONALISTS**
+[? if not dnvp_banned and z_dnvp_joint_possible and dnvp_candidate == z_dnvp_joint_candidate : • DNVP — *[+ dnvp_candidate +]* (Conservative Unity) <br> ?]
+[? if vnr_r > 0 and vnr_candidate != nsdap_candidate : • VNR — *[+ vnr_candidate +]* <br> ?]
 
-**Left:**
-[? if kpd_candidate : - KPD: [+ kpd_candidate +] ?]
-[? if sapd_candidate and sapd_candidate != kpd_candidate and sapd_candidate != spd_candidate : - SAPD: [+ sapd_candidate +] ?]
-[? if sapd_candidate == spd_candidate : - SAPD: Supporting [+ spd_candidate +] ?]
+🌾 **CONSERVATIVES & AGRARIANS**
+[? if z_dnvp_joint_possible : • Conservative Unity Ticket — *[+ z_dnvp_joint_candidate +]* <br> ?]
+[? if not z_dnvp_joint_possible and z_candidate and z_candidate != spd_candidate : • Z (Center) — *[+ z_candidate +]* <br> ?]
+[? if z_candidate == spd_candidate : • Z (Center) — *Supporting [+ spd_candidate +]* <br> ?]
+[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate and bvp_candidate != z_dnvp_joint_candidate : • BVP — *[+ bvp_candidate +]* <br> ?]
+[? if bvp_candidate == spd_candidate : • BVP — *Supporting [+ spd_candidate +]* <br> ?]
+[? if cvp_r > 0 and cvp_candidate != z_candidate and cvp_candidate != spd_candidate : • CVP — *[+ cvp_candidate +]* <br> ?]
+[? if kvp_votes > 0 and kvp_candidate != z_dnvp_joint_candidate and kvp_candidate != spd_candidate : • KVP — *[+ kvp_candidate +]* <br> ?]
+[? if csvd_flee = 1 and csvd_candidate and csvd_candidate != z_dnvp_joint_candidate and csvd_candidate != spd_candidate : • CSVD — *[+ csvd_candidate +]* <br> ?]
+[? if cnbl_candidate and cnbl_candidate != z_dnvp_joint_candidate and cnbl_candidate != spd_candidate : • CNBL — *[+ cnbl_candidate +]* <br> ?]
+[? if cnbl_candidate == spd_candidate : • CNBL — *Supporting [+ spd_candidate +]* <br> ?]
+• BB — *[+ bb_candidate +]* <br>
+[? if dhp_r > 0 and dhp_candidate != cnbl_candidate and dhp_candidate != z_dnvp_joint_candidate : • DHP — *[+ dhp_candidate +]* <br> ?]
+[? if hl_r > 0 and hl_candidate != dhp_candidate and hl_candidate != cnbl_candidate : • HL — *[+ hl_candidate +]* <br> ?]
 
-[? if lb_r > 0 : LB: [+ lb_candidate +] ?]
+🗳️ **CENTER & LIBERALS**
+[? if ddp_votes > 0 and ddp_candidate and ddp_candidate != spd_candidate and ddp_candidate != z_candidate : • [+ ddp_name +] — *[+ ddp_candidate +]* <br> ?]
+[? if ddp_votes > 0 and ddp_candidate == spd_candidate : • [+ ddp_name +] — *Supporting [+ spd_candidate +]* <br> ?]
+[? if dsbp_r > 0 and dsbp_candidate and dsbp_candidate != spd_candidate and dsbp_candidate != ddp_candidate and dsbp_candidate != dvp_candidate : • DSBP — *[+ dsbp_candidate +]* <br> ?]
+[? if dsbp_r > 0 and dsbp_candidate == spd_candidate : • DSBP — *Supporting [+ spd_candidate +]* <br> ?]
+[? if dvp_candidate and dvp_candidate != spd_candidate and dvp_candidate != z_candidate and dvp_candidate != ddp_candidate and dvp_candidate != z_dnvp_joint_candidate : • DVP — *[+ dvp_candidate +]* <br> ?]
+[? if dvp_candidate == spd_candidate : • DVP — *Supporting [+ spd_candidate +]* <br> ?]
+[? if vrp_votes > 0.1 and vrp_candidate != ddp_candidate and vrp_candidate != dvp_candidate and vrp_candidate != spd_candidate : • VRP — *[+ vrp_candidate +]* <br> ?]
+[? if wp_candidate and wp_candidate != spd_candidate and wp_candidate != dvp_candidate and wp_candidate != z_dnvp_joint_candidate : • WP — *[+ wp_candidate +]* <br> ?]
+[? if wp_candidate == spd_candidate : • WP — *Supporting [+ spd_candidate +]* <br> ?]
+[? if rdp_r > 0 and rdp_candidate != spd_candidate and rdp_candidate != ddp_candidate : • RDP — *[+ rdp_candidate +]* <br> ?]
+[? if rdp_r > 0 and rdp_candidate == spd_candidate : • RDP — *Supporting [+ spd_candidate +]* <br> ?]
+[? if dbp_r > 0 and dbp_candidate and dbp_candidate != spd_candidate and dbp_candidate != bb_candidate and dbp_candidate != cnbl_candidate : • DBP — *[+ dbp_candidate +]* <br> ?]
+[? if dbp_r > 0 and dbp_candidate == spd_candidate : • DBP — *Supporting [+ spd_candidate +]* <br> ?]
+[? if csrp_votes > 1 and csrp_candidate != z_candidate and csrp_candidate != spd_candidate : • CSRP — *[+ csrp_candidate +]* <br> ?]
 
-**Center/Liberal:**
-- SPD: [+ spd_candidate +]
+🌹 **SOCIAL DEMOCRATS & ALLIES**
+• SPD — *[+ spd_candidate +]* <br>
+[? if srpd_formed = 1 and srpd_candidate and srpd_candidate != spd_candidate : • SRPD — *[+ srpd_candidate +]* <br> ?]
+[? if srpd_formed = 1 and srpd_candidate == spd_candidate : • SRPD — *Supporting [+ spd_candidate +]* <br> ?]
+[? if sls_r > 0 and sls_candidate == spd_candidate : • SLS — *Supporting [+ spd_candidate +]* <br> ?]
+[? if sls_r > 0 and sls_candidate != spd_candidate : • SLS — *[+ sls_candidate +]* <br> ?]
+[? if aspd_r > 0 and aspd_candidate == spd_candidate : • ASPD — *Supporting [+ spd_candidate +]* <br> ?]
+[? if aspd_r > 0 and aspd_candidate != spd_candidate : • ASPD — *[+ aspd_candidate +]* <br> ?]
 
-[? if srpd_formed == 1 and srpd_candidate : - SRPD: [+ srpd_candidate +] ?]
-[? if csrp_votes > 1: CSRP: [+ csrp_candidate +] ?]
+🔴 **THE LEFT**
+[? if sapd_candidate and sapd_candidate == spd_candidate : • SAPD — *Supporting [+ spd_candidate +]* <br> ?]
+[? if sapd_candidate and sapd_candidate != spd_candidate and sapd_candidate != kpd_candidate : • SAPD — *[+ sapd_candidate +]* <br> ?]
+[? if sapd_candidate == kpd_candidate : • SAPD — *Supporting [+ kpd_candidate +]* <br> ?]
+[? if kpo_r > 0 and kpo_candidate != kpd_candidate : • KPO — *[+ kpo_candidate +]* <br> ?]
+[? if kpo_r > 0 and kpo_candidate == kpd_candidate : • KPO — *Supporting [+ kpd_candidate +]* <br> ?]
+[? if sl_r > 0 and sl_candidate != spd_candidate and sl_candidate != kpd_candidate : • SL — *[+ sl_candidate +]* <br> ?]
+[? if sl_r > 0 and sl_candidate == spd_candidate : • SL — *Supporting [+ spd_candidate +]* <br> ?]
+[? if lb_r > 0 and lb_candidate != kpd_candidate : • LB — *[+ lb_candidate +]* <br> ?]
+[? if lb_r > 0 and lb_candidate == kpd_candidate : • LB — *Supporting [+ kpd_candidate +]* <br> ?]
+[? if kpd_candidate : • KPD — *[+ kpd_candidate +]* <br> ?]
 
-[? if rdp_r > 0 : RDP: [+ rdp_candidate +] ?]
-
-[? if cvp_r > 0 : CVP: [+ cvp_candidate +] ?]
-
-[? if sls_r > 0 : SLS: [+ sls_candidate +] ?]
-
-[? if z_candidate and z_candidate != spd_candidate and not z_dnvp_joint_possible : - Center (Z): [+ z_candidate +] ?]
-[? if z_candidate == spd_candidate : - Center (Z): Supporting [+ spd_candidate +] ?]
-
-[? if bvp_candidate and bvp_candidate != z_candidate and bvp_candidate != spd_candidate and not z_dnvp_joint_possible : - BVP: [+ bvp_candidate +] ?]
-[? if bvp_candidate == spd_candidate : - BVP: Supporting [+ spd_candidate +] ?]
-
-[? if ddp_candidate and ddp_candidate != spd_candidate and ddp_candidate != z_candidate : - [+ ddp_name +]: [+ ddp_candidate +] ?]
-[? if ddp_candidate == spd_candidate : - [+ ddp_name +]: Supporting [+ spd_candidate +] ?]
-
-[? if dvp_candidate and dvp_candidate != spd_candidate and dvp_candidate != z_candidate and dvp_candidate != ddp_candidate and dvp_candidate != z_dnvp_joint_candidate : - DVP: [+ dvp_candidate +] ?]
-[? if dvp_candidate == spd_candidate : - DVP: Supporting [+ spd_candidate +] ?]
-
-[? if wp_candidate and wp_candidate != spd_candidate and wp_candidate != z_candidate and wp_candidate != dvp_candidate and wp_candidate != z_dnvp_joint_candidate : - WP: [+ wp_candidate +] ?]
-[? if wp_candidate == spd_candidate : - WP: Supporting [+ spd_candidate +] ?]
-
-[? if cnbl_candidate and cnbl_candidate != z_dnvp_joint_candidate : - CNBL: [+ cnbl_candidate +] ?]
-
-[? if csvd_candidate and csvd_candidate != z_dnvp_joint_candidate : - CSVD: [+ csvd_candidate +] ?]
-
-- @r1_menu: Continue to first round.
+- @r1_menu: *Proceed to the first round of voting.*
 
 @r1_menu
 view-if: round = 0
@@ -2410,7 +2480,7 @@ on-arrival: {!
     var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
                'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp', 'dbp'];
+               'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
     
     for (var i = 0; i < all_parties.length; i++) {
         var party = all_parties[i];
@@ -2540,7 +2610,7 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5"
 };
 
 var partyLabels = {
@@ -2549,13 +2619,13 @@ var partyLabels = {
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
     aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP"
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP", dsbp: "DSBP"
 };
 
 var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
                   'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-                  'lb','rdp','cvp','sls','dtsp', 'dbp'];
+                  'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -2907,11 +2977,15 @@ if (Q.dbp_r > 0) {
     Q.dtsp_candidate = pickClosestFinalist(Q.dbp_candidate, [center, center_right, center_left]);
 }
 
+if (Q.dsbp_r > 0) {
+    Q.dtsp_candidate = pickClosestFinalist(Q.dbp_candidate, [center, center_right, center_left]);
+}
+
     if (!Q.round2_has_third) {
         var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
           'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
           'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp', 'dbp'];
+          'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
         for (var i = 0; i < parties_r2.length; i++) {
             var p = parties_r2[i];
             var cand = Q[p + '_candidate'];
@@ -2968,7 +3042,7 @@ on-arrival: {!
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
           'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
           'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp', 'dbp'];
+          'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
@@ -3012,7 +3086,7 @@ on-arrival: {!
     var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
           'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
           'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp', 'dbp'];
+          'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
@@ -3164,7 +3238,7 @@ on-arrival: {!
     var parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
                'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp', 'dbp'];
+               'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -3372,7 +3446,7 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5"
 };
 
 var partyLabels = {
@@ -3381,13 +3455,13 @@ var partyLabels = {
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
     aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp: "DBP"
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp: "DBP", dsbp: "DSBP"
 };
 
 var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
                   'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
                   'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-                  'lb','rdp','cvp','sls','dtsp','dbp'];
+                  'lb','rdp','cvp','sls','dtsp','dbp', 'dsbp'];
 
 
 var displayNames = {
@@ -3669,6 +3743,11 @@ else if (dvp_winners.indexOf(w)   >= 0) Q.president_party = 'DVP';
 else if (ddp_winners.indexOf(w)   >= 0) Q.president_party = 'DDP';
 else if (dvfp_winners.indexOf(w)  >= 0) Q.president_party = 'DVFP';
 else if (dbp_winners.indexOf(w)  >= 0) Q.president_party = 'DBP';
+else if (w === 'Quidde')               Q.president_party = 'RDP';
+else if (w === 'Fehr')                 Q.president_party = 'DBP';
+else if (w === 'Böhm')                 Q.president_party = 'VRP';
+else if (w === 'Kunze')                Q.president_party = 'DTSP';
+else if (w === 'Noske')                Q.president_party = 'ASPD';
 else if (w === 'Rosenfeld')              Q.president_party = 'SAPD';
 else if (w === 'Horsing')           Q.president_party = 'SRPD';
 else if (w === 'Drewitz')               Q.president_party = 'WP';
