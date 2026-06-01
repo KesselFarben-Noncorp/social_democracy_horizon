@@ -110,6 +110,12 @@ DDP/DStP Leadership: [+ ddp_party_leader +] <br>
 DDP/DStP Dissent: [+ ddp_dissent +]
 ?]
 
+[? if dsbp_votes > 1 :
+DSBP Ideology: [+ dsbp_ideology +] <br>
+DSBP Leadership: [+ dsbp_party_leader +] <br>
+DSBP Dissent: [+ dsbp_dissent +]
+?]
+
 [? if sls_votes > 1 :
 SLS Ideology: [+ sls_ideology +] <br>
 SLS Leadership: [+ sls_party_leader +] <br>
@@ -246,6 +252,8 @@ DVFP Dissent: [+ dvfp_dissent +]
 [? if hl_votes > 0: {!<span class="tooltip-text" title="Hanseatic League">HL</span>!}: [+ hl_relation : relationships +] [+ hl_relation +] ?]
 
 {!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [+ ddp_relation +]
+
+[? if dsbp_votes > 0: {!<span class="tooltip-text" title="German Citizens' Party">[+ dsbp_name +]</span>!}: [+ dsbp_relation : relationships +] [+ dsbp_relation +] ?]
 
 {!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [+ dhp_relation +]
 
@@ -423,6 +431,8 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +]
 
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ ddp_votes +]% ?]
 
+[? if dsbp_votes > 1: [+ dsbp_name +]: [+ dsbp_votes +]% ?]
+
 [? if csrp_votes > 1: CSRP: [+ csrp_votes +]% ?]
 
 [? if bb_votes > 1: BB: [+ bb_votes +]% ?]
@@ -473,7 +483,7 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +]
 
 **Detailed results for each demographic**
 
-Workers:       
+Workers ([+ workers +]):       
 
 [? if spd_votes > 1: SPD: [+ workers_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ workers_z_display +]%, ?]
@@ -483,6 +493,7 @@ Workers:
 [? if bb_votes > 1: BB: [+ workers_bb_display +]%, ?]
 [? if kvp_votes > 1: KVP: [+ workers_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ workers_ddp_display +]%, ?]
+[? if dsbp_votes > 1: [+ dsbp_name +]: [+ workers_dsbp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ workers_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ workers_vrp_display +]% ?]
 [? if wp_votes > 1: WP: [+ workers_wp_display +]%, ?]
@@ -508,7 +519,7 @@ Workers:
 
 
 
-New Middle Class:
+New Middle Class ([+ new_middle +]):
 
 [? if spd_votes > 1: SPD: [+ new_middle_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ new_middle_z_display +]%, ?]
@@ -518,6 +529,7 @@ New Middle Class:
 [? if bb_votes > 1: BB: [+ new_middle_bb_display +]%, ?]
 [? if kvp_votes > 1: KVP: [+ new_middle_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ new_middle_ddp_display +]%, ?]
+[? if dsbp_votes > 1: [+ dsbp_name +]: [+ new_middle_dsbp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ new_middle_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ new_middle_vrp_display +]%, ?]
 [? if wp_votes > 1: WP: [+ new_middle_wp_display +]%, ?]
@@ -543,7 +555,7 @@ New Middle Class:
 
 
 
-Old Middle Class:
+Old Middle Class ([+ old_middle +]):
 
 [? if spd_votes > 1: SPD: [+ old_middle_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ old_middle_z_display +]%, ?]
@@ -553,6 +565,7 @@ Old Middle Class:
 [? if bb_votes > 1: BB: [+ old_middle_bb_display +]%, ?]
 [? if kvp_votes > 1: KVP: [+ old_middle_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ old_middle_ddp_display +]%, ?]
+[? if dsbp_votes > 1: [+ dsbp_name +]: [+ old_middle_dsbp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ old_middle_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ old_middle_vrp_display +]%, ?]
 [? if wp_votes > 1: WP: [+ old_middle_wp_display +]%, ?]
@@ -577,7 +590,7 @@ Old Middle Class:
 [? if dtsp_votes > 1: DTSP: [+ old_middle_dtsp_display +]%, ?]
 
 
-Rural:
+Rural ([+ rural +]):
 
 [? if spd_votes > 1: SPD: [+ rural_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ rural_z_display +]%, ?]
@@ -587,6 +600,7 @@ Rural:
 [? if bb_votes > 1: BB: [+ rural_bb_display +]%, ?]
 [? if kvp_votes > 1: KVP: [+ rural_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ rural_ddp_display +]%, ?]
+[? if dsbp_votes > 1: [+ dsbp_name +]: [+ rural_dsbp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ rural_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ rural_vrp_display +]%, ?]
 [? if wp_votes > 1: WP: [+ rural_wp_display +]%, ?]
@@ -612,7 +626,7 @@ Rural:
 
 
 
-Unemployed:
+Unemployed ([+ unemployedc +]):
 
 [? if spd_votes > 1: SPD: [+ unemployedc_spd_display +]%, ?]
 [? if z_votes > 1: Z: [+ unemployedc_z_display +]%, ?]
@@ -622,6 +636,7 @@ Unemployed:
 [? if bb_votes > 1: BB: [+ unemployedc_bb_display +]%, ?]
 [? if kvp_votes > 1: KVP: [+ unemployedc_kvp_display +]%, ?]
 [? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ unemployedc_ddp_display +]%, ?]
+[? if dsbp_votes > 1: [+ dsbp_name +]: [+ unemployedc_dsbp_display +]%, ?]
 [? if dvp_votes > 1: DVP: [+ unemployedc_dvp_display +]%, ?]
 [? if vrp_votes > 1: VRP: [+ unemployedc_vrp_display +]%, ?]
 [? if wp_votes > 1: WP: [+ unemployedc_wp_display +]%, ?]
@@ -644,19 +659,6 @@ Unemployed:
 [? if cvp_votes > 1: CVP: [+ unemployedc_cvp_display +]%, ?]
 [? if sls_votes > 1: SLS: [+ unemployedc_sls_display +]%, ?]
 [? if dtsp_votes > 1: DTSP: [+ unemployedc_dtsp_display +]%, ?]
-
-
-= Proportions of the economical groups
-
-Workers: [+ workers +]
-
-Old Mittelstand: [+ old_middle +]
-
-New Mittelstand: [+ new_middle +]
-
-Rural: [+ rural +]
-
-Unemployed: [+ unemployedc +]
 
 = Proportions of the social groups
 
