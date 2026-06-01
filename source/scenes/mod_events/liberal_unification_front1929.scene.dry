@@ -1,10 +1,70 @@
-Title: Liberal unification reaches it's apogea!
+Title: Liberal unification reaches its apogea!
 subtitle: Liberal forces are concentrating...
 tags: event
 new-page: true
 view-if: front_1929_met and year >= 1929 and year <= 1929 and month >= 9
 on-arrival: {!
 window.enableFocusMode()
+
+if (Q.jungdo_formed == 0) Q.dsbp_name = "DLP"
+else Q.dsbp_name = "DSBP";
+
+Q.parties = Q.parties.filter(function(p) { return p !== 'dvp'; });
+Q.parties = Q.parties.filter(function(p) { return p !== 'ddp'; });
+Q.parties.push('dsbp');
+
+// Transfer votes from DDp and DVP to DSBP
+Q.workers_dsbp     = (Q.workers_ddp     || 0) + (Q.workers_dvp     || 0);
+Q.new_middle_dsbp  = (Q.new_middle_ddp  || 0) + (Q.new_middle_dvp  || 0);
+Q.old_middle_dsbp  = (Q.old_middle_ddp  || 0) + (Q.old_middle_dvp  || 0);
+Q.rural_dsbp       = (Q.rural_ddp       || 0) + (Q.rural_dvp       || 0);
+Q.unemployedc_dsbp = (Q.unemployedc_ddp || 0) + (Q.unemployedc_dvp || 0);
+
+// Zero out the parents
+Q.workers_ddp      = 0;
+Q.workers_dvp      = 0;
+Q.new_middle_ddp   = 0;
+Q.new_middle_dvp   = 0;
+Q.old_middle_ddp   = 0;
+Q.old_middle_dvp   = 0;
+Q.rural_ddp        = 0;
+Q.rural_dvp        = 0;
+Q.unemployedc_ddp  = 0;
+Q.unemployedc_dvp  = 0;
+
+Q.dsbp_votes = (Q.ddp_votes || 0) + (Q.dvp_votes || 0);
+Q.ddp_votes  = 0;
+Q.dvp_votes  = 0;
+
+// Transfer _r from DDP and DVP to DSBP
+Q.dsbp_r = (Q.ddp_r || 0) + (Q.dvp_r || 0);
+Q.ddp_r  = 0;
+Q.dvp_r  = 0;
+
+if (Q.jungdo_formed == 1) {
+    // Transfer VNR votes to DSBP
+    Q.workers_dsbp     += (Q.workers_vnr     || 0);
+    Q.new_middle_dsbp  += (Q.new_middle_vnr  || 0);
+    Q.old_middle_dsbp  += (Q.old_middle_vnr  || 0);
+    Q.rural_dsbp       += (Q.rural_vnr       || 0);
+    Q.unemployedc_dsbp += (Q.unemployedc_vnr || 0);
+
+    Q.dsbp_votes += (Q.vnr_votes || 0);
+
+    // Zero out VNR
+    Q.workers_vnr     = 0;
+    Q.new_middle_vnr  = 0;
+    Q.old_middle_vnr  = 0;
+    Q.rural_vnr       = 0;
+    Q.unemployedc_vnr = 0;
+    Q.vnr_votes       = 0;
+
+    Q.dsbp_r += (Q.vnr_r || 0);
+    Q.vnr_r   = 0;
+
+    // Remove VNR from parties list
+    Q.parties = Q.parties.filter(function(p) { return p !== 'vnr'; });
+}
 
 !}
 on-departure: {!
@@ -19,8 +79,10 @@ window.disableFocusMode()
 </div>
 !}
 
-Liberal movement has reached it's peak following this month, when leaders of dual liberal parties [? if jungdo_formed: , VNR under Mahraun ?] and Front 1929 under Rheinbaben have finally reached the agreement to form unified force. Name to it had been selected: [? if jungdo_formed: German Citizens' Party ?] [? if not jungdo_formed: Liberal Party of Germany. ?]
+Liberal movement has reached its peak following this month, when leaders of dual liberal parties [? if jungdo_formed: , VNR under Mahraun ?] and Front 1929 under Rheinbaben have finally reached the agreement to form unified force. Name to it had been selected: [? if jungdo_formed: German Citizens' Party ?] [? if not jungdo_formed: Liberal Party of Germany. ?]
 
-Left wing elements of DDP and right wing elements of DVP are dissatisfied, however they have to decided to remain in their respective parties for time being to see how this will develop. Regardless, Pre World War 1 liberals would certainly be proud of them and their result.
+Left wing elements of DDP and right wing elements of DVP are dissatisfied, however they have to decided to remain in their respective parties for time being to see how this will develop. Regardless, pre-war liberals of any kind would certainly be proud of them and their result.
 
-- @post_event: I slept long enough to differentiate dream with reality...
+New party stands on the legacy of DDP [? if jungdo_formed:, VNR ?] and DVP, becoming new powerhouse of this reichstag, rivaling social democrats and nationalists...
+
+- @post_event: I slept long enough to differentiate dream from the reality...
