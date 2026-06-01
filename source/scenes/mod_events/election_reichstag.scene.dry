@@ -714,24 +714,22 @@ Q.party_votes = [
     {party: 'Z',     votes: ((Q.z_seats    || 0) / seat_total) * 100},
     {party: 'NSDAP', votes: ((Q.nsdap_seats|| 0) / seat_total) * 100},
     {party: 'DNVP',  votes: ((Q.dnvp_seats || 0) / seat_total) * 100},
-    {party: 'DVP',   votes: ((Q.dvp_seats  || 0) / seat_total) * 100},
-    {party: 'DDP',   votes: ((Q.ddp_seats  || 0) / seat_total) * 100},
-    {party: 'BVP',   votes: ((Q.bvp_seats  || 0) / seat_total) * 100},
-    {party: 'BB',    votes: ((Q.bb_seats   || 0) / seat_total) * 100},
-    {party: 'WP',    votes: ((Q.wp_seats   || 0) / seat_total) * 100},
-    {party: 'CNBL',  votes: ((Q.cnbl_seats || 0) / seat_total) * 100},
-    {party: 'CSRP',  votes: ((Q.csrp_seats || 0) / seat_total) * 100},
     {party: 'other', votes: ((Q.other_seats|| 0) / seat_total) * 100},
 ].filter(function(p) { return p.votes > 0; });
 
-// Conditional additions for optional parties
-if (Q.sapd_formed && Q.sapd_seats > 0)
-    Q.party_votes.push({party: 'SAPD', votes: (Q.sapd_seats / seat_total) * 100});
-if (Q.srpd_formed && Q.srpd_seats > 0)
-    Q.party_votes.push({party: 'SRPD', votes: (Q.srpd_seats / seat_total) * 100});
+if (Q.dvp_seats  > 0) Q.party_votes.push({party: 'DVP',  votes: (Q.dvp_seats  / seat_total) * 100});
+if (Q.ddp_seats  > 0) Q.party_votes.push({party: 'DDP',  votes: (Q.ddp_seats  / seat_total) * 100});
+if (Q.dsbp_seats > 0) Q.party_votes.push({party: Q.dsbp_name || 'DSBP', votes: (Q.dsbp_seats / seat_total) * 100});
+if (Q.bvp_seats  > 0) Q.party_votes.push({party: 'BVP',  votes: (Q.bvp_seats  / seat_total) * 100});
+if (Q.bb_seats   > 0) Q.party_votes.push({party: 'BB',   votes: (Q.bb_seats   / seat_total) * 100});
+if (Q.wp_seats   > 0) Q.party_votes.push({party: 'WP',   votes: (Q.wp_seats   / seat_total) * 100});
+if (Q.cnbl_seats > 0) Q.party_votes.push({party: 'CNBL', votes: (Q.cnbl_seats / seat_total) * 100});
+if (Q.csrp_seats > 0) Q.party_votes.push({party: 'CSRP', votes: (Q.csrp_seats / seat_total) * 100});
+if (Q.sapd_formed && Q.sapd_seats > 0) Q.party_votes.push({party: 'SAPD', votes: (Q.sapd_seats / seat_total) * 100});
+if (Q.srpd_formed && Q.srpd_seats > 0) Q.party_votes.push({party: 'SRPD', votes: (Q.srpd_seats / seat_total) * 100});
 if (Q.vrp_seats  > 0) Q.party_votes.push({party: 'VRP',  votes: (Q.vrp_seats  / seat_total) * 100});
-if (Q.csvd_flee && Q.csvd_seats > 0) Q.party_votes.push({party: 'CSVD', votes: (Q.csvd_seats / seat_total) * 100});
-if (Q.kvp_flee  && Q.kvp_seats  > 0) Q.party_votes.push({party: 'KVP',  votes: (Q.kvp_seats  / seat_total) * 100});
+if (Q.csvd_flee && Q.csvd_seats > 0)   Q.party_votes.push({party: 'CSVD', votes: (Q.csvd_seats / seat_total) * 100});
+if (Q.kvp_flee  && Q.kvp_seats  > 0)   Q.party_votes.push({party: 'KVP',  votes: (Q.kvp_seats  / seat_total) * 100});
 if (Q.dhp_seats  > 0) Q.party_votes.push({party: 'DHP',  votes: (Q.dhp_seats  / seat_total) * 100});
 if (Q.dvfp_seats > 0) Q.party_votes.push({party: 'DVFP', votes: (Q.dvfp_seats / seat_total) * 100});
 if (Q.aspd_seats > 0) Q.party_votes.push({party: 'ASPD', votes: (Q.aspd_seats / seat_total) * 100});
@@ -744,8 +742,7 @@ if (Q.rdp_seats  > 0) Q.party_votes.push({party: 'RDP',  votes: (Q.rdp_seats  / 
 if (Q.cvp_seats  > 0) Q.party_votes.push({party: 'CVP',  votes: (Q.cvp_seats  / seat_total) * 100});
 if (Q.sls_seats  > 0) Q.party_votes.push({party: 'SLS',  votes: (Q.sls_seats  / seat_total) * 100});
 if (Q.dtsp_seats > 0) Q.party_votes.push({party: 'DtsP', votes: (Q.dtsp_seats / seat_total) * 100});
-if (Q.dbp_seats > 0) Q.party_votes.push({party: 'DBP', votes: (Q.dbp_seats / seat_total) * 100});
-if (Q.dsbp_seats > 0) Q.party_votes.push({party: 'DSBP', votes: (Q.dsbp_seats / seat_total) * 100});
+if (Q.dbp_seats  > 0) Q.party_votes.push({party: 'DBP',  votes: (Q.dbp_seats  / seat_total) * 100});
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 // ============================================================
