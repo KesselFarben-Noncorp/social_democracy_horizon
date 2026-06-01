@@ -64,7 +64,7 @@ Q.random_factor = function(f, variance = 0.65) {
 const ALL_PARTIES = [
     'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
     'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
-    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'rdp', 'cvp', 'sls', 'lb', 'dbp', 'dtsp'
+    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'rdp', 'cvp', 'sls', 'lb', 'dbp', 'dsbp' 'dtsp'
 ];
 
 // === MASTER CHANCELLOR LIST ===
@@ -2119,6 +2119,7 @@ if (Q.sls_in_government)   centrist_party_count++;
 if (Q.cvp_in_government)   centrist_party_count++;
 if (Q.rdp_in_government)   centrist_party_count++;
 if (Q.dbp_in_government)   centrist_party_count++;
+if (Q.dsbp_in_government)   centrist_party_count++;
 
 if (Q.vnr_in_government)  nationalist_party_count++;
 if (Q.dtsp_in_government)  nationalist_party_count++;
@@ -3761,6 +3762,63 @@ function computeTarget(party, c) {
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
+        case 'dsbp': {
+            if (Q.dsbp_banned) return 0;
+
+            // ── Presence penalties ──────────────────────────────────────
+            const ddp_present  = Q.parties.includes('ddp');
+            const dvp_present  = Q.parties.includes('dvp');
+            const vnr_present  = Q.parties.includes('vnr');
+
+            let presence_pen = 1.0;
+            if (ddp_present && dvp_present) presence_pen = 0.18;   // both parents: severe nerf
+            else if (ddp_present)           presence_pen = 0.30;   // DDP alone: heavy nerf
+            else if (dvp_present)           presence_pen = 0.30;   // DVP alone: heavy nerf
+            if (vnr_present)                presence_pen *= 0.85;  // VNR siphons liberal-national voters
+
+            // ── Base: 1.9× the combined DDP+DVP base rates ──────────────
+            // DDP base driver: rep * 53; DVP base driver: factor * 49 * scale
+            let ddp_factor   = Q.dvp_right_shift ? nat * 0.95 : rep * 1.0;
+            let infl_pen     = Math.pow(Math.abs(Q.inflation - 1.5) / 12, 1.2);
+            let unemp_pen    = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
+            let econ_conf    = Math.max(0.35, 1 - (infl_pen * 0.7) - (unemp_pen * 0.7));
+            let dvp_scale    = Q.dvp_right_shift ? 2.2 : 1.8;
+            let dvp_base_raw = ddp_factor * 49 * dvp_scale * econ_conf;
+
+            let sec_bonus  = (100 - Q.catholics) / 100 * 0.10;
+            let nat_pen_d  = (Q.nationalism / 100) * 0.15;
+            let edu_bonus  = (Q.education_science || 0) * 0.03
+                           + (Q.secularized       || 0) * 0.05
+                           + (Q.science           || 0) * 0.10
+                           + (Q.womens_rights     || 0) * 0.05;
+            let ddp_base_raw = rep * 53 * (1.1 + sec_bonus - nat_pen_d + edu_bonus);
+
+            // Rep factor boosted 30% vs raw DDP — merger skews liberal-republican
+            let rep_boost = 1.30;
+            base = (ddp_base_raw * rep_boost + dvp_base_raw) * 1.9 * presence_pen * (im.dsbp || 1);
+
+            // ── Class multipliers: 80% of combined parents, old_middle & rural halved ──
+            // Parent DDP class mods (new_middle 1.40, workers 0.60, old_middle 0.85, rural 0.50, unemployedc 0.55)
+            // Parent DVP class mods (workers 0.45, old_middle 1.35, new_middle 1.40, rural 0.65, unemployedc 0.30)
+            const combined = {
+                workers:     (0.60 + 0.45)  / 2,   // 0.525
+                old_middle:  (0.85 + 1.35)  / 2,   // 1.10
+                new_middle:  (1.40 + 1.40)  / 2,   // 1.40
+                rural:       (0.50 + 0.65)  / 2,   // 0.575
+                unemployedc: (0.55 + 0.30)  / 2,   // 0.425
+            };
+
+            const class_mods = {
+                workers:     combined.workers     * 0.80,
+                old_middle:  combined.old_middle  * 0.80 * 0.50,  // 50% extra penalty
+                new_middle:  combined.new_middle  * 0.80,
+                rural:       combined.rural       * 0.80 * 0.50,  // 50% extra penalty
+                unemployedc: combined.unemployedc * 0.80,
+            };
+
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+        }
+
         case 'wp': {
             if (Q.wp_banned) return 0;
             let middle_norm  = (Q.old_middle + Q.new_middle) / 99;
@@ -4212,6 +4270,7 @@ function computeSpeed(party, c) {
         csvd:   0.09,
         dvp:    0.09,
         ddp:    0.09,
+        dsbp:   0.10,
 
         // Stable/structural
         z:      0.06,
@@ -4281,7 +4340,7 @@ function computeSpeed(party, c) {
             'far right':               ['nsdap', 'dnvp', 'dvfp'],
             'DNVP':                    ['dnvp'],
             'anti-democratic parties': ['nsdap', 'dnvp', 'kpd'],
-            'bourgeois parties':       ['dvp', 'wp', 'z'],
+            'bourgeois parties':       ['dvp', 'wp', 'z', 'dsbp'],
             'DVP':                     ['dvp'],
             'Z':                       ['z'],
             'BVP':                     ['bvp'],
