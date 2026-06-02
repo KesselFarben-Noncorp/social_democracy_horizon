@@ -1692,10 +1692,7 @@ on-arrival: {!
 // Hard kill: if Hindenburg is dead, zero out any stale candidate assignments
 if (Q.hindenburg_dead) {
     Q.hindenburg_running = 0;
-    var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-               'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
-               'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp','dbp', 'dsbp'];
+    var all_parties = Q.parties;
     for (var i = 0; i < all_parties.length; i++) {
         if (Q[all_parties[i] + '_candidate'] === 'Hindenburg') {
             Q[all_parties[i] + '_candidate'] = null;
@@ -2477,10 +2474,7 @@ on-arrival: {!
     
     // Aggregate votes
     var candidate_votes = {};
-    var all_parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-               'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
-               'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
+    var all_parties = Q.parties;
     
     for (var i = 0; i < all_parties.length; i++) {
         var party = all_parties[i];
@@ -2622,10 +2616,7 @@ var partyLabels = {
     lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP", dsbp: "DSBP"
 };
 
-var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-                  'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
+var allParties = Q.parties;
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -2982,10 +2973,7 @@ if (Q.dsbp_r > 0) {
 }
 
     if (!Q.round2_has_third) {
-        var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-          'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
+        var parties_r2 = Q.parties;
         for (var i = 0; i < parties_r2.length; i++) {
             var p = parties_r2[i];
             var cand = Q[p + '_candidate'];
@@ -3039,10 +3027,7 @@ on-arrival: {!
     Q.round2_has_third = 0;
     Q.third_stays = 0;
     // Redistribute their party support
-    var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-          'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
+    var parties_r2 = Q.parties;
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
@@ -3083,10 +3068,7 @@ unavailable-subtitle: Relations not strong enough to pressure a withdrawal.
 on-arrival: {!
     Q.round2_has_third = 0;
     Q.third_stays = 0;
-    var parties_r2 = ['z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-          'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-          'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-          'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
+    var parties_r2 = Q.parties;
 
     var far_left     = ["Thalmann", "Munzenberg"];
     var left         = ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"];
@@ -3235,10 +3217,7 @@ on-arrival: {!
     // === CALCULATE ROUND 2 RESULTS ===
     
     var candidate_votes = {};
-    var parties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-               'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp','bb','vrp','dvfp',
-               'aspd','hl','sl','kpo','vnr','other',
-               'lb','rdp','cvp','sls','dtsp', 'dbp', 'dsbp'];
+    var parties = Q.parties;
     
     for (var i = 0; i < parties.length; i++) {
         var party = parties[i];
@@ -3449,19 +3428,17 @@ var partyColors = {
     lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5"
 };
 
-var partyLabels = {
-    spd:"SPD", kpd:"KPD", sapd:"SAPD", srpd:"SRPD", z:"Z", bvp:"BVP",
-    csrp:"CSRP", ddp:Q.ddp_name||"DDP", dvp:"DVP", wp:"WP",
-    cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
-    dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
-    aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp: "DBP", dsbp: "DSBP"
-};
+var partyLabels = {};
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    partyLabels[p] = p.toUpperCase();
+}
+// Exceptions
+partyLabels.ddp = Q.ddp_name || "DDP";
+partyLabels.dtsp = "DtsP";
+partylabels.dsbp = Q.dsbp_name || "DSBP";
 
-var allParties = ['spd','z','bvp','ddp','dvp','kpd','nsdap','dnvp',
-                  'cnbl','sapd','csvd','srpd','csrp','wp','kvp','dhp',
-                  'bb','vrp','dvfp','aspd','hl','sl','kpo','vnr','other',
-                  'lb','rdp','cvp','sls','dtsp','dbp', 'dsbp'];
+var allParties = Q.parties;
 
 
 var displayNames = {
