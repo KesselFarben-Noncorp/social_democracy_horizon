@@ -3,10 +3,7 @@ subtitle: Huge news for the liberal movement...
 tags: event
 new-page: true
 max-visits: 1
-view-if: (dvp_reform_outcome == "stresemann_success" or dvp_reform_outcome == "stalemate") and year == 1929 and month >= 4 and month <= 5
-on-arrival: {!
-Q.front_1929_met = 1;
-!}
+view-if: year == 1929 and month >= 4 and month <= 5
 
 = Front 1929
 
@@ -44,6 +41,8 @@ Rheinbaben's initiative has been enthusiastically supported by Left-Liberal poli
 
 [? if congress_path == "social_nationalists": This proposal has also been energized by a counter-shockwave from the right: the Christian-Social victory at the DNVP Congress under Walther Lambach. This new vector of national-conservative policy has emboldened the supporters of the Front 1929, who believe that the philosophy of the **Volksgemeinschaft** is rapidly gaining the momentum required to reshape Germany. However, this event is treated as a double-edged sword; Lambach and the Front 1929 are now competing directly for the exact same demographic. The young liberals remain deeply wary of Lambach, who exhibits illiberal and antisemitic tendencies despite their shared commitments to corporatism, prioritizing the new middle class, and their mutual pragmatism as 'republicans by reason, not by nature'. ?]
 
-Nevertheless, if the Front 1929 is to succeed, it will reshape the landscape of German politics and liberalism forever, mutating traditional individualist currents into a completely new collective force...
+[? if dvp_reform_outcome != "scholz_victory": Nevertheless, if the Front 1929 is to succeed, it will reshape the landscape of German politics and liberalism forever, mutating traditional individualist currents into a completely new collective force... ?]
 
-- @post_event: A new force begins to assemble...
+[? if dvp_reform_outcome == "scholz_victory": However, with [+ dvp_party_leader +] assuming power in DVP, it is very unlikely that DVP will even slightly take this seriously. Regardless, it seems this idea is dead, forcing DDP to move on from this idea, separating liberal parties forever... ?]
+
+- @post_event: [? if dvp_reform_outcome != "scholz_victory": A new force begins to assemble... ?] [? if dvp_reform_outcome == "scholz_victory": Liberalism is on it's way to the grave... ?]
