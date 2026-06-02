@@ -52,6 +52,26 @@ if (Q.dvp_left - Q.dvp_right > 10) {
    Q.dvp_ideology = "National Liberalism"
 }
 
+// QOL. REMOVES PHANTON PARTIES.
+
+const inGov = Object.keys(Q)
+  .filter(key => key.endsWith("_in_government") && Q[key] == 1)
+  .map(key => key.replace("_in_government", ""))
+  .filter(party => (Q[party + "_votes"] > 0) && (Q[party + "_r"] > 0))
+  .map(party => party.toUpperCase());
+
+Q.parties_in_government_display = inGov.length > 0
+  ? inGov.join(", ")
+  : "None";
+
+
+
+
+
+
+
+
+
 
 Q.last_advisor_action = 0;
 Q.last_cabinet_action = 0;
