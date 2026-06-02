@@ -33,6 +33,12 @@ Fine. President [+ president +] has taken the unprecedented step of canceling th
 
 @post_election_1928
 on-arrival: {!
+// === CLEAR GOVERNMENT STATUS ===
+// Dynamically reset the government status for all active parties
+for (var party of Q.parties) {
+    Q[party + '_in_government'] = 0;
+}
+
 var new_party_sum = 0;
 
 // Calculate election results
@@ -182,8 +188,9 @@ if (Q.fptp_variable === 1) {
         sq_sum += squares[party];
     }
 
-    for (var i = 0; i < Q.parties.length; i++) {
-        var party = Q.parties[i];
+    // Using variable 'k' to guarantee absolutely no overlap with existing loops
+    for (var k = 0; k < Q.parties.length; k++) {
+        var party = Q.parties[k];
         Q[party + '_seats'] = (sq_sum > 0 && squares[party] > 0)
             ? Math.round((squares[party] / sq_sum) * Q.total_seats)
             : 0;
@@ -193,8 +200,8 @@ if (Q.fptp_variable === 1) {
     var fptp_seat_total = 0;
     var largest_fptp_party = null;
     var largest_fptp_seats = 0;
-    for (var i = 0; i < Q.parties.length; i++) {
-        var party = Q.parties[i];
+    for (var m = 0; m < Q.parties.length; m++) {
+        var party = Q.parties[m];
         fptp_seat_total += Q[party + '_seats'];
         if (Q[party + '_seats'] > largest_fptp_seats) {
             largest_fptp_seats = Q[party + '_seats'];
@@ -720,49 +727,35 @@ if (seat_total === 0) seat_total = 1;
 Q.party_votes = [];
 
 // Helper to add a party only if it has seats, isn't banned, and is in Q.parties
+// 1. Keep your helper function as it is (it's already written well!)
 function try_add_party(party_key, display_name) {
-    if (Q.parties.indexOf(party_key) < 0) return;       // not in parties list
-    if (Q[party_key + '_banned']) return;                // banned
+    if (Q.parties.indexOf(party_key) < 0) return;       
+    if (Q[party_key + '_banned']) return;                
     var seats = Q[party_key + '_seats'] || 0;
-    if (seats <= 0) return;                              // no seats
+    if (seats <= 0) return;                              
     Q.party_votes.push({
         party: display_name || party_key.toUpperCase(),
         votes: (seats / seat_total) * 100
     });
 }
 
-try_add_party('kpd');
-try_add_party('spd');
-try_add_party('z', 'Z');
-try_add_party('nsdap', 'NSDAP');
-try_add_party('dnvp', 'DNVP');
-try_add_party('other', 'other');
-try_add_party('dvp', 'DVP');
-try_add_party('ddp', 'DDP');
-try_add_party('dsbp', Q.dsbp_name || 'DSBP');
-try_add_party('bvp', 'BVP');
-try_add_party('bb', 'BB');
-try_add_party('wp', 'WP');
-try_add_party('cnbl', 'CNBL');
-try_add_party('csrp', 'CSRP');
-try_add_party('sapd', 'SAPD');
-try_add_party('srpd', 'SRPD');
-try_add_party('vrp', 'VRP');
-try_add_party('csvd', 'CSVD');
-try_add_party('kvp', 'KVP');
-try_add_party('dhp', 'DHP');
-try_add_party('dvfp', 'DVFP');
-try_add_party('aspd', 'ASPD');
-try_add_party('hl', 'HL');
-try_add_party('sl', 'SL');
-try_add_party('kpo', 'KPO');
-try_add_party('vnr', 'VNR');
-try_add_party('lb', 'LB');
-try_add_party('rdp', 'RDP');
-try_add_party('cvp', 'CVP');
-try_add_party('sls', 'SLS');
-try_add_party('dtsp', 'DtsP');
-try_add_party('dbp', 'DBP');
+// 2. Define a map for parties requiring special display name formatting
+var special_display_names = {
+    'z': 'Z',
+    'other': 'other',
+    'dtsp': 'DtsP',
+    'dsbp': Q.dsbp_name || 'DSBP'
+};
+
+// 3. Automatically run every party currently active in your game
+for (var i = 0; i < Q.parties.length; i++) {
+    var party_key = Q.parties[i];
+    // Use the special name if it exists; otherwise, leave it undefined 
+    // so the helper defaults to party_key.toUpperCase()
+    var display_name = special_display_names[party_key] || undefined;
+    
+    try_add_party(party_key, display_name);
+}
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 // ============================================================
@@ -1441,59 +1434,40 @@ function classify_coalition(parties) {
     // Sole majority
     if (parties.length === 1) return 'sole_majority';
     
-    var has_spd = parties.indexOf('SPD') >= 0;
-    var has_kpd = parties.indexOf('KPD') >= 0;
-    var has_sapd = parties.indexOf('SAPD') >= 0;
-    var has_srpd = parties.indexOf('SRPD') >= 0;
-    var has_z = parties.indexOf('Z') >= 0;
-    var has_ddp = parties.indexOf('DDP') >= 0;
-    var has_bvp = parties.indexOf('BVP') >= 0;
-    var has_dvp = parties.indexOf('DVP') >= 0;
-    var has_wp = parties.indexOf('WP') >= 0;
-    var has_cnbl = parties.indexOf('CNBL') >= 0;
-    var has_dnvp = parties.indexOf('DNVP') >= 0;
-    var has_nsdap = parties.indexOf('NSDAP') >= 0;
-    var has_csvd = parties.indexOf('CSVD') >= 0;
-    var has_csrp = parties.indexOf('CSRP') >= 0;
-    var has_vrp = parties.indexOf('VRP') >= 0;
-    var has_kvp = parties.indexOf('KVP') >= 0;
-    var has_bb = parties.indexOf('BB') >= 0;
-    var has_dhp = parties.indexOf('DHP') >= 0;
-    var has_dvfp = parties.indexOf('DVFP') >= 0;
-    var has_aspd = parties.indexOf('ASPD') >= 0;
-    var has_hl = parties.indexOf('HL') >= 0;
-    var has_sl = parties.indexOf('SL') >= 0;
-    var has_kpo = parties.indexOf('KPO') >= 0;
-    var has_vnr = parties.indexOf('VNR') >= 0;
+    // Create a dynamic lookup object for party presence
+    var has = {};
+    for (var i = 0; i < parties.length; i++) {
+        has[parties[i]] = true;
+    }
 
-    
     // Left coalitions
-    if (has_spd && has_kpd && !has_z) return 'left_front';
-    if (has_kpd && has_z && has_spd && has_ddp) return 'popular_front';
-    if (has_spd && has_sapd && !has_kpd && !has_z) return 'socialist_unity';
+    if (has.SPD && has.KPD && !has.Z) return 'left_front';
+    if (has.KPD && has.Z && has.SPD && has.DDP) return 'popular_front';
+    if (has.SPD && has.SAPD && !has.KPD && !has.Z) return 'socialist_unity';
     
     // Democratic coalitions
-    if (has_spd && has_z && has_ddp && parties.length === 3) return 'weimar';
-    if (has_spd && has_z && has_ddp && has_dvp && has_bvp) return 'grand';
-    if (has_spd && has_z && has_ddp && has_dvp && parties.length === 4) return 'grand_small';
-    if (has_spd && has_z && parties.length === 2) return 'social_christian';
-    if (has_spd && has_ddp && parties.length === 2) return 'social_liberal';
+    if (has.SPD && has.Z && has.DDP && parties.length === 3) return 'weimar';
+    if (has.SPD && has.Z && has.DDP && has.DVP && has.BVP) return 'grand';
+    if (has.SPD && has.Z && has.DDP && has.DVP && parties.length === 4) return 'grand_small';
+    if (has.SPD && has.Z && parties.length === 2) return 'social_christian';
+    if (has.SPD && has.DDP && parties.length === 2) return 'social_liberal';
 
     // Bourgeois coalitions
-    if (!has_spd && !has_kpd && !has_sapd && has_z && has_ddp && has_dvp) return 'bourgeois';
-    if (!has_spd && !has_kpd && !has_sapd && has_z && has_dvp && has_bvp) return 'bourgeois_catholic';
+    if (!has.SPD && !has.KPD && !has.SAPD && has.Z && has.DDP && has.DVP) return 'bourgeois';
+    if (!has.SPD && !has.KPD && !has.SAPD && has.Z && has.DVP && has.BVP) return 'bourgeois_catholic';
     
     // Right coalitions
-    if (has_z && has_dvp && has_dnvp && !has_nsdap) return 'right';
-    if (has_dvp && has_dnvp && !has_z && !has_nsdap) return 'right_business';
-    if (has_dnvp && has_nsdap) return 'far_right';
-    if (has_nsdap) return 'far_right';
+    if (has.Z && has.DVP && has.DNVP && !has.NSDAP) return 'right';
+    if (has.DVP && has.DNVP && !has.Z && !has.NSDAP) return 'right_business';
+    if (has.DNVP && has.NSDAP) return 'far_right';
+    if (has.NSDAP) return 'far_right';
     
     // Unity
     if (parties.length >= 5) return 'unity';
     
     return 'other';
 }
+
 
 // ============================================
 // FORMATEUR CHOOSES BEST COALITION
@@ -2802,23 +2776,14 @@ for (var i = 0; i < Q.num_candidates && i < 6; i++) {
 // SET COALITION FLAGS
 // ============================================
 
-Q.spd_in_government = coalition.indexOf('SPD') >= 0 ? 1 : 0;
-Q.kpd_in_government = coalition.indexOf('KPD') >= 0 ? 1 : 0;
-Q.sapd_in_government = coalition.indexOf('SAPD') >= 0 ? 1 : 0;
-Q.srpd_in_government = coalition.indexOf('SRPD') >= 0 ? 1 : 0;
-Q.z_in_government = coalition.indexOf('Z') >= 0 ? 1 : 0;
-Q.bvp_in_government = coalition.indexOf('BVP') >= 0 ? 1 : 0;
-Q.ddp_in_government = coalition.indexOf('DDP') >= 0 ? 1 : 0;
-Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
-Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
-Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
-Q.csvd_in_government = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
-Q.csrp_in_government = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
-Q.dhp_in_government = coalition.indexOf('DHP') >= 0 ? 1 : 0;
-Q.bb_in_government = coalition.indexOf('BB') >= 0 ? 1 : 0;
-Q.kvp_in_government = coalition.indexOf('KVP') >= 0 ? 1 : 0;
-Q.vrp_in_government = coalition.indexOf('VRP') >= 0 ? 1 : 0;
-Q.dvfp_in_government = coalition.indexOf('DVFP') >= 0 ? 1 : 0;
+// Convert the coalition array to lowercase for safe comparison
+var lowercase_coalition = coalition.map(function(p) { return p.toLowerCase(); });
+
+// Loop through all parties and set their government flag dynamically
+for (var party of Q.parties) {
+    Q[party + '_in_government'] = lowercase_coalition.indexOf(party) >= 0 ? 1 : 0;
+}
+
 
 !}
 go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
