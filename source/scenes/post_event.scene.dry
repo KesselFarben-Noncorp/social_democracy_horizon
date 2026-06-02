@@ -8,33 +8,18 @@ on-arrival: {!
 if (Q.dnvp_votes >= 20 && !Q._ach_konservolution_shown) {
     this.achieve('konservolution');
     Q._ach_konservolution_shown = 1;
-    Q._pending_achievement = JSON.stringify({
-        title: 'Conservative Revolution',
-        description: 'DNVP reached 20% of the vote.',
-        color: '#3F7BC1'
-    });
 }
 
 // National Breakthrough
 if (Q.nsdap_votes >= 30 && !Q._ach_durchbruch_shown) {
     this.achieve('durchbruch');
     Q._ach_durchbruch_shown = 1;
-    Q._pending_achievement = JSON.stringify({
-        title: 'Nationaler Durchbruch',
-        description: 'The NSDAP broke 30% of the vote.',
-        color: '#954B00'
-    });
 }
 
 // KPD surge
 if (Q.kpd_votes >= 28 && !Q._ach_oktobersturm_shown) {
     this.achieve('oktobersturm');
     Q._ach_oktobersturm_shown = 1;
-    Q._pending_achievement = JSON.stringify({
-        title: 'Oktobersturm',
-        description: 'KPD broke 28% of the vote.',
-        color: '#8B0000'
-    });
 }
 
 function _mkrng(seed) {
@@ -54,826 +39,6 @@ const _r = _mkrng((Q.rng_seed + Q.tick * 0x9e3779b9) >>> 0);
 Q.random_factor = function(f, variance = 0.65) {
     return f * (1 - variance / 2 + _r() * variance);
 };
-
-// ========================================
-// GOVERNMENT STATE UTILITY FUNCTIONS
-// ========================================
-
-// === MASTER PARTY LIST ===
-// Single source of truth — add new parties here only
-const ALL_PARTIES = [
-    'spd', 'kpd', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 
-    'dvp', 'wp', 'cnbl', 'csvd', 'dnvp', 'nsdap',
-    'vrp', 'csrp', 'kvp', 'dhp', 'bb', 'other', 'dvfp', 'aspd', 'hl', 'sl', 'kpo', 'vnr', 'rdp', 'cvp', 'sls', 'lb', 'dbp', 'dsbp', 'dtsp'
-];
-
-// === MASTER CHANCELLOR LIST ===
-const ALL_CHANCELLORS = [
-    'bruning', 'schleicher', 'papen', 'muller', 'wels',
-    'braun', 'breitscheid', 'hilferding', 'wirth', 'kaas',
-    'stresemann', 'curtius', 'dingeldey', 'hugenberg',
-    'westarp', 'treviranus', 'marx', 'luther', 'held',
-    'schaffer', 'koch_weser', 'dietrich', 'mahraun',
-    'joos', 'rosenfeld', 'thalmann', 'neumann', 'horsing',
-    'drewitz', 'lambach', 'hepp', 'heller'
-];
-
-// Name normalization map — Q.chancellor string → cabinet key
-const CHANCELLOR_KEY_MAP = {
-    "Brüning":      "bruning",
-    "Schleicher":   "schleicher",
-    "Papen":        "papen",
-    "Müller":       "muller",
-    "Wels":         "wels",
-    "Braun":        "braun",
-    "Breitscheid":  "breitscheid",
-    "Hilferding":   "hilferding",
-    "Wirth":        "wirth",
-    "Kaas":         "kaas",
-    "Stresemann":   "stresemann",
-    "Curtius":      "curtius",
-    "Dingeldey":    "dingeldey",
-    "Hugenberg":    "hugenberg",
-    "Westarp":      "westarp",
-    "Treviranus":   "treviranus",
-    "Marx":         "marx",
-    "Luther":       "luther",
-    "Held":         "held",
-    "Schäffer":     "schaffer",
-    "Koch-Weser":   "koch_weser",
-    "Dietrich":     "dietrich",
-    "Mahraun":      "mahraun",
-    "Joos":         "joos",
-    "Rosenfeld":    "rosenfeld",
-    "Thälmann":     "thalmann",
-    "Neumann":      "neumann",
-    "Horsing":      "horsing",
-    "Drewitz":      "drewitz",
-    "Lambach":      "lambach",
-    "Hepp":         "hepp",
-    "Heller":       "heller",
-};
-
-// ========================================
-// CORE FUNCTIONS
-// ========================================
-
-// --- Clear ALL government state ---
-// Call this before forming any new government
-// or on dismissal/collapse
-Q.clear_government = function() {
-
-    // Clear all party membership flags
-    for (const party of ALL_PARTIES) {
-        Q[party + '_in_government'] = 0;
-    }
-
-    // Clear all cabinet flags
-    for (const ch of ALL_CHANCELLORS) {
-        Q[ch + '_cabinet'] = 0;
-    }
-
-    // Clear toleration
-    Q.spd_toleration  = 0;
-    Q.kpd_toleration  = 0;
-    Q.dnvp_toleration = 0;
-
-    // Clear coalition type flags
-    Q.in_grand_coalition   = 0;
-    Q.in_weimar_coalition  = 0;
-    Q.in_left_coalition    = 0;
-    Q.minority_government  = 0;
-    Q.presidential_cabinet = 0;
-    Q.caretaker_government = 0;
-
-    // Clear chancellor
-    Q.last_dismissed_chancellor       = Q.chancellor || null;
-    Q.last_dismissed_chancellor_party = Q.chancellor_party || null;
-    Q.chancellor       = null;
-    Q.chancellor_party = null;
-
-    // Reset minority tick counter
-    Q.chancellor_minority_ticks = 0;
-    Q.article_48_uses = 0;
-};
-
-// --- Set chancellor safely ---
-// Always use this instead of setting Q.chancellor directly
-// Clears all other cabinet flags first, sets exactly one
-Q.set_chancellor = function(name, party) {
-
-    // Clear all cabinet flags first
-    for (const ch of ALL_CHANCELLORS) {
-        Q[ch + '_cabinet'] = 0;
-    }
-
-    // Set new chancellor
-    Q.chancellor       = name;
-    Q.chancellor_party = party || null;
-
-    // Set the correct cabinet flag
-    const key = CHANCELLOR_KEY_MAP[name];
-    if (key) {
-        Q[key + '_cabinet'] = 1;
-    } else {
-        console.warn("set_chancellor: no key found for chancellor name: " + name);
-    }
-
-    // Reset patience for new chancellor
-    const PATIENCE_START = {
-        "Müller": 55, "Wels": 40, "Braun": 45, "Breitscheid": 30,
-        "Hilferding": 35, "Thälmann": 10, "Neumann": 15, "Rosenfeld": 20,
-        "Koch-Weser": 60, "Dietrich": 62, "Mahraun": 58, "Wirth": 55,
-        "Joos": 60, "Horsing": 58, "Held": 65, "Schäffer": 68,
-        "Drewitz": 65, "Hepp": 68, "Heller": 52, "Brüning": 100,
-        "Kaas": 85, "Stresemann": 75, "Curtius": 80, "Dingeldey": 82,
-        "Westarp": 90, "Treviranus": 88, "Hugenberg": 85, "Lambach": 80,
-        "Luther": 80, "Marx": 78, "Schleicher": 72, "Papen": 68,
-    };
-    Q.hindenburg_patience      = PATIENCE_START[name] ?? 70;
-    Q._last_chancellor         = name;
-    Q.chancellor_minority_ticks = 0;
-};
-
-// --- Set coalition parties safely ---
-// Pass an array of party strings
-// Clears all first, then sets exactly the ones provided
-Q.set_coalition = function(parties) {
-
-    // Clear all first
-    for (const party of ALL_PARTIES) {
-        Q[party + '_in_government'] = 0;
-    }
-
-    // Set provided parties
-    for (const party of parties) {
-        const key = party.toLowerCase();
-        if (ALL_PARTIES.includes(key)) {
-            Q[key + '_in_government'] = 1;
-        } else {
-            console.warn("set_coalition: unknown party: " + party);
-        }
-    }
-
-    // Derive coalition type flags automatically
-    Q._derive_coalition_flags();
-};
-
-// --- Add a single party to coalition ---
-// For mid-term coalition expansions
-Q.add_to_coalition = function(party) {
-    const key = party.toLowerCase();
-    if (ALL_PARTIES.includes(key)) {
-        Q[key + '_in_government'] = 1;
-        Q._derive_coalition_flags();
-    } else {
-        console.warn("add_to_coalition: unknown party: " + party);
-    }
-};
-
-// --- Remove a single party from coalition ---
-// For mid-term coalition collapses where chancellor stays
-Q.remove_from_coalition = function(party) {
-    const key = party.toLowerCase();
-    Q[key + '_in_government'] = 0;
-    Q._derive_coalition_flags();
-};
-
-// --- Derive coalition type flags from current membership ---
-// Called automatically by set/add/remove — not usually called directly
-Q._derive_coalition_flags = function() {
-
-    // Count governing parties
-    let party_count = 0;
-    let has_left    = Q.spd_in_government || Q.kpd_in_government || 
-                      Q.sapd_in_government || Q.srpd_in_government;
-    let has_right   = Q.dnvp_in_government || Q.nsdap_in_government;
-    let has_centre  = Q.z_in_government || Q.ddp_in_government || 
-                      Q.dvp_in_government || Q.bvp_in_government;
-
-    for (const party of ALL_PARTIES) {
-        if (Q[party + '_in_government']) party_count++;
-    }
-
-    // Grand coalition: SPD + Z + DVP at minimum
-    Q.in_grand_coalition = (
-        Q.spd_in_government && Q.z_in_government && Q.dvp_in_government
-    ) ? 1 : 0;
-
-    // Weimar coalition: SPD + Z + DDP
-    Q.in_weimar_coalition = (
-        Q.spd_in_government && Q.z_in_government && Q.ddp_in_government
-    ) ? 1 : 0;
-
-    // Left coalition: SPD-led without right parties
-    Q.in_left_coalition = (
-        Q.spd_in_government && has_left && !has_right
-    ) ? 1 : 0;
-
-    // Presidential cabinet: no SPD, no left, typically minority
-    Q.presidential_cabinet = (
-        !Q.spd_in_government && !Q.kpd_in_government && 
-        !Q.sapd_in_government && !Q.srpd_in_government &&
-        Q.camarilla_strength >= 60
-    ) ? 1 : 0;
-
-    // Minority: single party or very small coalition
-    // This is approximate — override manually if needed
-    Q.minority_government = (party_count <= 2) ? 1 : 0;
-};
-
-// ========================================
-// INTEGRITY CHECK
-// ========================================
-// Run every tick to catch and fix inconsistencies
-// Logs warnings so you can trace the source
-
-Q.government_integrity_check = function() {
-
-    let issues = [];
-
-    // --- Check: cabinet flags match Q.chancellor ---
-    let active_cabinets = [];
-    for (const ch of ALL_CHANCELLORS) {
-        if (Q[ch + '_cabinet']) active_cabinets.push(ch);
-    }
-
-    if (active_cabinets.length === 0 && Q.chancellor) {
-        issues.push("WARN: chancellor set but no cabinet flag active — fixing");
-        const key = CHANCELLOR_KEY_MAP[Q.chancellor];
-        if (key) Q[key + '_cabinet'] = 1;
-    }
-
-    if (active_cabinets.length > 1) {
-        issues.push("WARN: multiple cabinet flags active: " + active_cabinets.join(", ") + " — clearing all but current");
-        for (const ch of ALL_CHANCELLORS) Q[ch + '_cabinet'] = 0;
-        const key = CHANCELLOR_KEY_MAP[Q.chancellor];
-        if (key) Q[key + '_cabinet'] = 1;
-    }
-
-    if (active_cabinets.length === 1) {
-        const expected_key = CHANCELLOR_KEY_MAP[Q.chancellor];
-        if (expected_key && active_cabinets[0] !== expected_key) {
-            issues.push("WARN: cabinet flag " + active_cabinets[0] + " doesn't match chancellor " + Q.chancellor + " — fixing");
-            for (const ch of ALL_CHANCELLORS) Q[ch + '_cabinet'] = 0;
-            Q[expected_key + '_cabinet'] = 1;
-        }
-    }
-
-    // --- Check: no chancellor but parties still in government ---
-    if (!Q.chancellor) {
-        let orphaned = [];
-        for (const party of ALL_PARTIES) {
-            if (Q[party + '_in_government']) orphaned.push(party);
-        }
-        if (orphaned.length > 0) {
-            issues.push("WARN: no chancellor but parties still in government: " + orphaned.join(", ") + " — clearing");
-            for (const party of ALL_PARTIES) Q[party + '_in_government'] = 0;
-        }
-    }
-
-    // --- Check: chancellor party not in government ---
-    if (Q.chancellor && Q.chancellor_party) {
-        const key = Q.chancellor_party.toLowerCase();
-        if (ALL_PARTIES.includes(key) && !Q[key + '_in_government']) {
-            issues.push("WARN: chancellor party " + key + " not marked in_government — fixing");
-            Q[key + '_in_government'] = 1;
-        }
-    }
-
-    // --- Check: conflicting coalition type flags ---
-    if (Q.in_grand_coalition && Q.in_weimar_coalition) {
-        issues.push("WARN: both grand_coalition and weimar_coalition active — clearing weimar");
-        Q.in_weimar_coalition = 0;
-    }
-
-    if (Q.presidential_cabinet && Q.spd_in_government) {
-        issues.push("WARN: presidential_cabinet with SPD in government — clearing presidential flag");
-        Q.presidential_cabinet = 0;
-    }
-
-    // Log all issues
-    if (issues.length > 0) {
-        console.warn("=== GOVERNMENT INTEGRITY CHECK ===");
-        for (const issue of issues) console.warn(issue);
-        console.warn("==================================");
-    }
-
-    return issues.length;
-};
-
-// ========================================
-// TICK-LEVEL CABINET FLAG SYNC
-// ========================================
-// Runs every tick — lightweight, just keeps flags in sync
-// Does NOT call the full integrity check unless something is wrong
-
-{
-    // Keep x_cabinet flags synced to Q.chancellor
-    for (const [name, key] of Object.entries(CHANCELLOR_KEY_MAP)) {
-        Q[key + '_cabinet'] = (Q.chancellor === name) ? 1 : 0;
-    }
-
-    // Run integrity check — returns issue count
-    // Only logs if there's actually something wrong
-    Q.government_integrity_check();
-}
-
-
-
-// ========================================
-// MINISTRY SYSTEM
-// ========================================
-
-// === MASTER MINISTRY LIST ===
-const ALL_MINISTRIES = [
-    'foreign', 'interior', 'justice', 'labor', 
-    'economic', 'finance', 'agriculture', 'transport'
-];
-
-// Reichswehr always independent — never allocated
-const INDEPENDENT_MINISTRIES = ['reichswehr'];
-
-// === MINISTER NAME LOOKUP TABLE ===
-// Single source of truth — no more repeated if/else chains
-const MINISTER_NAMES = {
-    foreign: {
-        KPD:  'Pieck',
-        SAPD: 'Rosenfeld',
-        SPD:  'Müller',
-        SRPD: 'Breitscheid',
-        DDP:  'Koch-Weser',
-        Z:    'Curtius',
-        BVP:  'Held',
-        DVP:  () => Q.stresemann_dead ? 'Curtius' : 'Stresemann',
-        WP:   'Lambach',
-        CNBL: 'Hepp',
-        DNVP: 'Westarp',
-        NSDAP:'Neurath',
-    },
-    interior: {
-        KPD:  'Ulbricht',
-        SAPD: 'Seydewitz',
-        SPD:  'Severing',
-        SRPD: 'Braun',
-        DDP:  'Koch-Weser',
-        Z:    'Wirth',
-        BVP:  'Schätzel',
-        DVP:  'Scholz',
-        WP:   'Petersen',
-        CNBL: 'Behrens',
-        DNVP: 'Hergt',
-        NSDAP:'Frick',
-    },
-    justice: {
-        KPD:  'Heckert',
-        SAPD: 'Ledebour',
-        SPD:  'Radbruch',
-        SRPD: 'Heilmann',
-        DDP:  'Koch-Weser',
-        Z:    'Bredt',
-        BVP:  'Gürtner',
-        DVP:  'Heinze',
-        WP:   'Drewitz',
-        CNBL: 'von Rohr',
-        DNVP: 'Schiele',
-        NSDAP:'Gürtner',
-    },
-    labor: {
-        KPD:  'Münzenberg',
-        SAPD: 'Seydewitz',
-        SPD:  'Wissell',
-        SRPD: 'Aufhäuser',
-        DDP:  'Dietrich',
-        Z:    'Stegerwald',
-        BVP:  'Stützel',
-        DVP:  'Brauns',
-        WP:   'Petersen',
-        CNBL: 'Lohse',
-        DNVP: 'Schiele',
-        NSDAP:'Seldte',
-    },
-    economic: {
-        KPD:  'Remmele',
-        SAPD: 'Rosenfeld',
-        SPD:  'Hilferding',
-        SRPD: 'Schmidt',
-        DDP:  'Dietrich',
-        Z:    'Bredt',
-        BVP:  'Held',
-        DVP:  'Curtius',
-        WP:   'Lambach',
-        CNBL: 'Heim',
-        DNVP: 'Hugenberg',
-        NSDAP:'Hugenberg',
-    },
-    finance: {
-        KPD:  'Neumann',
-        SAPD: 'Rosenfeld',
-        SPD:  'Hilferding',
-        SRPD: 'Hilferding',
-        DDP:  'Dietrich',
-        Z:    'Köhler',
-        BVP:  'Krausneck',
-        DVP:  'Moldenhauer',
-        WP:   'Drewitz',
-        CNBL: 'Hepp',
-        DNVP: 'Schiele',
-        NSDAP:'Schwerin-Krosigk',
-    },
-    agriculture: {
-        KPD:  'Hoernle',
-        SAPD: 'Baade',
-        SPD:  'Baade',
-        SRPD: 'Baade',
-        DDP:  'Dietrich',
-        Z:    'Hermes',
-        BVP:  'Wutzlhofer',
-        DVP:  'Schiele',
-        WP:   'Bredt',
-        CNBL: 'Hamkens',
-        DNVP: 'Schiele',
-        NSDAP:'Hugenberg',
-    },
-    transport: {
-        KPD:  'Hoernle',
-        SAPD: 'Baade',
-        SPD:  'Baade',
-        SRPD: 'Baade',
-        DDP:  'Dietrich',
-        Z:    'Guerard',
-        BVP:  'Wutzlhofer',
-        DVP:  'Schiele',
-        WP:   'Bredt',
-        CNBL: 'Hamkens',
-        DNVP: 'Schiele',
-        NSDAP:'Eltz-Rübenach',
-    },
-    reichswehr: {
-        // Always independent — single entry
-        I: 'Groener',
-    },
-};
-
-// === MINISTRY PRIORITIES BY PARTY ===
-const MINISTRY_PRIORITIES = {
-    KPD:  ['labor', 'interior', 'economic', 'finance', 'justice', 'foreign', 'agriculture', 'transport'],
-    SAPD: ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
-    SPD:  ['labor', 'interior', 'justice', 'finance', 'economic', 'foreign', 'agriculture', 'transport'],
-    SRPD: ['labor', 'justice', 'interior', 'finance', 'economic', 'foreign', 'agriculture', 'transport'],
-    DDP:  ['justice', 'economic', 'finance', 'interior', 'foreign', 'labor', 'agriculture', 'transport'],
-    Z:    ['interior', 'foreign', 'finance', 'labor', 'agriculture', 'justice', 'economic', 'transport'],
-    BVP:  ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor', 'transport'],
-    DVP:  ['economic', 'finance', 'foreign', 'justice', 'interior', 'labor', 'agriculture', 'transport'],
-    WP:   ['economic', 'finance', 'justice', 'agriculture', 'interior', 'foreign', 'labor', 'transport'],
-    CNBL: ['agriculture', 'finance', 'economic', 'justice', 'interior', 'foreign', 'labor', 'transport'],
-    CSVD: ['agriculture', 'justice', 'interior', 'finance', 'economic', 'foreign', 'labor', 'transport'],
-    DVFP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
-    DNVP: ['interior', 'finance', 'agriculture', 'foreign', 'economic', 'justice', 'labor', 'transport'],
-    NSDAP:['interior', 'economic', 'foreign', 'finance', 'agriculture', 'justice', 'labor', 'transport'],
-    CSRP: ['labor', 'justice', 'interior', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
-    DTSP: ['interior', 'justice', 'economic', 'finance', 'agriculture', 'foreign', 'labor', 'transport'],
-SLS:  ['interior', 'justice', 'labor', 'agriculture', 'economic', 'finance', 'foreign', 'transport'],
-RDP:  ['justice', 'interior', 'labor', 'foreign', 'economic', 'finance', 'agriculture', 'transport'],
-CVP:  ['interior', 'agriculture', 'justice', 'finance', 'labor', 'economic', 'foreign', 'transport'],
-LB:   ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
-DBP:  ['labor', 'interior', 'justice', 'economic', 'finance', 'foreign', 'agriculture', 'transport'],
-};
-
-// ========================================
-// CORE FUNCTIONS
-// ========================================
-
-// --- Resolve minister name ---
-// Handles both string values and function values (for conditional names)
-Q._resolve_minister = function(ministry, party) {
-    const ministry_table = MINISTER_NAMES[ministry];
-    if (!ministry_table) return 'Unbesetzt';
-    
-    const entry = ministry_table[party];
-    if (!entry) return 'Unbesetzt';
-    
-    // If it's a function (like DVP foreign minister), call it
-    return typeof entry === 'function' ? entry() : entry;
-};
-
-// --- Clear all ministry assignments ---
-Q.clear_ministries = function() {
-    for (const ministry of ALL_MINISTRIES) {
-        Q[ministry + '_minister']       = 'Unbesetzt';
-        Q[ministry + '_minister_party'] = 'I';
-    }
-    // Reichswehr always stays independent
-    Q.reichswehr_minister       = Q._resolve_minister('reichswehr', 'I');
-    Q.reichswehr_minister_party = 'I';
-};
-
-// --- Appoint a single minister directly ---
-// Use this for player-chosen appointments or special events
-// e.g. Q.appoint_minister('interior', 'SPD')
-// or   Q.appoint_minister('interior', 'SPD', 'Severing') to override name
-Q.appoint_minister = function(ministry, party, override_name) {
-    if (!ALL_MINISTRIES.includes(ministry) && !INDEPENDENT_MINISTRIES.includes(ministry)) {
-        console.warn("appoint_minister: unknown ministry: " + ministry);
-        return;
-    }
-    Q[ministry + '_minister_party'] = party || 'I';
-    Q[ministry + '_minister']       = override_name || Q._resolve_minister(ministry, party) || 'Unbesetzt';
-};
-
-// ========================================
-// LEVERAGE CALCULATION
-// ========================================
-
-Q._calculate_leverage = function(coalition) {
-    let total_votes = 0;
-    for (const party of coalition) {
-        total_votes += Q[party.toLowerCase() + '_r'] || 0;
-    }
-    if (total_votes === 0) total_votes = 1; // Prevent divide-by-zero
-
-    const leverage = {};
-
-    for (const party of coalition) {
-        let base = ((Q[party.toLowerCase() + '_r'] || 0) / total_votes) * 100;
-
-        // Relation modifier
-        const relation = Q[party.toLowerCase() + '_relation'] || 50;
-        base += (relation - 50) / 5;
-
-        // Chancellor party gets slight penalty — they already have the top job
-        if (Q.chancellor_party === party) base -= 10;
-
-        // President bonus
-        if (Q.president === "Braun" && party === "SPD") base += 5;
-
-        // Party leader bonuses
-        if (party === "Z"   && Q.z_party_leader === "Brüning")    base += 5;
-        if (party === "DVP" && !Q.stresemann_dead)                 base += 3;
-        if (party === "KPD" && Q.kpd_party_leader === "Conciliators") base += 5;
-
-        // Special conditions
-        if (Q.in_grand_coalition && party === "DVP" && 
-            Q.capital_strike_progress >= 3) base += 5;
-        if (Q.in_left_front && party === "KPD") base -= 5;
-
-        // Hugenberg DNVP demands more
-        if (party === "DNVP" && Q.dnvp_line === 3) base += 8;
-
-        // Floor — every coalition partner gets at least something
-        leverage[party] = Math.max(base, 10);
-    }
-
-    return leverage;
-};
-
-// ========================================
-// ALLOCATION CALCULATION
-// ========================================
-
-Q._calculate_allocation = function(coalition, leverage) {
-    const count = ALL_MINISTRIES.length;
-    let total_leverage = 0;
-    for (const party of coalition) total_leverage += leverage[party];
-    if (total_leverage === 0) total_leverage = 1;
-
-    const allocation = {};
-    for (const party of coalition) {
-        allocation[party] = Math.round((leverage[party] / total_leverage) * count);
-    }
-
-    // Fix rounding errors
-    let assigned = 0;
-    for (const party of coalition) assigned += allocation[party];
-
-    // Over-allocated: trim from largest non-chancellor party
-    while (assigned > count) {
-        let target = null, max = 0;
-        for (const party of coalition) {
-            if (allocation[party] > max && party !== Q.chancellor_party) {
-                target = party;
-                max = allocation[party];
-            }
-        }
-        if (!target) break;
-        allocation[target]--;
-        assigned--;
-    }
-
-    // Under-allocated: add to highest leverage party
-    const leverage_copy = Object.assign({}, leverage);
-    while (assigned < count) {
-        let target = null, max = 0;
-        for (const party of coalition) {
-            if (leverage_copy[party] > max) {
-                target = party;
-                max = leverage_copy[party];
-            }
-        }
-        if (!target) break;
-        allocation[target]++;
-        assigned++;
-        leverage_copy[target] -= 10;
-    }
-
-    // Guarantee chancellor party has at least 1
-    if (Q.chancellor_party && coalition.includes(Q.chancellor_party)) {
-        if ((allocation[Q.chancellor_party] || 0) < 1) {
-            allocation[Q.chancellor_party] = 1;
-        }
-    }
-
-    return allocation;
-};
-
-// ========================================
-// FULL COALITION MINISTRY ALLOCATION
-// ========================================
-
-Q.allocate_ministries = function(coalition) {
-    if (!coalition || coalition.length === 0) {
-        console.warn("allocate_ministries: empty coalition");
-        Q.clear_ministries();
-        return;
-    }
-
-    // Clear first
-    Q.clear_ministries();
-
-    // Calculate leverage and allocation counts
-    const leverage   = Q._calculate_leverage(coalition);
-    const allocation = Q._calculate_allocation(coalition, leverage);
-
-    // Track how many each party has claimed
-    const claimed = {};
-    for (const party of coalition) claimed[party] = 0;
-
-    // Track which ministries are filled
-    const assignments = {};
-    for (const m of ALL_MINISTRIES) assignments[m] = null;
-
-    // Sort coalition by leverage descending — higher leverage picks first
-    const sorted = coalition.slice().sort((a, b) => leverage[b] - leverage[a]);
-
-    // Assign in rounds until all ministries filled
-    for (let round = 0; round < ALL_MINISTRIES.length; round++) {
-        for (const party of sorted) {
-            if (claimed[party] >= allocation[party]) continue;
-
-            const priorities = MINISTRY_PRIORITIES[party] || ALL_MINISTRIES;
-
-            for (const ministry of priorities) {
-                if (assignments[ministry] === null) {
-                    assignments[ministry] = party;
-                    claimed[party]++;
-                    break;
-                }
-            }
-        }
-    }
-
-    // Apply assignments
-    for (const ministry of ALL_MINISTRIES) {
-        const party = assignments[ministry] || 'I';
-        Q.appoint_minister(ministry, party);
-    }
-
-    // Reichswehr always independent
-    Q.appoint_minister('reichswehr', 'I');
-
-    // Build display string
-    Q.ministry_display_list = "";
-    for (const party of coalition) {
-        const votes   = Math.round((Q[party.toLowerCase() + '_r'] || 0) * 10) / 10;
-        const lev     = Math.round(leverage[party] * 10) / 10;
-        const count   = allocation[party] || 0;
-        Q.ministry_display_list += 
-            `- **${party}**: ${count} ministr${count === 1 ? 'y' : 'ies'} `+
-            `(${votes}% votes, leverage: ${lev})\n`;
-    }
-
-    // Store for reference
-    Q.ministry_allocation = allocation;
-    Q.ministry_leverage   = leverage;
-
-    // Hindenburg reacts to government formation
-    Q.hindenburg_patience += 10;
-};
-
-// ========================================
-// INTEGRITY CHECK
-// ========================================
-
-Q.ministry_integrity_check = function() {
-    const issues = [];
-
-    for (const ministry of ALL_MINISTRIES) {
-        const party = Q[ministry + '_minister_party'];
-        const name  = Q[ministry + '_minister'];
-
-        // Minister set but no party
-        if (name && name !== 'Unbesetzt' && (!party || party === 'I')) {
-            issues.push(`WARN: ${ministry} has minister ${name} but party is Independent`);
-        }
-
-        // Party set but no minister name
-        if (party && party !== 'I' && (!name || name === 'Unbesetzt')) {
-            issues.push(`WARN: ${ministry} party is ${party} but minister name is empty — fixing`);
-            Q[ministry + '_minister'] = Q._resolve_minister(ministry, party);
-        }
-
-        // Party in ministry but not in government
-        if (party && party !== 'I' && !Q[party.toLowerCase() + '_in_government']) {
-            issues.push(`WARN: ${ministry} held by ${party} but they are not in government — clearing`);
-            Q.appoint_minister(ministry, 'I');
-        }
-    }
-
-    if (issues.length > 0) {
-        console.warn("=== MINISTRY INTEGRITY CHECK ===");
-        for (const issue of issues) console.warn(issue);
-        console.warn("================================");
-    }
-
-    return issues.length;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
-
-Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
-
-// === CABINET TYPE FLAGS ===
-Q.papen_cabinet     = (Q.chancellor === "Papen")      ? 1 : 0;
-Q.schleicher_cabinet = (Q.chancellor === "Schleicher") ? 1 : 0;
-
-// Generic x_cabinet check for any chancellor with that flag pattern
-const CABINET_CHANCELLORS = ["Papen", "Schleicher", "Brüning", "Luther", "Marx", "Stegerwald"];
-for (const name of CABINET_CHANCELLORS) {
-    const key = name.toLowerCase().replace("ü", "u") + "_cabinet";
-    Q[key] = (Q.chancellor === name) ? 1 : 0;
-}
-
-
-/// FOR COALITION DISSENT SCENE OF MAX DISSENT.
-
-var max_dissent = 0;
-var party_list = Q.parties.map(function(p) { return p.toUpperCase(); });
-
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i].toLowerCase();
-    if (!Q[p + '_in_government'] && !Q[p + '_tolerating']) continue;
-    var d = Q[p + '_dissent'] || 0;
-    if (d > max_dissent) max_dissent = d;
-}
-
-Q.max_coalition_dissent = max_dissent;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 Q.last_advisor_action = 0;
@@ -978,6 +143,61 @@ if (Q.year >= 1928 && Q.year < 1929 && Q.geest_wildfire == 1 && (Q.state_buyer =
     Q.landvolk_fury = 0;
 }
 
+
+
+
+
+/// SMALL SETTINGS
+
+if (!Q.math_broken) {
+    // NORMAL: Sum of progressive party support
+    Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
+} else {
+    // MATH BROKEN: Coalition math doesn't add up
+    Q.progressive_coalition = Q.impossible_add(
+        Q.impossible_add(Q.spd_r, Q.kpd_r),
+        Q.impossible_add(Q.impossible_add(Q.ddp_r, Q.srpd_r), Q.impossible_add(Q.sapd_r, Q.csrp_r))
+    );
+    console.log("COALITION CHAOS: Progressive coalition = " + Q.progressive_coalition + "%");
+}
+
+if (Q.year >= 1932 && Q.communist_revolution_timer > 10 && Q.april_challenge == 1) {
+    Q.communist_revolution_timer -= 2;
+    Q.rfb_strength += 20;
+}
+
+
+
+
+// ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
+
+Q.bruning_cabinet = (Q.chancellor === "Brüning") ? 1 : 0;
+
+// === CABINET TYPE FLAGS ===
+Q.papen_cabinet     = (Q.chancellor === "Papen")      ? 1 : 0;
+Q.schleicher_cabinet = (Q.chancellor === "Schleicher") ? 1 : 0;
+
+// Generic x_cabinet check for any chancellor with that flag pattern
+const CABINET_CHANCELLORS = ["Papen", "Schleicher", "Brüning", "Luther", "Marx", "Stegerwald"];
+for (const name of CABINET_CHANCELLORS) {
+    const key = name.toLowerCase().replace("ü", "u") + "_cabinet";
+    Q[key] = (Q.chancellor === name) ? 1 : 0;
+}
+
+
+/// FOR COALITION DISSENT SCENE OF MAX DISSENT.
+
+var max_dissent = 0;
+var party_list = Q.parties.map(function(p) { return p.toUpperCase(); });
+
+for (var i = 0; i < party_list.length; i++) {
+    var p = party_list[i].toLowerCase();
+    if (!Q[p + '_in_government'] && !Q[p + '_tolerating']) continue;
+    var d = Q[p + '_dissent'] || 0;
+    if (d > max_dissent) max_dissent = d;
+}
+
+Q.max_coalition_dissent = max_dissent;
 
 
 
@@ -1726,117 +946,132 @@ if (!Q.math_broken) {
 
 
 
+// =========================== CABINET ECONOMICAL EFFECTS ====================
 
 
 
 
+// ============================================================
+// BRÜNING AUSTERITY / LAUTENBACH PLAN — mutually exclusive
+// ============================================================
 
+if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active !== 1 && Q.lautenbach_plan_rejected === 1) {
 
+    // Budget improves modestly — spending cuts and tax enforcement
+    Q.budget += 0.07;
 
+    // Deflation pressure — wage cuts, price controls, tight money
+    Q.dInflation        -= 0.03;
+    Q.price_pressure    -= 0.03;
 
+    // Demand collapses — less public spending, lower wages
+    Q.demand_impulse    -= 0.07;
+    Q.fiscal_stance     -= 0.06;
 
+    // Unemployment creeps up — layoffs from public sector cuts
+    Q.dUnemployment     += 0.07;
 
+    // Capital pressure eases slightly — creditor confidence
+    Q.capital_pressure  -= 0.03;
 
+    // Trade pressure eases — deflation makes exports cheaper
+    Q.trade_pressure    -= 0.03;
 
+} else if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active === 1 && !Q.return_to_normalcy) {
 
+    // --------------------------------------------------------
+    // LAUTENBACH PLAN — credit-financed public investment
+    // Semi-WTB, pre-Keynesian demand stimulus
+    // Overrides austerity but carries inflation/debt risk
+    // --------------------------------------------------------
 
+    // Budget takes a hit — deficit spending is the mechanism
+    Q.budget            -= 0.16;
 
+    // Demand recovers — public works and credit expansion
+    Q.demand_impulse    += 0.10;
+    Q.fiscal_stance     += 0.04;
 
+    // Supply side benefits — infrastructure investment
+    Q.supply_impulse    += 0.05;
 
-    // Science support/economic changes
-    if (Q.major_curriculum && Q.major_curriculum == "democratic") {
-        if (Q.pro_republic < 80) {
-            Q.pro_republic += 0.3;
-        } 
-    }
-    if (Q.minor_curriculum && Q.minor_curriculum == "democratic") {
-        if (Q.pro_republic < 60) {
-            Q.pro_republic += 0.6;
-        } 
-    }
+    // Unemployment falls slightly — job creation programs
+    Q.dUnemployment     -= 0.05;
 
-    if (Q.major_curriculum && Q.major_curriculum == "traditional") {
-        if (Q.nationalism < 60) {
-            Q.nationalism += 0.1;
-        } 
-    }
-    if (Q.minor_curriculum && Q.minor_curriculum == "traditional") {
-        if (Q.nationalism < 40) {
-            Q.nationalism += 0.3;
-        } 
-    }
+    // Growth gets a nudge upward
+    Q.dGrowth           += 0.05;
 
+    // Inflation creeps back up — more money chasing goods
+    Q.dInflation        += 0.04;
+    Q.price_pressure    += 0.04;
 
-    // science bonus to economic growth
-    // education bonus
-    Q.science_bonus = 0;
-    if (Q.education_science) {
-        Q.science_bonus += Q.education_science;
-    }
-    if (Q.science) {
-        if (Q.science >= 5) {
-            Q.science_bonus += 3;
-        } else if (Q.science >= 3) {
-            Q.science_bonus += 2;
-        } else if (Q.science >= 1) {
-            Q.science_bonus += 1;
-        }
-    }
-    if (Q.applied_research && Q.applied_research >= 1) {
-        Q.science_bonus += 0.5*Q.applied_research;
-    }
-    // cap the science bonus at 6
-    if (Q.science_bonus > 6) {
-        Q.science_bonus = 6;
-    }
-    console.log(Q.science_bonus);
-    // this is kinda messy but basically more science -> higher levels of baseline growth
-    if (Q.science_bonus >= 1) {
-        if (Q.return_to_normalcy && Q.economic_growth < Q.science_bonus + 3) {
-            Q.economic_growth += 0.1;
-        }
-        if (Q.return_to_normalcy && Q.economic_growth < Q.science_bonus) {
-            Q.economic_growth += 0.1;
-        }
-        if (Q.economic_growth < Q.science_bonus - 3) {
-            Q.economic_growth += 0.1;
-        }
-    }
-    // accumulated economic growth/decline
-    // Maybe there should be differences for positive/negative growth?
-    if (Q.economic_growth < 0) {
-        if (Q.economic_expansion > 0) {
-            Q.economic_expansion = 0;
-        } else {
-            Q.economic_expansion += Q.economic_growth;
-        }
-    }
-    if (Q.economic_growth > 0 && Q.reparations <= -2 && Q.spd_in_government) {
-        Q.economic_expansion += Q.economic_growth;
-    } else if (Q.economic_growth > 0 && Q.spd_in_government) {
-        Q.economic_expansion += Q.economic_growth/2;
-    }
+    // Capital pressure rises — creditors nervous about deficit
+    Q.capital_pressure  += 0.04;
 
-
-
-
-/// SMALL SETTINGS
-
-if (!Q.math_broken) {
-    // NORMAL: Sum of progressive party support
-    Q.progressive_coalition = Q.spd_r + Q.kpd_r + Q.ddp_r + Q.srpd_r + Q.sapd_r + Q.csrp_r;
-} else {
-    // MATH BROKEN: Coalition math doesn't add up
-    Q.progressive_coalition = Q.impossible_add(
-        Q.impossible_add(Q.spd_r, Q.kpd_r),
-        Q.impossible_add(Q.impossible_add(Q.ddp_r, Q.srpd_r), Q.impossible_add(Q.sapd_r, Q.csrp_r))
-    );
-    console.log("COALITION CHAOS: Progressive coalition = " + Q.progressive_coalition + "%");
+    // Trade pressure ticks up slightly — imports rise with demand
+    Q.trade_pressure    += 0.03;
 }
 
-if (Q.year >= 1932 && Q.communist_revolution_timer > 10 && Q.april_challenge == 1) {
-    Q.communist_revolution_timer -= 2;
-    Q.rfb_strength += 20;
+
+if (Q.wagemann_plan_active === 1 && Q.year >= 1932 && Q.year < 1933) {
+    Q.lautenbach_plan_active = 0;
+    Q.lautenbach_plan_rejected = 0;
+    
+
+    // Money supply expansion — core of the Wagemann mechanism
+    // Directly pressures inflation expectations
+    Q.dInflation                += 0.14;
+    Q.price_pressure            += 0.08;
+    Q.inflation_expectations    += 0.06;
+
+    // If expectations already unanchored, spiral risk kicks in
+    // Wagemann's plan was terrifying to anyone who remembered 1923
+    if (!Q.expectations_anchored) {
+        Q.dInflation            += 0.10;
+        Q.price_pressure        += 0.06;
+        Q.inflation_expectations+= 0.08;
+    }
+
+    // Demand recovers — reflation puts money into circulation
+    Q.demand_impulse            += 0.10;
+    Q.credit_expansion          += 0.06;
+
+    // Unemployment nudges down — but slower than Lautenbach
+    // Monetary stimulus is less targeted than direct job creation
+    Q.dUnemployment             -= 0.05;
+
+    // Growth benefits modestly
+    Q.dGrowth                   += 0.06;
+
+    // Budget is largely neutral — this is monetary not fiscal
+    // Slight improvement from tax base recovery
+    Q.budget                    += 0.05;
+
+    // Capital flight risk — foreign creditors panic at moneyprinting
+    Q.capital_pressure          += 0.08;
+    Q.trade_pressure            += 0.05;
+
+    // If inflation already above 4, compounding risk
+    // The 1923 memory makes markets overreact
+    if (Q.inflation > 4) {
+        Q.capital_pressure      += 0.06;
+        Q.dInflation            += 0.05;
+    }
+}
+
+// ============================================================
+// WTB TIMER EFFECTS
+// ============================================================
+
+if ((Q.wtb_timer || 0) > 0) {
+
+    const diminish = Q.wtb_implemented >= 4 ? 0.70 : 1.0;
+
+    Q.demand_impulse  = (Q.demand_impulse  || 0) + 0.04  * diminish;
+    Q.fiscal_stance   = (Q.fiscal_stance   || 0) - 0.03  * diminish;
+    Q.price_pressure  = (Q.price_pressure  || 0) + 0.02  * diminish;
+    Q.supply_impulse  = (Q.supply_impulse  || 0) + 0.02  * diminish;
+    Q.capital_pressure = Math.max(0, (Q.capital_pressure || 0) - 0.01 * diminish);
 }
 
 
@@ -1877,6 +1112,9 @@ for (var rel of relations) {
         Q[rel + '_relation'] = Q.impossible_add(Q[rel + '_relation'], 0);
     }
 }
+
+
+
 
 
 
@@ -2519,322 +1757,6 @@ if (!Q.math_broken) {
 
 
 
-
-
-// =========================== CABINET ECONOMICAL EFFECTS ====================
-
-
-
-
-// ============================================================
-// BRÜNING AUSTERITY / LAUTENBACH PLAN — mutually exclusive
-// ============================================================
-
-if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active !== 1 && Q.lautenbach_plan_rejected === 1) {
-
-    // Budget improves modestly — spending cuts and tax enforcement
-    Q.budget += 0.07;
-
-    // Deflation pressure — wage cuts, price controls, tight money
-    Q.dInflation        -= 0.03;
-    Q.price_pressure    -= 0.03;
-
-    // Demand collapses — less public spending, lower wages
-    Q.demand_impulse    -= 0.07;
-    Q.fiscal_stance     -= 0.06;
-
-    // Unemployment creeps up — layoffs from public sector cuts
-    Q.dUnemployment     += 0.07;
-
-    // Capital pressure eases slightly — creditor confidence
-    Q.capital_pressure  -= 0.03;
-
-    // Trade pressure eases — deflation makes exports cheaper
-    Q.trade_pressure    -= 0.03;
-
-} else if (Q.bruning_cabinet === 1 && Q.lautenbach_plan_active === 1 && !Q.return_to_normalcy) {
-
-    // --------------------------------------------------------
-    // LAUTENBACH PLAN — credit-financed public investment
-    // Semi-WTB, pre-Keynesian demand stimulus
-    // Overrides austerity but carries inflation/debt risk
-    // --------------------------------------------------------
-
-    // Budget takes a hit — deficit spending is the mechanism
-    Q.budget            -= 0.16;
-
-    // Demand recovers — public works and credit expansion
-    Q.demand_impulse    += 0.10;
-    Q.fiscal_stance     += 0.04;
-
-    // Supply side benefits — infrastructure investment
-    Q.supply_impulse    += 0.05;
-
-    // Unemployment falls slightly — job creation programs
-    Q.dUnemployment     -= 0.05;
-
-    // Growth gets a nudge upward
-    Q.dGrowth           += 0.05;
-
-    // Inflation creeps back up — more money chasing goods
-    Q.dInflation        += 0.04;
-    Q.price_pressure    += 0.04;
-
-    // Capital pressure rises — creditors nervous about deficit
-    Q.capital_pressure  += 0.04;
-
-    // Trade pressure ticks up slightly — imports rise with demand
-    Q.trade_pressure    += 0.03;
-}
-
-
-if (Q.wagemann_plan_active === 1 && Q.year >= 1932 && Q.year < 1933) {
-    Q.lautenbach_plan_active = 0;
-    Q.lautenbach_plan_rejected = 0;
-    
-
-    // Money supply expansion — core of the Wagemann mechanism
-    // Directly pressures inflation expectations
-    Q.dInflation                += 0.14;
-    Q.price_pressure            += 0.08;
-    Q.inflation_expectations    += 0.06;
-
-    // If expectations already unanchored, spiral risk kicks in
-    // Wagemann's plan was terrifying to anyone who remembered 1923
-    if (!Q.expectations_anchored) {
-        Q.dInflation            += 0.10;
-        Q.price_pressure        += 0.06;
-        Q.inflation_expectations+= 0.08;
-    }
-
-    // Demand recovers — reflation puts money into circulation
-    Q.demand_impulse            += 0.10;
-    Q.credit_expansion          += 0.06;
-
-    // Unemployment nudges down — but slower than Lautenbach
-    // Monetary stimulus is less targeted than direct job creation
-    Q.dUnemployment             -= 0.05;
-
-    // Growth benefits modestly
-    Q.dGrowth                   += 0.06;
-
-    // Budget is largely neutral — this is monetary not fiscal
-    // Slight improvement from tax base recovery
-    Q.budget                    += 0.05;
-
-    // Capital flight risk — foreign creditors panic at moneyprinting
-    Q.capital_pressure          += 0.08;
-    Q.trade_pressure            += 0.05;
-
-    // If inflation already above 4, compounding risk
-    // The 1923 memory makes markets overreact
-    if (Q.inflation > 4) {
-        Q.capital_pressure      += 0.06;
-        Q.dInflation            += 0.05;
-    }
-}
-
-// ============================================================
-// WTB TIMER EFFECTS
-// ============================================================
-
-if ((Q.wtb_timer || 0) > 0) {
-
-    const diminish = Q.wtb_implemented >= 4 ? 0.70 : 1.0;
-
-    Q.demand_impulse  = (Q.demand_impulse  || 0) + 0.04  * diminish;
-    Q.fiscal_stance   = (Q.fiscal_stance   || 0) - 0.03  * diminish;
-    Q.price_pressure  = (Q.price_pressure  || 0) + 0.02  * diminish;
-    Q.supply_impulse  = (Q.supply_impulse  || 0) + 0.02  * diminish;
-    Q.capital_pressure = Math.max(0, (Q.capital_pressure || 0) - 0.01 * diminish);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// === PARTY RELATIONS DYNAMIC PATCH (runs every tick) ===
-
-// KPD
-Q.party_relations.KPD.SPD  = Q.kpd_relation;
-Q.party_relations.KPD.SRPD = Q.kpd_relation + 5;
-Q.party_relations.KPD.SAPD = 40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0);
-
-// SAPD
-Q.party_relations.SAPD.SPD = 55 + (Q.left_strength >= 50 ? 15 : 0);
-Q.party_relations.SAPD.KPD = 40 + (Q.kpd_party_leader === "Conciliators" ? 20 : 0);
-
-// SPD
-Q.party_relations.SPD.KPD  = Q.kpd_relation;
-Q.party_relations.SPD.DDP  = Q.ddp_relation;
-Q.party_relations.SPD.Z    = Q.z_relation;
-Q.party_relations.SPD.BVP  = Q.bvp_relation  ?? 35;
-Q.party_relations.SPD.DVP  = Q.dvp_relation;
-Q.party_relations.SPD.CSRP = Q.csrp_relation;
-Q.party_relations.SPD.WP   = Q.wp_relation   ?? 25;
-Q.party_relations.SPD.CNBL = Q.cnbl_relation  ?? 20;
-Q.party_relations.SPD.CSVD = Q.csvd_relation  ?? 35;
-Q.party_relations.SPD.DNVP = Q.dnvp_relation;
-Q.party_relations.SPD.VRP  = Q.vrp_relation   ?? 20;
-Q.party_relations.SPD.NSDAP= Q.nsdap_relation;
-Q.party_relations.SPD.KVP  = Q.kvp_relation;
-Q.party_relations.SPD.DHP  = Q.dhp_relation;
-Q.party_relations.SPD.BB   = Q.bb_relation;
-Q.party_relations.SPD.DVFP = Q.dvfp_relation;
-Q.party_relations.SPD.DBP = Q.dbp_relation;
-
-// SRPD
-Q.party_relations.SRPD.KPD  = Q.kpd_relation - 10;
-Q.party_relations.SRPD.DDP  = Q.ddp_relation + 10;
-Q.party_relations.SRPD.Z    = Q.z_relation + 5;
-Q.party_relations.SRPD.BVP  = (Q.bvp_relation  ?? 35) + 5;
-Q.party_relations.SRPD.DVP  = Q.dvp_relation - 5;
-Q.party_relations.SRPD.CSRP = Q.csrp_relation + 5;
-Q.party_relations.SRPD.WP   = (Q.wp_relation   ?? 25) - 5;
-Q.party_relations.SRPD.CNBL = (Q.cnbl_relation  ?? 20) + 5;
-Q.party_relations.SRPD.CSVD = (Q.csvd_relation  ?? 35) + 5;
-Q.party_relations.SRPD.DNVP = Q.dnvp_line === 3 ? 0 : Q.dnvp_relation - 10;
-
-// DDP
-Q.party_relations.DDP.SPD  = Q.ddp_relation;
-Q.party_relations.DDP.SRPD = Q.ddp_relation + 10;
-Q.party_relations.DDP.DVP  = 65 - (Q.dvp_right_shift ?? 0) * 10;
-
-// Z
-Q.party_relations.Z.SPD    = Q.z_relation;
-Q.party_relations.Z.SRPD   = Q.z_relation + 5;
-Q.party_relations.Z.DVP    = 60 + (Q.z_party_leader === "Kaas" ? 10 : 0);
-Q.party_relations.Z.DNVP   = (Q.dnvp_line === 3 ? 20 : 50) + (Q.z_party_leader === "Kaas" ? 15 : -10);
-Q.party_relations.Z.NSDAP  = Q.nazi_urgency >= 7 ? 0 : Math.max(0, 25 - Q.nazi_urgency * 5);
-
-// BVP
-Q.party_relations.BVP.SPD   = Q.bvp_relation ?? 35;
-Q.party_relations.BVP.SRPD  = (Q.bvp_relation ?? 35) + 5;
-Q.party_relations.BVP.NSDAP = Math.max(0, 15 - Q.nazi_urgency * 3);
-
-// DVP
-Q.party_relations.DVP.SPD   = Q.dvp_relation;
-Q.party_relations.DVP.SRPD  = Q.dvp_relation - 5;
-Q.party_relations.DVP.DDP   = 65 - (Q.dvp_right_shift ?? 0) * 10;
-Q.party_relations.DVP.Z     = 60 + (Q.z_party_leader === "Kaas" ? 10 : 0);
-Q.party_relations.DVP.DNVP  = 50 + (Q.dvp_right_shift ?? 0) * 15;
-Q.party_relations.DVP.NSDAP = 20 + (Q.capital_strike_progress * 6) + (Q.dvp_right_shift ?? 0) * 12;
-
-// WP
-Q.party_relations.WP.SPD   = Q.wp_relation ?? 25;
-Q.party_relations.WP.SRPD  = (Q.wp_relation ?? 25) - 5;
-Q.party_relations.WP.NSDAP = 35 + (Q.capital_strike_progress * 4);
-
-// CNBL
-Q.party_relations.CNBL.SPD   = Q.cnbl_relation ?? 20;
-Q.party_relations.CNBL.SRPD  = (Q.cnbl_relation ?? 20) + 5;
-Q.party_relations.CNBL.NSDAP = 30 + (Q.capital_strike_progress * 4) + (Q.year >= 1930 ? 10 : 0);
-
-// CSVD
-Q.party_relations.CSVD.SPD  = Q.csvd_relation ?? 40;
-Q.party_relations.CSVD.SRPD = (Q.csvd_relation ?? 40) + 5;
-Q.party_relations.CSVD.DNVP = Q.dnvp_line === 3 ? 5 : 55;
-
-// DNVP
-Q.party_relations.DNVP.SPD  = Q.dnvp_relation;
-Q.party_relations.DNVP.SRPD = Q.dnvp_relation - 5;
-Q.party_relations.DNVP.DDP  = Q.dnvp_line === 3 ? 5 : 30;
-Q.party_relations.DNVP.Z    = (Q.dnvp_line === 3 ? 20 : 50) + (Q.z_party_leader === "Kaas" ? 15 : -10);
-Q.party_relations.DNVP.CSVD = Q.dnvp_line === 3 ? 5 : 55;
-Q.party_relations.DNVP.NSDAP= Q.dnvp_line === 3 ? 70 : 40;
-Q.party_relations.DNVP.KVP  = Q.dnvp_line === 3 ? 5 : 60;
-Q.party_relations.DNVP.DHP  = Q.dnvp_line === 3 ? 15 : 55;
-
-// NSDAP
-Q.party_relations.NSDAP.Z    = Q.nazi_urgency >= 7 ? 0 : Math.max(0, 20 - Q.nazi_urgency * 4);
-Q.party_relations.NSDAP.BVP  = Math.max(0, 15 - Q.nazi_urgency * 3);
-Q.party_relations.NSDAP.DVP  = 20 + (Q.capital_strike_progress * 5) + (Q.dvp_right_shift ?? 0) * 10;
-Q.party_relations.NSDAP.WP   = 30 + (Q.capital_strike_progress * 3);
-Q.party_relations.NSDAP.DNVP = Q.dnvp_line === 3 ? 70 : 40;
-Q.party_relations.NSDAP.VRP  = 25 + (Q.capital_strike_progress * 3);
-
-// VRP
-Q.party_relations.VRP.SPD  = Q.vrp_relation;
-Q.party_relations.VRP.DNVP = Q.dnvp_line === 3 ? 10 : 35;
-
-
-
-
-// === COALITION BLOCKS DYNAMIC PATCH (runs every tick) ===
-
-if (!Q.coalition_blocks) {
-    // Blocks not initialized yet — skip patch this tick
-} else {
-
-Q.coalition_blocks.KPD_Z     = Q.z_relation < 65 || Q.kpd_relation < 65;
-Q.coalition_blocks.KPD_DDP   = Q.kpd_relation < 65;
-Q.coalition_blocks.KPD_SPD   = Q.communist_coalition < 3;
-
-Q.coalition_blocks.SPD_DNVP  = Q.dnvp_relation < 60 || Q.dnvp_line === 3;
-Q.coalition_blocks.SPD_KPD   = Q.communist_coalition < 3;
-Q.coalition_blocks.SPD_VRP   = Q.vrp_relation < 35;
-
-Q.coalition_blocks.SRPD_KPD  = Q.kpd_relation < 40;
-Q.coalition_blocks.SRPD_DNVP = Q.dnvp_line === 3;
-Q.coalition_blocks.SRPD_VRP  = Q.vrp_relation < 30;
-
-Q.coalition_blocks.DDP_DNVP  = Q.dnvp_line === 3;
-
-Q.coalition_blocks.Z_KPD     = Q.kpd_relation < 65 || Q.z_relation < 45;
-Q.coalition_blocks.Z_NSDAP   = Q.nazi_urgency >= 6;
-Q.coalition_blocks.Z_DNVP    = Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas";
-
-Q.coalition_blocks.BVP_NSDAP = Q.nazi_urgency >= 6;
-
-Q.coalition_blocks.DVP_NSDAP = Q.nazi_urgency >= 7 && Q.capital_strike_progress < 4;
-Q.coalition_blocks.DVP_VRP   = Q.dvp_right_shift >= 2;
-
-Q.coalition_blocks.WP_NSDAP  = Q.capital_strike_progress < 5;
-
-Q.coalition_blocks.CNBL_SPD  = Q.cnbl_relation < 30;
-
-Q.coalition_blocks.DNVP_SPD  = Q.dnvp_line === 3 || Q.dnvp_relation < 40;
-Q.coalition_blocks.DNVP_DDP  = Q.dnvp_line === 3;
-Q.coalition_blocks.DNVP_Z    = Q.dnvp_line === 3 && Q.z_party_leader !== "Kaas";
-Q.coalition_blocks.DNVP_VRP  = Q.dnvp_line === 3;
-
-Q.coalition_blocks.NSDAP_BVP = Q.nazi_urgency >= 6;
-Q.coalition_blocks.NSDAP_Z   = Q.nazi_urgency >= 6;
-Q.coalition_blocks.NSDAP_COALITIONS_GENERALLY = Q.nsdap_r < 35 || Q.year < 1932;
-
-Q.coalition_blocks.VRP_DNVP  = Q.dnvp_line === 3;
-Q.coalition_blocks.VRP_DVP   = Q.dvp_right_shift >= 1;
-Q.coalition_blocks.VRP_SPD   = Q.vrp_relation < 35;
-
-Q.coalition_blocks.KVP_DNVP  = Q.dnvp_line === 3;
-
-Q.coalition_blocks.DHP_NSDAP = Q.nazi_urgency >= 5;
-
-Q.coalition_blocks.BB_NSDAP  = Q.nazi_urgency >= 7;
-
-}
 
 
 
@@ -5233,126 +4155,6 @@ if (_pres_key === "Hindenburg") {
 
 
 
-
-
-
-
-
-// === PARAMILITARY STRENGTH UPDATES ===
-
-if (Q.nsdap_banned) {
-    Q.sa_strength *= 0.90;
-    Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
-} else {
-    Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
-}
-
-if (Q.dnvp_banned || Q.sh_banned) {
-    Q.sh_strength *= 0.95;
-    Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
-} else {
-    Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
-}
-
-if (Q.rfb_banned && !Q.april_challenge) {
-    Q.rfb_strength *= 0.95;
-    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
-} else if (Q.rfb_true_ban && Q.april_challenge) {
-    Q.rfb_strength *= 0.95;
-    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.01);
-} else {
-    Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
-}
-
-if (Q.rb_banned) {
-    Q.rb_strength *= 0.90;
-    Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
-} else {
-    Q.rb_strength += Q.random_factor(Q.unrest_factor / 20, 0.3);
-}
-
-if (Q.jungdo_banned) {
-    Q.jungdo_strength *= 0.90;
-    Q.jungdo_militancy = Math.max(0, Q.rfb_militancy - 0.6);
-} else {
-    Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
-}
-
-
-// Decay factors — FIXED
-// stability_decay: only applies when things are genuinely calm (low unrest)
-// Multiplier reduced from 10 → 2 so it doesn't obliterate growth
-Q.stability_decay = Math.max(0, (0.4 - Q.unrest_factor)) * 2;
-
-// prosperity_factor: INVERTED so economic collapse REDUCES decay instead of adding to it
-// Previously this was always ~3-4 even in crisis — now crisis = near zero decay from this term
-// Formula: high unemployment and inflation push this toward 0, stable economy pushes toward 1
-Q.prosperity_factor = Math.max(0, Q.inflation / 100 + Q.unemployed / 50) * 1.5;
-// This now reads: the worse the economy, the MORE this subtracts from decay pressure
-
-// Combined decay = calm conditions + good economy both reduce paramilitaries
-// Crisis conditions = both terms shrink toward 0, so decay is minimal
-Q.combined_decay = Math.max(0, Q.stability_decay - Q.prosperity_factor);
-
-// Apply natural decay
-Q.sa_strength     -= Q.random_factor(Q.combined_decay, 0.25);
-Q.sh_strength     -= Q.random_factor(Q.combined_decay, 0.25);
-Q.rfb_strength    -= Q.random_factor(Q.combined_decay, 0.25);
-Q.rb_strength     -= Q.random_factor(Q.combined_decay, 0.25);
-Q.jungdo_strength -= Q.random_factor(Q.combined_decay, 0.25);
-
-// Caps for banned orgs
-if (Q.nsdap_banned) Q.sa_strength     = Math.min(Q.sa_strength, 10);
-if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
-if (Q.rfb_banned && !Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 10);
-if (Q.rfb_true_ban && Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 3);
-
-
-// Caps for RB.
-
-if (Q.prussian_police_training < 1) {
-    Q.rb_militancy = Math.min(Q.rb_militancy, 0.20); 
-    }
-
-
-        // === PARAMILITARY CONSTRAINTS (SKIP IN CHAOS MODE) ===
-    if (!Q.math_broken) {
-        // NORMAL: Constrain paramilitary strength
-        Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
-        Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 10000);
-        Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 10000);
-        Q.rb_strength  = Math.min(Math.max(Q.rb_strength, 0), 10000);
-        Q.jungdo_strength  = Math.min(Math.max(Q.jungdo_strength, 0), 10000);
-    } else {
-        // MATH BROKEN: Paramilitary numbers can be anything
-        Q.sa_strength = Q.impossible_add(Q.sa_strength, 0);
-        Q.sh_strength = Q.impossible_multiply(Q.sh_strength, 1);
-        Q.rfb_strength = Q.impossible_subtract(Q.rfb_strength, 0);
-        Q.rb_strength = Q.impossible_percentage(Q.rb_strength / 100) * 100;
-        Q.jungdo_strength = Q.impossible_add(Q.jungdo_strength, 0);
-    }
-    
-    // --- End Reworked Randomized Monthly Party Drift ---
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // === HINDENBURG PATIENCE ENGINE ===
 // Guard: Only runs for Hindenburg or Independent presidents, never party presidents
 if (Q.president === "Hindenburg" || Q.president_party === "I") {
@@ -6208,6 +5010,118 @@ Q.bill_proposed_this_month = 0;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// === PARAMILITARY STRENGTH UPDATES ===
+
+if (Q.nsdap_banned) {
+    Q.sa_strength *= 0.90;
+    Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
+} else {
+    Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
+}
+
+if (Q.dnvp_banned || Q.sh_banned) {
+    Q.sh_strength *= 0.95;
+    Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
+} else {
+    Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
+}
+
+if (Q.rfb_banned && !Q.april_challenge) {
+    Q.rfb_strength *= 0.95;
+    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else if (Q.rfb_true_ban && Q.april_challenge) {
+    Q.rfb_strength *= 0.95;
+    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.01);
+} else {
+    Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
+}
+
+if (Q.rb_banned) {
+    Q.rb_strength *= 0.90;
+    Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else {
+    Q.rb_strength += Q.random_factor(Q.unrest_factor / 20, 0.3);
+}
+
+if (Q.jungdo_banned) {
+    Q.jungdo_strength *= 0.90;
+    Q.jungdo_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+} else {
+    Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
+}
+
+
+// Decay factors — FIXED
+// stability_decay: only applies when things are genuinely calm (low unrest)
+// Multiplier reduced from 10 → 2 so it doesn't obliterate growth
+Q.stability_decay = Math.max(0, (0.4 - Q.unrest_factor)) * 2;
+
+// prosperity_factor: INVERTED so economic collapse REDUCES decay instead of adding to it
+// Previously this was always ~3-4 even in crisis — now crisis = near zero decay from this term
+// Formula: high unemployment and inflation push this toward 0, stable economy pushes toward 1
+Q.prosperity_factor = Math.max(0, Q.inflation / 100 + Q.unemployed / 50) * 1.5;
+// This now reads: the worse the economy, the MORE this subtracts from decay pressure
+
+// Combined decay = calm conditions + good economy both reduce paramilitaries
+// Crisis conditions = both terms shrink toward 0, so decay is minimal
+Q.combined_decay = Math.max(0, Q.stability_decay - Q.prosperity_factor);
+
+// Apply natural decay
+Q.sa_strength     -= Q.random_factor(Q.combined_decay, 0.25);
+Q.sh_strength     -= Q.random_factor(Q.combined_decay, 0.25);
+Q.rfb_strength    -= Q.random_factor(Q.combined_decay, 0.25);
+Q.rb_strength     -= Q.random_factor(Q.combined_decay, 0.25);
+Q.jungdo_strength -= Q.random_factor(Q.combined_decay, 0.25);
+
+// Caps for banned orgs
+if (Q.nsdap_banned) Q.sa_strength     = Math.min(Q.sa_strength, 10);
+if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
+if (Q.rfb_banned && !Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 10);
+if (Q.rfb_true_ban && Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 3);
+
+
+// Caps for RB.
+
+if (Q.prussian_police_training < 1) {
+    Q.rb_militancy = Math.min(Q.rb_militancy, 0.20); 
+    }
+
+
+        // === PARAMILITARY CONSTRAINTS (SKIP IN CHAOS MODE) ===
+    if (!Q.math_broken) {
+        // NORMAL: Constrain paramilitary strength
+        Q.sa_strength  = Math.min(Math.max(Q.sa_strength, 0), 10000);
+        Q.sh_strength  = Math.min(Math.max(Q.sh_strength, 0), 10000);
+        Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 10000);
+        Q.rb_strength  = Math.min(Math.max(Q.rb_strength, 0), 10000);
+        Q.jungdo_strength  = Math.min(Math.max(Q.jungdo_strength, 0), 10000);
+    } else {
+        // MATH BROKEN: Paramilitary numbers can be anything
+        Q.sa_strength = Q.impossible_add(Q.sa_strength, 0);
+        Q.sh_strength = Q.impossible_multiply(Q.sh_strength, 1);
+        Q.rfb_strength = Q.impossible_subtract(Q.rfb_strength, 0);
+        Q.rb_strength = Q.impossible_percentage(Q.rb_strength / 100) * 100;
+        Q.jungdo_strength = Q.impossible_add(Q.jungdo_strength, 0);
+    }
 
 
 
