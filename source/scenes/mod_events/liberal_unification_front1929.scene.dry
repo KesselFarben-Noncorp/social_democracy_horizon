@@ -13,14 +13,12 @@ if (!Q.parties.includes('dsbp')) {
     if (Q.jungdo_formed == 1) Q.vnr_banned = 1;
 }
 
-if (Q.jungdo_formed == 0) { 
+if (Q.jungdo_formed != 1) { 
     Q.dsbp_name = "DLP"
-} else {
+} else if (Q.jungdo_formed == 1) {
     Q.dsbp_name = "DSBP"
 }
 
-Q.parties = Q.parties.filter(function(p) { return p !== 'dvp'; });
-Q.parties = Q.parties.filter(function(p) { return p !== 'ddp'; });
 Q.parties.push('dsbp');
 
 // Transfer votes from DDp and DVP to DSBP
@@ -74,8 +72,6 @@ if (Q.jungdo_formed == 1) {
     Q.dsbp_r += (Q.vnr_r || 0);
     Q.vnr_r   = 0;
 
-    // Remove VNR from parties list
-    Q.parties = Q.parties.filter(function(p) { return p !== 'vnr'; });
 }
 
 !}
