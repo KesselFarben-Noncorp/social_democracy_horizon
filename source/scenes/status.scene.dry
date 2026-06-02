@@ -9,9 +9,9 @@ is-special: true
 SPD position: [? if spd_toleration : toleration ?][? if spd_in_government : in government - ?][? if spd_toleration == 0 and spd_in_government == 0 and spd_caretaker == 0 : opposition ?][? if spd_caretaker : caretaker government ?]
 [? if in_weimar_coalition and spd_in_government: Weimar Coalition ?][? if in_grand_coalition and spd_in_government: Grand Coalition ?][? if in_popular_front and spd_in_government: Popular Front ?][? if in_left_front and spd_in_government: Left Front ?][? if in_spd_majority and spd_in_government: SPD majority ?][? if in_minority_government and spd_in_government: minority government ?][? if in_emergency_government and spd_in_government: emergency government ?]
 
-[? if spd_in_government and not in_spd_majority and not in_left_front : Coalition dissent: [+ coalition_dissent : coalition_dissent +] ?]
+[? if spd_in_government and not in_spd_majority and not in_left_front : Coalition dissent: [+ coalition_dissent : coalition_dissent +] [? if deterministic_mode == 1: [+ coalition_dissent +] ?] ?]
 
-[? if spd_in_government and (in_left_front or in_popular_front): KPD coalition dissent: [+ kpd_coalition_dissent : coalition_dissent +] ?]
+[? if spd_in_government and (in_left_front or in_popular_front): KPD coalition dissent: [+ kpd_coalition_dissent : coalition_dissent +] [? if deterministic_mode == 1: [+ kpd_coalition_dissent +] ?] ?]
 
 Next election: [+ next_election_month : month +] [+ next_election_year +]
 
@@ -50,7 +50,7 @@ Q.pacifism_disp = Q.pacifism;
 
 = Parties
 
-```
+\`\`\`
 [? if kpd_votes > 1 :
 KPD Ideology: [+ kpd_ideology +] <br>
 KPD Leadership: [+ kpd_party_leader +] <br>
@@ -229,85 +229,85 @@ DVFP Ideology: [+ dvfp_ideology +]<br>
 DVFP Leadership: [+ dvfp_party_leader +] <br>
 DVFP Dissent: [+ dvfp_dissent +]
 ?]
-```
+\`\`\`
 
 = Inter-party Relations
 
-{!<span class="tooltip-text" title="Center Party">Z</span>!}: [+ z_relation : relationships +] [+ z_relation +]
+{!<span class="tooltip-text" title="Center Party">Z</span>!}: [+ z_relation : relationships +] [? if deterministic_mode == 1: [+ z_relation +] ?]
 
-[? if kpo_votes > 0: {!<span class="tooltip-text" title="Communist Party in Opposition">KPO</span>!}: [+ kpo_relation : relationships +] [+ kpo_relation +] ?]
+[? if kpo_votes > 0: {!<span class="tooltip-text" title="Communist Party in Opposition">KPO</span>!}: [+ kpo_relation : relationships +] [? if deterministic_mode == 1: [+ kpo_relation +] ?] ?]
 
-[? if sapd_formed = 1: {!<span class="tooltip-text" title="SAPD">SAPD</span>!}: [+ sapd_relation : relationships +] [+ sapd_relation +] ?]
+[? if sapd_formed = 1: {!<span class="tooltip-text" title="SAPD">SAPD</span>!}: [+ sapd_relation : relationships +] [? if deterministic_mode == 1: [+ sapd_relation +] ?] ?]
 
-[? if srpd_formed = 1: {!<span class="tooltip-text" title="SRPD">SRPD</span>!}: [+ srpd_relation : relationships +] [+ srpd_relation +] ?]
+[? if srpd_formed = 1: {!<span class="tooltip-text" title="SRPD">SRPD</span>!}: [+ srpd_relation : relationships +] [? if deterministic_mode == 1: [+ srpd_relation +] ?] ?]
 
-[? if sl_votes > 0: {!<span class="tooltip-text" title="Socialist League">SL</span>!}: [+ sl_relation : relationships +] [+ sl_relation +] ?]
+[? if sl_votes > 0: {!<span class="tooltip-text" title="Socialist League">SL</span>!}: [+ sl_relation : relationships +] [? if deterministic_mode == 1: [+ sl_relation +] ?] ?]
 
-{!<span class="tooltip-text" title="Bavarian People's Party">BVP</span>!}: [+ bvp_relation : relationships +] [+ bvp_relation +]
+{!<span class="tooltip-text" title="Bavarian People's Party">BVP</span>!}: [+ bvp_relation : relationships +] [? if deterministic_mode == 1: [+ bvp_relation +] ?]
 
-{!<span class="tooltip-text" title="Bavarian Peasants' Party">BB</span>!}: [+ bb_relation : relationships +] [+ bb_relation +]
+{!<span class="tooltip-text" title="Bavarian Peasants' Party">BB</span>!}: [+ bb_relation : relationships +] [? if deterministic_mode == 1: [+ bb_relation +] ?]
 
-{!<span class="tooltip-text" title="Christian Social German Party">CSRP</span>!}: [+ csrp_relation : relationships +] [+ csrp_relation +]
+{!<span class="tooltip-text" title="Christian Social German Party">CSRP</span>!}: [+ csrp_relation : relationships +] [? if deterministic_mode == 1: [+ csrp_relation +] ?]
 
-[? if hl_votes > 0: {!<span class="tooltip-text" title="Hanseatic League">HL</span>!}: [+ hl_relation : relationships +] [+ hl_relation +] ?]
+[? if hl_votes > 0: {!<span class="tooltip-text" title="Hanseatic League">HL</span>!}: [+ hl_relation : relationships +] [? if deterministic_mode == 1: [+ hl_relation +] ?] ?]
 
-{!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [+ ddp_relation +]
+{!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [? if deterministic_mode == 1: [+ ddp_relation +] ?]
 
-[? if dsbp_votes > 0: [+ dsbp_name +] [+ dsbp_relation : relationships +] [+ dsbp_relation +] ?]
+[? if dsbp_votes > 0: [+ dsbp_name +] [+ dsbp_relation : relationships +] [? if deterministic_mode == 1: [+ dsbp_relation +] ?] ?]
 
-{!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [+ dhp_relation +]
+{!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [? if deterministic_mode == 1: [+ dhp_relation +] ?]
 
-{!<span class="tooltip-text" title="German People's Party">DVP</span>!}: [+ dvp_relation : relationships +] [+ dvp_relation +]
+{!<span class="tooltip-text" title="German People's Party">DVP</span>!}: [+ dvp_relation : relationships +] [? if deterministic_mode == 1: [+ dvp_relation +] ?]
 
-[? if vnr_votes > 0: {!<span class="tooltip-text" title="People's National Reich Association">VNR</span>!}: [+ vnr_relation : relationships +] [+ vnr_relation +] ?]
+[? if vnr_votes > 0: {!<span class="tooltip-text" title="People's National Reich Association">VNR</span>!}: [+ vnr_relation : relationships +] [? if deterministic_mode == 1: [+ vnr_relation +] ?] ?]
 
-{!<span class="tooltip-text" title="Economic Party"> WP </span>!}: [+ wp_relation : relationships +] [+ wp_relation +]
+{!<span class="tooltip-text" title="Economic Party"> WP </span>!}: [+ wp_relation : relationships +] [? if deterministic_mode == 1: [+ wp_relation +] ?]
 
-{!<span class="tooltip-text" title="Chrisliche National Bauern League">CNBL </span>!}: [+ cnbl_relation : relationships +] [+ cnbl_relation +]
+{!<span class="tooltip-text" title="Chrisliche National Bauern League">CNBL </span>!}: [+ cnbl_relation : relationships +] [? if deterministic_mode == 1: [+ cnbl_relation +] ?]
 
-[? if kvp_flee = 1: {!<span class="tooltip-text" title="Konservative Volkspartei"> KVP </span>!}: [+ kvp_relation : relationships +] [+ kvp_relation +] ?]
+[? if kvp_flee = 1: {!<span class="tooltip-text" title="Konservative Volkspartei"> KVP </span>!}: [+ kvp_relation : relationships +] [? if deterministic_mode == 1: [+ kvp_relation +] ?] ?]
 
-[? if aspd_votes > 0: {!<span class="tooltip-text" title="Old Social Democratic Party of Germany / Social Fascist Party">ASPD</span>!}: [+ aspd_relation : relationships +] [+ aspd_relation +] ?]
+[? if aspd_votes > 0: {!<span class="tooltip-text" title="Old Social Democratic Party of Germany / Social Fascist Party">ASPD</span>!}: [+ aspd_relation : relationships +] [? if deterministic_mode == 1: [+ aspd_relation +] ?] ?]
 
-{!<span class="tooltip-text" title="KPD">KPD</span>!}: [+ kpd_relation : relationships +] [+ kpd_relation +]
+{!<span class="tooltip-text" title="KPD">KPD</span>!}: [+ kpd_relation : relationships +] [? if deterministic_mode == 1: [+ kpd_relation +] ?]
 
-[? if csvd_flee = 1: {!<span class="tooltip-text" title="CSVD">CSVD</span>!}: [+ csvd_relation : relationships +] [+ csvd_relation +] ?]
+[? if csvd_flee = 1: {!<span class="tooltip-text" title="CSVD">CSVD</span>!}: [+ csvd_relation : relationships +] [? if deterministic_mode == 1: [+ csvd_relation +] ?] ?]
 
-{!<span class="tooltip-text" title="German National People's Party">DNVP</span>!}: [+ dnvp_relation : relationships +] [+ dnvp_relation +]
+{!<span class="tooltip-text" title="German National People's Party">DNVP</span>!}: [+ dnvp_relation : relationships +] [? if deterministic_mode == 1: [+ dnvp_relation +] ?]
 
-{!<span class="tooltip-text" title="National-Socialist German Worker's Party (Nazis)">NSDAP</span>!}: [+ nsdap_relation : relationships +] [+ nsdap_relation +]
+{!<span class="tooltip-text" title="National-Socialist German Worker's Party (Nazis)">NSDAP</span>!}: [+ nsdap_relation : relationships +] [? if deterministic_mode == 1: [+ nsdap_relation +] ?]
 
-[? if dvfp_votes > 0: {!<span class="tooltip-text" title="German National Freedom Party">DVFP</span>!}: [+ dvfp_relation : relationships +] [+ dvfp_relation +] ?]
+[? if dvfp_votes > 0: {!<span class="tooltip-text" title="German National Freedom Party">DVFP</span>!}: [+ dvfp_relation : relationships +] [? if deterministic_mode == 1: [+ dvfp_relation +] ?] ?]
 
-[? if lb_votes > 0: {!<span class="tooltip-text" title="Leninbund">LB</span>!}: [+ lb_relation : relationships +] [+ lb_relation +] ?]
+[? if lb_votes > 0: {!<span class="tooltip-text" title="Leninbund">LB</span>!}: [+ lb_relation : relationships +] [? if deterministic_mode == 1: [+ lb_relation +] ?] ?]
 
-[? if rdp_votes > 0: {!<span class="tooltip-text" title="Radical Democratic Party">RDP</span>!}: [+ rdp_relation : relationships +] [+ rdp_relation +] ?]
+[? if rdp_votes > 0: {!<span class="tooltip-text" title="Radical Democratic Party">RDP</span>!}: [+ rdp_relation : relationships +] [? if deterministic_mode == 1: [+ rdp_relation +] ?] ?]
 
-[? if cvp_votes > 0: {!<span class="tooltip-text" title="Christian People's Party">CVP</span>!}: [+ cvp_relation : relationships +] [+ cvp_relation +] ?]
+[? if cvp_votes > 0: {!<span class="tooltip-text" title="Christian People's Party">CVP</span>!}: [+ cvp_relation : relationships +] [? if deterministic_mode == 1: [+ cvp_relation +] ?] ?]
 
-[? if sls_votes > 0: {!<span class="tooltip-text" title="Sorbian People's Party">SLS</span>!}: [+ sls_relation : relationships +] [+ sls_relation +] ?]
+[? if sls_votes > 0: {!<span class="tooltip-text" title="Sorbian People's Party">SLS</span>!}: [+ sls_relation : relationships +] [? if deterministic_mode == 1: [+ sls_relation +] ?] ?]
 
-[? if dtsp_votes > 0: {!<span class="tooltip-text" title="German-Social Party">DTSP</span>!}: [+ dtsp_relation : relationships +] [+ dtsp_relation +] ?]
+[? if dtsp_votes > 0: {!<span class="tooltip-text" title="German-Social Party">DTSP</span>!}: [+ dtsp_relation : relationships +] [? if deterministic_mode == 1: [+ dtsp_relation +] ?] ?]
 
 = Internal Factions of the SPD
 
-Internal dissent: [+ dissent_percent : dissent +]
+Internal dissent: [+ dissent_percent : dissent +] [? if deterministic_mode == 1: [+ dissent_percent +] ?]
 
-{!<span class="tooltip-text" title="The Left is interested in radical, transformative policies and cooperation with the KPD.">Left Fraction</span>!} strength: [+ left_strength : strength +] [+ left_strength +], dissent: [+ left_dissent : dissent +] [+ left_dissent +]
+{!<span class="tooltip-text" title="The Left is interested in radical, transformative policies and cooperation with the KPD.">Left Fraction</span>!} strength: [+ left_strength : strength +] [? if deterministic_mode == 1: [+ left_strength +] ?], dissent: [+ left_dissent : dissent +] [? if deterministic_mode == 1: [+ left_dissent +] ?]
 
-{!<span class="tooltip-text" title="The Center is a faction of Center Marxists, between reform and revolution.">Orthodox Marxists / Centre </span>!} strength: [+ center_strength : strength +] [+ center_strength +], dissent: [+ center_dissent : dissent +] [+ center_dissent +]
+{!<span class="tooltip-text" title="The Center is a faction of Center Marxists, between reform and revolution.">Orthodox Marxists / Centre </span>!} strength: [+ center_strength : strength +] [? if deterministic_mode == 1: [+ center_strength +] ?], dissent: [+ center_dissent : dissent +] [? if deterministic_mode == 1: [+ center_dissent +] ?]
 
-{!<span class="tooltip-text" title="Labor's goal is economic reform and benefits for organized workers."> ADGB / Labor - Syndicalists </span>!} strength: [+ labor_strength : strength +] [+ labor_strength +], dissent: [+ labor_dissent : dissent +] [+ labor_dissent +]
+{!<span class="tooltip-text" title="Labor's goal is economic reform and benefits for organized workers."> ADGB / Labor - Syndicalists </span>!} strength: [+ labor_strength : strength +] [? if deterministic_mode == 1: [+ labor_strength +] ?], dissent: [+ labor_dissent : dissent +] [? if deterministic_mode == 1: [+ labor_dissent +] ?]
 
-{!<span class="tooltip-text" title="Reformists are pragmatic participants in government, and seek to expand the welfare state and defend democracy."> Reformist / Bernsteinians </span>!} strength: [+ reformist_strength : strength +] [+ reformist_strength +], dissent: [+ reformist_dissent : dissent +] [+ reformist_dissent +]
+{!<span class="tooltip-text" title="Reformists are pragmatic participants in government, and seek to expand the welfare state and defend democracy."> Reformist / Bernsteinians </span>!} strength: [+ reformist_strength : strength +] [? if deterministic_mode == 1: [+ reformist_strength +] ?], dissent: [+ reformist_dissent : dissent +] [? if deterministic_mode == 1: [+ reformist_dissent +] ?]
 
-[? if neorevisionism > 0 : Neorevisionist strength: [+ neorevisionist_strength : strength +], dissent: [+ neorevisionist_dissent : dissent +] [+ neorevisionist_dissent +] ?] 
+[? if neorevisionism > 0 : Neorevisionist strength: [+ neorevisionist_strength : strength +] [? if deterministic_mode == 1: [+ neorevisionist_strength +] ?], dissent: [+ neorevisionist_dissent : dissent +] [? if deterministic_mode == 1: [+ neorevisionist_dissent +] ?] ?]
 
 = Support for the Forces
 
 Support for the Republic: [+ pro_republic_disp +]%
 
-Support for the Nationalism: [+ nationalism_disp +]% 
+Support for the Nationalism: [+ nationalism_disp +]%
 
 Support for the Socialism: [+ socialism_disp +]%
 
@@ -347,7 +347,7 @@ Prussian Police: [+ para_share_prussian_police +]%
 
 Reichsbanner: [+ para_share_reichsbanner +]%
 
-RPB: [+ para_share_rpb +]
+[? if rpb_formed: RPB: [+ para_share_rpb +] ?]
 
 [? if jungdo_formed: Jungdo: [+ para_share_jungdo +]% ?]
 
@@ -373,27 +373,27 @@ Military: [+ para_bloc_military +]%
 
 {!<span class="tooltip-text" title="The Reichsbanner Schwarz-Rot-Gold is a popular organization for defending democracy, mostly affiliated with the SPD.">Reichsbanner</span>!} Strength: [+ rb_strength_2 +] thousand
 
-Reichsbanner Militarization: [+ rb_militancy : militancy +]
+Reichsbanner Militarization: [+ rb_militancy : militancy +] [? if deterministic_mode == 1: [+ rb_militancy +] ?]
 
 [? if jungdo_formed: {!<span class="tooltip-text" title="The Young German Order is a nationalist-liberal association founded by Artur Mahraun.">Young German Order</span>!} Strength: [+ jungdo_strength_2 +] thousand ?]
 
-[? if jungdo_formed: Young German Order Militarization: [+ jungdo_militancy : militancy +] ?]
+[? if jungdo_formed: Young German Order Militarization: [+ jungdo_militancy : militancy +] [? if deterministic_mode == 1: [+ jungdo_militancy +] ?] ?]
 
 {!<span class="tooltip-text" title="The RFB (Rotfrontkämpferbund) is a communist group associated with the KPD.">RFB</span>!} Strength: [+ rfb_strength_2 +] thousand
 
-RFB Militarization: [+ rfb_militancy : militancy +]
+RFB Militarization: [+ rfb_militancy : militancy +] [? if deterministic_mode == 1: [+ rfb_militancy +] ?]
 
 [? if rpb_formed: RPB Strength: [+ rpb_strength +] ?]
 
-[? if rpb_formed: RPB Militancy: [+ rpb_militancy: militancy +] ?]
+[? if rpb_formed: RPB Militancy: [+ rpb_militancy : militancy +] [? if deterministic_mode == 1: [+ rpb_militancy +] ?] ?]
 
 {!<span class="tooltip-text" title="The Stahlhelm is a right-wing organization of war veterans associated with the DNVP.">Stahlhelm</span>!} Strength: [+ sh_strength_2 +] thousand
 
-Stahlhelm Militarization: [+ sh_militancy : militancy +]
+Stahlhelm Militarization: [+ sh_militancy : militancy +] [? if deterministic_mode == 1: [+ sh_militancy +] ?]
 
 {!<span class="tooltip-text" title="The SA (Sturmabteilung) is the Nazi paramilitary.">SA</span>!} Strength: [+ sa_strength_2 +] thousand
 
-SA Militarization: [+ sa_militancy : militancy +]
+SA Militarization: [+ sa_militancy : militancy +] [? if deterministic_mode == 1: [+ sa_militancy +] ?]
 
 = Official military/paramilitaries
 
@@ -403,15 +403,15 @@ Reichswehr: [+ reichswehr_strength +] thousand troops.
 
 Reichswehr Militancy: [+ reichswehr_militancy +]
 
-Reichswehr Loyalty: [+ reichswehr_loyalty : loyalty +]
+Reichswehr Loyalty: [+ reichswehr_loyalty : loyalty +] [? if deterministic_mode == 1: [+ reichswehr_loyalty +] ?]
 
 = Police
 
 Prussian police: [+ prussian_police_strength +] thousand members.
 
-Prussian police loyalty: [+ prussian_police_loyalty : loyalty +]
+Prussian police loyalty: [+ prussian_police_loyalty : loyalty +] [? if deterministic_mode == 1: [+ prussian_police_loyalty +] ?]
 
-[? if spd_in_government : Interior police loyalty: [+ interior_police_loyalty : loyalty +] ?]
+[? if spd_in_government : Interior police loyalty: [+ interior_police_loyalty : loyalty +] [? if deterministic_mode == 1: [+ interior_police_loyalty +] ?] ?]
 
 [? if spd_in_government : Interior police strength: [+ interior_police_strength +] ?]
 
