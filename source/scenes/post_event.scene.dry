@@ -2720,9 +2720,9 @@ function computeTarget(party, c) {
             if (Q.dsbp_banned) return 0;
 
             // ── Presence penalties ──────────────────────────────────────
-            const ddp_present  = Q.parties.includes('ddp');
-            const dvp_present  = Q.parties.includes('dvp');
-            const vnr_present  = Q.parties.includes('vnr');
+            const ddp_present  = Q.parties.includes('ddp') && !Q.ddp_banned;
+            const dvp_present  = Q.parties.includes('dvp') && !Q.dvp_banned;
+            const vnr_present  = Q.parties.includes('vnr') && !Q.vnr_banned;
 
             let presence_pen = 1.0;
             if (ddp_present && dvp_present) presence_pen = 0.18;   // both parents: severe nerf
