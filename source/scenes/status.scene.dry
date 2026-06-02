@@ -1,6 +1,15 @@
 title: Status
 new-page: true
 is-special: true
+on-arrival: {!
+const inGov = Object.keys(Q)
+  .filter(key => key.endsWith("_in_government") && Q[key] == 1)
+  .map(key => key.replace("_in_government", "").toUpperCase());
+
+Q.parties_in_government_display = inGov.length > 0
+  ? inGov.join(", ")
+  : "None";
+!}
 
 = Status
 
@@ -27,6 +36,8 @@ Chancellor: [+ chancellor +] ([+ chancellor_party +])
 
 Prussian Minister-President: Vacanted ([+ prussian_government +])
 
+Parties in government: [+ parties_in_government_display +]
+
 = Other Positions
 
 Reichsbank President: [+ reichsbank_president +]
@@ -50,7 +61,6 @@ Q.pacifism_disp = Q.pacifism;
 
 = Parties
 
-\`\`\`
 [? if kpd_votes > 1 :
 KPD Ideology: [+ kpd_ideology +] <br>
 KPD Leadership: [+ kpd_party_leader +] <br>
@@ -112,8 +122,8 @@ DDP/DStP Dissent: [+ ddp_dissent +]
 
 [? if dsbp_votes > 1 :
 [+ dsbp_name +] Ideology: [+ dsbp_ideology +] <br>
-DSBP Leadership: [+ dsbp_party_leader +] <br>
-DSBP Dissent: [+ dsbp_dissent +]
+[+ dsbp_name +] Leadership: [+ dsbp_party_leader +] <br>
+[+ dsbp_name +] Dissent: [+ dsbp_dissent +]
 ?]
 
 [? if sls_votes > 1 :
@@ -229,7 +239,6 @@ DVFP Ideology: [+ dvfp_ideology +]<br>
 DVFP Leadership: [+ dvfp_party_leader +] <br>
 DVFP Dissent: [+ dvfp_dissent +]
 ?]
-\`\`\`
 
 = Inter-party Relations
 
