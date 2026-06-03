@@ -3287,32 +3287,49 @@ function computeSpeed(party, c) {
     }
 
     // Enemies modifier: suppressed parties move slower toward targeted classes
-    if (Q.enemies) {
-        const target_map = {
-            'NSDAP':                   ['nsdap'],
-            'KPD':                     ['kpd'],
-            'far right':               ['nsdap', 'dnvp', 'dvfp'],
-            'DNVP':                    ['dnvp'],
-            'anti-democratic parties': ['nsdap', 'dnvp', 'kpd'],
-            'bourgeois parties':       ['dvp', 'wp', 'z', 'dsbp'],
-            'DVP':                     ['dvp'],
-            'Z':                       ['z'],
-            'BVP':                     ['bvp'],
-            'WP':                      ['wp'],
-            'DDP':                     ['ddp'],
-        };
-        const targets = target_map[Q.enemies] || [];
-        const worker_classes = ['workers', 'unemployedc'];
+    const target_map = {
+    'NSDAP': ['nsdap'],
+    'KPD':   ['kpd'],
+    'DNVP':  ['dnvp'],
+    'DVP':   ['dvp'],
+    'Z':     ['z'],
+    'BVP':   ['bvp'],
+    'WP':    ['wp'],
+    'DDP':   ['ddp'],
+    'SAPD':  ['sapd'],
+    'CSVD':  ['csvd'],
+    'CNBL':  ['cnbl'],
+};
+
+const enemy_vars = [Q.enemy_1, Q.enemy_2, Q.enemy_3].filter(Boolean);
+
+if (enemy_vars.length > 0) {
+    const worker_classes = ['workers', 'unemployedc'];
+
+    // Collect all targeted parties, weighted by priority tier
+    // Primary: full penalty | Secondary: reduced | Tertiary: minor
+    const tier_multipliers = [0.78, 0.87, 0.93];
+
+    let slowest_multiplier = 1.0;
+    let spd_boost = 1.0;
+
+    enemy_vars.forEach((enemy, tier) => {
+        const targets = target_map[enemy] || [];
         if (targets.includes(party) && worker_classes.includes(c)) {
-            speed *= 0.80;  // negative campaigning slows drift toward that party
+            // Take the strongest applicable penalty if a party appears somehow in multiple tiers
+            slowest_multiplier = Math.min(slowest_multiplier, tier_multipliers[tier]);
         }
         if (party === 'spd' && targets.length > 0 && worker_classes.includes(c)) {
-            speed *= 1.08;  // SPD benefits from attacking enemies
+            // SPD boost also diminishes by tier: +8%, +5%, +3%
+            spd_boost *= (tier === 0 ? 1.08 : tier === 1 ? 1.05 : 1.03);
         }
-    }
+    });
 
-    return Math.min(speed, 0.40);  // hard cap — never jump more than 40% in one tick
+    speed *= slowest_multiplier;
+    if (party === 'spd') speed *= spd_boost;
 }
+
+return Math.min(speed, 0.40);
 
 
 // ─────────────────────────────────────────
