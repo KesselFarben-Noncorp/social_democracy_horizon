@@ -1,88 +1,291 @@
 title: Choosing Our Enemies
 new-page: true
 view-if: (year <= 1932 and enemies_timer <= 0) or (sandbox = 1 and enemies_timer <= 0)
-on-arrival: month_actions += 1; enemies_timer = 12 + austerity_fortimers; enemies_timer = 10 + austerity_fortimers if sandbox = 1
+on-arrival: month_actions += 1; enemies_timer = 12 + austerity_fortimers if sandbox = 0; enemies_timer = 10 + austerity_fortimers if sandbox = 1; enemy_1 = 0; enemy_2 = 0; enemy_3 = 0
 is-card: true
 card-image: img/poster_1.png
 tags: party_affairs
 
-= Choosing our enemies
+= Choosing Our Enemies
 
-In our media and campaign materials, who should we consider as our main opponents (workers and unemployed will be affected)? Keep in the mind, a consolidated base of the radical parties won't leave its party so easily. 
+The Vorwärts machine must be aimed at something. Our media, our campaigners, our speakers on street corners — they all need a face to argue against. Choosing our enemies carefully shapes how workers, the unemployed, and the middle classes see us.
 
-We must act precisely and accurately when it comes to targetting parties in our Vorwärts media machine. Since the SPD must one way or another govern with parties of the close or other specters, attacking our allies may lead to the big troubles in the future.
-[? if enemies != 0: Previously, we had considered the [+ enemies +] as our prior enemies. Is a change of direction necessary? ?]
+We may designate up to three targets. Our primary enemy will bear the full weight of our rhetoric; the second and third will receive a lighter but still meaningful share of our attention.
 
-- @anti_dem: The anti-democratic parties of the far right and left – the KPD, NSDAP, and DNVP.
-- @far_right: The far right – the NSDAP and DNVP.
-- @dnvp: The DNVP alone.
-- @nsdap: The NSDAP alone.
-- @kpd: The KPD.
-- @bourgeois: The bourgeois parties – the Center, DVP and WP.
-- @z: The Zentrum Party.
-- @dvp: The DVP party.
-- @bvp: The BVP party.
-- @wp: The Economic party.
-- @ddp: The DDP party.
+Who stands against us first?
+
+- @primary_kpd: The KPD — the Communists.
+- @primary_nsdap: The NSDAP — the Nazis.
+- @primary_dnvp: The DNVP — the Nationalists.
+- @primary_z: The Zentrum Party.
+- @primary_dvp: The DVP — the People's Party.
+- @primary_bvp: The BVP — the Bavarian conservatives.
+- @primary_wp: The WP — the Economic Party.
+- @primary_ddp: The DDP — the Democrats.
+- @primary_sapd: The SAPD — the Socialist splinter.
+- @primary_csvd: The CSVD — the Christian Socials.
+- @primary_cnbl: The CNBL — the agrarian nationalists.
 - @easy_discard
 
-@anti_dem
-on-arrival: enemies = "anti-democratic parties"; center_strength += 5; reformist_strength += 5; left_dissent += 5; workers_kpd -= 2; workers_nsdap -= 2; workers_dnvp -= 2; kpd_relation -= 7; dnvp_relation -= 5; nsdap_relation -= 6
+@primary_kpd
+view-if: kpd_votes > 0 or kpd_r > 0
+view-if: ideology != "left"
+on-arrival: enemy_1 = "KPD"; reformist_strength += 5; left_dissent += 8; reformist_dissent -= 5; kpd_relation -= 10; dvp_relation += 5; z_relation += 5; workers_kpd -= 4 if workers_kpd < 25; wp_relation += 4; bvp_relation += 5; dnvp_relation += 3 if dnvp_line = 1 or not dnvp_line
+go-to: secondary
 
-Attacking the far right and left is popular among all but the left wing of our party, who would prefer fighting the bourgeois parties. This might also hamper our ability to reconcile with the KPD in the future.
+Targeting the Communists wins approval from the reformist wing and quiet nods from our bourgeois partners. The left of our party is furious, and any future reconciliation with the KPD will be harder. The street-level rivalry with Communist organizers will also intensify.
 
-@far_right
-on-arrival: enemies = "far right"; left_strength += 5; left_dissent -= 5; workers_nsdap -= 2 if workers_nsdap < 20; workers_dnvp -= 4
+@primary_nsdap
+view-if: nsdap_votes > 0 or nsdap_r > 0
+on-arrival: enemy_1 = "NSDAP"; neorevisionist_strength += 5; nazi_urgency += 1 if nazi_urgency > 0; workers_nsdap -= 4 if nazi_urgency > 0; workers_spd -= 1 if nazi_urgency <= 0; nsdap_relation -= 6
+go-to: secondary
 
-Attacking the far right is popular among the entire party, although the left considers the bourgeois parties just as dangerous, while the right criticizes our lack of response to the KPD. Our bourgeois coalition partners are skeptical of our commitment to anti-communism.
+[? if nazi_urgency == 0 or nsdap_r < 10: The NSDAP is still a fringe outfit. Some in the party question whether we are wasting our breath on them. ?]
+[? if nazi_urgency > 0 and nsdap_r >= 10: The Nazis are growing fast. Making them our primary target sends a clear signal to every worker still wavering. ?]
 
-@dnvp
-on-arrival: enemies = "DNVP"; workers_dnvp *= 0.89; old_middle_dnvp *= 0.97; new_middle_dnvp *= 0.93; rural_dnvp *= 0.98; dnvp_relation -= 3; dnvp_relation -= 5 if dnvp_line = 1; bvp_relation -= 3
+@primary_dnvp
+view-if: dnvp_votes > 0 or dnvp_r > 0
+on-arrival: enemy_1 = "DNVP"; workers_dnvp *= 0.87; old_middle_dnvp *= 0.95; new_middle_dnvp *= 0.91; rural_dnvp *= 0.96; dnvp_relation -= 8; dnvp_relation -= 5 if dnvp_line = 1; bvp_relation -= 3
+go-to: secondary
 
-Our anti Nationalist–Monarchist rhetoric calls out this party on their faults and fundamental beliefs as the reasoning for our inability to cooperate on coalition and government affairs.
+The Nationalists and monarchists make a natural enemy. Our anti-Junker rhetoric plays well in the industrial cities, though rural voters who still back the DNVP are harder to peel away.
 
-@nsdap
-on-arrival: enemies = "NSDAP"; neorevisionist_strength += 5; nazi_urgency += 1 if nazi_urgency > 0; workers_nsdap -= 4 if nazi_urgency > 0; workers_spd -= 1 if nazi_urgency <= 0
+@primary_z
+view-if: z_votes > 0 or z_r > 0
+on-arrival: enemy_1 = "Z"; z_relation -= 7; workers_z *= 0.93; unemployed_z *= 0.88; catholics_z *= 0.97; left_dissent -= 3; coalition_dissent += 1 if in_weimar_coalition
+go-to: secondary
 
-[? if nazi_urgency == 0 or nsdap_r < 10: The NSDAP is a tiny party right now, with more bark than bite. Many in our party are questioning our choices. ?]
-[? if nazi_urgency > 0 and nsdap_r >= 10: The Nazis are the most urgent problem for us to deal with. ?]
+Attacking the Zentrum strains any governing arrangement we have with them, and Catholic workers will not easily forgive us. The left finds it satisfying regardless.
 
-@kpd
-on-arrival: enemies = "KPD"; reformist_strength += 5; left_dissent += 8; reformist_dissent -= 5; kpd_relation -= 10; dvp_relation += 5; z_relation += 5; workers_kpd -= 4 if workers_kpd < 25; wp_relation += 4; bvp_relation += 5; dnvp_relation += 3 if dnvp_line = 1 or not dnvp_line 
+@primary_dvp
+view-if: dvp_votes > 0 or dvp_r > 0
+on-arrival: enemy_1 = "DVP"; left_strength += 3; dvp_relation -= 8; z_relation -= 2; ddp_relation -= 3; old_middle_spd -= 2; coalition_dissent += 1; workers_dvp -= 4; new_middle_dvp -= 2; reformist_dissent += 4; kpd_relation += 1
+go-to: secondary
 
-Attacking the KPD is supported by all but the most left-wing socialists and wins some approval among bourgeois parties. However, if we want to reconcile with the KPD, this may not be the best choice.
+The industrial interests behind the DVP make them an easy target for class-conscious rhetoric. The reformist wing worries about burning bridges with moderate liberals.
 
-@bourgeois
-on-arrival: enemies = "bourgeois parties"; left_strength += 8; left_dissent -= 5; dvp_relation -= 5; z_relation -= 5; kpd_relation += 5; reformist_dissent += 8; workers_z -= 3; workers_dvp -= 2; unemployed_dvp -= 5; new_middle_dvp -= 2; coalition_dissent += 1; workers_wp *= 0.98; neorevisionist_dissent += 2; neorevisionist_dissent += nsdap_r * 0.1 if nsdap_r > 10 
+@primary_bvp
+view-if: bvp_votes > 0 or bvp_r > 0
+on-arrival: enemy_1 = "BVP"; bvp_relation -= 6; z_relation -= 4; old_middle_bvp *= 0.98; workers_bvp *= 0.93; rural_bvp *= 0.97; new_middle_bvp *= 0.93; unemployed_bvp *= 0.78
+go-to: secondary
 
-Our anti-bourgeois rhetoric is popular among the left, but may make it harder to build coalitions necessary for future government.
+The Bavarian conservatives are a regional target, but attacking them strains our already difficult relationship with the Zentrum as well. The effect in Prussia and the north will be limited.
 
-@z
-view-if: sandbox = 1
-on-arrival: enemies = "Z"; z_relation -= 7; workers_z *= 0.95; unemployed_z *= 0.90; catholics_z *= 0.98
+@primary_wp
+view-if: wp_votes > 0 or wp_r > 0
+on-arrival: enemy_1 = "WP"; wp_relation -= 7; dvp_relation -= 3 if dvp_relation < 40; old_middle_wp *= 0.98; new_middle_wp *= 0.98; workers_wp *= 0.96; unemployed_wp *= 0.93; rural_wp *= 0.97; catholics_wp *= 0.96; inflation *= 0.99
+go-to: secondary
 
-Our secularist and anti radical catholic targets the Zentrum party.
+The Economic Party presents itself as a middle-class defender while sitting close to industrialist interests. We can expose that contradiction, though it costs us with the petty bourgeoisie.
 
-@dvp
-view-if: sandbox = 1
-on-arrival: enemies = "DVP"; left_strength += 1; dvp_relation -= 7; z_relation -= 2; ddp_relation -= 3; old_middle_spd -= 2; coalition_dissent += 0.5; workers_dvp -= 3; new_middle_dvp -= 1; reformist_dissent += 4; kpd_relation += 1; dnvp_relation -= 2 if dnvp_line = 1
+@primary_ddp
+view-if: ddp_votes > 0 or ddp_r > 0
+on-arrival: enemy_1 = "DDP"; ddp_relation -= 9; dvp_relation -= 2 if dvp_relation < 40; old_middle_ddp *= 0.98; new_middle_ddp *= 0.97; workers_ddp *= 0.94; unemployed_ddp *= 0.93; rural_ddp *= 0.97; catholics_ddp *= 0.97; reformist_dissent += 5; left_dissent -= 3; coalition_dissent += 1 if in_weimar_coalition
+go-to: secondary
 
-Our anti-industrialist propaganda seeks to undermine the DVP and our relationship with them.
+The Democrats once stood for Weimar. Going after them now alienates our liberal allies and the reformist wing. The left approves.
 
-@bvp
-view-if: sandbox = 1
-on-arrival: enemies = "BVP"; bvp_relation -= 5; z_relation -= 3; old_middle_bvp *= 0.99; workers_bvp *= 0.95; rural_bvp *= 0.98; new_middle_bvp *= 0.95; unemployed_bvp *= 0.80;
+@primary_sapd
+view-if: sapd_votes > 0 or sapd_r > 0
+on-arrival: enemy_1 = "SAPD"; left_dissent += 10; reformist_dissent -= 3; sapd_relation -= 8; workers_sapd -= 3; kpd_relation -= 3
+go-to: secondary
 
-We concentrated on attacking the BVP over their conservatism and obstructionism.
+Attacking the SAPD splinter as adventurist and irresponsible may win back some reformist workers, but it deepens the fracture on the left and looks petty if they remain small.
 
-@wp
-view-if: sandbox = 1
-on-arrival: enemies = "WP"; wp_relation -= 6; dvp_relation -= 3 if dvp_relation < 40; old_middle_wp *= 0.99; new_middle_wp *= 0.99; workers_wp *= 0.97; unemployed_wp *= 0.95; rural_wp *= 0.98; catholics_wp *= 0.97; inflation *= 0.99
+@primary_csvd
+view-if: csvd_votes > 0 or csvd_r > 0
+on-arrival: enemy_1 = "CSVD"; csvd_relation -= 6; catholics_csvd *= 0.97; workers_csvd *= 0.95; z_relation -= 2; reformist_dissent += 2
+go-to: secondary
 
-We attacked the Corporatist Economical Party over their connections with reactionaries, elites and industrialists under the facade of middle class party.
+The Christian Social movement is a niche target, but one that may peel some religious workers away from confessional politics — at the cost of further straining Catholic relations.
 
-@ddp
-view-if: sandbox = 1
-on-arrival: enemies = "DDP"; ddp_relation -= 8; dvp_relation -= 3 if dvp_relation < 40; old_middle_ddp *= 0.99; new_middle_ddp *= 0.98; workers_ddp *= 0.95; unemployed_ddp *= 0.94; rural_ddp *= 0.98; catholics_ddp *= 0.97; reformist_dissent += 4; left_dissent -= 3; coalition_dissent += 1 if in_weimar_coalition
+@primary_cnbl
+view-if: cnbl_votes > 0 or cnbl_r > 0
+on-arrival: enemy_1 = "CNBL"; cnbl_relation -= 6; rural_cnbl *= 0.97; old_middle_cnbl *= 0.98; dnvp_relation -= 2; workers_spd += 1
+go-to: secondary
 
-We attacked the Corporatist Economical Party over their connections with reactionaries, elites and industrialists under the facade of middle class party.
+The agrarian nationalists are not our natural constituency in any case, but making them a visible enemy signals to rural labourers that we are paying attention to the land question.
+
+@secondary
+= Our second target
+
+We have turned our sights on the [+ enemy_1 +]. Now, who draws our secondary fire — a softer but still pointed criticism?
+
+- @secondary_kpd: The KPD.
+- @secondary_nsdap: The NSDAP.
+- @secondary_dnvp: The DNVP.
+- @secondary_z: The Zentrum Party.
+- @secondary_dvp: The DVP.
+- @secondary_bvp: The BVP.
+- @secondary_wp: The WP.
+- @secondary_ddp: The DDP.
+- @secondary_sapd: The SAPD.
+- @secondary_csvd: The CSVD.
+- @secondary_cnbl: The CNBL.
+- @skip_secondary: We focus on one enemy for now.
+
+@secondary_kpd
+view-if: (kpd_votes > 0 or kpd_r > 0) and enemy_1 != "KPD" and ideology != "left"
+on-arrival: enemy_2 = "KPD"; kpd_relation -= 5; workers_kpd -= 2 if workers_kpd < 25; dvp_relation += 2; reformist_dissent -= 3; left_dissent += 4
+go-to: tertiary
+
+Secondary criticism of the Communists reinforces our anti-extremist credentials without making them our sole focus.
+
+@secondary_nsdap
+view-if: (nsdap_votes > 0 or nsdap_r > 0) and enemy_1 != "NSDAP"
+on-arrival: enemy_2 = "NSDAP"; nsdap_relation -= 3; workers_nsdap -= 2 if nazi_urgency > 0; neorevisionist_strength += 2
+go-to: tertiary
+
+We keep the Nazis in our sights as a secondary target — enough to remind voters of the threat without making it our sole campaign.
+
+@secondary_dnvp
+view-if: (dnvp_votes > 0 or dnvp_r > 0) and enemy_1 != "DNVP"
+on-arrival: enemy_2 = "DNVP"; dnvp_relation -= 4; workers_dnvp *= 0.95; dnvp_relation -= 3 if dnvp_line = 1
+go-to: tertiary
+
+We keep up a steady drumbeat against Nationalist reaction as a secondary theme.
+
+@secondary_z
+view-if: (z_votes > 0 or z_r > 0) and enemy_1 != "Z"
+on-arrival: enemy_2 = "Z"; z_relation -= 3; workers_z *= 0.97; catholics_z *= 0.99; coalition_dissent += 0.5 if in_weimar_coalition
+go-to: tertiary
+
+Secondary criticism of the Zentrum is pointed but restrained — enough to draw a contrast, not enough to fully rupture relations.
+
+@secondary_dvp
+view-if: (dvp_votes > 0 or dvp_r > 0) and enemy_1 != "DVP"
+on-arrival: enemy_2 = "DVP"; dvp_relation -= 4; workers_dvp -= 2; reformist_dissent += 2
+go-to: tertiary
+
+We remind voters of the DVP's industrial ties as a secondary theme without making it the centerpiece.
+
+@secondary_bvp
+view-if: (bvp_votes > 0 or bvp_r > 0) and enemy_1 != "BVP"
+on-arrival: enemy_2 = "BVP"; bvp_relation -= 3; z_relation -= 2; workers_bvp *= 0.97
+go-to: tertiary
+
+A secondary focus on Bavarian conservatism — limited reach outside the south, but useful.
+
+@secondary_wp
+view-if: (wp_votes > 0 or wp_r > 0) and enemy_1 != "WP"
+on-arrival: enemy_2 = "WP"; wp_relation -= 3; old_middle_wp *= 0.99; workers_wp *= 0.98
+go-to: tertiary
+
+We note the Economic Party's contradictions in passing — enough to chip at their middle-class base.
+
+@secondary_ddp
+view-if: (ddp_votes > 0 or ddp_r > 0) and enemy_1 != "DDP"
+on-arrival: enemy_2 = "DDP"; ddp_relation -= 4; reformist_dissent += 2; left_dissent -= 2
+go-to: tertiary
+
+Secondary criticism of the Democrats registers with the left wing without fully alienating liberals.
+
+@secondary_sapd
+view-if: (sapd_votes > 0 or sapd_r > 0) and enemy_1 != "SAPD"
+on-arrival: enemy_2 = "SAPD"; sapd_relation -= 4; left_dissent += 5; workers_sapd -= 2
+go-to: tertiary
+
+We level secondary criticism at the SAPD as a divisive splinter — though the left finds this uncomfortable.
+
+@secondary_csvd
+view-if: (csvd_votes > 0 or csvd_r > 0) and enemy_1 != "CSVD"
+on-arrival: enemy_2 = "CSVD"; csvd_relation -= 3; catholics_csvd *= 0.98; z_relation -= 1
+go-to: tertiary
+
+A secondary salvo at the Christian Socials — modest effects, but noted.
+
+@secondary_cnbl
+view-if: (cnbl_votes > 0 or cnbl_r > 0) and enemy_1 != "CNBL"
+on-arrival: enemy_2 = "CNBL"; cnbl_relation -= 3; rural_cnbl *= 0.98
+go-to: tertiary
+
+Secondary fire at the agrarians — limited urban impact but noted in the countryside.
+
+@skip_secondary
+on-arrival: enemy_2 = 0
+go-to: tertiary
+
+@tertiary
+= Our third target
+
+We are already targeting the [+ enemy_1 +] and [? if enemy_2 != 0: the [+ enemy_2 +]. Is there a third party ?][? if enemy_2 = 0: focusing our fire. Is there a secondary party ?] worth a passing criticism?
+
+- @tertiary_kpd: The KPD.
+- @tertiary_nsdap: The NSDAP.
+- @tertiary_dnvp: The DNVP.
+- @tertiary_z: The Zentrum Party.
+- @tertiary_dvp: The DVP.
+- @tertiary_bvp: The BVP.
+- @tertiary_wp: The WP.
+- @tertiary_ddp: The DDP.
+- @tertiary_sapd: The SAPD.
+- @tertiary_csvd: The CSVD.
+- @tertiary_cnbl: The CNBL.
+- @skip_tertiary: Two targets are sufficient.
+
+@tertiary_kpd
+view-if: (kpd_votes > 0 or kpd_r > 0) and enemy_1 != "KPD" and enemy_2 != "KPD" and ideology != "left"
+on-arrival: enemy_3 = "KPD"; kpd_relation -= 3; workers_kpd -= 1 if workers_kpd < 25; left_dissent += 2
+go-to: enemies_done
+
+@tertiary_nsdap
+view-if: (nsdap_votes > 0 or nsdap_r > 0) and enemy_1 != "NSDAP" and enemy_2 != "NSDAP"
+on-arrival: enemy_3 = "NSDAP"; nsdap_relation -= 2; workers_nsdap -= 1 if nazi_urgency > 0
+go-to: enemies_done
+
+@tertiary_dnvp
+view-if: (dnvp_votes > 0 or dnvp_r > 0) and enemy_1 != "DNVP" and enemy_2 != "DNVP"
+on-arrival: enemy_3 = "DNVP"; dnvp_relation -= 2; workers_dnvp *= 0.97
+go-to: enemies_done
+
+@tertiary_z
+view-if: (z_votes > 0 or z_r > 0) and enemy_1 != "Z" and enemy_2 != "Z"
+on-arrival: enemy_3 = "Z"; z_relation -= 2; workers_z *= 0.99; coalition_dissent += 0.25 if in_weimar_coalition
+go-to: enemies_done
+
+@tertiary_dvp
+view-if: (dvp_votes > 0 or dvp_r > 0) and enemy_1 != "DVP" and enemy_2 != "DVP"
+on-arrival: enemy_3 = "DVP"; dvp_relation -= 2; workers_dvp -= 1
+go-to: enemies_done
+
+@tertiary_bvp
+view-if: (bvp_votes > 0 or bvp_r > 0) and enemy_1 != "BVP" and enemy_2 != "BVP"
+on-arrival: enemy_3 = "BVP"; bvp_relation -= 2; workers_bvp *= 0.99
+go-to: enemies_done
+
+@tertiary_wp
+view-if: (wp_votes > 0 or wp_r > 0) and enemy_1 != "WP" and enemy_2 != "WP"
+on-arrival: enemy_3 = "WP"; wp_relation -= 2; old_middle_wp *= 0.995
+go-to: enemies_done
+
+@tertiary_ddp
+view-if: (ddp_votes > 0 or ddp_r > 0) and enemy_1 != "DDP" and enemy_2 != "DDP"
+on-arrival: enemy_3 = "DDP"; ddp_relation -= 2; reformist_dissent += 1
+go-to: enemies_done
+
+@tertiary_sapd
+view-if: (sapd_votes > 0 or sapd_r > 0) and enemy_1 != "SAPD" and enemy_2 != "SAPD"
+on-arrival: enemy_3 = "SAPD"; sapd_relation -= 2; left_dissent += 2
+go-to: enemies_done
+
+@tertiary_csvd
+view-if: (csvd_votes > 0 or csvd_r > 0) and enemy_1 != "CSVD" and enemy_2 != "CSVD"
+on-arrival: enemy_3 = "CSVD"; csvd_relation -= 2; catholics_csvd *= 0.99
+go-to: enemies_done
+
+@tertiary_cnbl
+view-if: (cnbl_votes > 0 or cnbl_r > 0) and enemy_1 != "CNBL" and enemy_2 != "CNBL"
+on-arrival: enemy_3 = "CNBL"; cnbl_relation -= 2; rural_cnbl *= 0.99
+go-to: enemies_done
+
+@skip_tertiary
+on-arrival: enemy_3 = 0
+go-to: enemies_done
+
+@enemies_done
+
+Our editorial line is set. The Vorwärts will focus its fire on the [+ enemy_1 +][? if enemy_2 != 0: , with secondary attention to the [+ enemy_2 +][? if enemy_3 != 0: and passing criticism of the [+ enemy_3 +] ?] ?].
+
+[? if enemy_1 = "KPD" and enemy_2 = "NSDAP" or enemy_1 = "NSDAP" and enemy_2 = "KPD": Targeting both extremes simultaneously signals republican commitment — though some on our left see this as a false equivalence. ?]
+[? if enemy_1 = "NSDAP" and enemy_2 = "DNVP" or enemy_1 = "DNVP" and enemy_2 = "NSDAP": Attacking both wings of the nationalist right may help consolidate our anti-fascist credentials. ?]
+[? if enemy_1 = "KPD" and ideology = "reformist": Our reformist course and anti-Communist line are now fully aligned. The bourgeois press will take note. ?]
