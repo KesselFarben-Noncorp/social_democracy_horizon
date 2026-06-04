@@ -989,13 +989,15 @@ on-arrival: {!
 function get_relation(p1, p2) {
     if (p1 === p2) return 100;
     var pr = Q.party_relations;
-    if (!pr) return 40;
+    if (!pr) return 0;
     var v1 = (pr[p1] && pr[p1][p2] !== undefined) ? pr[p1][p2] : -1;
     var v2 = (pr[p2] && pr[p2][p1] !== undefined) ? pr[p2][p1] : -1;
+    if (isNaN(v1) || v1 < 0) v1 = -1;
+    if (isNaN(v2) || v2 < 0) v2 = -1;
     if (v1 >= 0 && v2 >= 0) return (v1 + v2) / 2;
     if (v1 >= 0) return v1;
     if (v2 >= 0) return v2;
-    return 40; // FIX: was 0, silently blocked every pair with missing entry
+    return 0;
 }
 
 function is_blocked(p1, p2) {
@@ -1010,7 +1012,13 @@ function is_blocked(p1, p2) {
 
 function can_partner(p1, p2) {
     if (is_blocked(p1, p2)) return false;
-    return get_relation(p1, p2) >= 30;
+    var pr = Q.party_relations;
+    if (!pr) return false;
+    var v1 = (pr[p1] && pr[p1][p2] !== undefined) ? pr[p1][p2] : -1;
+    var v2 = (pr[p2] && pr[p2][p1] !== undefined) ? pr[p2][p1] : -1;
+    if (isNaN(v1) || v1 < 0) v1 = 0;
+    if (isNaN(v2) || v2 < 0) v2 = 0;
+    return v1 >= 30 && v2 >= 30;
 }
 
 function coalition_compatibility(parties) {
