@@ -990,8 +990,8 @@ function get_relation(p1, p2) {
     if (p1 === p2) return 100;
     var pr = Q.party_relations;
     if (!pr) return 0;
-    var v1 = (pr[p1] && pr[p1][p2] !== undefined) ? pr[p1][p2] : -1;
-    var v2 = (pr[p2] && pr[p2][p1] !== undefined) ? pr[p2][p1] : -1;
+    var v1 = (pr[p1] && pr[p1][p2] != null) ? pr[p1][p2] : -1;
+    var v2 = (pr[p2] && pr[p2][p1] != null) ? pr[p2][p1] : -1;
     if (isNaN(v1) || v1 < 0) v1 = -1;
     if (isNaN(v2) || v2 < 0) v2 = -1;
     if (v1 >= 0 && v2 >= 0) return (v1 + v2) / 2;
