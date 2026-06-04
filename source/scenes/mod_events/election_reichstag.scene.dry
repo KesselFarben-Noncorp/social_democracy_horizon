@@ -33,6 +33,12 @@ Fine. President [+ president +] has taken the unprecedented step of canceling th
 
 @post_election_1928
 on-arrival: {!
+// === CLEAR GOVERNMENT STATUS ===
+// Dynamically reset the government status for all active parties
+for (var party of Q.parties) {
+    Q[party + '_in_government'] = 0;
+}
+
 var new_party_sum = 0;
 
 // Calculate election results
@@ -182,8 +188,9 @@ if (Q.fptp_variable === 1) {
         sq_sum += squares[party];
     }
 
-    for (var i = 0; i < Q.parties.length; i++) {
-        var party = Q.parties[i];
+    // Using variable 'k' to guarantee absolutely no overlap with existing loops
+    for (var k = 0; k < Q.parties.length; k++) {
+        var party = Q.parties[k];
         Q[party + '_seats'] = (sq_sum > 0 && squares[party] > 0)
             ? Math.round((squares[party] / sq_sum) * Q.total_seats)
             : 0;
@@ -193,8 +200,8 @@ if (Q.fptp_variable === 1) {
     var fptp_seat_total = 0;
     var largest_fptp_party = null;
     var largest_fptp_seats = 0;
-    for (var i = 0; i < Q.parties.length; i++) {
-        var party = Q.parties[i];
+    for (var m = 0; m < Q.parties.length; m++) {
+        var party = Q.parties[m];
         fptp_seat_total += Q[party + '_seats'];
         if (Q[party + '_seats'] > largest_fptp_seats) {
             largest_fptp_seats = Q[party + '_seats'];
@@ -235,6 +242,15 @@ for (var party of Q.parties) {
     Q['change_' + party + '_seats_num'] = Q[party + '_seats'] - Q['old_' + party + '_seats'];
     Q['str_change_' + party + '_seats_num'] = (Q['change_' + party + '_seats_num'] >= 0 ? '+' : '') +
         Q['change_' + party + '_seats_num'].toString();
+    }
+}
+
+for (var party of Q.parties) {
+    if (Q[party + '_support'] === 0 || Q[party + '_r'] === 0) {
+        Q[party + '_seats'] = 0;
+        Q[party + '_seat_pct'] = 0;
+        Q[party + '_r'] = 0;
+        Q[party + '_votes'] = 0;
     }
 }
 
@@ -284,36 +300,38 @@ Q.election_records.push(election_result);
 !}
 on-display: {!
 var partyData = [
-    { id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: true },
-    { id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
-    { id: "lb",   name: "LB",   color: "#6B0000", seats: Q.lb_seats,   show: !!(Q.lb_r   && Q.lb_r   > 0) },  // after KPO
-    { id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r && Q.sl_r > 0) },
-    { id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r && Q.kpo_r > 0) },
-    { id: "spd",  name: "SPD",        color: "#E3000F", seats: Q.spd_seats,  show: true },
-    { id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
-    { id: "rdp",  name: "RDP",  color: "#B8B000", seats: Q.rdp_seats,  show: !!(Q.rdp_r  && Q.rdp_r  > 0) },
-    { id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: true },
-    { id: "cvp",  name: "CVP",  color: "#1A1A1A", seats: Q.cvp_seats,  show: !!(Q.cvp_r  && Q.cvp_r  > 0) },
-    { id: "z",    name: "Center",     color: "#000000", seats: Q.z_seats,    show: true },
-    { id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: true },
-    { id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: true },
-    { id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: true },
-    { id: "sls",  name: "SLS",  color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) }, 
-    { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
-    { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r && Q.dhp_r > 0) },
-    { id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: true },
-    { id: "vrp",  name: "VRP",        color: "#8B7355", seats: Q.vrp_seats,  show: !!(Q.vrp_r && Q.vrp_r > 0) },
-    { id: "wp",   name: "WP",         color: "#424242", seats: Q.wp_seats,   show: !!(Q.wp_r && Q.wp_r > 0) },
-    { id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r && Q.hl_r > 0) },
-    { id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r && Q.vnr_r > 0) },
-    { id: "cnbl", name: "CNBL",       color: "#5D4E37", seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
-    { id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!Q.csvd_flee },
-    { id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!Q.kvp_flee },
-    { id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: true },
-    { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: true },
-    { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: true },
-    { id: "dtsp", name: "DtsP", color: "#3B1A00", seats: Q.dtsp_seats, show: !!(Q.dtsp_r && Q.dtsp_r > 0) },
-    { id: "dvfp",name: "DVFP",      color: "#1A0F00", seats: Q.dvfp_seats,show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
+{ id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: !!(Q.kpd_r  && Q.kpd_r  > 0) },
+{ id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
+{ id: "lb",   name: "LB",         color: "#6B0000", seats: Q.lb_seats,   show: !!(Q.lb_r   && Q.lb_r   > 0) },
+{ id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r   && Q.sl_r   > 0) },
+{ id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r  && Q.kpo_r  > 0) },
+{ id: "spd",  name: "SPD",        color: "#E3000F", seats: Q.spd_seats,  show: !!(Q.spd_r  && Q.spd_r  > 0) },
+{ id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
+{ id: "rdp",  name: "RDP",        color: "#B8B000", seats: Q.rdp_seats,  show: !!(Q.rdp_r  && Q.rdp_r  > 0) },
+{ id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: !!(Q.ddp_r  && Q.ddp_r  > 0) },
+{ id: "cvp",  name: "CVP",        color: "#1A1A1A", seats: Q.cvp_seats,  show: !!(Q.cvp_r  && Q.cvp_r  > 0) },
+{ id: "z",    name: "Center",     color: "#000000", seats: Q.z_seats,    show: !!(Q.z_r    && Q.z_r    > 0) },
+{ id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: !!(Q.bb_r   && Q.bb_r   > 0) },
+{ id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: !!(Q.bvp_r  && Q.bvp_r  > 0) },
+{ id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: !!(Q.csrp_r && Q.csrp_r > 0) },
+{ id: "dbp",  name: "DBP",        color: "#03A331",  seats: Q.dbp_seats,  show: !!(Q.dbp_r  && Q.dbp_r  > 0) },
+{ id: "sls",  name: "SLS",        color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) },
+{ id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
+{ id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r  && Q.dhp_r  > 0) },
+{ id: "dsbp", name: Q.dsbp_name,  color: "#7A9DB5", seats: Q.dsbp_seats, show: !!(Q.dsbp_r && Q.dsbp_r > 0) },
+{ id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: !!(Q.dvp_r  && Q.dvp_r  > 0) },
+{ id: "vrp",  name: "VRP",        color: "#8B7355", seats: Q.vrp_seats,  show: !!(Q.vrp_r  && Q.vrp_r  > 0) },
+{ id: "wp",   name: "WP",         color: "#424242", seats: Q.wp_seats,   show: !!(Q.wp_r   && Q.wp_r   > 0) },
+{ id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r   && Q.hl_r   > 0) },
+{ id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r  && Q.vnr_r  > 0) },
+{ id: "cnbl", name: "CNBL",       color: "#5D4E37", seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
+{ id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!(Q.csvd_flee && Q.csvd_r > 0) },
+{ id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!(Q.kvp_flee  && Q.kvp_r  > 0) },
+{ id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: !!(Q.dnvp_r && Q.dnvp_r > 0) },
+{ id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: !!(Q.other_r && Q.other_r > 0) },
+{ id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: !!(Q.nsdap_r && Q.nsdap_r > 0) },
+{ id: "dtsp", name: "DtsP",       color: "#3B1A00", seats: Q.dtsp_seats, show: !!(Q.dtsp_r  && Q.dtsp_r  > 0) },
+{ id: "dvfp", name: "DVFP",       color: "#1A0F00", seats: Q.dvfp_seats, show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
 ];
 
 var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
@@ -399,6 +417,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; font-weight: bold; text-align: right;">Seats</td>
     <td style="padding: 8px; font-weight: bold; text-align: right;">Δ Seats</td>
 </tr>!}
+[? if kpd_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B0000; display:inline-block; margin-right:8px;'> </div>KPD</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kpd_r_disp +]%</td>
@@ -406,6 +425,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ kpd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kpd_seats_num > 0 : color: green; ?][? if change_kpd_seats_num < 0 : color: red; ?]">[+ str_change_kpd_seats_num +]</td>
 </tr>
+?]
 [? if lb_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#6B0000; display:inline-block; margin-right:8px;'> </div>LB</td>
@@ -442,6 +462,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_sapd_seats_num > 0 : color: green; ?][? if change_sapd_seats_num < 0 : color: red; ?]">[+ str_change_sapd_seats_num +]</td>
 </tr>
 ?]
+[? if spd_votes > 0 :
 <tr class="row-left row-spd">
     <td style="padding: 8px;"><div class="box" style='background-color:#E3000F; display:inline-block; margin-right:8px;'> </div><strong>SPD</strong></td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ spd_r_disp +]%</td>
@@ -449,6 +470,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ spd_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_spd_seats_num > 0 : color: green; ?][? if change_spd_seats_num < 0 : color: red; ?]">[+ str_change_spd_seats_num +]</td>
 </tr>
+?]
 [? if srpd_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#FF6B6B; display:inline-block; margin-right:8px;'> </div>SRPD</td>
@@ -467,6 +489,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_rdp_seats_num > 0 : color: green; ?][? if change_rdp_seats_num < 0 : color: red; ?]">[+ str_change_rdp_seats_num +]</td>
 </tr>
 ?]
+[? if ddp_votes > 0 :
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#DCCA4A; display:inline-block; margin-right:8px;'> </div>[+ ddp_name +]</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ ddp_r_disp +]%</td>
@@ -474,6 +497,8 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ ddp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_ddp_seats_num > 0 : color: green; ?][? if change_ddp_seats_num < 0 : color: red; ?]">[+ str_change_ddp_seats_num +]</td>
 </tr>
+?]
+[? if z_votes > 0 :
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#000; display:inline-block; margin-right:8px;'> </div>Z (Center)</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ z_r_disp +]%</td>
@@ -481,8 +506,9 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ z_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_z_seats_num > 0 : color: green; ?][? if change_z_seats_num < 0 : color: red; ?]">[+ str_change_z_seats_num +]</td>
 </tr>
+?]
 [? if cvp_votes > 0 :
-<tr class="row-liberal">
+<tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#1A1A1A; display:inline-block; margin-right:8px;'> </div>CVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ cvp_r_disp +]%</td>
     <td style="padding: 8px; text-align: right; [? if change_cvp_r > 0 : color: green; ?][? if change_cvp_r < 0 : color: red; ?]">[+ str_change_cvp +]</td>
@@ -490,6 +516,16 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_cvp_seats_num > 0 : color: green; ?][? if change_cvp_seats_num < 0 : color: red; ?]">[+ str_change_cvp_seats_num +]</td>
 </tr>
 ?]
+[? if dbp_votes > 0 :
+<tr class="row-liberal">
+    <td style="padding: 8px;"><div class="box" style='background-color:#03A331; display:inline-block; margin-right:8px;'> </div>DBP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dbp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_dbp_r > 0 : color: green; ?][? if change_dbp_r < 0 : color: red; ?]">[+ str_change_dbp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dbp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dbp_seats_num > 0 : color: green; ?][? if change_dbp_seats_num < 0 : color: red; ?]">[+ str_change_dbp_seats_num +]</td>
+</tr>
+?]
+[? if bb_votes > 0 :
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BB</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bb_r_disp +]%</td>
@@ -497,6 +533,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ bb_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bb_seats_num > 0 : color: green; ?][? if change_bb_seats_num < 0 : color: red; ?]">[+ str_change_bb_seats_num +]</td>
 </tr>
+?]
 [? if sls_votes > 0 :
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#4A7C59; display:inline-block; margin-right:8px;'> </div>SLS</td>
@@ -515,6 +552,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_hl_seats_num > 0 : color: green; ?][? if change_hl_seats_num < 0 : color: red; ?]">[+ str_change_hl_seats_num +]</td>
 </tr>
 ?]
+[? if bvp_votes > 0 :
 <tr class="row-liberal">
     <td style="padding: 8px;"><div class="box" style='background-color:#69A2BE; display:inline-block; margin-right:8px;'> </div>BVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ bvp_r_disp +]%</td>
@@ -522,6 +560,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ bvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_bvp_seats_num > 0 : color: green; ?][? if change_bvp_seats_num < 0 : color: red; ?]">[+ str_change_bvp_seats_num +]</td>
 </tr>
+?]
 [? if csrp_votes > 0 :
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#FFCCFF; display:inline-block; margin-right:8px;'> </div>CSRP</td>
@@ -549,6 +588,16 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_dhp_seats_num > 0 : color: green; ?][? if change_dhp_seats_num < 0 : color: red; ?]">[+ str_change_dhp_seats_num +]</td>
 </tr>
 ?]
+[? if dsbp_votes > 0 :
+<tr class="row-center">
+    <td style="padding: 8px;"><div class="box" style='background-color:#7A9DB5; display:inline-block; margin-right:8px;'> </div>DSBP</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dsbp_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_dsbp_r > 0 : color: green; ?][? if change_dsbp_r < 0 : color: red; ?]">[+ str_change_dsbp +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dsbp_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dsbp_seats_num > 0 : color: green; ?][? if change_dsbp_seats_num < 0 : color: red; ?]">[+ str_change_dsbp_seats_num +]</td>
+</tr>
+?]
+[? if dvp_votes > 0 :
 <tr class="row-center">
     <td style="padding: 8px;"><div class="box" style='background-color:#D5AC27; display:inline-block; margin-right:8px;'> </div>DVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dvp_r_disp +]%</td>
@@ -556,6 +605,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ dvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dvp_seats_num > 0 : color: green; ?][? if change_dvp_seats_num < 0 : color: red; ?]">[+ str_change_dvp_seats_num +]</td>
 </tr>
+?]
 [? if vrp_votes > 0 :
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B7355; display:inline-block; margin-right:8px;'> </div>VRP</td>
@@ -610,6 +660,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_kvp_seats_num > 0 : color: green; ?][? if change_kvp_seats_num < 0 : color: red; ?]">[+ str_change_kvp_seats_num +]</td>
 </tr>
 ?]
+[? if dnvp_votes > 0 :
 <tr class="row-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#3f7bc1; display:inline-block; margin-right:8px;'> </div>DNVP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dnvp_r_disp +]%</td>
@@ -617,6 +668,8 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ dnvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_dnvp_seats_num > 0 : color: green; ?][? if change_dnvp_seats_num < 0 : color: red; ?]">[+ str_change_dnvp_seats_num +]</td>
 </tr>
+?]
+[? if other_votes > 0 :
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#a0a0a0; display:inline-block; margin-right:8px;'> </div>Others</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ other_r_disp +]%</td>
@@ -624,6 +677,8 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ other_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_other_seats_num > 0 : color: green; ?][? if change_other_seats_num < 0 : color: red; ?]">[+ str_change_other_seats_num +]</td>
 </tr>
+?]
+[? if nsdap_votes > 0 :
 <tr class="row-far-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#954B00; display:inline-block; margin-right:8px;'> </div>NSDAP</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ nsdap_r_disp +]%</td>
@@ -631,6 +686,7 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ nsdap_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_nsdap_seats_num > 0 : color: green; ?][? if change_nsdap_seats_num < 0 : color: red; ?]">[+ str_change_nsdap_seats_num +]</td>
 </tr>
+?]
 [? if dtsp_votes > 0 :
 <tr class="row-far-right">
     <td style="padding: 8px;"><div class="box" style='background-color:#3B1A00; display:inline-block; margin-right:8px;'> </div>DtsP</td>
@@ -666,44 +722,40 @@ var seat_total = 0;
 for (var i = 0; i < Q.parties.length; i++) {
     seat_total += Q[Q.parties[i] + '_seats'] || 0;
 }
-if (seat_total === 0) seat_total = 1; // guard against division by zero
+if (seat_total === 0) seat_total = 1;
 
-Q.party_votes = [
-    {party: 'KPD',   votes: ((Q.kpd_seats  || 0) / seat_total) * 100},
-    {party: 'SPD',   votes: ((Q.spd_seats  || 0) / seat_total) * 100},
-    {party: 'Z',     votes: ((Q.z_seats    || 0) / seat_total) * 100},
-    {party: 'NSDAP', votes: ((Q.nsdap_seats|| 0) / seat_total) * 100},
-    {party: 'DNVP',  votes: ((Q.dnvp_seats || 0) / seat_total) * 100},
-    {party: 'DVP',   votes: ((Q.dvp_seats  || 0) / seat_total) * 100},
-    {party: 'DDP',   votes: ((Q.ddp_seats  || 0) / seat_total) * 100},
-    {party: 'BVP',   votes: ((Q.bvp_seats  || 0) / seat_total) * 100},
-    {party: 'BB',    votes: ((Q.bb_seats   || 0) / seat_total) * 100},
-    {party: 'WP',    votes: ((Q.wp_seats   || 0) / seat_total) * 100},
-    {party: 'CNBL',  votes: ((Q.cnbl_seats || 0) / seat_total) * 100},
-    {party: 'CSRP',  votes: ((Q.csrp_seats || 0) / seat_total) * 100},
-    {party: 'other', votes: ((Q.other_seats|| 0) / seat_total) * 100},
-].filter(function(p) { return p.votes > 0; });
+Q.party_votes = [];
 
-// Conditional additions for optional parties
-if (Q.sapd_formed && Q.sapd_seats > 0)
-    Q.party_votes.push({party: 'SAPD', votes: (Q.sapd_seats / seat_total) * 100});
-if (Q.srpd_formed && Q.srpd_seats > 0)
-    Q.party_votes.push({party: 'SRPD', votes: (Q.srpd_seats / seat_total) * 100});
-if (Q.vrp_seats  > 0) Q.party_votes.push({party: 'VRP',  votes: (Q.vrp_seats  / seat_total) * 100});
-if (Q.csvd_flee && Q.csvd_seats > 0) Q.party_votes.push({party: 'CSVD', votes: (Q.csvd_seats / seat_total) * 100});
-if (Q.kvp_flee  && Q.kvp_seats  > 0) Q.party_votes.push({party: 'KVP',  votes: (Q.kvp_seats  / seat_total) * 100});
-if (Q.dhp_seats  > 0) Q.party_votes.push({party: 'DHP',  votes: (Q.dhp_seats  / seat_total) * 100});
-if (Q.dvfp_seats > 0) Q.party_votes.push({party: 'DVFP', votes: (Q.dvfp_seats / seat_total) * 100});
-if (Q.aspd_seats > 0) Q.party_votes.push({party: 'ASPD', votes: (Q.aspd_seats / seat_total) * 100});
-if (Q.hl_seats   > 0) Q.party_votes.push({party: 'HL',   votes: (Q.hl_seats   / seat_total) * 100});
-if (Q.sl_seats   > 0) Q.party_votes.push({party: 'SL',   votes: (Q.sl_seats   / seat_total) * 100});
-if (Q.kpo_seats  > 0) Q.party_votes.push({party: 'KPO',  votes: (Q.kpo_seats  / seat_total) * 100});
-if (Q.vnr_seats  > 0) Q.party_votes.push({party: 'VNR',  votes: (Q.vnr_seats  / seat_total) * 100});
-if (Q.lb_seats   > 0) Q.party_votes.push({party: 'LB',   votes: (Q.lb_seats   / seat_total) * 100});
-if (Q.rdp_seats  > 0) Q.party_votes.push({party: 'RDP',  votes: (Q.rdp_seats  / seat_total) * 100});
-if (Q.cvp_seats  > 0) Q.party_votes.push({party: 'CVP',  votes: (Q.cvp_seats  / seat_total) * 100});
-if (Q.sls_seats  > 0) Q.party_votes.push({party: 'SLS',  votes: (Q.sls_seats  / seat_total) * 100});
-if (Q.dtsp_seats > 0) Q.party_votes.push({party: 'DtsP', votes: (Q.dtsp_seats / seat_total) * 100});
+// Helper to add a party only if it has seats, isn't banned, and is in Q.parties
+// 1. Keep your helper function as it is (it's already written well!)
+function try_add_party(party_key, display_name) {
+    if (Q.parties.indexOf(party_key) < 0) return;       
+    if (Q[party_key + '_banned']) return;                
+    var seats = Q[party_key + '_seats'] || 0;
+    if (seats <= 0) return;                              
+    Q.party_votes.push({
+        party: display_name || party_key.toUpperCase(),
+        votes: (seats / seat_total) * 100
+    });
+}
+
+// 2. Define a map for parties requiring special display name formatting
+var special_display_names = {
+    'z': 'Z',
+    'other': 'other',
+    'dtsp': 'DtsP',
+    'dsbp': Q.dsbp_name || 'DSBP'
+};
+
+// 3. Automatically run every party currently active in your game
+for (var i = 0; i < Q.parties.length; i++) {
+    var party_key = Q.parties[i];
+    // Use the special name if it exists; otherwise, leave it undefined 
+    // so the helper defaults to party_key.toUpperCase()
+    var display_name = special_display_names[party_key] || undefined;
+    
+    try_add_party(party_key, display_name);
+}
 
 Q.party_votes.sort(function(a, b) { return b.votes - a.votes; });
 // ============================================================
@@ -888,10 +940,10 @@ if (Q.camarilla_pushes_presidential_cabinet) {
 // Pre-calculate display strings
 Q.election_results_list = "";
 for (var i = 0; i < Q.party_votes.length; i++) {
-    Q.election_results_list += "- " + Q.party_votes[i].party + ": "
-        + Q.party_votes[i].votes + "%\n";
+    Q.election_results_list += "- " + Q.party_votes[i].party + ":&nbsp;"
+        + Q.party_votes[i].votes.toFixed(1) + "%\n";
 }
-Q.first_party_votes = Q.party_votes[0].votes;
+Q.first_party_votes = Q.party_votes[0].votes.toFixed(1);
 Q.formation_round   = 1;
 Q.formation_attempts = [];
 
@@ -1267,9 +1319,7 @@ go-to: spd_formateur_choice if coalition_formed and formateur = "SPD"; player_co
 
 
 
-
-
-# ============================================
+# # ============================================
 # SPD AS FORMATEUR - PLAYER CHOOSES COALITION
 # ============================================
 
@@ -1286,7 +1336,7 @@ if (Q.possible_coalitions.length === 0) {
 } else {
     Q.coalition_options_display = "**Available Coalition Options:**\n\n";
     
-    for (var i = 0; i < Q.possible_coalitions.length && i < 10; i++) {
+    for (var i = 0; i < Q.possible_coalitions.length && i < 80; i++) {
         var coal = Q.possible_coalitions[i];
         var partners_text = coal.parties.join(', ');
         var type_text = coal.type.replace(/_/g, ' ');
@@ -1302,13 +1352,12 @@ if (Q.possible_coalitions.length === 0) {
         }
 
         Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Type: " + type_text + "<br>";
-        Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Support: " + Math.round(coal.votes * 10) / 10 + "%<br>";
         Q.coalition_options_display += "&nbsp;&nbsp;&nbsp;&nbsp;- Compatibility: " + Math.round(coal.compatibility) + "/100<br><br>";
 
     }
     
-    if (Q.possible_coalitions.length > 10) {
-        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 10) + " more options available)*\n";
+    if (Q.possible_coalitions.length > 80) {
+        Q.coalition_options_display += "*(+" + (Q.possible_coalitions.length - 80) + " more options available)*\n";
     }
 }
 !}
@@ -1333,6 +1382,76 @@ As the largest democratic party, the responsibility falls to us to build a stabl
 - @choose_coalition_8: Form coalition option #8
 - @choose_coalition_9: Form coalition option #9
 - @choose_coalition_10: Form coalition option #10
+- @choose_coalition_11: Form coalition option #11
+- @choose_coalition_12: Form coalition option #12
+- @choose_coalition_13: Form coalition option #13
+- @choose_coalition_14: Form coalition option #14
+- @choose_coalition_15: Form coalition option #15
+- @choose_coalition_16: Form coalition option #16
+- @choose_coalition_17: Form coalition option #17
+- @choose_coalition_18: Form coalition option #18
+- @choose_coalition_19: Form coalition option #19
+- @choose_coalition_20: Form coalition option #20
+- @choose_coalition_21: Form coalition option #21
+- @choose_coalition_22: Form coalition option #22
+- @choose_coalition_23: Form coalition option #23
+- @choose_coalition_24: Form coalition option #24
+- @choose_coalition_25: Form coalition option #25
+- @choose_coalition_26: Form coalition option #26
+- @choose_coalition_27: Form coalition option #27
+- @choose_coalition_28: Form coalition option #28
+- @choose_coalition_29: Form coalition option #29
+- @choose_coalition_30: Form coalition option #30
+- @choose_coalition_31: Form coalition option #31
+- @choose_coalition_32: Form coalition option #32
+- @choose_coalition_33: Form coalition option #33
+- @choose_coalition_34: Form coalition option #34
+- @choose_coalition_35: Form coalition option #35
+- @choose_coalition_36: Form coalition option #36
+- @choose_coalition_37: Form coalition option #37
+- @choose_coalition_38: Form coalition option #38
+- @choose_coalition_39: Form coalition option #39
+- @choose_coalition_40: Form coalition option #40
+- @choose_coalition_41: Form coalition option #41
+- @choose_coalition_42: Form coalition option #42
+- @choose_coalition_43: Form coalition option #43
+- @choose_coalition_44: Form coalition option #44
+- @choose_coalition_45: Form coalition option #45
+- @choose_coalition_46: Form coalition option #46
+- @choose_coalition_47: Form coalition option #47
+- @choose_coalition_48: Form coalition option #48
+- @choose_coalition_49: Form coalition option #49
+- @choose_coalition_50: Form coalition option #50
+- @choose_coalition_51: Form coalition option #51
+- @choose_coalition_52: Form coalition option #52
+- @choose_coalition_53: Form coalition option #53
+- @choose_coalition_54: Form coalition option #54
+- @choose_coalition_55: Form coalition option #55
+- @choose_coalition_56: Form coalition option #56
+- @choose_coalition_57: Form coalition option #57
+- @choose_coalition_58: Form coalition option #58
+- @choose_coalition_59: Form coalition option #59
+- @choose_coalition_60: Form coalition option #60
+- @choose_coalition_61: Form coalition option #61
+- @choose_coalition_62: Form coalition option #62
+- @choose_coalition_63: Form coalition option #63
+- @choose_coalition_64: Form coalition option #64
+- @choose_coalition_65: Form coalition option #65
+- @choose_coalition_66: Form coalition option #66
+- @choose_coalition_67: Form coalition option #67
+- @choose_coalition_68: Form coalition option #68
+- @choose_coalition_69: Form coalition option #69
+- @choose_coalition_70: Form coalition option #70
+- @choose_coalition_71: Form coalition option #71
+- @choose_coalition_72: Form coalition option #72
+- @choose_coalition_73: Form coalition option #73
+- @choose_coalition_74: Form coalition option #74
+- @choose_coalition_75: Form coalition option #75
+- @choose_coalition_76: Form coalition option #76
+- @choose_coalition_77: Form coalition option #77
+- @choose_coalition_78: Form coalition option #78
+- @choose_coalition_79: Form coalition option #79
+- @choose_coalition_80: Form coalition option #80
 - @spd_decline_formateur: Decline to form a government
 
 
@@ -1415,6 +1534,567 @@ Q.chosen_coalition = Q.possible_coalitions[9];
 Q.spd_accepted_coalition = 1;
 !}
 go-to: coalition_success
+
+@choose_coalition_11
+view-if: num_coalitions >= 11
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[10];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_12
+view-if: num_coalitions >= 12
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[11];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_13
+view-if: num_coalitions >= 13
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[12];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_14
+view-if: num_coalitions >= 14
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[13];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_15
+view-if: num_coalitions >= 15
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[14];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_16
+view-if: num_coalitions >= 16
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[15];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_17
+view-if: num_coalitions >= 17
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[16];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_18
+view-if: num_coalitions >= 18
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[17];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_19
+view-if: num_coalitions >= 19
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[18];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_20
+view-if: num_coalitions >= 20
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[19];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_21
+view-if: num_coalitions >= 21
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[20];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_22
+view-if: num_coalitions >= 22
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[21];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_23
+view-if: num_coalitions >= 23
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[22];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_24
+view-if: num_coalitions >= 24
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[23];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_25
+view-if: num_coalitions >= 25
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[24];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_26
+view-if: num_coalitions >= 26
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[25];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_27
+view-if: num_coalitions >= 27
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[26];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_28
+view-if: num_coalitions >= 28
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[27];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_29
+view-if: num_coalitions >= 29
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[28];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_30
+view-if: num_coalitions >= 30
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[29];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_31
+view-if: num_coalitions >= 31
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[30];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_32
+view-if: num_coalitions >= 32
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[31];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_33
+view-if: num_coalitions >= 33
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[32];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_34
+view-if: num_coalitions >= 34
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[33];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_35
+view-if: num_coalitions >= 35
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[34];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_36
+view-if: num_coalitions >= 36
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[35];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_37
+view-if: num_coalitions >= 37
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[36];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_38
+view-if: num_coalitions >= 38
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[37];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_39
+view-if: num_coalitions >= 39
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[38];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_40
+view-if: num_coalitions >= 40
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[39];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_41
+view-if: num_coalitions >= 41
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[40];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_42
+view-if: num_coalitions >= 42
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[41];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_43
+view-if: num_coalitions >= 43
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[42];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_44
+view-if: num_coalitions >= 44
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[43];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_45
+view-if: num_coalitions >= 45
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[44];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_46
+view-if: num_coalitions >= 46
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[45];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_47
+view-if: num_coalitions >= 47
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[46];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_48
+view-if: num_coalitions >= 48
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[47];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_49
+view-if: num_coalitions >= 49
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[48];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_50
+view-if: num_coalitions >= 50
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[49];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_51
+view-if: num_coalitions >= 51
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[50];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_52
+view-if: num_coalitions >= 52
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[51];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_53
+view-if: num_coalitions >= 53
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[52];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_54
+view-if: num_coalitions >= 54
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[53];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_55
+view-if: num_coalitions >= 55
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[54];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_56
+view-if: num_coalitions >= 56
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[55];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_57
+view-if: num_coalitions >= 57
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[56];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_58
+view-if: num_coalitions >= 58
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[57];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_59
+view-if: num_coalitions >= 59
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[58];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_60
+view-if: num_coalitions >= 60
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[59];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_61
+view-if: num_coalitions >= 61
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[60];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_62
+view-if: num_coalitions >= 62
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[61];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_63
+view-if: num_coalitions >= 63
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[62];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_64
+view-if: num_coalitions >= 64
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[63];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_65
+view-if: num_coalitions >= 65
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[64];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_66
+view-if: num_coalitions >= 66
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[65];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_67
+view-if: num_coalitions >= 67
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[66];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_68
+view-if: num_coalitions >= 68
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[67];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_69
+view-if: num_coalitions >= 69
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[68];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_70
+view-if: num_coalitions >= 70
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[69];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_71
+view-if: num_coalitions >= 71
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[70];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_72
+view-if: num_coalitions >= 72
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[71];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_73
+view-if: num_coalitions >= 73
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[72];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_74
+view-if: num_coalitions >= 74
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[73];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_75
+view-if: num_coalitions >= 75
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[74];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_76
+view-if: num_coalitions >= 76
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[75];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_77
+view-if: num_coalitions >= 77
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[76];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_78
+view-if: num_coalitions >= 78
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[77];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_79
+view-if: num_coalitions >= 79
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[78];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
+@choose_coalition_80
+view-if: num_coalitions >= 80
+on-arrival: {!
+Q.chosen_coalition = Q.possible_coalitions[79];
+Q.spd_accepted_coalition = 1;
+!}
+go-to: coalition_success
+
 
 
 
@@ -1565,6 +2245,7 @@ for (var i = 0; i < Q.possible_coalitions.length; i++) {
 Q.spd_accepted_coalition = 0;
 Q.spd_in_chosen_coalition = Q.next_coalition_found;
 
+// Political consequences
 !}
 go-to: player_coalition_review if next_coalition_found and spd_rejection_count < 3; coalition_failure if not next_coalition_found or spd_rejection_count >= 3
 
@@ -1880,23 +2561,14 @@ for (var i = 0; i < Q.num_candidates && i < 6; i++) {
 // SET COALITION FLAGS
 // ============================================
 
-Q.spd_in_government = coalition.indexOf('SPD') >= 0 ? 1 : 0;
-Q.kpd_in_government = coalition.indexOf('KPD') >= 0 ? 1 : 0;
-Q.sapd_in_government = coalition.indexOf('SAPD') >= 0 ? 1 : 0;
-Q.srpd_in_government = coalition.indexOf('SRPD') >= 0 ? 1 : 0;
-Q.z_in_government = coalition.indexOf('Z') >= 0 ? 1 : 0;
-Q.bvp_in_government = coalition.indexOf('BVP') >= 0 ? 1 : 0;
-Q.ddp_in_government = coalition.indexOf('DDP') >= 0 ? 1 : 0;
-Q.dvp_in_government = coalition.indexOf('DVP') >= 0 ? 1 : 0;
-Q.wp_in_government = coalition.indexOf('WP') >= 0 ? 1 : 0;
-Q.dnvp_in_government = coalition.indexOf('DNVP') >= 0 ? 1 : 0;
-Q.csvd_in_government = coalition.indexOf('CSVD') >= 0 ? 1 : 0;
-Q.csrp_in_government = coalition.indexOf('CSRP') >= 0 ? 1 : 0;
-Q.dhp_in_government = coalition.indexOf('DHP') >= 0 ? 1 : 0;
-Q.bb_in_government = coalition.indexOf('BB') >= 0 ? 1 : 0;
-Q.kvp_in_government = coalition.indexOf('KVP') >= 0 ? 1 : 0;
-Q.vrp_in_government = coalition.indexOf('VRP') >= 0 ? 1 : 0;
-Q.dvfp_in_government = coalition.indexOf('DVFP') >= 0 ? 1 : 0;
+// Convert the coalition array to lowercase for safe comparison
+var lowercase_coalition = coalition.map(function(p) { return p.toLowerCase(); });
+
+// Loop through all parties and set their government flag dynamically
+for (var party of Q.parties) {
+    Q[party + '_in_government'] = lowercase_coalition.indexOf(party) >= 0 ? 1 : 0;
+}
+
 
 !}
 go-to: chancellor_negotiation_spd if spd_in_government; chancellor_negotiation_ai if not spd_in_government
@@ -2765,6 +3437,15 @@ on-arrival: civil_war_end_modifier_national = 0
 Period of the fear against [+ president +] has ended and we may finally rest freely as the democracy is saved once more by us and our allies...
 
 - @root: Democracy marches on...
+
+
+
+
+
+
+
+
+
 
 @coalition_failure
 on-arrival: {!
