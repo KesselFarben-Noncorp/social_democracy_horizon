@@ -2831,7 +2831,8 @@ function computeTarget(party, c) {
             let nat_floor   = nat * 25;
             let u           = Math.max(0, unr - 0.6);
             let crisis_ramp = 90 / (1 + Math.exp(-1.4 * (u - 1.8)));
-            base = (nat_floor + crisis_ramp) * im.dvfp;
+            let buff = Q.april_challenge === 1 ? 1.28 : 0.85;
+            base = (nat_floor + crisis_ramp) * buff * im.dvfp;
 
             const class_mods = {
                 workers:     0.20 * (Q.peoples_party === 1 ? 1.02 : 1),
@@ -2984,7 +2985,7 @@ function computeTarget(party, c) {
 
         case 'kpd': {
             if (Q.kpd_banned) return 0;
-            let buff = Q.april_challenge === 1 ? 1.35 : 1;
+            let buff = Q.april_challenge === 1 ? 1.20 : 1;
             base = soc * 45 * 2.0 * (1 + unr * 0.13) * buff * im.kpd;
 
             let workers_m     = 1.50 * (Q.peoples_party === 1 ? 1.08 : 1);
@@ -2998,7 +2999,7 @@ function computeTarget(party, c) {
 
         case 'sapd': {
             if (Q.sapd_banned || !Q.sapd_formed) return 0;
-            let buff = Q.april_challenge === 1 ? 1.25 : 0.90;
+            let buff = Q.april_challenge === 1 ? 1.15 : 0.90;
             base = soc * 19 * 2.0 * (1 + unr * 0.12) * buff * im.sapd;
 
             const class_mods = {
@@ -3034,7 +3035,7 @@ function computeTarget(party, c) {
             else if (Q.ideology === 'reformist') { r *= 1.10; s *= 0.90; }
             else if (Q.ideology === 'neorev')    { s *= 1.05; r *= 1.05; }
 
-            if (Q.social_fascism_adopted == 1) {r *= 1.31; s *= 0.79}
+            if (Q.social_fascism_adopted == 1) {r *= 1.47; s *= 0.60}
 
             let campaign_boost = 1.1;
             if (Q.campaign_focus === 'workers'    && ci > 0) campaign_boost += ci * 0.41;
