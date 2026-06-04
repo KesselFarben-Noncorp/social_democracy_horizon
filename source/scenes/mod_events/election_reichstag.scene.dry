@@ -1048,6 +1048,21 @@ function classify_coalition(parties) {
     return 'other';
 }
 
+// Enforce symmetric blocks at runtime
+var _cb = Q.coalition_blocks || {};
+var _cbkeys = Object.keys(_cb);
+for (var _i = 0; _i < _cbkeys.length; _i++) {
+    var _k = _cbkeys[_i];
+    if (!_cb[_k]) continue;
+    var _parts = _k.split('_');
+    if (_parts.length !== 2) continue;
+    var _reverse = _parts[1] + '_' + _parts[0];
+    if (_cb[_reverse] === undefined) {
+        _cb[_reverse] = true;
+    }
+}
+Q.coalition_blocks = _cb;
+
 // ============================================================
 // SETUP
 // ============================================================
