@@ -2294,7 +2294,7 @@ Choose your challenges!
 > *New Party: [? if new_partei_challenge = 1: ON ?][? if new_partei_challenge != 1: OFF ?]*<br>
 > *Agrarian Revolution: [? if peasant_revolution = 1: ON ?][? if peasant_revolution != 1: OFF ?]*<br>
 > *Camarillamulator: [? if cmr_challenge = 1: ON ?][? if cmr_challenge != 1: OFF ?]*<br>
-> *Vanilla: [? if vn_challenge = 1: ON ?][? if vn_challenge != 1: OFF ?]*<br>
+> *Last Stand: [? if ls_challenge = 1: ON ?][? if ls_challenge != 1: OFF ?]*<br>
 > *Dice: [? if dice_challenge = 1: ON ?][? if dice_challenge != 1: OFF ?]*<br>
 > *Duel: [? if duel_challenge = 1: ON ?][? if duel_challenge != 1: OFF ?]*<br>
 > *Hindenburg: [? if hindenburg_challenge = 1: ON ?][? if hindenburg_challenge != 1: OFF ?]*<br>
@@ -2313,7 +2313,7 @@ Choose your challenges!
 - @camarilla: Camarillamulator
 - @hindenburg: Hindenburg is not.
 - @duel: Duel gamemode.
-- @vanilla: Vanilla-esque gamemode.
+- @last_stand: Last Stand
 - @dice: Dice Gamemode
 - @fptp: First Past the Hell
 - @modern: 5% threshold. Alr
@@ -2876,27 +2876,27 @@ go-to: dice
 
 Turned off!
 
-@vanilla
+@last_stand
 
-= Vanilla
+= Last Stand
 
-Always felt it is too much to have billion parties? How about Hindenburg's mfer? Only here you can make it NOT happen.
+Time is ticking. Everyone is against you. Prepare for your demise.
 
-- @vn_2: True
-- @vn_3: False
+- @ls_2: True
+- @ls_3: False
 - @challenge: Back.
 
 @vn_2
-view-if: vn_challenge = 0
-on-arrival: vn_challenge = 1
-go-to: vanilla
+view-if: ls_challenge = 0
+on-arrival: ls_challenge = 1
+go-to: last_stand
 
 Turned on!
 
-@vn_3
-view-if: vn_challenge = 1
-on-arrival: vn_challenge = 0
-go-to: vanilla
+@ls_3
+view-if: ls_challenge = 1
+on-arrival: ls_challenge = 0
+go-to: last_stand
 
 Turned off!
 
@@ -3191,19 +3191,60 @@ if (Q.dice_challenge === 1) {
     Q.budget += 1;
     }
 
-if (Q.vn_challenge === 1) {
-    Q.dhp_banned = 1;
-    Q.bb_banned = 1;
-    Q.kvp_banned = 1;
-    Q.csvd_banned = 1;
-    Q.wp_banned = 1;
-    Q.cnbl_banned = 1;
-    Q.srpd_banned = 1;
-    Q.csrp_banned = 1;
-    Q.vrp_banned = 1;
-    Q.camarilla_strength = -1000;
-    Q.general_strike_progress = -1000;
+if (Q.ls_challenge === 1) {
+
+    Q.z_relation = -100;
+    Q.kpd_relation = -100;
+    Q.sapd_relation = -100;
+    Q.srpd_relation = -100;
+    Q.ddp_relation = -100;
+    Q.bvp_relation = -100;
+    Q.dvp_relation = -100;
+    Q.wp_relation = -100;
+    Q.dnvp_relation = -100;
+    Q.nsdap_relation = -100;
+    Q.csvd_relation = -100;
+    Q.cnbl_relation = -100;
+    Q.csrp_relation = -100;
+    Q.vrp_relation = -100;
+    Q.kvp_relation = -100;
+    Q.bb_relation = -100;
+    Q.dhp_relation = -100;
+    Q.dvfp_relation = -100;
+    Q.aspd_relation = -100;
+    Q.hl_relation = -100;
+    Q.vnr_relation = -100;
+    Q.lb_relation = -100;
+    Q.rdp_relation = -100;
+    Q.cvp_relation = -100;
+    Q.sls_relation = -100;
+    Q.dtsp_relation = -100;
+    Q.kpo_relation = -100;
+    Q.sl_relation = -100;
+    Q.dbp_relation = -100;
+    Q.dsbp_relation = -100;
+
+    Q.spd_r = 50;
+
+    Q.spd_votes = 50; 
+    
+    Q.workers_spd = 50;
+    Q.unemployedc_spd = 50;
+    Q.new_middle_spd = 50;
+    Q.old_middle_spd = 50;
+    Q.rural_spd = 50;
+
+    Q.next_election_year = 1932;
+    Q.next_election_month = 5;
+
+    Q.president = "Braun";
+    Q.chancellor = "Müller";
+    Q.president_party = "SPD";
+    Q.chancellor_party = "SPD";
+    
+    Q.spd_in_government = 1;
 }
+
 
 if (Q.dem_challenge === 1) {
     Q.nsdap_banned = 1;
@@ -3312,7 +3353,7 @@ if (Q.inverted_challenge === 1) {
     Q.kpo_relation = Math.random() * 100;
     Q.sl_relation = Math.random() * 100;
     Q.dbp_relation = Math.random() * 100;
-    Q.dsbp = Math.random() * 100;
+    Q.dsbp_relation = Math.random() * 100;
     Q.hindenburg_relation = Math.random() * 100;
     Q.schacht_relation = Math.random() * 100;
     Q.president_relation = Math.random() * 100;
