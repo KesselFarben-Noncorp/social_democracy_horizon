@@ -305,16 +305,17 @@ if (Q.month_actions >= 1) {
 
 if (Q.inflation > 10) {
         Q.inflation_crisis_event = 0;
-        }
+}
 
-if (Q.year == 1928 && Q.month >= 1 && Q.bayernbund_flavor_1 == 0 && Q.weeks >= 0) {
+if (Q.year == 1928 && Q.month >= 1 && Q.bayernbund_flavor_1 != 1) {
     Q.bayernbund_flavor_1 = 1;
     Q.parties.push('dbp');
+    Q.bb_banned = 1;
 }
 
 if (Q.year >= 1929 && Q.vnr_momentum_trigger_flavor_1 == 0) { 
-Q.vnr_momentum = 0;
-Q.vnr_momentum_trigger_flavor_1 = 1;
+    Q.vnr_momentum = 0;
+    Q.vnr_momentum_trigger_flavor_1 = 1;
 }
 
 
@@ -360,11 +361,19 @@ if (Q.year >= 1930 && Q.year < 1933) {
 if (Q.year >= 1928 && Q.year < 1929 && Q.geest_wildfire == 1 && (Q.state_buyer == 1 || Q.agricultural_finance == 1 || Q.land_reform == 1 || Q.tariffs > 1) && Q.landvolkbewegung_flavor != 1)  {
     Q.landvolkbewegung_flavor_1 = 1;
     Q.rural_dnvp += 5;
-    Q.cnbl_dnvp += 2;
+    Q.rural_cnbl += 2;
     Q.landvolk_fury = 0;
 }
 
+if (Q.year == 1930 && Q.month == 11 && Q.weeks < 2 && Q.scholz_victory) {
+    Q.dvp_party_leader = "Eduard Dingeldey";
+    Q.dvp_ideology = "Authoritarian National Liberalism";
+}
 
+if (Q.year == 1929 && Q.month == 9 && Q.weeks < 2 && Q.stresemann_success) {
+    Q.dvp_party_leader = "Julius Curtis";
+    Q.dvp_ideology = "National Liberalism";
+}
 
 
 
