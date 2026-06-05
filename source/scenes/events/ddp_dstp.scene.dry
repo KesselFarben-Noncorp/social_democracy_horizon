@@ -1,5 +1,5 @@
 title: DDP Merger Debate
-subtitle: The German Democratic Party considers merging with the Young German Order.
+subtitle: The German Democratic Party considers merger agreement...
 view-if: year == 1930 and month >= 6
 new-page: true
 max-visits: 1
@@ -7,44 +7,31 @@ tags: event
 
 = DDP Merger Debate
 
-Leaders of the German Democratic Party are holding urgent meetings to discuss the party's declining electoral fortunes. Party leader Erich Koch-Weser has proposed a bold solution: merge with the political arm of the Young German Order, led by Artur Mahraun, and rebrand as the German State Party (DStP).
-
-The proposal is controversial. Progressives within the DDP are horrified at the prospect of working with conservative nationalists, while pragmatists argue this is necessary for survival.
-
-If this merger to fail, the options for the DDP will shrink further and further, forcing them to throw their force behind us or go the same way DVP did.
+Leaders of the German Democratic Party are holding urgent meetings to discuss the party's declining electoral fortunes. With their base eroding, some within the party are looking for alliance partners to survive.
 
 [? if ddp_relation >= 60 : We have received word from sympathetic contacts within the DDP about the internal debate. ?]
 [? if ddp_relation < 40 : The DDP has not consulted us, but word of the turmoil has reached our party leadership. ?]
-
-**The merger decision will be made by:**
-
-[? if ddp_relation >= 60 and z_relation >= 50 : Our relationship with both the DDP and Center Party gives us some influence. ?]
-[? if ddp_relation >= 70 : DDP progressives are asking for our counsel. ?]
-[? if jungdo_strength >= 150 and jungdo_militancy >= 0.5 : The Young German Order's strength makes them an attractive partner for the struggling DDP. ?]
-[? if jungdo_strength < 100 : The Young German Order's weakness makes the merger less appealing to DDP pragmatists. ?]
 
 - @observe: We can only observe from the sidelines.
 
 @observe
 on-arrival: {!
-// Merger debate happens but outcome is uncertain
-var merger_chance = 50;
 
-// Factors favoring merger
-if (Q.jungdo_strength >= 100) merger_chance += 20;
-if (Q.ddp_r < 5) merger_chance += 20; // Desperation
-if (Q.dvp_relation <= 30) merger_chance += 10; // Right-liberal alliance
+// Check VNR path first
+if (Q.jungdo_formed == 1 && Q.vnr_votes > 0.6 && Q.jungdo_strength >= 100) {
+    Q.merger_path = "vnr";
+}
+// Check WP path second
+else if (Q.wp_votes > 3 && Q.wp_votes * 2 < Q.ddp_votes) {
+    Q.merger_path = "wp";
+}
+// DDP alone
+else {
+    Q.merger_path = "none";
+}
 
-// Factors opposing merger
-if (Q.ddp_relation >= 70) merger_chance -= 15; // SPD influence
-if (Q.z_relation >= 60 && Q.ddp_relation >= 60) merger_chance -= 20; // Progressive coalition
-if (Q.pro_republic >= 60) merger_chance -= 10; // Strong republican climate
-
-// Roll the dice
-var roll = _r || 1 * 100;
-
-if (roll < merger_chance) {
-    // Merger happens
+// Apply outcomes
+if (Q.merger_path == "vnr") {
     Q.ddp_name = "DStP";
     Q.ddp_dstp_seen = 1;
     Q.merger_happened = 1;
@@ -52,27 +39,45 @@ if (roll < merger_chance) {
     Q.old_middle_ddp -= 3;
     Q.rural_ddp -= 3;
     Q.ddp_relation -= 5;
-    
     if (Q.jungdo_strength >= 200) {
         Q.old_middle_ddp += 2;
         Q.rural_ddp += 1;
     }
-} else {
-    // Merger rejected
-    Q.merger_happened = 0;
-    Q.merger_rejected = 1;
-    Q.new_middle_ddp -= 2; // Still some losses from turmoil
-    Q.ddp_relation += 3; // Progressives appreciate SPD presence
 }
+else if (Q.merger_path == "wp") {
+    Q.ddp_name = "LMP";
+    Q.ddp_lmp_seen = 1;
+    Q.merger_happened = 1;
+    Q.new_middle_ddp -= 4;
+    Q.old_middle_ddp -= 2;
+    Q.rural_ddp -= 2;
+    Q.ddp_relation -= 3;
+    Q.wp_ddp_merged = 1;
+    // LMP draws Mittelstand but loses urban liberals
+    Q.old_middle_ddp += 3;
+    Q.rural_ddp += 2;
+    Q.new_middle_spd += 2; // Urban liberals flee toward SPD
+}
+else {
+    // DDP fades alone
+    Q.merger_happened = 0;
+    Q.ddp_dying = 1;
+    Q.new_middle_ddp -= 3;
+    Q.old_middle_ddp -= 2;
+    Q.rural_ddp -= 2;
+}
+
 !}
 go-to: merger_outcome
 
 @merger_outcome
 on-arrival: {!
-if (Q.merger_happened) {
-    Q.event_message = "After heated debate, the DDP leadership has voted to proceed with the merger. The party will now be called the German State Party (DStP), incorporating the Young German Order's political wing. Progressive members are outraged, and many are expected to leave.";
+if (Q.merger_path == "vnr") {
+    Q.event_message = "After heated debate, the DDP leadership has voted to merge with the political wing of the Young German Order. The party will now be called the German State Party (DStP). Progressive members are outraged and many are expected to leave.";
+} else if (Q.merger_path == "wp") {
+    Q.event_message = "Unable to find common ground with the nationalist right, the DDP has instead turned to the Wirtschaftspartei. The two parties have agreed to merge into the Liberal Middle Class Party (LMP), uniting what remains of German liberalism with the Mittelstand movement. Urban progressives are dismayed at the economic-nationalist tinge of the new party.";
 } else {
-    Q.event_message = "After fierce internal resistance, the DDP has rejected the merger proposal. Progressives within the party successfully argued against working with conservative nationalists. However, the party remains weakened by the internal conflict, and pragmatists warn that without bold action, decline is inevitable.";
+    Q.event_message = "The DDP has rejected all merger proposals. Without a viable partner or the strength to stand alone, the party is slowly dying. Its voters are drifting away, and its future looks bleak.";
 }
 !}
 
@@ -80,27 +85,16 @@ if (Q.merger_happened) {
 
 [+ event_message +]
 
-[? if merger_happened : The transformation into the DStP represents a rightward shift for German liberalism. ?]
-[? if merger_rejected : The DDP retains its progressive character, but its future remains uncertain. ?]
+[? if merger_path == "vnr" : The transformation into the DStP represents a rightward shift for German liberalism. ?]
+[? if merger_path == "wp" : The LMP represents a fusion of economic liberalism and Mittelstand interests — but democratic idealism has been sacrificed. ?]
+[? if merger_path == "none" : The DDP retains its identity, but without allies or voters, that identity may not survive long. ?]
 
 - @advantage: We should capitalize on this situation.
 - @nothing: This is not our concern.
 
-@merger_response
-
-= The DStP is Born
-
-The merger has been finalized. The German Democratic Party is now the German State Party (DStP), with Artur Mahraun's Young German Order integrated into its structure.
-
-Progressive liberals are fleeing the party in disgust, unwilling to work alongside conservative nationalists and figures with antisemitic sympathies.
-
-- @advantage: We can recruit disaffected progressives to the SPD.
-- @nothing: This is none of our concern.
-
 @advantage
 on-arrival: {!
-if (Q.merger_happened) {
-    // Merger happened - bigger opportunity
+if (Q.merger_path == "vnr") {
     Q.new_middle_spd += 5;
     Q.peoples_party_support += 1;
     Q.left_dissent += 5;
@@ -108,27 +102,31 @@ if (Q.merger_happened) {
     Q.neorevisionist_strength += 3;
     Q.reformist_dissent -= 2;
     Q.neorevisionist_dissent -= 2;
-    
     if (Q.jungdo_strength >= 150) {
-        // Strong Jungdo means more nationalist taint
         Q.left_dissent += 3;
         Q.nationalism += 1;
     }
-} else {
-    // Merger rejected - smaller opportunity
-    Q.new_middle_spd += 3;
+} else if (Q.merger_path == "wp") {
+    // Urban liberals fleeing LMP are ripe for SPD recruitment
+    Q.new_middle_spd += 4;
     Q.peoples_party_support += 1;
-    Q.reformist_strength += 2;
+    Q.reformist_strength += 3;
     Q.neorevisionist_strength += 2;
-    Q.ddp_relation += 5; // Better relations with progressive DDP
+    Q.reformist_dissent -= 2;
+} else {
+    // Drifting DDP voters, smaller opportunity
+    Q.new_middle_spd += 3;
+    Q.reformist_strength += 2;
+    Q.ddp_relation += 5;
 }
 !}
 
-[? if merger_happened : With turmoil in the DDP, we have an opportunity to recruit middle-class progressives and portions of the liberal intelligentsia into our party. The left of the SPD is opposed to this path, seeing it as diluting the class character of the party. On the other hand, revisionists support this course. ?]
-
-[? if merger_rejected : Despite rejecting the merger, the DDP's internal crisis has left some progressives disillusioned. We can offer them a home in a party committed to both democracy and social progress. ?]
+[? if merger_path == "vnr" : With turmoil in the DStP, we have an opportunity to recruit middle-class progressives and portions of the liberal intelligentsia. The left of the SPD is opposed, seeing it as diluting the class character of the party — but revisionists support this course. ?]
+[? if merger_path == "wp" : The LMP's Mittelstand focus has left urban liberals without a home. We can offer them a place in a party committed to both democracy and social progress. ?]
+[? if merger_path == "none" : The dying DDP's voters are adrift. Many may find their way to us if we make the case for democratic socialism over liberal decline. ?]
 
 @nothing
 
-[? if merger_happened : The DStP's internal affairs are none of our concern. ?]
-[? if merger_rejected : The DDP's internal affairs are none of our concern. ?]
+[? if merger_path == "vnr" : The DStP's internal affairs are none of our concern. ?]
+[? if merger_path == "wp" : The LMP's internal affairs are none of our concern. ?]
+[? if merger_path == "none" : The DDP's slow decline is none of our concern. ?]
