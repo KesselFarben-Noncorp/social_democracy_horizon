@@ -173,13 +173,12 @@ var bill_ideo  = Q.ratify_bill_ideo     || 5;
 if (decision === 'approve') {
 
     // Execute on_pass via BILL_MAP (flat pool — no PARTY_BILLS)
-    if (bill_id && typeof BILL_MAP !== 'undefined' && BILL_MAP[bill_id]) {
-        var _bill = BILL_MAP[bill_id];
-        if (_bill.on_pass) _bill.on_pass();
-        Q['bill_cd_' + bill_id]     = _bill.cooldown;
-        // Partial fatigue reset on passage
-        Q['bill_picks_'  + bill_id] = Math.floor((Q['bill_picks_'  + bill_id] || 0) * 0.5);
-        Q['bill_blocks_' + bill_id] = 0;
+    if (bill_id && window.BILL_MAP && window.BILL_MAP[bill_id]) {
+    var _bill = window.BILL_MAP[bill_id];
+    if (_bill.on_pass) _bill.on_pass();
+    Q['bill_cd_' + bill_id]     = _bill.cooldown;
+    Q['bill_picks_'  + bill_id] = Math.floor((Q['bill_picks_'  + bill_id] || 0) * 0.5);
+    Q['bill_blocks_' + bill_id] = 0;
     }
 
     var _rel_key = bill_party.toLowerCase() + '_relation';
