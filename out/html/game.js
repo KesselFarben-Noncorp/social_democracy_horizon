@@ -353,6 +353,7 @@ Object.keys(wordPhrases).forEach(function(phrase) {
         'DBP':   '#03A331',
         'DSBP':  '#7A9DB5',
         'DLP':   '#F7FF05',
+        'LMP':   '#B8860B',
 
         // Centre Party (Z) — avoid single-letter match, use full name below
         'Zentrum': '#333333',
