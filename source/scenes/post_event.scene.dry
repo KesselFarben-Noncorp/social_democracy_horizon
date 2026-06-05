@@ -2887,25 +2887,6 @@ function computeTarget(party, c) {
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
 
-        case 'dvp': {
-            if (Q.dvp_banned) return 0;
-            let factor      = Q.dvp_right_shift ? nat * 0.95 : rep * 1.0;
-            let infl_pen    = Math.pow(Math.abs(Q.inflation - 1.5) / 12, 1.2);
-            let unemp_pen   = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
-            let econ_conf   = Math.max(0.35, 1 - (infl_pen * 0.7) - (unemp_pen * 0.7));
-            let scale       = Q.dvp_right_shift ? 2.2 : 1.8;
-            base = factor * 49 * scale * econ_conf * (im.dvp || 1);
-
-            const class_mods = {
-                workers:     0.45 * (Q.peoples_party === 1 ? 0.92 : 1),
-                old_middle:  1.35 * (Q.dvp_right_shift ? (1 + Math.min(Q.nationalism/100,1)*0.22) : 1) * (Q.peoples_party === 1 ? 0.96 : 1),
-                new_middle:  1.40 * (Q.dvp_right_shift ? (1 + Math.min(Q.nationalism/100,1)*0.18) : 1) * (Q.peoples_party === 1 ? 0.96 : 1),
-                rural:       0.65 * (Q.peoples_party === 1 ? 0.96 : 1),
-                unemployedc: 0.30 * (Q.peoples_party === 1 ? 0.92 : 1),
-            };
-            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
-        }
-
         case 'dsbp': {
             if (Q.dsbp_banned) return 0;
 
@@ -3014,8 +2995,8 @@ function computeTarget(party, c) {
 
         case 'srpd': {
             if (Q.srpd_banned || !Q.srpd_formed) return 0;
-            let rb = Q.rb_strength * 0.00011;
-            base = (soc * 5 * 1.9 + rep * 41 * 1.75 + rb) * im.srpd;
+            let rb = Q.rb_strength * 0.00004;
+            base = (soc * 6 * 1.95 + rep * 49 * 1.76 + rb) * im.srpd;
 
             const class_mods = {
                 workers:     1.21 * (Q.peoples_party === 1 ? 1.06 : 1),
@@ -3135,66 +3116,88 @@ function computeTarget(party, c) {
         }
 
         case 'ddp': {
-    if (Q.ddp_banned) return 0;
-    let edu_bonus = (Q.education_science || 0) * 0.03
-                  + (Q.secularized       || 0) * 0.05
-                  + (Q.science           || 0) * 0.10
-                  + (Q.womens_rights     || 0) * 0.05;
-    if (!Q.ddp_name || Q.ddp_name === 'DDP') {
-        let sec_bonus = (100 - Q.catholics) / 100 * 0.10;
-        let nat_pen   = (Q.nationalism / 100) * 0.15;
-        base = (rep * 53 * (1.1 + sec_bonus - nat_pen + edu_bonus)) * im.ddp;
+           if (Q.ddp_banned) return 0;
+           let infl_pen    = Math.pow(Math.abs(Q.inflation - 1.5) / 12, 1.2);
+           let unemp_pen   = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
+           let econ_conf   = Math.max(0.50, 1 - (infl_pen * 0.33) - (unemp_pen * 0.33));
+           let edu_bonus = (Q.education_science || 0) * 0.03
+                         + (Q.secularized       || 0) * 0.05
+                         + (Q.science           || 0) * 0.10
+                         + (Q.womens_rights     || 0) * 0.05;
+           if (!Q.ddp_name || Q.ddp_name === 'DDP') {
+               let sec_bonus = (100 - Q.catholics) / 100 * 0.10;
+               let nat_pen   = (Q.nationalism / 100) * 0.15;
+               base = (rep * 53 * (1.1 + sec_bonus - nat_pen + edu_bonus)) * econ_conf * im.ddp;
 
-        const class_mods = {
-            workers:     (0.60) * (Q.peoples_party === 1 ? 0.93 : 1),
-            old_middle:  (0.85) * (Q.peoples_party === 1 ? 1.08 : 1),
-            new_middle:  (1.40 * ((Q.education_science >= 2 || Q.womens_rights >= 3) ? 1.05 : 1)) * (Q.peoples_party === 1 ? 1.08 : 1),
-            rural:       (0.50) * (Q.peoples_party === 1 ? 1.05 : 1),
-            unemployedc: (0.55) * (Q.peoples_party === 1 ? 0.93 : 1),
-        };
-        return _applyQOL(base * (class_mods[c] || 1.0), party, c);
-    } else if (Q.ddp_name === 'LMP') {
-        let wp_strength = (Q.wp_votes || 0) * 0.004;
-        let mittelstand_bonus = (Q.old_middle_ddp || 0) * 0.002;
-        let edu_pen = (Q.education_science || 0) * 0.02
-                    + (Q.secularized       || 0) * 0.03
-                    + (Q.womens_rights     || 0) * 0.03;
-        base = (rep * 0.30 + wp_strength + mittelstand_bonus - edu_pen) * 56 * im.ddp;
+               const class_mods = {
+                   workers:     (0.60) * (Q.peoples_party === 1 ? 0.93 : 1),
+                   old_middle:  (0.85) * (Q.peoples_party === 1 ? 1.08 : 1),
+                   new_middle:  (1.40 * ((Q.education_science >= 2 || Q.womens_rights >= 3) ? 1.05 : 1)) * (Q.peoples_party === 1 ? 1.08 : 1),
+                   rural:       (0.50) * (Q.peoples_party === 1 ? 1.05 : 1),
+                   unemployedc: (0.55) * (Q.peoples_party === 1 ? 0.93 : 1),
+               };
+               return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+           } else if (Q.ddp_name === 'LMP') {
+               let wp_strength = (Q.wp_votes || 0) * 0.004;
+               let mittelstand_bonus = (Q.old_middle_ddp || 0) * 0.002;
+               let edu_pen = (Q.education_science || 0) * 0.02
+                           + (Q.secularized       || 0) * 0.03
+                           + (Q.womens_rights     || 0) * 0.03;
+               base = (rep * 0.30 + wp_strength + mittelstand_bonus - edu_pen) * 56 * econ_conf * im.ddp;
 
-        const class_mods = {
-            workers:     0.40 * (Q.peoples_party === 1 ? 0.93 : 1),
-            old_middle:  1.35 * (Q.peoples_party === 1 ? 1.08 : 1),
-            new_middle:  0.85 * (Q.peoples_party === 1 ? 1.08 : 1),
-            rural:       1.25 * (Q.peoples_party === 1 ? 1.05 : 1),
-            unemployedc: 0.50 * (Q.peoples_party === 1 ? 0.93 : 1),
-        };
-        return _applyQOL(base * (class_mods[c] || 1.0), party, c);
-    } else {
-        // DStP
-        let jungdo  = (Q.jungdo_strength || 0) * 0.0003;
-        let edu_pen = (Q.education_science || 0) * 0.01
-                    + (Q.secularized       || 0) * 0.05
-                    + (Q.science           || 0) * 0.10
-                    + (Q.womens_rights     || 0) * 0.05;
-        base = (rep * 0.39 + nat * 0.29 + jungdo - edu_pen) * 59 * im.ddp;
+               const class_mods = {
+                   workers:     0.40 * (Q.peoples_party === 1 ? 0.93 : 1),
+                   old_middle:  1.35 * (Q.peoples_party === 1 ? 1.08 : 1),
+                   new_middle:  0.85 * (Q.peoples_party === 1 ? 1.08 : 1),
+                   rural:       1.25 * (Q.peoples_party === 1 ? 1.05 : 1),
+                   unemployedc: 0.50 * (Q.peoples_party === 1 ? 0.93 : 1),
+               };
+               return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+           } else {
+               // DStP
+               let jungdo  = (Q.jungdo_strength || 0) * 0.0003;
+               let edu_pen = (Q.education_science || 0) * 0.01
+                           + (Q.secularized       || 0) * 0.05
+                           + (Q.science           || 0) * 0.10
+                           + (Q.womens_rights     || 0) * 0.05;
+               base = (rep * 0.39 + nat * 0.29 + jungdo - edu_pen) * 59 * econ_conf * im.ddp;
 
-        const class_mods = {
-            workers:     0.50 * (Q.peoples_party === 1 ? 0.93 : 1),
-            old_middle:  1.05 * (Q.peoples_party === 1 ? 1.08 : 1),
-            new_middle:  1.10 * (Q.peoples_party === 1 ? 1.08 : 1),
-            rural:       1.15 * (Q.peoples_party === 1 ? 1.05 : 1),
-            unemployedc: 0.55 * (Q.peoples_party === 1 ? 0.93 : 1),
-        };
-        return _applyQOL(base * (class_mods[c] || 1.0), party, c);
-    }
-}
+               const class_mods = {
+                   workers:     0.50 * (Q.peoples_party === 1 ? 0.93 : 1),
+                   old_middle:  1.05 * (Q.peoples_party === 1 ? 1.08 : 1),
+                   new_middle:  1.10 * (Q.peoples_party === 1 ? 1.08 : 1),
+                   rural:       1.15 * (Q.peoples_party === 1 ? 1.05 : 1),
+                   unemployedc: 0.55 * (Q.peoples_party === 1 ? 0.93 : 1),
+               };
+               return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+           }
+       }
+
+        case 'dvp': {
+            if (Q.dvp_banned) return 0;
+            let factor      = Q.dvp_right_shift ? nat * 0.95 : rep * 1.0;
+            let infl_pen    = Math.pow(Math.abs(Q.inflation - 1.5) / 12, 1.2);
+            let unemp_pen   = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
+            let econ_conf   = Math.max(0.35, 1 - (infl_pen * 0.50) - (unemp_pen * 0.50));
+            let scale       = Q.dvp_right_shift ? 2.2 : 1.8;
+            base = factor * 49 * scale * econ_conf * (im.dvp || 1);
+
+            const class_mods = {
+                workers:     0.45 * (Q.peoples_party === 1 ? 0.92 : 1),
+                old_middle:  1.35 * (Q.dvp_right_shift ? (1 + Math.min(Q.nationalism/100,1)*0.22) : 1) * (Q.peoples_party === 1 ? 0.96 : 1),
+                new_middle:  1.40 * (Q.dvp_right_shift ? (1 + Math.min(Q.nationalism/100,1)*0.18) : 1) * (Q.peoples_party === 1 ? 0.96 : 1),
+                rural:       0.65 * (Q.peoples_party === 1 ? 0.96 : 1),
+                unemployedc: 0.30 * (Q.peoples_party === 1 ? 0.92 : 1),
+            };
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+        }
 
         case 'z': {
             if (Q.z_banned) return 0;
             let cath_bonus  = Q.catholics / 12;
             let leader_mod  = Q.z_party_leader === 'Kaas' ? 0.94 : Q.z_party_leader === 'Joos' ? 1.06 : 1.0;
             let gov_mod     = Q.z_in_government ? 1.12 : 0.93;
-            base = (rep * 85 + cath_bonus) * leader_mod * gov_mod * im.z;
+            base = (rep * 90 + cath_bonus) * leader_mod * gov_mod * im.z;
 
             const class_mods = {
                 workers:     0.80 * (Q.z_party_leader !== 'Kaas' ? 1.03 : 1) * (Q.peoples_party === 1 ? 0.94 : 1),
@@ -3210,7 +3213,7 @@ function computeTarget(party, c) {
             if (Q.bvp_banned) return 0;
             let cath = Q.catholics * 0.15;
             let rur  = Q.rural    * 0.05;
-            base = Math.min(4.8, rep * 47 * im.bvp + cath + rur);
+            base = Math.min(4.8, rep * 55 * im.bvp + cath + rur);
 
             let rural_m = 1.50 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
             const class_mods = {
