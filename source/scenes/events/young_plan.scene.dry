@@ -1,20 +1,18 @@
 title: The Young Plan
 new-page: true
-subtitle: The "Freedom Law" and the Price of Sovereignty
+subtitle: A new agreement on reparations
 tags: event
 view-if: (year = 1929 and month >= 7 and in_right_coalition = 0 and young_plan_seen = 0 and young_delayed = 0) or (year = 1929 and month >= 7 and in_right_coalition = 1 and young_plan_seen = 0 and dnvp_line != 3 and young_delayed = 0) or (year = 1929 and month >= 9 and young_plan_seen = 0 and young_delayed = 1)
 max-visits: 1
 
 = The Young Plan
 
-The "Policy of Fulfillment" has reached its zenith. Under the new **Young Plan**, Germany's total reparations debt is slashed, and the annual payments are made manageable. Most crucially, France has agreed to evacuate the **Rhineland** five years ahead of schedule. For the Republic, it is a triumph of diplomacy over despair.
+The Young Plan is an agreement with the Western powers to reduce Germany's reparation payments and give us more fiscal autonomy. Simultaneously, France will agree to withdraw its military occupation from the Rhineland.
 
-But for the Right, it is a "Death Sentence for our Children’s Children." Alfred Hugenberg, leading a "National Opposition" that includes the Stahlhelm and the once-fringe NSDAP, has drafted a **"Liberty Law."** Beyond rejecting reparations, it includes a shocking **Penal Clause**: any minister who signs the plan should be jailed for high treason. 
+While this seems to be a positive development, the Right is campaigning hard against it with their "Liberty Law," as are the Communists for whatever reason. They claim reparations are a form of national slavery, and that any minister who signs the plan should be jailed for treason. A referendum looms.
 
-Even the KPD, for their own accelerationist reasons, have joined the chorus of dissent. A referendum looms.
-
-- @pro_plan: Launch a massive "Pro-Young" campaign to defend the Republic's sovereignty.
-- @no_plan: Remain aloof. Let the "Nationalists" and the "Fulfillers" fight it out.
+- @pro_plan: Campaign in favor of the Young Plan and against the referendum.
+- @no_plan: Do not campaign on the Young Plan, one way or another.
 - @collapse: The Plan collapses due to internal instability or diplomatic failure.
 - @resist: Mobilize the Reichswehr to resist the inevitable French re-occupation.
 
@@ -24,298 +22,52 @@ subtitle: - 3 resources
 choose-if: resources >= 3
 unavailable-subtitle: Not enough resources to combat the Hugenberg press machine!
 view-if: ruhr_labor = 0 and young_plan_collapse = 0 and nationalism <= 60
-on-display: {!
-var youngOpposition = ["dnvp", "kvp", "csvd", "dvfp", "nsdap", "dtsp", "cnbl"];
 
-var forParties = [], againstParties = [];
-Q.parties.forEach(function(p) {
-    var votes = Q[p + "_votes"] || 0;
-    if (votes <= 0) return;
-    (youngOpposition.indexOf(p) >= 0 ? againstParties : forParties).push({ id: p, votes: votes });
-});
+How should we campaign in favor of the Plan?
 
-var forTotal = forParties.reduce(function(s, p) { return s + p.votes; }, 0);
-var againstTotal = againstParties.reduce(function(s, p) { return s + p.votes; }, 0);
-var grandTotal = forTotal + againstTotal;
-
-var youngChart = document.getElementById("young-plan-chart");
-if (youngChart) {
-    youngChart.innerHTML = "";
-    youngChart.style.fontFamily = "Georgia, serif";
-    youngChart.style.marginTop = "18px";
-
-    // Title
-    var title = document.createElement("div");
-    title.style.fontWeight = "bold";
-    title.style.fontSize = "0.95em";
-    title.style.marginBottom = "8px";
-    title.style.color = "#ccc";
-    title.textContent = "Young Plan — Reichstag Alignment";
-    youngChart.appendChild(title);
-
-    // Split bar
-    var barWrap = document.createElement("div");
-    barWrap.style.display = "flex";
-    barWrap.style.height = "22px";
-    barWrap.style.borderRadius = "3px";
-    barWrap.style.overflow = "hidden";
-    barWrap.style.marginBottom = "6px";
-
-    var forPct = grandTotal > 0 ? (forTotal / grandTotal * 100) : 50;
-    var againstPct = 100 - forPct;
-
-    var forBar = document.createElement("div");
-    forBar.style.width = forPct + "%";
-    forBar.style.backgroundColor = "#1a5c2a";
-    forBar.style.transition = "width 0.6s ease";
-
-    var againstBar = document.createElement("div");
-    againstBar.style.width = againstPct + "%";
-    againstBar.style.backgroundColor = "#5c1a1a";
-    againstBar.style.transition = "width 0.6s ease";
-
-    barWrap.appendChild(forBar);
-    barWrap.appendChild(againstBar);
-    youngChart.appendChild(barWrap);
-
-    // Labels
-    var labels = document.createElement("div");
-    labels.style.display = "flex";
-    labels.style.justifyContent = "space-between";
-    labels.style.fontSize = "0.82em";
-    labels.style.color = "#aaa";
-    labels.style.marginBottom = "12px";
-
-    var forLabel = document.createElement("span");
-    forLabel.style.color = "#44cc66";
-    forLabel.textContent = "✔ For: " + forTotal + " seats (" + forPct.toFixed(1) + "%)";
-
-    var againstLabel = document.createElement("span");
-    againstLabel.style.color = "#cc4444";
-    againstLabel.textContent = "✘ Against: " + againstTotal + " seats (" + againstPct.toFixed(1) + "%)";
-
-    labels.appendChild(forLabel);
-    labels.appendChild(againstLabel);
-    youngChart.appendChild(labels);
-
-    // Per-party rows
-    [{ list: forParties, color: "#1a5c2a", outline: "#00cc44", label: "For" },
-     { list: againstParties, color: "#5c1a1a", outline: "#cc0000", label: "Against" }]
-    .forEach(function(group) {
-        group.list.forEach(function(p) {
-            var pct = grandTotal > 0 ? (p.votes / grandTotal * 100) : 0;
-
-            var row = document.createElement("div");
-            row.style.marginBottom = "6px";
-
-            var rowHeader = document.createElement("div");
-            rowHeader.style.display = "flex";
-            rowHeader.style.justifyContent = "space-between";
-            rowHeader.style.fontSize = "0.8em";
-            rowHeader.style.color = "#bbb";
-            rowHeader.style.marginBottom = "2px";
-
-            var nameEl = document.createElement("span");
-            nameEl.textContent = p.id.toUpperCase();
-            nameEl.style.color = group.outline;
-
-            var countEl = document.createElement("span");
-            countEl.textContent = p.votes + " seats";
-
-            rowHeader.appendChild(nameEl);
-            rowHeader.appendChild(countEl);
-
-            var track = document.createElement("div");
-            track.style.width = "100%";
-            track.style.height = "10px";
-            track.style.backgroundColor = "#2a2a2a";
-            track.style.borderRadius = "2px";
-            track.style.overflow = "hidden";
-            track.style.border = "1px solid " + group.outline;
-
-            var fill = document.createElement("div");
-            fill.style.width = pct + "%";
-            fill.style.height = "100%";
-            fill.style.backgroundColor = group.color;
-
-            track.appendChild(fill);
-            row.appendChild(rowHeader);
-            row.appendChild(track);
-            youngChart.appendChild(row);
-        });
-    });
-}
-!}
-
-{!<div id="young-plan-chart"></div>!}
-
-The Hugenberg-Hitler alliance is flooding the streets with posters of "enslaved Germans." How do we counter the "Liberty Law" demagoguery?
-
-- @internationalism: Focus on reconciliation and the "Spirit of Locarno."
-- @rational: Focus on the hard math—the Rhineland is worth more than the "Tribute."
+- @internationalism: As part of a broader campaign in favor of internationalism and pacifism.
+- @rational: The Young Plan is simply the most rational choice for Germany.
 
 @internationalism
-on-arrival: young_plan_seen = 1; nationalism -= 5*(1-dissent) if pacifism >= 2 else nationalism += 3; pacifism += 1; workers_spd += 5*(1-dissent) if pacifism >= 3 and nationalism <= 50; workers_nsdap += 4 if pacifism <= 3; rural_nsdap += 5; catholics_spd -= 4 if pacifism <= 3; rural_dvp -= 4
+on-arrival: young_plan_seen = 1; nationalism -= 5*(1-dissent) if pacifism >= 2 else nationalism += 3; pacifism += 1; workers_spd += 5*(1-dissent) if pacifism >= 3 and nationalism <= 50; workers_nsdap += 4 if pacifism <= 3; rural_nsdap += 5; catholics_spd -= 4 if pacifism <= 3; rural_dvp -= 4; young_opposition = ((dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes + other_votes) * 0.6) + (nationalism / 5) + (stahlhelm_strength * 0.06)
+go-to: young_2_national if young_opposition >= 20
 
-We rail against the "War-Guilt" obsession and embrace our place in the family of nations. The referendum is crushed, gaining only 13.8% support. The "National Front" has been publicly humiliated, and we have proven that the German worker prefers bread and peace to Hugenberg’s "Block of Stone." [? if pacifism >= 3 and nationalism <= 50 : The workers are now firmly committed to the international cause. ?]
+We rail hard against nationalism and in favor of pacifism and belonging to the international community of nations. The referendum fails, with only [+ young_opposition +]% of voters supporting it. It seems that nationalism is not omnipotent in Germany, despite everything. [? if pacifism >= 3 and nationalism <= 50 : We have rallied the workers to the cause of internationalism. ?]
 
 @rational
-on-arrival: young_plan_seen = 1; nationalism += 5; workers_nsdap += 4; rural_nsdap += 5; catholics_spd -= 4; workers_spd -= 3; rural_dvp -= 5; z_relation += 7; ddp_relation += 3; dvp_relation += 5; bvp_relation += 3; dhp_relation += 1; wp_relation += 2
+on-arrival: young_plan_seen = 1; nationalism += 5; workers_nsdap += 4; rural_nsdap += 5; catholics_spd -= 4; workers_spd -= 3; rural_dvp -= 5; z_relation += 7; ddp_relation += 3; dvp_relation += 5; bvp_relation += 3; dhp_relation += 1; wp_relation += 2; young_opposition = ((dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes + other_votes) * 0.6) + (nationalism / 5) + (stahlhelm_strength * 0.06)
+go-to: young_2_national if young_opposition >= 20
 
-We present the Plan as a cold, hard necessity. "Sovereignty is not free," our pamphlets read. The referendum fails to clear the 50% hurdle, and the moderate parties find common ground in this pragmatic victory. However, the Right grumbles that we have sold Germany's soul for a few years of French absence.
+We present the Plan as a cold, rational necessity. The referendum fails, with only [+ young_opposition +]% of voters supporting it. It seems that the German people have a sense of rationality, after all, and the moderate parties are able to find common ground in this pragmatic victory.
 
 @no_plan
 view-if: ruhr_labor = 0 and young_plan_collapse = 0
-on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = (dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes)
-go-to: young_1_national if young_opposition < 20; young_2_national if young_opposition > 20
-on-display: {!
-var youngOpposition = ["dnvp", "kvp", "csvd", "dvfp", "nsdap", "dtsp", "cnbl"];
-
-var forParties = [], againstParties = [];
-Q.parties.forEach(function(p) {
-    var votes = Q[p + "_votes"] || 0;
-    if (votes <= 0) return;
-    (youngOpposition.indexOf(p) >= 0 ? againstParties : forParties).push({ id: p, votes: votes });
-});
-
-var forTotal = forParties.reduce(function(s, p) { return s + p.votes; }, 0);
-var againstTotal = againstParties.reduce(function(s, p) { return s + p.votes; }, 0);
-var grandTotal = forTotal + againstTotal;
-
-var youngChart = document.getElementById("young-plan-chart");
-if (youngChart) {
-    youngChart.innerHTML = "";
-    youngChart.style.fontFamily = "Georgia, serif";
-    youngChart.style.marginTop = "18px";
-
-    // Title
-    var title = document.createElement("div");
-    title.style.fontWeight = "bold";
-    title.style.fontSize = "0.95em";
-    title.style.marginBottom = "8px";
-    title.style.color = "#ccc";
-    title.textContent = "Young Plan — Reichstag Alignment";
-    youngChart.appendChild(title);
-
-    // Split bar
-    var barWrap = document.createElement("div");
-    barWrap.style.display = "flex";
-    barWrap.style.height = "22px";
-    barWrap.style.borderRadius = "3px";
-    barWrap.style.overflow = "hidden";
-    barWrap.style.marginBottom = "6px";
-
-    var forPct = grandTotal > 0 ? (forTotal / grandTotal * 100) : 50;
-    var againstPct = 100 - forPct;
-
-    var forBar = document.createElement("div");
-    forBar.style.width = forPct + "%";
-    forBar.style.backgroundColor = "#1a5c2a";
-    forBar.style.transition = "width 0.6s ease";
-
-    var againstBar = document.createElement("div");
-    againstBar.style.width = againstPct + "%";
-    againstBar.style.backgroundColor = "#5c1a1a";
-    againstBar.style.transition = "width 0.6s ease";
-
-    barWrap.appendChild(forBar);
-    barWrap.appendChild(againstBar);
-    youngChart.appendChild(barWrap);
-
-    // Labels
-    var labels = document.createElement("div");
-    labels.style.display = "flex";
-    labels.style.justifyContent = "space-between";
-    labels.style.fontSize = "0.82em";
-    labels.style.color = "#aaa";
-    labels.style.marginBottom = "12px";
-
-    var forLabel = document.createElement("span");
-    forLabel.style.color = "#44cc66";
-    forLabel.textContent = "✔ For: " + forTotal + " seats (" + forPct.toFixed(1) + "%)";
-
-    var againstLabel = document.createElement("span");
-    againstLabel.style.color = "#cc4444";
-    againstLabel.textContent = "✘ Against: " + againstTotal + " seats (" + againstPct.toFixed(1) + "%)";
-
-    labels.appendChild(forLabel);
-    labels.appendChild(againstLabel);
-    youngChart.appendChild(labels);
-
-    // Per-party rows
-    [{ list: forParties, color: "#1a5c2a", outline: "#00cc44", label: "For" },
-     { list: againstParties, color: "#5c1a1a", outline: "#cc0000", label: "Against" }]
-    .forEach(function(group) {
-        group.list.forEach(function(p) {
-            var pct = grandTotal > 0 ? (p.votes / grandTotal * 100) : 0;
-
-            var row = document.createElement("div");
-            row.style.marginBottom = "6px";
-
-            var rowHeader = document.createElement("div");
-            rowHeader.style.display = "flex";
-            rowHeader.style.justifyContent = "space-between";
-            rowHeader.style.fontSize = "0.8em";
-            rowHeader.style.color = "#bbb";
-            rowHeader.style.marginBottom = "2px";
-
-            var nameEl = document.createElement("span");
-            nameEl.textContent = p.id.toUpperCase();
-            nameEl.style.color = group.outline;
-
-            var countEl = document.createElement("span");
-            countEl.textContent = p.votes + " seats";
-
-            rowHeader.appendChild(nameEl);
-            rowHeader.appendChild(countEl);
-
-            var track = document.createElement("div");
-            track.style.width = "100%";
-            track.style.height = "10px";
-            track.style.backgroundColor = "#2a2a2a";
-            track.style.borderRadius = "2px";
-            track.style.overflow = "hidden";
-            track.style.border = "1px solid " + group.outline;
-
-            var fill = document.createElement("div");
-            fill.style.width = pct + "%";
-            fill.style.height = "100%";
-            fill.style.backgroundColor = group.color;
-
-            track.appendChild(fill);
-            row.appendChild(rowHeader);
-            row.appendChild(track);
-            youngChart.appendChild(row);
-        });
-    });
-}
-!}
-
-{!<div id="young-plan-chart"></div>!}
+on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = ((dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes + other_votes) * 0.6) + (nationalism / 5) + (stahlhelm_strength * 0.06)
+go-to: young_1_national if young_opposition < 20; young_2_national if young_opposition >= 20
 
 @young_1_national
 
-The referendum fails, but our silence is a vacuum the Right is happy to fill. Hugenberg and Hitler are being hailed as the only "true" nationalists, while the Republic’s defenders seem ashamed of their own policy. The "Liberty Law" didn't pass, but it made the Nazis *salonfähig*—socially acceptable.
+The referendum fails, with only [+ young_opposition +]% supporting it. However, our silence leaves a vacuum. Nationalist sentiment is inflamed, and the right-wing parties are using our silence around the Plan as a tacit admission of its faults. Our silence has only emboldened the Right, especially the NSDAP.
 
 @young_2_national
 on-arrival: nationalism += 20; socialism += 5; pro_republic -= 5; workers_spd += 2; old_middle_dnvp += 4; rural_dnvp += 5; nsdap_unemployedc += 5; kpd_workers += 7; rural_dvp -= 2; workers_ddp -= 2; workers_csvd += 2; new_middle_kvp += 3
 
-The referendum fails, yet the high turnout for the **"Freedom Law"** has sent a shockwave through the establishment. Even in the "bourgeois" parties, members are whispering that the Penal Clause might have been too far, but the sentiment against "Tribute" is genuine. The National Opposition has found its footing; the "Block of Stone" is beginning to roll.
+The referendum fails, but the high turnout for the "Freedom Law" has sent a shockwave through the establishment, with [+ young_opposition +]% of voters supporting it. The sentiment against reparations is genuine, and the National Opposition has found its footing.
 
 @collapse
 view-if: ((west_relation < 0 and nationalism > 60) or (ruhr_labor = 1 or young_plan_collapse = 1))
 on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1; camarilla_strength += 5; hindenburg_patience /= 2; hindenburg_patience -= 15
 achievement: ruhrland
 
-Negotiations have shattered. The Young Plan is dead. France, citing German bad faith, has frozen the evacuation and reinforced the Rhineland garrisons. The dream of fiscal autonomy is gone, replaced by the cold reality of bayonets in the Ruhr. Our international standing has evaporated overnight.
+Negotiations have shattered and the Young Plan is dead. France, citing German bad faith, has frozen the evacuation and reinforced the Rhineland garrisons. Our international standing has evaporated overnight.
 
-[? if president = "Hindenburg": The Old Field Marshal is livid. He views this collapse as a personal failure of the government to provide the stability he was promised. The air in the Reichskanzlei is thick with the scent of an impending dismissal. ?]
+[? if president = "Hindenburg": Hindenburg is livid at this failure to provide the stability he was promised, and the air in the Reichskanzlei is thick with the scent of an impending dismissal. ?]
 
 @resist
 view-if: (reichswehr_strength >= 100 and reichswehr_loyalty > 0.35 and reichswehr_militancy >= 5) and secret_mode and (ruhr_labor = 1 or young_plan_catastrophy = 1)
 on-arrival: nationalism += 15; west_relation -= 20; young_plan_catastrophy = 1; pro_republic -= 5; reichswehr_strength *= 0.9; reichswehr_loyalty *= 1.2; italy_relation += 5; soviet_relation += 3; resources += 5; budget += 2; inflation += 1.34; new_middle_spd *= 0.98; old_middle_spd *= 1.07; camarilla_strength += 5; hindenburg_patience -= 10
 achievement: reichswehr_ruhrland
 
-The "Miracle of the Ruhr." We have done the unthinkable: met French force with German steel. By refusing re-occupation, we have severed our ties with the West but forged a new, terrifying national unity. The Young Plan is a memory; the future will be written in autarky and blood.
+We have done the unthinkable: met French force with German steel. By refusing re-occupation, we have severed our ties with the West. The Young Plan is all but not signed; our odds are against us, as the future turns dark grim...
 
-[? if president = "Hindenburg": Hindenburg is shocked by the audacity, but his soldier’s heart is quietly impressed. However, he knows that "stabilizing the situation" now requires a miracle of a different kind. ?]
+[? if president = "Hindenburg": Hindenburg is shocked by the audacity, but his soldier’s heart is quietly impressed. ?]
