@@ -10,34 +10,35 @@ on-display: {!
 on-arrival: {!
 
 // ── Reset queued display vars ──────────────────────────────
-for (var i = 0; i < 10; i++) {
-    Q['queued_' + i + '_slot']  = -1;
-    Q['queued_' + i + '_name']  = '';
-    Q['queued_' + i + '_party'] = '';
-    Q['queued_' + i + '_type']  = '';
-    Q['queued_' + i + '_ideo']  = 5;
-    Q['queued_' + i + '_label'] = '';
+// FIX: renamed loop vars to avoid var re-declaration in flat DRY scope
+for (var _qi = 0; _qi < 10; _qi++) {
+    Q['queued_' + _qi + '_slot']  = -1;
+    Q['queued_' + _qi + '_name']  = '';
+    Q['queued_' + _qi + '_party'] = '';
+    Q['queued_' + _qi + '_type']  = '';
+    Q['queued_' + _qi + '_ideo']  = 5;
+    Q['queued_' + _qi + '_label'] = '';
 }
-for (var i = 0; i < 4; i++) {
-    Q['spd_unqueued_' + i + '_id']       = '';
-    Q['spd_unqueued_' + i + '_name']     = '';
-    Q['spd_unqueued_' + i + '_type']     = '';
-    Q['spd_unqueued_' + i + '_ministry'] = '';
-    Q['spd_unqueued_' + i + '_label']    = '';
+for (var _ui = 0; _ui < 4; _ui++) {
+    Q['spd_unqueued_' + _ui + '_id']       = '';
+    Q['spd_unqueued_' + _ui + '_name']     = '';
+    Q['spd_unqueued_' + _ui + '_type']     = '';
+    Q['spd_unqueued_' + _ui + '_ministry'] = '';
+    Q['spd_unqueued_' + _ui + '_label']    = '';
 }
 
 Q.num_queued_bills = 0;
 
-for (var i = 0; i < 10; i++) {
-    if (!Q['bill_' + i + '_id']) continue;
+for (var _fi = 0; _fi < 10; _fi++) {
+    if (!Q['bill_' + _fi + '_id']) continue;
     var n = Q.num_queued_bills;
-    Q['queued_' + n + '_slot']     = i;
-    Q['queued_' + n + '_name']     = Q['bill_' + i + '_name']     || '(unknown)';
-    Q['queued_' + n + '_party']    = Q['bill_' + i + '_party']    || '?';
-    Q['queued_' + n + '_type']     = Q['bill_' + i + '_type']     || 'economic';
-    Q['queued_' + n + '_ideo']     = Q['bill_' + i + '_ideo']     || 5;
-    Q['queued_' + n + '_ministry'] = Q['bill_' + i + '_ministry'] || 'chancellor';
-    var _frozen = Q['bill_' + i + '_frozen'] ? ' [CRISIS]' : '';
+    Q['queued_' + n + '_slot']     = _fi;
+    Q['queued_' + n + '_name']     = Q['bill_' + _fi + '_name']     || '(unknown)';
+    Q['queued_' + n + '_party']    = Q['bill_' + _fi + '_party']    || '?';
+    Q['queued_' + n + '_type']     = Q['bill_' + _fi + '_type']     || 'economic';
+    Q['queued_' + n + '_ideo']     = Q['bill_' + _fi + '_ideo']     || 5;
+    Q['queued_' + n + '_ministry'] = Q['bill_' + _fi + '_ministry'] || 'chancellor';
+    var _frozen = Q['bill_' + _fi + '_frozen'] ? ' [CRISIS]' : '';
     Q['queued_' + n + '_label']    =
         Q['queued_' + n + '_name'] + ' — ' +
         Q['queued_' + n + '_party'] + _frozen;
@@ -45,24 +46,27 @@ for (var i = 0; i < 10; i++) {
 }
 
 // ── SPD unqueued pool ──────────────────────────────────────
+// FIX: IDs now match canonical BILLS pool IDs from post_event system
 var SPD_POOL = [
-    { id: 'spd_unemployment_ext', name: 'Unemployment Insurance Extension', type: 'economic',       ideo: 3, ministry: 'labor'    },
-    { id: 'spd_civil_service',    name: 'Civil Service Reform Bill',         type: 'administrative', ideo: 3, ministry: 'interior' },
-    { id: 'spd_press_freedom',    name: 'Press Freedom Protection Act',      type: 'civil',          ideo: 3, ministry: 'justice'  },
-    { id: 'spd_wtb',              name: 'WTB Public Works Programme',        type: 'economic',       ideo: 3, ministry: 'economic' },
+    { id: 'unemployment_ins', name: 'Unemployment Insurance Extension', type: 'welfare',  ideo: 3, ministry: 'labor'    },
+    { id: 'public_works',     name: 'WTB Public Works Programme',       type: 'economic', ideo: 3, ministry: 'economic' },
+    { id: 'womens_workplace', name: 'Women in the Workplace Act',        type: 'social',   ideo: 3, ministry: 'labor'    },
+    { id: 'cooperatives',     name: 'Worker Cooperative Promotion Act',  type: 'labor',    ideo: 2, ministry: 'economic' },
 ];
 
 Q.num_spd_unqueued = 0;
 
-for (var i = 0; i < SPD_POOL.length; i++) {
-    var _bill = SPD_POOL[i];
+for (var _pi = 0; _pi < SPD_POOL.length; _pi++) {
+    var _bill = SPD_POOL[_pi];
     var _in_queue = false;
-    for (var j = 0; j < 10; j++) {
-        if (Q['bill_' + j + '_id'] === _bill.id) { _in_queue = true; break; }
+    // FIX: renamed inner loop var to _pj to avoid conflict with _pi
+    for (var _pj = 0; _pj < 10; _pj++) {
+        if (Q['bill_' + _pj + '_id'] === _bill.id) { _in_queue = true; break; }
     }
-    if (_in_queue)                        continue;
-    if (Q['bill_done_' + _bill.id])       continue;
-    if (Q.crisis_id === _bill.id)         continue; // already in staging
+    if (_in_queue) continue;
+    // FIX: check bill_cd_ (cooldown) instead of non-existent bill_done_ flag
+    if ((Q['bill_cd_' + _bill.id] || 0) > 0) continue;
+    if (Q.crisis_id === _bill.id) continue;
     var m = Q.num_spd_unqueued;
     Q['spd_unqueued_' + m + '_id']       = _bill.id;
     Q['spd_unqueued_' + m + '_name']     = _bill.name;
@@ -295,6 +299,8 @@ Choose a bill to bring before the Reichstag:
 view-if: num_spd_unqueued >= 1
 on-arrival: {!
     var m = 0;
+    // FIX: crisis_slot = -1 for SPD own bills; downstream resolution must
+    // guard against negative slot before writing bill_N_id = '' cleanup.
     Q.crisis_slot     = -1;
     Q.crisis_id       = Q['spd_unqueued_' + m + '_id'];
     Q.crisis_name     = Q['spd_unqueued_' + m + '_name'];
@@ -358,19 +364,6 @@ go-to: propose_spd_vote_choice
 
 @propose_spd_vote_choice
 go-to: legislature_bill.crisis_spd_president if spd_holds_rt_presidency = 1; legislature_bill.crisis_other_president if spd_holds_rt_presidency = 0
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @estimate_bill
@@ -449,10 +442,10 @@ go-to: run_estimate
 @run_estimate
 on-arrival: {!
 
-Q.resources -= 1
+Q.resources -= 1;
 
-var n         = Q.estimate_target || 0;
-var _slot     = Q['queued_' + n + '_slot'];
+var n           = Q.estimate_target || 0;
+var _slot       = Q['queued_' + n + '_slot'];
 var _bill_party = Q['queued_' + n + '_party'];
 var _bill_ideo  = Q['queued_' + n + '_ideo'] || 5;
 var _bill_name  = Q['queued_' + n + '_name'];
@@ -476,22 +469,21 @@ var IDEO_POS = {
     BB:7, CNBL:8, DNVP:9, NSDAP:10, DVFP:10
 };
 
-// Run clean simulation — SPD assumed to vote 'for' for estimate purposes
-var _spd_assumed = 'for';
-
 var _for = 0, _against = 0, _abstain = 0;
 
-for (var i = 0; i < _party_list.length; i++) {
-    var _p = _party_list[i];
-    var _r = Q[_p.toLowerCase() + '_r'] || 0;
-    if (_r <= 0) continue;
-    var _seats  = Math.round(_r * 6);
+// FIX: renamed loop var _i to avoid any conflict; also renamed inner _r
+// usage to _rng to avoid shadowing the engine _r() RNG function
+for (var _ei = 0; _ei < _party_list.length; _ei++) {
+    var _p    = _party_list[_ei];
+    var _pr   = Q[_p.toLowerCase() + '_r'] || 0;
+    if (_pr <= 0) continue;
+    var _seats  = Math.round(_pr * 6);
     var _in_gov = (_gov_parties.indexOf(_p) >= 0) ? 1 : 0;
 
     var _result;
 
     if (_p === 'SPD') {
-        _result = _spd_assumed;
+        _result = 'for'; // SPD assumed to vote for, for estimate purposes
     } else if (_p === _bill_party) {
         _result = 'for';
     } else if (_p === 'NSDAP' && _bill_ideo <= 4) {
@@ -515,22 +507,22 @@ for (var i = 0; i < _party_list.length; i++) {
             var _diss = Q[_p.toLowerCase() + '_dissent'] || 0;
             if (_diss >= 2) _score -= _diss * 3;
         }
-        if (_score >= 12)       _result = 'for';
-        else if (_score >= -8)  _result = 'abstain';
-        else                    _result = 'against';
+        if (_score >= 12)      _result = 'for';
+        else if (_score >= -8) _result = 'abstain';
+        else                   _result = 'against';
     }
 
-    if (_result === 'for')     _for     += _seats;
+    if (_result === 'for')         _for     += _seats;
     else if (_result === 'against') _against += _seats;
     else                            _abstain += _seats;
 }
 
-// Apply fixed noise — ±15% of total seats
-var _total      = Q.total_seats_filled || 600;
-var _noise_max  = Math.round(_total * 0.15);
+// FIX: use _r() engine RNG instead of Math.random() for consistency
+var _total     = Q.total_seats_filled || 600;
+var _noise_max = Math.round(_total * 0.15);
 
 function _noisy(val) {
-    var _n = Math.floor(Math.random() * (_noise_max * 2 + 1)) - _noise_max;
+    var _n = Math.floor(_r() * (_noise_max * 2 + 1)) - _noise_max;
     return Math.max(0, val + _n);
 }
 
@@ -538,7 +530,6 @@ var _est_for     = _noisy(_for);
 var _est_against = _noisy(_against);
 var _est_abstain = _noisy(_abstain);
 
-// Range display — show ± half noise_max
 var _range = Math.round(_noise_max / 2);
 
 Q.estimate_for_mid     = _est_for;
@@ -551,8 +542,7 @@ Q.estimate_against_hi  = _est_against + _range;
 Q.estimate_abstain_lo  = Math.max(0, _est_abstain - _range);
 Q.estimate_abstain_hi  = _est_abstain + _range;
 
-// Outcome label
-var _margin = _est_for - _est_against;
+var _margin    = _est_for - _est_against;
 var _threshold = Math.round(_total * 0.08);
 
 if (_margin > _threshold) {
