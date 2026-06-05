@@ -5,12 +5,12 @@ tags: reichstag_affairs
 view-if: spd_in_government
 go-to: startermenu
 on-display: {!
-    document.getElementById('bill-queue-display').innerHTML = Q.bill_list_html || Q.bill_list_text || '';
+    var el = document.getElementById('bill-queue-display');
+    if (el) el.innerHTML = Q.bill_list_html || Q.bill_list_text || '';
 !}
 on-arrival: {!
 
 // ── Reset queued display vars ──────────────────────────────
-// FIX: renamed loop vars to avoid var re-declaration in flat DRY scope
 for (var _qi = 0; _qi < 10; _qi++) {
     Q['queued_' + _qi + '_slot']  = -1;
     Q['queued_' + _qi + '_name']  = '';
@@ -46,7 +46,6 @@ for (var _fi = 0; _fi < 10; _fi++) {
 }
 
 // ── SPD unqueued pool ──────────────────────────────────────
-// FIX: IDs now match canonical BILLS pool IDs from post_event system
 var SPD_POOL = [
     { id: 'unemployment_ins', name: 'Unemployment Insurance Extension', type: 'welfare',  ideo: 3, ministry: 'labor'    },
     { id: 'public_works',     name: 'WTB Public Works Programme',       type: 'economic', ideo: 3, ministry: 'economic' },
@@ -59,12 +58,10 @@ Q.num_spd_unqueued = 0;
 for (var _pi = 0; _pi < SPD_POOL.length; _pi++) {
     var _bill = SPD_POOL[_pi];
     var _in_queue = false;
-    // FIX: renamed inner loop var to _pj to avoid conflict with _pi
     for (var _pj = 0; _pj < 10; _pj++) {
         if (Q['bill_' + _pj + '_id'] === _bill.id) { _in_queue = true; break; }
     }
     if (_in_queue) continue;
-    // FIX: check bill_cd_ (cooldown) instead of non-existent bill_done_ flag
     if ((Q['bill_cd_' + _bill.id] || 0) > 0) continue;
     if (Q.crisis_id === _bill.id) continue;
     var m = Q.num_spd_unqueued;
