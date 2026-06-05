@@ -1,18 +1,18 @@
 title: DDP Merger Debate
-subtitle: The German Democratic Party considers merger agreement...
-view-if: year == 1930 and month >= 6
+subtitle: The German Democratic Party considers a merger...
+view-if: year == 1930 and month >= 4 and ddp_votes > 0 and ddp_votes < 3.5 and pro_republic < 55
 new-page: true
 max-visits: 1
 tags: event
 
 = DDP Merger Debate
 
-Leaders of the German Democratic Party are holding urgent meetings to discuss the party's declining electoral fortunes. With their base eroding, some within the party are looking for alliance partners to survive.
+The German Democratic Party (DDP) is in crisis. Its voter base has been shrinking for years, and the party leadership is holding urgent meetings to find an alliance partner just to survive the next elections.
 
-[? if ddp_relation >= 60 : We have received word from sympathetic contacts within the DDP about the internal debate. ?]
-[? if ddp_relation < 40 : The DDP has not consulted us, but word of the turmoil has reached our party leadership. ?]
+[? if ddp_relation >= 60 : Our contacts within the DDP have kept us updated on their internal arguments. ?]
+[? if ddp_relation < 40 : The DDP has not spoken to us, but everyone knows they are in turmoil. ?]
 
-- @observe: We can only observe from the sidelines.
+- @observe: We can only watch from the sidelines.
 
 @observe
 on-arrival: {!
@@ -53,13 +53,11 @@ else if (Q.merger_path == "wp") {
     Q.rural_ddp -= 2;
     Q.ddp_relation -= 3;
     Q.wp_ddp_merged = 1;
-    // LMP draws Mittelstand but loses urban liberals
     Q.old_middle_ddp += 3;
     Q.rural_ddp += 2;
-    Q.new_middle_spd += 2; // Urban liberals flee toward SPD
+    Q.new_middle_spd += 2;
 }
 else {
-    // DDP fades alone
     Q.merger_happened = 0;
     Q.ddp_dying = 1;
     Q.new_middle_ddp -= 3;
@@ -73,11 +71,11 @@ go-to: merger_outcome
 @merger_outcome
 on-arrival: {!
 if (Q.merger_path == "vnr") {
-    Q.event_message = "After heated debate, the DDP leadership has voted to merge with the political wing of the Young German Order. The party will now be called the German State Party (DStP). Progressive members are outraged and many are expected to leave.";
+    Q.event_message = "After a series of bitter arguments, the DDP has agreed to merge with the political wing of the Young German Order, forming the new German State Party (DStP). The party's remaining left-wing members are furious, and many are quitting in protest.";
 } else if (Q.merger_path == "wp") {
-    Q.event_message = "Unable to find common ground with the nationalist right, the DDP has instead turned to the Wirtschaftspartei. The two parties have agreed to merge into the Liberal Middle Class Party (LMP), uniting what remains of German liberalism with the Mittelstand movement. Urban progressives are dismayed at the economic-nationalist tinge of the new party.";
+    Q.event_message = "The DDP has chosen to merge with the Wirtschaftspartei instead, creating the Liberal Middle Class Party (LMP). This unites what is left of German liberalism with the shopkeepers and small business owners of the Mittelstand.";
 } else {
-    Q.event_message = "The DDP has rejected all merger proposals. Without a viable partner or the strength to stand alone, the party is slowly dying. Its voters are drifting away, and its future looks bleak.";
+    Q.event_message = "The DDP has rejected all merger proposals. Without a partner or a stable voter base, the party is slowly dying as its remaining voters drift elsewhere.";
 }
 !}
 
@@ -85,9 +83,9 @@ if (Q.merger_path == "vnr") {
 
 [+ event_message +]
 
-[? if merger_path == "vnr" : The transformation into the DStP represents a rightward shift for German liberalism. ?]
-[? if merger_path == "wp" : The LMP represents a fusion of economic liberalism and Mittelstand interests — but democratic idealism has been sacrificed. ?]
-[? if merger_path == "none" : The DDP retains its identity, but without allies or voters, that identity may not survive long. ?]
+[? if merger_path == "vnr" : The DStP marks a clear shift to the right for the old liberal party. ?]
+[? if merger_path == "wp" : The LMP is focused entirely on the Mittelstand, and the old progressive ideals are largely gone. ?]
+[? if merger_path == "none" : The DDP keeps its name, but it may not survive the next election. ?]
 
 - @advantage: We should capitalize on this situation.
 - @nothing: This is not our concern.
@@ -107,23 +105,21 @@ if (Q.merger_path == "vnr") {
         Q.nationalism += 1;
     }
 } else if (Q.merger_path == "wp") {
-    // Urban liberals fleeing LMP are ripe for SPD recruitment
     Q.new_middle_spd += 4;
     Q.peoples_party_support += 1;
     Q.reformist_strength += 3;
     Q.neorevisionist_strength += 2;
     Q.reformist_dissent -= 2;
 } else {
-    // Drifting DDP voters, smaller opportunity
     Q.new_middle_spd += 3;
     Q.reformist_strength += 2;
     Q.ddp_relation += 5;
 }
 !}
 
-[? if merger_path == "vnr" : With turmoil in the DStP, we have an opportunity to recruit middle-class progressives and portions of the liberal intelligentsia. The left of the SPD is opposed, seeing it as diluting the class character of the party — but revisionists support this course. ?]
-[? if merger_path == "wp" : The LMP's Mittelstand focus has left urban liberals without a home. We can offer them a place in a party committed to both democracy and social progress. ?]
-[? if merger_path == "none" : The dying DDP's voters are adrift. Many may find their way to us if we make the case for democratic socialism over liberal decline. ?]
+[? if merger_path == "vnr" : With the DStP shifting right, we can try to win over their former left-wing voters and intellectuals. Our own left wing dislikes this, fearing it will dilute our socialist character, but our reformists see it as a major opportunity. ?]
+[? if merger_path == "wp" : The LMP's focus on small businesses leaves middle-class urban liberals without a party. We can bring them into our ranks by presenting ourselves as the true defenders of democracy. ?]
+[? if merger_path == "none" : DDP voters are looking for a new home. We can convince them that democratic socialism is the only way forward for progressives. ?]
 
 @nothing
 
