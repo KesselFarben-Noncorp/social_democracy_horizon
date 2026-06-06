@@ -67,6 +67,49 @@ for (var i = 0; i < Q.parties.length; i++) {
 Q.government_total_votes = Math.round(Q.government_total_votes * 10) / 10;
 Q.government_seat_pct = Math.round((Q.government_total_seats / seat_total) * 1000) / 10;
 
+// ============================================
+// GOVERNMENT COLLAPSE CHECK
+// ============================================
+
+var gov_count = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    if (Q[Q.parties[i] + '_in_government'] === 1) gov_count++;
+}
+
+if (gov_count > 0) {
+    var effective_seats = Q.government_total_seats; // reuse from tracker above
+
+    if (Q.tolerating_parties) {
+        for (var i = 0; i < Q.tolerating_parties.length; i++) {
+            var tp = Q.tolerating_parties[i].toLowerCase();
+            if (Q[tp + '_in_government'] !== 1) {
+                effective_seats += Q[tp + '_seats'] || 0;
+            }
+        }
+    }
+
+    var effective_pct = (effective_seats / seat_total) * 100;
+    Q.government_effective_pct = Math.round(effective_pct * 10) / 10;
+
+    if (effective_pct < 50) {
+        Q.government_collapsed = 1;
+        Q.next_election_year = Q.year;
+        Q.next_election_month = Q.month + 1;
+        if (Q.next_election_month > 12) {
+            Q.next_election_month = 1;
+            Q.next_election_year += 1;
+        }
+        for (var i = 0; i < Q.parties.length; i++) {
+            Q[Q.parties[i] + '_in_government'] = 0;
+        }
+        Q.government_parties = [];
+        Q.tolerating_parties = [];
+        Q.spd_toleration = 0;
+        Q.is_minority_government = 0;
+    }
+}
+
+
 
 // QOL. REMOVES PHANTON PARTIES.
 
@@ -79,6 +122,13 @@ const inGov = Object.keys(Q)
 Q.parties_in_government_display = inGov.length > 0
   ? inGov.join(", ")
   : "None";
+
+
+
+
+
+
+
 
 // UPDATE PARTY RELATIONSHIPS EACH TIME.
 
@@ -384,6 +434,11 @@ if (Q.year >= 1928 && Q.year < 1929 && Q.geest_wildfire == 1 && (Q.state_buyer =
 if (Q.year == 1930 && Q.month == 11 && Q.weeks < 2 && Q.scholz_victory || Q.dvp_successor_outcome == "scholz_victory") {
     Q.dvp_party_leader = "Eduard Dingeldey";
     Q.dvp_ideology = "Authoritarian National Liberalism";
+}
+
+if (Q.dvp_in_government && Q.spd_in_government && Q.dvp_ideology == "Authoritarian National Liberalism" {
+    Q.dvp_in_government = 0;
+    Q.government_parties = Q.government_parties.filter(function(p) { return p !== 'DVP'; });
 }
 
 
