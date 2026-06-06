@@ -1,0 +1,88 @@
+title: Post Stresemann Succession DVP Congress
+subtitle: The weight of his death is truly big...
+tags: event
+view-if: year = 1929 and month = 11 and stresemann_dead and dvp_votes > 0
+new-page: true
+
+= Post Stresemann congress
+
+The atmosphere inside the convention hall is thick with cigar smoke, nervous whispers, and an overarching sense of dread. Gustav Stresemann is gone. The man who single-handedly held the Deutsche Volkspartei together—and frequently anchored the Weimar Republic itself—has left behind an ideological vacuum that threatens to rip the party apart.
+
+On one side, the reformist left-wing demands a continuation of the Grand Coalition with the SPD. On the other, the heavy industrialists of the right-wing demand a sharp turn toward the DNVP. 
+
+The ballots are cast, counted, and the final tally is announced from the podium...
+
+- @winner_dvp_1929_congress: And the power gains...
+
+@winner_dvp_1929_congress
+on-arrival: {!
+
+Q.dvp_curtius = Q.dvp_curtius || 0;
+Q.dvp_luther = Q.dvp_luther || 0;
+Q.dvp_scholz = Q.dvp_scholz || 0;
+
+if (Q.dvp_reform_outcome == "stresemann_success") {
+    Q.dvp_curtius += 3;
+    Q.dvp_luther += 1;
+    Q.dvp_scholz -= 1;
+} else if (Q.dvp_reform_outcome == "scholz_victory") {
+    Q.dvp_scholz += 4;   // Scholz has existing institutional momentum
+    Q.dvp_curtius -= 2;
+} else {
+    Q.dvp_luther += 3;
+    Q.dvp_curtius += 1;
+    Q.dvp_scholz += 1;
+}
+
+Q.dvp_right *= 0.01;
+Q.dvp_left *= 0.01;
+
+Q.dvp_curtius += Q.dvp_left
+Q.dvp_scholz += Q.dvp_right
+Q.dvp_luther += (Q.dvp_left + Q.dvp_right) / 2;
+
+var max_score = Math.max(Q.dvp_curtius, Q.dvp_luther, Q.dvp_scholz);
+
+// ==========================================
+// 5. FINAL OUTCOME ROUTER EVALUATION
+// ==========================================
+if (Q.dvp_curtius > (Q.dvp_luther + Q.dvp_scholz) / 2 && Q.dvp_curtius > Q.dvp_luther && Q.dvp_curtius > Q.dvp_scholz) {
+    Q.dvp_successor_outcome = "curtius_victory";
+    Q.dvp_party_leader = "Julius Curtius";
+    Q.dvp_ideology = "National Liberalism";
+} else if (Q.dvp_luther > (Q.dvp_curtius + Q.dvp_scholz) / 2 && Q.dvp_luther > Q.dvp_curtius && Q.dvp_luther > Q.dvp_scholz) {
+    Q.dvp_successor_outcome = "luther_victory";
+    Q.dvp_party_leader = "Hans Luther";
+    Q.dvp_ideology = "National Liberalism";
+} else if (Q.dvp_scholz > (Q.dvp_curtius + Q.dvp_luther) / 2 && Q.dvp_scholz > Q.dvp_curtius && Q.dvp_scholz > Q.dvp_luther) {
+    Q.dvp_successor_outcome = "scholz_victory";
+    Q.dvp_party_leader = "Ernst Scholz";
+    Q.dvp_ideology = "National Liberalism (Scholzite)";
+} else {
+    Q.dvp_successor_outcome = "eduard_victory";
+    Q.dvp_party_leader = "Eduard Dingeldey";
+    Q.dvp_ideology = "National Liberalism (Dingeldist)";
+}
+
+!}
+go-to: curtius_victory if dvp_successor_outcome = "curtius_victory"; luther_victory if dvp_successor_outcome = "luther_victory"; scholz_victory if dvp_successor_outcome = "scholz_victory"; eduard_victory if dvp_successor_outcome = "eduard_victory"
+
+@curtius_victory
+title: The Mantle of Stresemann
+
+= Curtius
+
+@luther_victory
+title: The Technocratic Compromise
+
+= Luther
+
+@scholz_victory
+title: The Rightward Turn
+
+= Scholz
+
+@eduard_victory
+title: The Generational Gridlock
+
+= Dingeldey
