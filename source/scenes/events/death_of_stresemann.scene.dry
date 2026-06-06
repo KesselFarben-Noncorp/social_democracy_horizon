@@ -1,6 +1,5 @@
 title: The Death of Gustav Stresemann
-view-if: year = 1929 and month >= 9
-frequency: 1000
+view-if: (year = 1929 and month >= 9 and (scholz_victory or stalemate)) or (year = 1930 and month = 5 and stresemann_success and dsbp_votes < 0 and foreign_ministry_party = "DVP") or (year = 1931 and month = 3 and stresemann_success and dsbp_votes < 0 and foreign_ministry_party != "DVP") or (year = 1933 and month = 1 and dsbp_votes > 0 and stresemann_success)
 max-visits: 1
 tags: event
 on-arrival: stresemann_dead = 1; stresemann_dead = 0 if foreign_ministry_party != "DVP" and secret_mode = 1
@@ -9,8 +8,16 @@ new-page: true
 
 = The Death of Gustav Stresemann
 
-Gustav Stresemann, leader of the DVP and longtime foreign minister, has died at the tragically young age of 51. He was the primary force driving his party to support democracy and maintaining cooperation with the SPD; without him, the democratic forces in the Republic will be so much weaker.
+The Reich Government has officially announced the passing of Gustav Stresemann, Chairman of the German People's Party and Reich Foreign Minister, at the age of 51. As the primary architect of the center-right's cooperation with the democratic coalition and a crucial link to the Social Democrats, his absence significantly alters the internal stability of the Republic's parliamentary framework.
 
-The power struggle for the position of his throne has begun. Perhaps national democrats may triumph over?...
+[? if year = 1929: His death in late 1929 occurs during a period of acute internal destabilization within the DVP. Months of structural conflict regarding the party’s programmatic direction—culminating in the resurgence of the industrialist wing—had severely compromised Stresemann’s authority. His passing immediately accelerates the fragmentation of the liberal center, leaving the moderate factions without an established coordinator as the right-wing opposition consolidates. ?]
 
-[? if stresemann_dead = 0: It all has been false news. Stresemann has survived. How?...?]
+[? if year = 1930: While Stresemann successfully contained the right-wing opposition within the DVP earlier in the year, the failure to secure a broader bourgeois electoral consolidation left his centrist platform isolated. Retaining the heavy administrative responsibilities of the Foreign Ministry under intense parliamentary friction severely depleted his physical reserves. His death in the spring of 1930 removes the primary diplomatic anchor of the cabinet before a broader structural consolidation could be finalized. ?]
+
+[? if year = 1931: Stresemann’s survival into 1931 followed his withdrawal from the daily administrative burdens of the Foreign Ministry, a transition facilitated by his successful stabilization of the DVP’s internal structure. This political adjustment allowed him to oversee the initial phases of centrist reorganization from a less exposed position. His passing concludes a prolonged period of medical decline, leaving the reformed liberal factions to navigate the ongoing legislative crisis independently. ?]
+
+[? if year = 1933: Stresemann’s passing in January 1933 occurs under significantly altered political conditions. Having survived to witness the successful consolidation of the bourgeois center into a unified mass movement, his final years were defined by institutional stabilization rather than defensive factional warfare. His death marks the conclusion of the foundational era of the new centrist alignment, transitioning leadership entirely to the unified organizational apparatus he helped establish. ?]
+
+The vacancy at the head of the moderate conservative movement creates an immediate organizational vacuum, initiating a strategic reorganization among the centrist factions.
+
+[? if stresemann_dead = 0: It all has been false news. Stresemann has survived. How? ?]
