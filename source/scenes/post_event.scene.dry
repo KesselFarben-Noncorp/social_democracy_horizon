@@ -402,21 +402,6 @@ for (const name of CABINET_CHANCELLORS) {
 }
 
 
-/// FOR COALITION DISSENT SCENE OF MAX DISSENT.
-
-var max_dissent = 0;
-var party_list = Q.parties.map(function(p) { return p.toUpperCase(); });
-
-for (var i = 0; i < party_list.length; i++) {
-    var p = party_list[i].toLowerCase();
-    if (!Q[p + '_in_government'] && !Q[p + '_tolerating']) continue;
-    var d = Q[p + '_dissent'] || 0;
-    if (d > max_dissent) max_dissent = d;
-}
-
-Q.max_coalition_dissent = max_dissent;
-
-
 
 
 
