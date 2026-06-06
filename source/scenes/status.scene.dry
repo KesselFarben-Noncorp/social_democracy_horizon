@@ -427,6 +427,17 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +] [? if determini
 [? if spd_in_government : Interior police strength: [+ interior_police_strength +] ?]
 
 @polls
+on-arrival: {!
+Q.party_results_list = "";
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    Q.party_results_list += p.toUpperCase() + ": " + (Q[p + '_r'] || 0).toFixed(1) + "%\n";
+}
+!}
+
+= Reichstag
+
+[+ party_results_list +]
 
 = Projected election results
 
