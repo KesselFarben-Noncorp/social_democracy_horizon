@@ -48,24 +48,15 @@ Q.random_factor = function(f, variance = 0.65) {
 // GOVERNMENT VOTE/SEAT TRACKER
 // ============================================
 Q.government_total_votes = 0;
-Q.government_total_seats = 0;
-
-var seat_total = 0;
-for (var i = 0; i < Q.parties.length; i++) {
-    seat_total += Q[Q.parties[i] + '_seats'] || 0;
-}
-if (seat_total === 0) seat_total = 1;
 
 for (var i = 0; i < Q.parties.length; i++) {
     var p = Q.parties[i];
     if (Q[p + '_in_government'] === 1) {
         Q.government_total_votes += Q[p + '_r'] || 0;
-        Q.government_total_seats += Q[p + '_seats'] || 0;
     }
 }
 
 Q.government_total_votes = Math.round(Q.government_total_votes * 10) / 10;
-Q.government_seat_pct = Math.round((Q.government_total_seats / seat_total) * 1000) / 10;
 
 // ============================================
 // GOVERNMENT COLLAPSE CHECK
@@ -77,21 +68,20 @@ for (var i = 0; i < Q.parties.length; i++) {
 }
 
 if (gov_count > 0) {
-    var effective_seats = Q.government_total_seats; // reuse from tracker above
+    var effective_votes = Q.government_total_votes;
 
     if (Q.tolerating_parties) {
         for (var i = 0; i < Q.tolerating_parties.length; i++) {
             var tp = Q.tolerating_parties[i].toLowerCase();
             if (Q[tp + '_in_government'] !== 1) {
-                effective_seats += Q[tp + '_seats'] || 0;
+                effective_votes += Q[tp + '_r'] || 0;
             }
         }
     }
 
-    var effective_pct = (effective_seats / seat_total) * 100;
-    Q.government_effective_pct = Math.round(effective_pct * 10) / 10;
+    Q.government_effective_pct = Math.round(effective_votes * 10) / 10;
 
-    if (effective_pct < 50) {
+    if (effective_votes < 50) {
         Q.government_collapsed = 1;
         Q.next_election_year = Q.year;
         Q.next_election_month = Q.month + 1;
@@ -108,7 +98,6 @@ if (gov_count > 0) {
         Q.is_minority_government = 0;
     }
 }
-
 
 
 // QOL. REMOVES PHANTON PARTIES.
