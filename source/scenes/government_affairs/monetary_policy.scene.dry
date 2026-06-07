@@ -8,14 +8,24 @@ card-image: img/Reichsbank.jpg
 
 The Reichsbank President awaits your direction on the discount rate. The current rate shapes borrowing costs across the entire economy — every point matters.
 
+[? if inflation >= 8 : Inflation has reached [+ inflation +]%. Memories of 1923 haunt the cabinet room. Even our working-class ministers are uneasy — hyperinflation destroys savings and wages alike. The Reichsbank is under enormous pressure to act. ?]
+
+[? if inflation >= 6 and inflation < 8 : Inflation stands at [+ inflation +]%. Business groups and the middle class are anxious. The Reichsbank urges action before expectations become unanchored. ?]
+
+[? if inflation < 2 and economic_growth < 1 : Deflation threatens again. Falling prices sound appealing until businesses stop investing and workers are laid off in anticipation of further declines. The Reichsbank must act before the spiral deepens. ?]
+
 - @rate_hike_sharp
 - @rate_hike_moderate
 - @rate_hold
 - @rate_cut_moderate
 - @rate_cut_sharp
+- @fiscal_austerity_option
+- @wage_price_controls_option
+- @do_nothing_option
 - @root: Take no action for now.
 - @easy_discard
 - @cancel_advisor_action
+
 
 @rate_hike_sharp
 title: Sharp Rate Hike (+2 points)
@@ -23,15 +33,13 @@ subtitle: Aggressive tightening to crush inflation and defend the currency
 view-if: inflation > 3 or capital_pressure > 0.4
 on-arrival: {!
     Q.price_pressure -= 1.20;
-    Q.inflation_expectations -= 0.75;
     Q.demand_impulse -= 0.90;
-    Q.investment_chill += 0.75;
     Q.capital_pressure -= 0.45;
-    Q.dInflation -= 0.75;
-    Q.dGrowth -= 0.60;
-    Q.dUnemployment += 0.45;
+    Q.monetization_pressure = Math.max(0, (Q.monetization_pressure || 0) - 0.10);
     Q.discount_rate += 2;
+    Q.fiscal_stance += 0.08;
 !}
+on-arrival: reichsbank_independent += 1; dvp_relation += 5; z_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); workers_spd -= 2; left_dissent += 5;
 
 The Reichsbank raises the discount rate by a full 200 basis points — a shock to credit markets that signals unwavering commitment to price stability.
 
@@ -43,20 +51,19 @@ The Reichsbank raises the discount rate by a full 200 basis points — a shock t
 
 *Best used when inflation is above 5% or the currency is under speculative attack. Dangerous if the economy is already contracting.*
 
+
 @rate_hike_moderate
 title: Moderate Rate Hike (+1 point)
 subtitle: Gradual tightening to cool inflation without choking growth
 on-arrival: {!
     Q.price_pressure -= 0.60;
-    Q.inflation_expectations -= 0.45;
     Q.demand_impulse -= 0.45;
-    Q.investment_chill += 0.30;
     Q.capital_pressure -= 0.23;
-    Q.dInflation -= 0.30;
-    Q.dGrowth -= 0.23;
-    Q.dUnemployment += 0.15;
+    Q.monetization_pressure = Math.max(0, (Q.monetization_pressure || 0) - 0.05);
     Q.discount_rate += 1;
+    Q.fiscal_stance += 0.04;
 !}
+on-arrival: reichsbank_independent += 1; dvp_relation += 3; old_middle_spd += 1*(1-dissent);
 
 The Reichsbank lifts the discount rate by 100 basis points — a measured signal that the era of easy money is ending.
 
@@ -68,11 +75,11 @@ The Reichsbank lifts the discount rate by 100 basis points — a measured signal
 
 *The standard first response to rising inflation. Safe to use before the situation becomes acute.*
 
+
 @rate_hold
 title: Hold Rates Steady
 subtitle: Maintain the current discount rate and monitor conditions
 on-arrival: {!
-    Q.inflation_expectations += 0;
     Q.monetary_policy_timer = 3;
 !}
 
@@ -86,6 +93,7 @@ The Reichsbank signals that current monetary conditions are appropriate. No chan
 
 *Use when economic data is mixed or a policy change would create unnecessary volatility. Costs nothing in the short run; complacency is the risk.*
 
+
 @rate_cut_moderate
 title: Moderate Rate Cut (−1 point)
 subtitle: Easing credit to stimulate investment and cushion a downturn
@@ -93,14 +101,11 @@ view-if: unemployment > 8 or inflation < 2 or economic_growth < 1
 on-arrival: {!
     Q.demand_impulse += 0.75;
     Q.price_pressure += 0.30;
-    Q.inflation_expectations += 0.23;
     Q.capital_pressure += 0.15;
-    Q.investment_chill -= 0.45;
-    Q.dInflation += 0.23;
-    Q.dGrowth += 0.45;
-    Q.dUnemployment -= 0.23;
+    Q.investment_chill = Math.max(0, (Q.investment_chill || 0) - 0.45);
     Q.discount_rate -= 1;
 !}
+on-arrival: workers_spd += 1*(1-dissent); left_dissent -= 2;
 
 The Reichsbank lowers the discount rate by 100 basis points, reducing the cost of credit for businesses and households alike.
 
@@ -112,6 +117,7 @@ The Reichsbank lowers the discount rate by 100 basis points, reducing the cost o
 
 *Use when unemployment is rising, deflation looms, or growth has stalled. Ineffective if banks are too frightened to lend regardless of rates.*
 
+
 @rate_cut_sharp
 title: Emergency Rate Cut (−2 points)
 subtitle: Dramatic easing to arrest deflation and avert economic collapse
@@ -119,14 +125,11 @@ view-if: unemployment > 14 or inflation < -3 or economic_growth < -3
 on-arrival: {!
     Q.demand_impulse += 1.50;
     Q.price_pressure += 0.75;
-    Q.inflation_expectations += 0.60;
     Q.capital_pressure += 0.30;
-    Q.investment_chill -= 0.90;
-    Q.dInflation += 0.60;
-    Q.dGrowth += 0.90;
-    Q.dUnemployment -= 0.45;
+    Q.investment_chill = Math.max(0, (Q.investment_chill || 0) - 0.90);
     Q.discount_rate -= 2;
 !}
+on-arrival: workers_spd += 2*(1-dissent); left_dissent -= 5; left_strength += 2;
 
 The Reichsbank slashes the discount rate by 200 basis points in an emergency session. This is an unmistakable signal that deflation is the paramount threat.
 
@@ -137,3 +140,77 @@ The Reichsbank slashes the discount rate by 200 basis points in an emergency ses
 **Risks:** Orthodox economists and foreign creditors react with alarm. Capital outflows accelerate. If confidence in the currency collapses entirely, the cure risks becoming worse than the disease.
 
 *Only available in genuine crisis — deep deflation, mass unemployment, or collapsing growth. The most powerful monetary tool remaining before unconventional measures.*
+
+
+@fiscal_austerity_option
+title: Recommend fiscal austerity to the cabinet
+subtitle: Pair monetary policy with spending discipline to squeeze out inflation
+view-if: inflation >= 6
+choose-if: budget <= 0 or inflation >= 6
+unavailable-subtitle: The budget is already balanced; austerity would be excessive at current inflation.
+on-arrival: {!
+    Q.demand_impulse -= 0.20;
+    Q.price_pressure -= 0.15;
+    Q.fiscal_stance += 0.12;
+    Q.monetization_pressure = Math.max(0, (Q.monetization_pressure || 0) - 0.06);
+!}
+on-arrival: budget += 2; economic_growth -= 0.4; unemployed += 2; works_program -= 1 if works_program > 0; dvp_relation += 6; z_relation += 5; old_middle_spd += 3*(1-dissent); workers_spd -= 4; unemployed_spd -= 5; left_dissent += 10; labor_dissent += 8; pro_republic -= 2; monetary_policy_timer += 6; month_actions += 1;
+
+"Monetary tightening alone is not enough," we tell the cabinet. "Fiscal discipline must accompany it." Government spending is cut. Public works programs are scaled back. Budget deficits narrow.
+
+The fiscal contraction reduces aggregate demand, reinforcing the Reichsbank's efforts. Creditors and savers approve. The bourgeois parties praise our "economic maturity."
+
+But the human cost is significant: rising unemployment, reduced government services, abandoned infrastructure projects.
+
+[? if works_program > 3 : We're dismantling the very programs that brought Germany out of Depression. The irony is bitter. ?]
+
+[? if bruning_austerity_accepted = 1 : We swore we'd never repeat Brüning's mistake. Now we're imposing austerity again — this time to fight inflation instead of deflation, but workers suffer either way. ?]
+
+Our working-class base feels betrayed. The classic dilemma: price stability demands exactly the policies that hurt those who voted for us.
+
+
+@wage_price_controls_option
+title: Impose temporary wage and price controls
+subtitle: Direct intervention to break the inflationary spiral without unemployment costs
+view-if: inflation >= 6
+choose-if: left_strength >= 30 or labor_strength >= 55
+unavailable-subtitle: We lack the political strength to impose direct controls against business resistance.
+on-arrival: {!
+    Q.price_pressure -= 0.30;
+    Q.distribution_shift = (Q.distribution_shift || 0) - 0.03;
+!}
+on-arrival: inflation -= 0.8; economic_growth -= 0.15; capital_strike_progress += 2; dvp_relation -= 10; dnvp_relation -= 12; old_middle_spd -= 3; workers_spd += 2*(1-dissent); left_strength += 3; labor_strength += 3; monetary_policy_timer += 6; month_actions += 1;
+
+"We will impose temporary wage and price controls to break the inflationary spiral!" Government boards will approve price increases. Wages will be regulated to prevent spiraling.
+
+Inflation moderates as price increases are blocked. Workers appreciate that unemployment doesn't rise — jobs are protected while prices stabilize.
+
+But business is apoplectic. Capital strike threats intensify. The DVP and DNVP denounce "command economy measures."
+
+[? if capital_strike_progress >= 5 : Business resistance is severe. Investment declines, production disruptions occur. Controls are only effective if we can enforce them against sustained obstruction. ?]
+
+[? if inflation >= 8 : At this level, controls risk creating black markets and shortages as sellers evade price caps. ?]
+
+
+@do_nothing_option
+title: Accept current inflation as the cost of full employment
+subtitle: Refuse to sacrifice jobs and growth to protect savers and creditors
+view-if: inflation >= 6
+choose-if: left_strength >= 35 or inflation <= 6
+unavailable-subtitle: The party lacks conviction to accept high inflation, especially at dangerous levels.
+on-arrival: {!
+    Q.price_pressure += 0.05;
+!}
+on-arrival: inflation += 0.3; old_middle_spd -= 3; new_middle_spd -= 2; catholics_spd -= 2; dvp_relation -= 8; z_relation -= 5; dnvp_relation -= 10; reichsbank_independent += 2; left_strength += 3; workers_spd += 2*(1-dissent); monetary_policy_timer += 6; month_actions += 1;
+
+"Inflation of [+ inflation +]% is the price of full employment," we declare. "After years of deflationary misery, moderate inflation is a tolerable cost for economic security."
+
+We refuse to sacrifice jobs and growth to protect savers and creditors. Our working-class base appreciates the priorities.
+
+But consequences accumulate. The middle class grows anxious as savings erode. The Reichsbank publicly criticizes government "irresponsibility."
+
+[? if inflation >= 6 : At this level, inflation begins feeding on itself. Expectations shift. Workers demand larger wage increases. Businesses raise prices preemptively. ?]
+
+[? if inflation >= 8 : Memories of 1923 resurface. Even workers who benefit from employment fear runaway inflation. The Reichsbank may act unilaterally to override our priorities. ?]
+
+[? if reichsbank_independent >= 5 : The Reichsbank has sufficient independence to tighten monetary policy over our objections. We are losing control of economic policy to unelected technocrats. ?]
