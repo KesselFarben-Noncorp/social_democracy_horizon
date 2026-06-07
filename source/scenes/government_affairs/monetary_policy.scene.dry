@@ -38,8 +38,14 @@ on-arrival: {!
     Q.monetization_pressure = Math.max(0, (Q.monetization_pressure || 0) - 0.10);
     Q.discount_rate += 2;
     Q.fiscal_stance += 0.08;
+    Q.reichsbank_independent += 1;
+    Q.dvp_relation += 5;
+    Q.z_relation += 3;
+    Q.old_middle_spd += 2 * (1 - Q.dissent);
+    Q.new_middle_spd += 2 * (1 - Q.dissent);
+    Q.workers_spd -= 2;
+    Q.left_dissent += 5;
 !}
-on-arrival: reichsbank_independent += 1; dvp_relation += 5; z_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); workers_spd -= 2; left_dissent += 5;
 
 The Reichsbank raises the discount rate by a full 200 basis points — a shock to credit markets that signals unwavering commitment to price stability.
 
@@ -62,8 +68,10 @@ on-arrival: {!
     Q.monetization_pressure = Math.max(0, (Q.monetization_pressure || 0) - 0.05);
     Q.discount_rate += 1;
     Q.fiscal_stance += 0.04;
+    Q.reichsbank_independent += 1;
+    Q.dvp_relation += 3;
+    Q.old_middle_spd += 1 * (1 - Q.dissent);
 !}
-on-arrival: reichsbank_independent += 1; dvp_relation += 3; old_middle_spd += 1*(1-dissent);
 
 The Reichsbank lifts the discount rate by 100 basis points — a measured signal that the era of easy money is ending.
 
@@ -104,8 +112,9 @@ on-arrival: {!
     Q.capital_pressure += 0.15;
     Q.investment_chill = Math.max(0, (Q.investment_chill || 0) - 0.45);
     Q.discount_rate -= 1;
+    Q.workers_spd += 1 * (1 - Q.dissent);
+    Q.left_dissent -= 2;
 !}
-on-arrival: workers_spd += 1*(1-dissent); left_dissent -= 2;
 
 The Reichsbank lowers the discount rate by 100 basis points, reducing the cost of credit for businesses and households alike.
 
@@ -128,8 +137,10 @@ on-arrival: {!
     Q.capital_pressure += 0.30;
     Q.investment_chill = Math.max(0, (Q.investment_chill || 0) - 0.90);
     Q.discount_rate -= 2;
+    Q.workers_spd += 2 * (1 - Q.dissent);
+    Q.left_dissent -= 5;
+    Q.left_strength += 2;
 !}
-on-arrival: workers_spd += 2*(1-dissent); left_dissent -= 5; left_strength += 2;
 
 The Reichsbank slashes the discount rate by 200 basis points in an emergency session. This is an unmistakable signal that deflation is the paramount threat.
 
@@ -153,8 +164,21 @@ on-arrival: {!
     Q.price_pressure -= 0.15;
     Q.fiscal_stance += 0.12;
     Q.monetization_pressure = Math.max(0, (Q.monetization_pressure || 0) - 0.06);
+    Q.budget += 2;
+    Q.economic_growth -= 0.4;
+    Q.unemployed += 2;
+    if (Q.works_program > 0) Q.works_program -= 1;
+    Q.dvp_relation += 6;
+    Q.z_relation += 5;
+    Q.old_middle_spd += 3 * (1 - Q.dissent);
+    Q.workers_spd -= 4;
+    Q.unemployed_spd -= 5;
+    Q.left_dissent += 10;
+    Q.labor_dissent += 8;
+    Q.pro_republic -= 2;
+    Q.monetary_policy_timer += 6;
+    Q.month_actions += 1;
 !}
-on-arrival: budget += 2; economic_growth -= 0.4; unemployed += 2; works_program -= 1 if works_program > 0; dvp_relation += 6; z_relation += 5; old_middle_spd += 3*(1-dissent); workers_spd -= 4; unemployed_spd -= 5; left_dissent += 10; labor_dissent += 8; pro_republic -= 2; monetary_policy_timer += 6; month_actions += 1;
 
 "Monetary tightening alone is not enough," we tell the cabinet. "Fiscal discipline must accompany it." Government spending is cut. Public works programs are scaled back. Budget deficits narrow.
 
@@ -178,8 +202,18 @@ unavailable-subtitle: We lack the political strength to impose direct controls a
 on-arrival: {!
     Q.price_pressure -= 0.30;
     Q.distribution_shift = (Q.distribution_shift || 0) - 0.03;
+    Q.inflation -= 0.8;
+    Q.economic_growth -= 0.15;
+    Q.capital_strike_progress += 2;
+    Q.dvp_relation -= 10;
+    Q.dnvp_relation -= 12;
+    Q.old_middle_spd -= 3;
+    Q.workers_spd += 2 * (1 - Q.dissent);
+    Q.left_strength += 3;
+    Q.labor_strength += 3;
+    Q.monetary_policy_timer += 6;
+    Q.month_actions += 1;
 !}
-on-arrival: inflation -= 0.8; economic_growth -= 0.15; capital_strike_progress += 2; dvp_relation -= 10; dnvp_relation -= 12; old_middle_spd -= 3; workers_spd += 2*(1-dissent); left_strength += 3; labor_strength += 3; monetary_policy_timer += 6; month_actions += 1;
 
 "We will impose temporary wage and price controls to break the inflationary spiral!" Government boards will approve price increases. Wages will be regulated to prevent spiraling.
 
@@ -200,8 +234,19 @@ choose-if: left_strength >= 35 or inflation <= 6
 unavailable-subtitle: The party lacks conviction to accept high inflation, especially at dangerous levels.
 on-arrival: {!
     Q.price_pressure += 0.05;
+    Q.inflation += 0.3;
+    Q.old_middle_spd -= 3;
+    Q.new_middle_spd -= 2;
+    Q.catholics_spd -= 2;
+    Q.dvp_relation -= 8;
+    Q.z_relation -= 5;
+    Q.dnvp_relation -= 10;
+    Q.reichsbank_independent += 2;
+    Q.left_strength += 3;
+    Q.workers_spd += 2 * (1 - Q.dissent);
+    Q.monetary_policy_timer += 6;
+    Q.month_actions += 1;
 !}
-on-arrival: inflation += 0.3; old_middle_spd -= 3; new_middle_spd -= 2; catholics_spd -= 2; dvp_relation -= 8; z_relation -= 5; dnvp_relation -= 10; reichsbank_independent += 2; left_strength += 3; workers_spd += 2*(1-dissent); monetary_policy_timer += 6; month_actions += 1;
 
 "Inflation of [+ inflation +]% is the price of full employment," we declare. "After years of deflationary misery, moderate inflation is a tolerable cost for economic security."
 
