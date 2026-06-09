@@ -324,5 +324,21 @@
 
     </div><!-- /#page -->
 
+        <!-- ERUDA MOBILE DEVTOOLS START -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+      eruda.init();
+      // Force the Eruda icon to sit on top of the game's layout & overlays
+      const forceEruda = setInterval(() => {
+        const btn = document.querySelector('.eruda-entry-btn');
+        if (btn) {
+          btn.style.setProperty('z-index', '2147483647', 'important');
+          clearInterval(forceEruda);
+        }
+      }, 100);
+    </script>
+    <!-- ERUDA MOBILE DEVTOOLS END -->
+
+
   </body>
 </html>
