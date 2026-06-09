@@ -39,3 +39,7 @@ Copyright belongs to the Autumn Chen OR https://github.com/aucchen/social_democr
 2. Run `dendrynexus make-html` in this folder.
 
 To update dendrynexus in `package-lock.json`, run `npm install --upgrade https://github.com/aucchen/dendrynexus`
+
+---
+
+Be not feared. This push is made through normal terminal. Proceed on.
