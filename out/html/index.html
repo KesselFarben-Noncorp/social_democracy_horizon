@@ -324,21 +324,26 @@
 
     </div><!-- /#page -->
 
-        <!-- ERUDA MOBILE DEVTOOLS START -->
+        !-- ERUDA MOBILE DEVTOOLS START -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>
-      eruda.init();
-      // Force the Eruda icon to sit on top of the game's layout & overlays
-      const forceEruda = setInterval(() => {
-        const btn = document.querySelector('.eruda-entry-btn');
-        if (btn) {
-          btn.style.setProperty('z-index', '2147483647', 'important');
-          clearInterval(forceEruda);
-        }
-      }, 100);
+      // Detect if the user is on a phone using User Agent or screen width
+      const isPhone = /Android|iPhone|iPod|BlackBerry|IEMobile/i.test(navigator.userAgent) || (window.innerWidth < 768);
+
+      if (isPhone) {
+        eruda.init();
+        
+        // Force the Eruda icon to sit on top of the game's layout & overlays
+        const forceEruda = setInterval(() => {
+          const btn = document.querySelector('.eruda-entry-btn');
+          if (btn) {
+            btn.style.setProperty('z-index', '2147483647', 'important');
+            clearInterval(forceEruda);
+          }
+        }, 100);
+      }
     </script>
     <!-- ERUDA MOBILE DEVTOOLS END -->
-
 
   </body>
 </html>
