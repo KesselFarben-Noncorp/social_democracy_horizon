@@ -9,6 +9,13 @@ const inGov = Object.keys(Q)
 Q.parties_in_government_display = inGov.length > 0
   ? inGov.join(", ")
   : "None";
+
+var portrait = document.createElement('img');
+portrait.src = 'img/portraits/' + Q.president + '.png';
+portrait.className = 'face-img';
+var el = document.querySelector('.content');
+if (el) el.appendChild(portrait);
+
 !}
 
 = Status
@@ -29,13 +36,6 @@ Next presidential election: [+ next_presidential_election_month : month +] [+ ne
 = Government
 
 President: [+ president +] ([+ president_party +])
-{!
-var portrait = document.createElement('img');
-portrait.src = 'img/portraits/' + Q.president + '.png';
-portrait.className = 'face-img';
-var el = document.querySelector('.content');
-if (el) el.appendChild(portrait);
-!}
 
 [? if president_party != "SPD": President's Patience: [+ hindenburg_patience +] ?]
 
