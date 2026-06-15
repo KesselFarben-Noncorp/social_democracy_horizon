@@ -71,7 +71,7 @@ var econ_stress = clamp(unemp * 0.08 + Math.max(inf, 0) * 0.06 + Math.max(-inf, 
 var boom        = clamp(growth / 10, -0.5, 0.5);
 
 // Stress → left + fascist surge, centrist collapse
-vf.sdapo      += econ_stress * 0.10;
+vf.sdapo      += econ_stress * 0.03;
 vf.kpo        += econ_stress * 0.08;
 vf.heimatblock+= econ_stress * 0.07;
 vf.dnsap      += econ_stress * 0.09;
@@ -94,7 +94,7 @@ if (inf < -3) {
     vf.dnsap      += defl;
     vf.heimatblock+= defl * 0.8;
     vf.kpo        += defl * 0.7;
-    vf.sdapo      += defl * 0.5;
+    vf.sdapo      += defl * 0.2;
     vf.cs         -= defl * 0.5;
 }
 
@@ -105,7 +105,7 @@ if (cycle > 1)  { vf.cs    += cycle * 0.03; vf.gdvp += cycle * 0.02; }
 
 // Unemployment insurance erosion
 var welfare = Q.welfare || 0;
-if (welfare < 0) { vf.kpo += 0.05; vf.sdapo += 0.03; }
+if (welfare < 0) { vf.kpo += 0.05; vf.sdapo += 0.01; }
 if (welfare > 2) { vf.sdapo += 0.04; vf.cs += 0.02; }
 
 // ── 4. POLITICAL VIOLENCE & POLARISATION ─────────────────────
@@ -251,7 +251,7 @@ if (Q.intelligence_network >= 1) {
 // Pro-republic efforts from Germany
 if (Q.pro_republic >= 60) {
     vf.sdapo  += 0.04;
-    vf.cs     += 0.02;
+    vf.cs     += 0.05;
     vf.dnsap  -= 0.03;
 }
 
@@ -281,7 +281,7 @@ keys.forEach(function(k) {
 });
 
 // Floor values (parties can shrink but not vanish entirely if active)
-raw.sdapo      = Math.max(raw.sdapo,      14.0);
+raw.sdapo      = Math.max(raw.sdapo,      10.0);
 raw.cs         = Math.max(raw.cs,         10.0);
 raw.gdvp       = Math.max(raw.gdvp,        3.0);
 raw.lb         = Math.max(raw.lb,          1.5);
