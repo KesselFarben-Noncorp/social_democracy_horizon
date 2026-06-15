@@ -64,156 +64,7 @@ if (!Q.rng_seed) {
 
 
 
-// ========================================
-// HINDENBURG & CAMARILLA VARIABLES
-// ========================================
 
-// === HINDENBURG PERSONAL STATE ===
-Q.hindenburg_president = 0;           // Is Hindenburg currently president?
-Q.hindenburg_health = 100;            // 0-100, declines with age/stress
-Q.hindenburg_age = 78;                // Born 1847, starts at 78 in 1925
-Q.hindenburg_senility = 0;            // 0-100, increases over time
-Q.hindenburg_stubbornness = 75;       // 0-100, resistance to pressure
-Q.hindenburg_trust_reichstag = 50;    // 0-100, faith in parliament
-Q.hindenburg_trust_military = 85;     // 0-100, faith in Reichswehr
-Q.hindenburg_trust_spd = 30;          // 0-100, trust in Social Democrats
-Q.hindenburg_trust_z = 60;            // 0-100, trust in Center Party
-Q.hindenburg_trust_dnvp = 70;         // 0-100, trust in Nationalists
-Q.hindenburg_monarchist_sentiment = 65; // 0-100, desire to restore Kaiser
-    
-    // === CAMARILLA (INNER CIRCLE) ===
-Q.camarilla_exists = 0;               // Does the camarilla exist yet?
-Q.camarilla_strength = 0;             // 0-100, overall influence over Hindenburg
-Q.camarilla_unified = 0;              // 0-100, internal unity of camarilla
-    
-    // Individual camarilla member influence (0-100 each)
-Q.meissner_influence = 0;             // Otto Meißner - State Secretary
-Q.schleicher_influence = 0;           // Kurt von Schleicher - General/Intriguer
-Q.oskar_influence = 0;                // Oskar von Hindenburg - Son
-Q.oldenburg_influence = 0;            // Elard von Oldenburg-Januschau - Junker
-Q.papen_influence = 0;                // Franz von Papen - Aristocrat (joins later)
-Q.hugenberg_influence = 0;            // Alfred Hugenberg - Media mogul (indirect)
-    
-    // Camarilla member status
-Q.meissner_exposed = 0;               // Has Meißner been exposed for corruption?
-Q.schleicher_exposed = 0;             // Has Schleicher been exposed for plotting?
-Q.oskar_bribed = 0;                   // Has Oskar been bribed (Osthilfe scandal)?
-Q.oskar_convinced = 0;                // Has Oskar been convinced to oppose camarilla?
-Q.papen_in_camarilla = 0;             // Has Papen joined the inner circle?
-Q.oldenburg_scandal = 0;              // Junker subsidy scandal exposed?
-    
-    // === CAMARILLA GOALS ===
-Q.camarilla_goal_destroy_parliament = 0;    // 0-100, desire to end democracy
-Q.camarilla_goal_install_papen = 0;         // 0-100, desire to make Papen Chancellor
-Q.camarilla_goal_military_dictatorship = 0; // 0-100, desire for Reichswehr rule
-Q.camarilla_goal_restore_monarchy = 0;      // 0-100, desire to restore Kaiser
-Q.camarilla_goal_crush_left = 0;            // 0-100, desire to destroy SPD/KPD
-Q.camarilla_goal_protect_junkers = 0;       // 0-100, desire to protect East Elbian estates
-Q.camarilla_goal_install_hitler = 0;        // 0-100, willingness to use Hitler
-    
-    // === PRESIDENTIAL CRISIS TRACKING ===
-Q.hindenburg_crisis_threshold = 0;          // Accumulating crisis points
-Q.hindenburg_interventions = 0;             // Count of Article 48 emergency decree uses
-Q.hindenburg_reichstag_dissolutions = 0;    // Count of Reichstag dissolutions
-Q.hindenburg_government_dismissals = 0;     // Count of governments dismissed
-    
-    // === PRESIDENTIAL CABINET ERA ===
-Q.presidential_cabinet = 0;                 // Is current government a "Presidential Cabinet"?
-Q.presidential_cabinet_count = 0;           // How many presidential cabinets so far?
-Q.bruning_cabinet = 0;                      // Is Brüning currently Chancellor?
-Q.papen_cabinet = 0;                        // Is Papen currently Chancellor?
-Q.schleicher_cabinet = 0;                   // Is Schleicher currently Chancellor?
-Q.bruning_dismissed = 0;                    // Has Brüning been dismissed?
-Q.papen_dismissed = 0;                      // Has Papen been dismissed?
-    
-    // === KEY CAMARILLA PLOTS ===
-Q.schleicher_bruning_plot = 0;              // Has Schleicher plotted to install Brüning?
-Q.schleicher_bruning_plotted = 0;           // Has the plot been executed?
-Q.camarilla_tired_of_bruning = 0;           // Has camarilla turned against Brüning?
-Q.papen_appointment_plot = 0;               // Is Papen appointment being plotted?
-Q.papen_appointment_prevented = 0;          // Did SPD prevent Papen appointment?
-Q.schleicher_papen_rivalry = 0;             // 0-100, rivalry between Schleicher and Papen
-Q.camarilla_final_plot = 0;                 // Is the Hitler appointment plot active?
-Q.hitler_appointment_prevented = 0;         // Did SPD prevent Hitler appointment?
-    
-    // === OSTHILFE SCANDAL ===
-Q.osthilfe_scandal = 0;                     // Eastern Aid scandal (bribing Hindenburg/Oskar)
-Q.osthilfe_exposed = 0;                     // Has the scandal been exposed?
-Q.osthilfe_investigation = 0;               // Is there an active investigation?
-Q.osthilfe_cover_up = 0;                    // Has the camarilla covered it up?
-Q.hindenburg_estate_neudeck = 0;            // Did Hindenburg receive estate as bribe?
-    
-    // === ALTERNATIVE CHANCELLORS ===
-Q.goerdeler_prominence = 0;                 // 0-10, Carl Goerdeler's national prominence
-Q.goerdeler_chancellor_possible = 0;        // Can Goerdeler become Chancellor?
-Q.hammerstein_coup_ready = 0;               // Is Hammerstein ready to launch coup?
-Q.hammerstein_coup_attempted = 0;           // Has coup been attempted?
-Q.hammerstein_coup_success = 0;             // Did the coup succeed?
-    
-    // === SCHLEICHER'S QUERFRONT ===
-Q.schleicher_querfront_attempt = 0;         // Is Schleicher attempting cross-front?
-Q.schleicher_querfront_attempted = 0;       // Has it been attempted?
-Q.schleicher_querfront_success = 0;         // Did it succeed?
-Q.schleicher_querfront_spd_support = 0;     // Does SPD support the Querfront?
-Q.schleicher_querfront_success_chance = 30; // Base chance of success
-Q.strasser_splits_nsdap = 0;                // Did Gregor Strasser split from NSDAP?
-    
-    // === PAPEN DICTATORSHIP ATTEMPT ===
-Q.papen_dictatorship_attempt = 0;           // Is Papen attempting dictatorship?
-Q.papen_second_term = 0;                    // Is this Papen's second chancellorship?
-Q.cabinet_of_barons = 0;                    // Is current cabinet the "Cabinet of Barons"?
-Q.center_split_risk = 0;                    // Does Papen threaten to split Center Party?
-    
-    // === MILITARY EMERGENCY GOVERNMENT ===
-Q.military_emergency_government = 0;        // Is military ruling?
-Q.military_dictatorship = 0;                // Is this a full military dictatorship?
-Q.military_dictatorship_brewing = 0;        // Is military dictatorship being prepared?
-Q.article_48_permanent = 0;                 // Has Article 48 become permanent rule?
-    
-    // === NAZI APPOINTMENT ===
-Q.nazi_takeover_begins = 0;                 // Has Hitler been appointed Chancellor?
-Q.hugenberg_hitler_pact = 0;                // Hugenberg-Hitler government pact?
-Q.vice_chancellor = "";                     // Who is Vice Chancellor?
-Q.vice_chancellor_party = "";               // Vice Chancellor's party
-    
-    // === SPD COUNTER-STRATEGIES ===
-Q.hindenburg_relationship_efforts = 0;      // Count of attempts to improve Hindenburg relations
-Q.camarilla_counter_efforts = 0;            // Count of attempts to counter camarilla
-Q.bruning_saved_by_spd = 0;                 // Did SPD save Brüning from dismissal?
-Q.schleicher_appointment_prevented = 0;     // Did SPD prevent Schleicher appointment?
-    
-    // === HINDENBURG DEATH/SUCCESSION ===
-Q.hindenburg_historical_death = 0;          // Historical death date (Aug 1934) reached?
-Q.hindenburg_death_year = 0;                // Year of death (if different)
-Q.hindenburg_successor_crisis = 0;          // Crisis over succession?
-    
-    // === TRACKED EVENTS ===
-Q.hindenburg_1925_elected = 0;              // Hindenburg elected in 1925?
-Q.hindenburg_1928_seen = 0;                 // 1928 intro event seen?
-Q.hindenburg_1932_reelected = 0;            // Hindenburg reelected in 1932?
-Q.hindenburg_opposes_hitler_1932 = 0;       // Did Hindenburg initially oppose Hitler?
-    
-    // === CAMARILLA MEETINGS ===
-Q.camarilla_meeting_count = 0;              // Number of camarilla meetings tracked
-Q.last_camarilla_meeting = "";              // Description of last meeting
-Q.oskar_house_meeting = 0;    
-
-
-
-
-
-
-Q.hindenburg_age = 78 + (Q.year - 1925);
-Q.hindenburg_health = 90;
-Q.hindenburg_senility = 10;
-Q.camarilla_strength = 35;
-Q.meissner_influence = 55;
-Q.oskar_influence = 60;
-Q.oldenburg_influence = 45;
-Q.schleicher_influence = 40;
-Q.camarilla_goal_protect_junkers = 70;
-Q.camarilla_goal_crush_left = 50;
-Q.camarilla_goal_destroy_parliament = 15;
 
 
 
@@ -227,11 +78,9 @@ Q.camarilla_goal_destroy_parliament = 15;
 
 
 Q.president_party = "I";
-Q.president_relation = 50;
 Q.next_presidential_election_year = 1932;
 Q.next_presidential_election_month = 5;
 Q.next_austria_election = 1930;
-Q.hindenburg_trust_spd = 50;
 Q.spd_congress_next_year = 1928;
 Q.spd_congress_next_month = 5;
 
@@ -246,7 +95,7 @@ Q.dues_catholics = 1;
 //Influence power for SPD la KPD.
 
 Q.young_socialists = 1;
-Q.ideology = "centrist"
+Q.ideology = "centrist";
 
 // === Macro Impulse & Pressure Variables (Cycle-Level, Continuous) ===
 
