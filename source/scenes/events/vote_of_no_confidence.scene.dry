@@ -1,15 +1,46 @@
-title: The Right calls a vote of no confidence against the current government!
-subtitle: We have angered our coalition partners too much...
+title: Our coalition partner calls a vote of no confidence against the current government!
+subtitle: We have angered our coalition partner too much...
 new-page: true
-on-arrival: tried_supporting_kpd = 0
-view-if: spd_in_government = 1 and ((in_grand_coalition = 1 or in_popular_front = 1 or in_minority_government = 1) and coalition_dissent >= 3) or (in_weimar_coalition = 1 and coalition_dissent >= 4) and spd_r < 50 and not constructive_vonc
+view-if: spd_in_government = 1 and coalition_low_relation = 1 and spd_r < 50 and not constructive_vonc
 tags: event
 go-to: vonc_menu
+on-arrival: {! 
+Q.vonc_caller = "";
+var lowest_relation = 999;
+var lowest_party = "";
 
-# Options: spend relations to reduce coalition_dissent, ask for kpd to abstain
-# (lmao KPD toleration arc...)
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    if (p === "spd") continue;
+    if (Q[p + '_in_government'] === 1 && Q[p + '_relation'] < lowest_relation) {
+        lowest_relation = Q[p + '_relation'];
+        lowest_party = p;
+    }
+}
+
+if (lowest_party === "" && Q.tolerating_parties) {
+    for (var i = 0; i < Q.tolerating_parties.length; i++) {
+        var tp = Q.tolerating_parties[i].toLowerCase();
+        if (tp === "spd") continue;
+        if (Q[tp + '_relation'] < lowest_relation) {
+            lowest_relation = Q[tp + '_relation'];
+            lowest_party = tp;
+        }
+    }
+}
+
+Q.vonc_caller_party = lowest_party;
+Q.vonc_caller = lowest_party.toUpperCase();
+!}
 
 = Vote of No Confidence
+
+[+ vonc_caller +] has called for a vote of no confidence against us, due to our various policies and disagreements. If this succeeds, there will be an election in a few months.
+
+@vonc_menu
+
+- @try_assuage: Try to assuage our partners.
+- @let_it_happen: Let the vote happen.
 
 [? if in_grand_coalition : The DVP ?][? if in_weimar_coalition or in_popular_front or in_minority_government: The Center Party ?] has called for a vote of no confidence against us, due to our various policies and disagreements. If this succeeds, there will be an election in a few months.
 
@@ -20,7 +51,7 @@ go-to: vonc_menu
 
 @try_assuage
 
-How do we assuage our partners?
+How do we assuage [+ vonc_caller +]?
 
 - @give_up_prussia: Give up on leadership of Prussia.
 - @austerity: Enact a massive austerity plan.
@@ -28,25 +59,56 @@ How do we assuage our partners?
 - @let_it_happen: Never mind. Let the vote happen.
 
 @give_up_prussia
-view-if: spd_prussia == 1
-on-arrival: coalition_dissent = 0; spd_prussia = 0; prussian_government = "I"; reformist_dissent += 10; centrist_dissent += 10; labor_dissent += 10; left_dissent += 5; workers_spd -= 5; rural_spd -= 5; 
+view-if: spd_prussia == 1 or prussian_government == "SPD"
+on-arrival: {!
+Q.spd_prussia = 0;
+Q.prussian_government = Q.vonc_caller_party.toUpperCase();
+Q[Q.vonc_caller_party + '_relation'] = Math.max(Q[Q.vonc_caller_party + '_relation'], 50);
+Q.reformist_dissent += 10;
+Q.centrist_dissent += 10;
+Q.labor_dissent += 10;
+Q.left_dissent += 5;
+Q.workers_spd -= 5;
+Q.rural_spd -= 5;
+!}
 
-Fine. We no longer control the government of Prussia. The vote has been called off.
+Fine. We hand control of Prussia's government to [+ vonc_caller +]. The vote has been called off.
 
 @austerity
 view-if: welfare >= 0 and not secularized
-on-arrival: coalition_dissent = 0; workers_spd -= 10; unemployed_spd -= 10; workers_kpd += 7; workers_nsdap += 3; unemployed_kpd += 5; unemployed_nsdap += 5; left_dissent += 15; center_dissent += 10; labor_dissent += 15; reformist_dissent += 5; welfare -= 2; budget += 1; unemployed += 2.8; workers_aid -= 5; kpd_coalition_dissent += 2; kpd_relation -= 10 if in_popular_front
+on-arrival: {!
+Q[Q.vonc_caller_party + '_relation'] = Math.max(Q[Q.vonc_caller_party + '_relation'], 50);
+Q.workers_spd -= 10;
+Q.unemployed_spd -= 10;
+Q.workers_kpd += 7;
+Q.workers_nsdap += 3;
+Q.unemployed_kpd += 5;
+Q.unemployed_nsdap += 5;
+Q.left_dissent += 15;
+Q.center_dissent += 10;
+Q.labor_dissent += 15;
+Q.reformist_dissent += 5;
+Q.welfare -= 2;
+Q.budget += 1;
+Q.unemployed += 2.8;
+Q.workers_aid -= 5;
+if (Q.vonc_caller_party === "kpd") { Q.kpd_coalition_dissent += 2; }
+if (Q.in_popular_front) { Q.kpd_relation -= 10; }
+!}
 
-Fine. We enacted a massive austerity program to cut welfare, in order to maintain the stability of our coalition. The vote has been called off.
+Fine. We enacted a massive austerity program to cut welfare, in order to satisfy [+ vonc_caller +]. The vote has been called off.
 
 @resources
 view-if: secularized = 0
 choose-if: resources >= 3
 unavailable-subtitle: We do not have enough resources.
 subtitle: -3 resources
-on-arrival: resources -= 3; coalition_dissent -= 1;
+on-arrival: {!
+Q.resources -= 3;
+Q[Q.vonc_caller_party + '_relation'] += 15;
+!}
 
-By transferring resources to our coalition partners, we can reduce their dissent against our policies. This is a crude, but effective solution.
+By transferring resources directly to [+ vonc_caller +], we can repair our standing with them. This is a crude, but effective solution.
 
 @let_it_happen
 call: set_next_election_time
