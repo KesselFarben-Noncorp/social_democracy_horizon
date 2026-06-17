@@ -222,58 +222,59 @@ go-to: sandbox_menu
 - @goto: Go to any scene
 
 @goto
-on-arrival: {!
+on-display: {!
+if (!window.dendryUI.injectSceneJumper) {
     window.dendryUI.injectSceneJumper = function() {
-  var existing = document.getElementById('scene-jumper');
-  if (existing) existing.remove();
+        var engine = window.dendryUI.dendryEngine;
+        var container = document.getElementById('scene-jumper');
+        if (!container) return;
+        container.innerHTML = '';
 
-  var engine = window.dendryUI.dendryEngine;
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'scene id (e.g. main, post_event.events_choice)';
+        input.style.cssText =
+            'background:#111; color:#0f0; border:1px solid #0f0;' +
+            'padding:6px 10px; font-family:monospace; font-size:13px;' +
+            'width:60%; outline:none; border-radius:2px;';
 
-  var wrap = document.createElement('div');
-  wrap.id = 'scene-jumper';
-  wrap.style.margin = '1em 0';
+        var btn = document.createElement('button');
+        btn.textContent = 'Go';
+        btn.style.cssText =
+            'margin-left:8px; background:#0f0; color:#000; border:none;' +
+            'padding:6px 12px; font-family:monospace; font-size:13px;' +
+            'cursor:pointer; border-radius:2px;';
 
-  var input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'scene id (e.g. main, post_event.events_choice)';
-  input.style.width = '70%';
+        var status = document.createElement('p');
+        status.style.cssText = 'color:#f55; font-size:12px; margin-top:6px; height:16px;';
 
-  var button = document.createElement('button');
-  button.textContent = 'Go';
-  button.style.marginLeft = '0.5em';
+        function jump() {
+            var id = input.value.trim();
+            if (!id) return;
+            if (!engine.game || !engine.game.scenes || !engine.game.scenes[id]) {
+                status.textContent = '✗ No such scene: "' + id + '"';
+                return;
+            }
+            engine.goToScene(id);
+        }
 
-  var status = document.createElement('div');
-  status.style.marginTop = '0.5em';
-  status.style.opacity = '0.8';
+        btn.addEventListener('click', jump);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') jump();
+        });
 
-  function jump() {
-    var id = input.value.trim();
-    if (!id) return;
-    if (!engine.state.qualities) { status.textContent = 'Engine not ready.'; return; }
-    if (!engine.game || !engine.game.scenes || !engine.game.scenes[id]) {
-      status.textContent = 'No such scene: "' + id + '"';
-      return;
-    }
-    engine.goToScene(id);
-  }
+        container.appendChild(input);
+        container.appendChild(btn);
+        container.appendChild(status);
+    };
+}
 
-  button.onclick = jump;
-  input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') jump();
-  });
-
-  wrap.appendChild(input);
-  wrap.appendChild(button);
-  wrap.appendChild(status);
-
-  var content = document.getElementById('content') || document.body;
-  content.appendChild(wrap);
-};
-    
-    this.injectSceneJumper();
+window.dendryUI.injectSceneJumper();
 !}
 
-Developer sandbox. Type the id of any scene to jump straight to it.
+= Developer sandbox. Type the id of any scene to jump straight to it.
+
+{!<div id="scene-jumper"></div>!}
 
 - @technical: Back
 
