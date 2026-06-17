@@ -12,7 +12,7 @@ go-to: sandbox_menu
 - @all-variables: All variables.
 - @secretmode: Secret Mode
 - @wacky: All wacky things (unlocked when reaching 1935)
-- @technical: Technical things, just messing with variables.
+- @technical: Technical work
 - @truesandbox
 - @developermode: Developer Mode
 - @debug: Purest Debug
@@ -219,7 +219,63 @@ go-to: sandbox_menu
 - @timers
 - @t_timers: All timers
 - @debug_legislative: Legislative Debug
+- @goto: Go to any scene
 
+@goto
+on-arrival: {!
+    window.dendryUI.injectSceneJumper = function() {
+  var existing = document.getElementById('scene-jumper');
+  if (existing) existing.remove();
+
+  var engine = window.dendryUI.dendryEngine;
+
+  var wrap = document.createElement('div');
+  wrap.id = 'scene-jumper';
+  wrap.style.margin = '1em 0';
+
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'scene id (e.g. main, post_event.events_choice)';
+  input.style.width = '70%';
+
+  var button = document.createElement('button');
+  button.textContent = 'Go';
+  button.style.marginLeft = '0.5em';
+
+  var status = document.createElement('div');
+  status.style.marginTop = '0.5em';
+  status.style.opacity = '0.8';
+
+  function jump() {
+    var id = input.value.trim();
+    if (!id) return;
+    if (!engine.state.qualities) { status.textContent = 'Engine not ready.'; return; }
+    if (!engine.game || !engine.game.scenes || !engine.game.scenes[id]) {
+      status.textContent = 'No such scene: "' + id + '"';
+      return;
+    }
+    engine.goToScene(id);
+  }
+
+  button.onclick = jump;
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') jump();
+  });
+
+  wrap.appendChild(input);
+  wrap.appendChild(button);
+  wrap.appendChild(status);
+
+  var content = document.getElementById('content') || document.body;
+  content.appendChild(wrap);
+};
+    
+    this.injectSceneJumper();
+!}
+
+Developer sandbox. Type the id of any scene to jump straight to it.
+
+- @technical: Back
 
 @debug_legislative
 title: Bill System Debug
