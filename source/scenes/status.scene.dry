@@ -10,12 +10,16 @@ Q.parties_in_government_display = inGov.length > 0
   ? inGov.join(", ")
   : "None";
 
+var tolDisplay = (Q.tolerating_parties && Q.tolerating_parties.length > 0)
+  ? Q.tolerating_parties.map(function(p){ return p.toUpperCase(); }).join(", ")
+  : "None";
+Q.tolerating_parties_display = tolDisplay;
+
 var portrait = document.createElement('img');
 portrait.src = 'img/portraits/' + Q.president + '.png';
 portrait.className = 'face-img';
 var el = document.querySelector('.content');
 if (el) el.appendChild(portrait);
-
 !}
 
 = Status
@@ -43,7 +47,9 @@ Prussian Minister-President: [+ prussian_mp +] ([+ prussian_government +])
 
 Parties in government: [+ parties_in_government_display +]
 
-Government coalition votes: [+ government_total_votes +]
+[? if tolerating_parties_display != "None" : Tolerated by: [+ tolerating_parties_display +] ?]
+
+Government coalition votes: [+ government_total_votes +][? if tolerating_parties_display != "None" :  ([+ government_effective_pct +] effective with toleration) ?]
 
 = Other Positions
 
@@ -56,7 +62,6 @@ Reichstag President: [+ reichstag_president +]
 [? if spd_in_government = 1 : Budget: [+ budget +] ?]
 
 Resources available: [+ resources +]
-
 
 @politics
 on-arrival: {!
