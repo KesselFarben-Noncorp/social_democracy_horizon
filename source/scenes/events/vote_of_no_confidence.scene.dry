@@ -108,15 +108,32 @@ By transferring resources directly to [+ vonc_caller +], we can repair our stand
 
 @let_it_happen
 on-arrival: {!
-// Remove only the offending party from government/toleration
+
 Q[Q.vonc_caller_party + '_in_government'] = 0;
 if (Q.tolerating_parties) {
     Q.tolerating_parties = Q.tolerating_parties.filter(function(p) {
         return p.toLowerCase() !== Q.vonc_caller_party;
     });
 }
+
+var remaining_votes = 0;
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    if (Q[p + '_in_government'] === 1) {
+        remaining_votes += Q[p + '_r'] || 0;
+    }
+}
+if (Q.tolerating_parties) {
+    for (var i = 0; i < Q.tolerating_parties.length; i++) {
+        var tp = Q.tolerating_parties[i].toLowerCase();
+        if (Q[tp + '_in_government'] !== 1) {
+            remaining_votes += Q[tp + '_r'] || 0;
+        }
+    }
+}
+Q.vonc_government_survives = (remaining_votes >= 50) ? 1 : 0;
 !}
-go-to: vonc_survives if government_collapsed = 0; vonc_collapses if government_collapsed = 1
+go-to: vonc_survives if vonc_government_survives = 1; vonc_collapses if vonc_government_survives = 0
 
 @vonc_survives
 
