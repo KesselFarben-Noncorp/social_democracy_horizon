@@ -160,6 +160,39 @@ if (!Q.coalition_low_relation && Q.tolerating_parties) {
     }
 }
 
+// === MINISTRY REASSIGNMENT (runs every tick) ===
+var portfolios = ["foreign_minister", "interior_minister", "justice_minister", "labor_minister",
+                   "economic_minister", "finance_minister", "agriculture_minister", "transport_minister"];
+
+for (var i = 0; i < portfolios.length; i++) {
+    var port = portfolios[i];
+    var partyField = port + "_party";
+    var currentParty = (Q[partyField] || "").toLowerCase();
+
+    // If held party isn't in government anymore, reassign
+    if (Q[currentParty + '_in_government'] !== 1) {
+        // Find the largest remaining government party by seat share
+        var bestParty = "";
+        var bestVotes = -1;
+        for (var j = 0; j < Q.parties.length; j++) {
+            var p = Q.parties[j];
+            if (Q[p + '_in_government'] === 1 && (Q[p + '_r'] || 0) > bestVotes) {
+                bestVotes = Q[p + '_r'] || 0;
+                bestParty = p;
+            }
+        }
+
+        if (bestParty !== "") {
+            Q[partyField] = bestParty.toUpperCase();
+            Q[port] = (Q.ministry_roster[bestParty] && Q.ministry_roster[bestParty][port]) || 0;
+        }
+    }
+}
+
+
+
+
+
 
 
 
