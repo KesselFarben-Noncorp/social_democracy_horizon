@@ -318,6 +318,32 @@ if (!window.dendryUI.injectVarSetter) {
             status.style.color = '#5f5';
             status.textContent = '✓ ' + match[1] + ': ' + JSON.stringify(oldVal) + ' → ' + JSON.stringify(val);
             input.value = '';
+
+            // Force a redraw of sidebar, bottom panel, AND the current
+            // scene's own content, since on-display alone doesn't re-render
+            // [+ +] interpolations already on screen.
+            if (window.updateSidebar) window.updateSidebar();
+            if (window.updateBottomPanel) window.updateBottomPanel();
+
+            var engine = window.dendryUI.dendryEngine;
+            var sceneId = engine.state.sceneId;
+            var scene = engine.game.scenes[sceneId];
+            if (scene) {
+                var contentEl = document.getElementById('content');
+                if (contentEl) {
+                    var displayContent = engine._makeDisplayContent(scene.content, true);
+                    var html = window.dendryUI.contentToHTML.convert(displayContent);
+                    // Re-render just this scene's rendered block, not the whole
+                    // page history — find the last rendered page block if present,
+                    // otherwise fall back to appending nothing and just refreshing
+                    // sidebar/bottom panel.
+                    var pages = contentEl.querySelectorAll('.page');
+                    if (pages.length) {
+                        var lastPage = pages[pages.length - 1];
+                        lastPage.innerHTML = html;
+                    }
+                }
+            }
         }
 
         btn.addEventListener('click', applySet);
