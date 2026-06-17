@@ -248,6 +248,88 @@ go-to: sandbox_menu
 - @very-well: Economical Variables Debug 
 - @goto: Go to any scene
 - @setvar: Set variable
+- @getvar: Get variable
+
+@getvar
+on-display: {!
+if (!window.dendryUI.injectVarGetter) {
+    window.dendryUI.injectVarGetter = function() {
+        var container = document.getElementById('var-getter');
+        if (!container) return;
+        container.innerHTML = '';
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'e.g. spd_r  or  party_relations.SPD.KPD';
+        input.style.cssText =
+            'background:#111; color:#0f0; border:1px solid #0f0;' +
+            'padding:6px 10px; font-family:monospace; font-size:13px;' +
+            'width:60%; outline:none; border-radius:2px;';
+
+        var btn = document.createElement('button');
+        btn.textContent = 'Get';
+        btn.style.cssText =
+            'margin-left:8px; background:#0f0; color:#000; border:none;' +
+            'padding:6px 12px; font-family:monospace; font-size:13px;' +
+            'cursor:pointer; border-radius:2px;';
+
+        var status = document.createElement('p');
+        status.style.cssText = 'color:#5ff; font-size:12px; margin-top:6px; height:16px; word-break:break-all;';
+
+        function applyGet() {
+            var raw = input.value.trim();
+            if (!raw) return;
+
+            if (!/^[a-zA-Z_][a-zA-Z0-9_.]*$/.test(raw)) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Format must be: varname or dotted.path';
+                return;
+            }
+
+            var path = raw.split('.');
+            var target = Q;
+            var found = true;
+
+            for (var i = 0; i < path.length; i++) {
+                var part = path[i];
+                if (target === undefined || target === null || typeof target !== 'object' || !(part in target)) {
+                    found = false;
+                    break;
+                }
+                target = target[part];
+            }
+
+            if (!found) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Not found: ' + raw;
+                return;
+            }
+
+            status.style.color = '#5ff';
+            status.textContent = raw + ' = ' + JSON.stringify(target);
+        }
+
+        btn.addEventListener('click', applyGet);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') applyGet();
+        });
+
+        container.appendChild(input);
+        container.appendChild(btn);
+        container.appendChild(status);
+    };
+}
+
+window.dendryUI.injectVarGetter();
+!}
+
+= Read any Q variable directly. Format: varname, or nested.path
+
+{!<div id="var-getter"></div>!}
+
+*Read-only: this does not modify game state.*
+
+- @technical: Back
 
 @setvar
 on-display: {!
