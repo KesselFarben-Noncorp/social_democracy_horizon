@@ -4,11 +4,13 @@ new-page: true
 view-if: spd_in_government = 1 and coalition_low_relation = 1 and spd_r < 50 and not constructive_vonc
 tags: event
 go-to: vonc_menu
-on-arrival: {! 
+on-arrival: {!
 Q.vonc_caller = "";
+Q.vonc_caller_party = "";
 var lowest_relation = 999;
 var lowest_party = "";
 
+// Government parties
 for (var i = 0; i < Q.parties.length; i++) {
     var p = Q.parties[i];
     if (p === "spd") continue;
@@ -18,7 +20,8 @@ for (var i = 0; i < Q.parties.length; i++) {
     }
 }
 
-if (lowest_party === "" && Q.tolerating_parties) {
+// Tolerating parties, same pool, true minimum wins
+if (Q.tolerating_parties) {
     for (var i = 0; i < Q.tolerating_parties.length; i++) {
         var tp = Q.tolerating_parties[i].toLowerCase();
         if (tp === "spd") continue;
@@ -104,19 +107,54 @@ Q[Q.vonc_caller_party + '_relation'] += 15;
 By transferring resources directly to [+ vonc_caller +], we can repair our standing with them. This is a crude, but effective solution.
 
 @let_it_happen
+on-arrival: {!
+// Remove only the offending party from government/toleration
+Q[Q.vonc_caller_party + '_in_government'] = 0;
+if (Q.tolerating_parties) {
+    Q.tolerating_parties = Q.tolerating_parties.filter(function(p) {
+        return p.toLowerCase() !== Q.vonc_caller_party;
+    });
+}
+!}
+go-to: vonc_survives if government_collapsed = 0; vonc_collapses if government_collapsed = 1
+
+@vonc_survives
+
+[+ vonc_caller +] has left the government over this dispute, but the remaining coalition still commands a majority. The government survives, for now.
+
+@vonc_collapses
 call: set_next_election_time
-on-arrival: time_to_election = 3; spd_in_government = 0; in_grand_coalition = 0; in_weimar_coalition = 0; in_popular_front = 0; spd_toleration = 0; foreign_minister_party = "DVP"; interior_minister_party = "Z"; justice_minister_party = "I"; labor_minister_party = "Z"; reichswehr_minister_party = "I"; economic_minister_party = ddp_name; finance_minister_party = "DVP"; agriculture_minister_party = "Z"; labor_minister = "Stegerwald"; interior_minister = "Wirth"; finance_minister = "Moldenhauer"; economic_minister = "Curtius"; justice_minister = "Koch-Weser"; foreign_minister = "Stresemann"; agriculture_minister = "Dietrich"; reichswehr_minister = "Groener";  coalition_dissent = 0; pro_republic -= 5; old_middle_spd -= 3; new_middle_spd -= 2; workers_spd -= 3 if pro_republic < 50; workers_spd -= 4 if pro_republic < 40; old_middle_nsdap += 4 if pro_republic < 50; new_middle_nsdap += 3 if pro_republic < 50
+on-arrival: {!
+Q.time_to_election = 3;
+Q.spd_in_government = 0;
+Q.in_grand_coalition = 0;
+Q.in_weimar_coalition = 0;
+Q.in_popular_front = 0;
+Q.coalition_dissent = 0;
+Q.pro_republic -= 5;
+Q.old_middle_spd -= 3;
+Q.new_middle_spd -= 2;
+if (Q.pro_republic < 50) { Q.workers_spd -= 3; }
+if (Q.pro_republic < 40) { Q.workers_spd -= 4; }
+if (Q.pro_republic < 50) { Q.old_middle_nsdap += 4; Q.new_middle_nsdap += 3; }
+!}
 go-to: let_it_happen_hindenburg if president != "Braun"; let_it_happen_braun if president == "Braun"
 
 @let_it_happen_hindenburg
-on-arrival: chancellor = "Brüning"; chancellor_party = "Z"; welfare -= 2;
+on-arrival: {!
+Q.chancellor = "Brüning";
+Q.chancellor_party = "Z";
+Q.welfare -= 2;
+!}
 
 The vote succeeds, and our government has resigned. Chancellor Brüning has been appointed as the head of an acting government, consisting solely of the bourgeois parties. He immediately proceeds to cut welfare spending substantially.
 
 New elections have been set for [+ next_election_month : month +] [+ next_election_year +].
 
 @let_it_happen_braun
-on-arrival: spd_caretaker = 1
+on-arrival: {!
+Q.spd_caretaker = 1;
+!}
 
 The vote succeeds, and our government has resigned. Chancellor [+ chancellor +] remains as the head of a caretaker government, but no longer has the power to enact new policies.
 
