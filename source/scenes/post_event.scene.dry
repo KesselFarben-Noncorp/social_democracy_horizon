@@ -213,6 +213,7 @@ function updatePartyRelations() {
     Q.party_relations.SPD.DHP   = Q.dhp_relation;
     Q.party_relations.SPD.BB    = Q.bb_relation;
     Q.party_relations.SPD.DVFP  = Q.dvfp_relation;
+    Q.party_relations.SPD.BVP  =  Q.bvp_relation;
     Q.party_relations.SRPD.KPD  = Q.kpd_relation - 10;
     Q.party_relations.SRPD.DDP  = Q.ddp_relation + 10;
     Q.party_relations.SRPD.Z    = Q.z_relation + 5;
@@ -503,7 +504,7 @@ if (Q.year == 1930 && Q.month == 11 && Q.weeks < 2 && Q.scholz_victory || Q.dvp_
     Q.dvp_ideology = "Authoritarian National Liberalism";
 }
 
-if (Q.dvp_in_government && Q.spd_in_government && Q.dvp_ideology == "Authoritarian National Liberalism") {
+if (Q.dvp_in_government && Q.spd_in_government && Q.dvp_ideology == "Authoritarian National Liberalism" && Q.year < 1935) {
     Q.dvp_in_government = 0;
     Q.government_parties = Q.government_parties.filter(function(p) { return p !== 'DVP'; });
 }
