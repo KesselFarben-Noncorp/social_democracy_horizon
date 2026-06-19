@@ -1,0 +1,16 @@
+title: Cards Agenda
+subtitle: Expanding our commercial media will help us with faster progress. [? if deterministic_mode: Deterministic mode turned on. ?]
+tags: party_aff
+view-if: deterministic_timer <= 0 
+choose-if: commercialized_media > 0
+unavailable-subtitle: Our commercial media must be expanded.
+on-arrival: deterministic_timer = 24 - commercialized_media; deterministic_timer = 0 if deterministic_mode
+
+= Which agenda
+
+- #party_affairs
+- @partyaff2: Return back
+
+@partyaff2
+on-arrival: deterministic_timer = 0
+go-to: partyaff
