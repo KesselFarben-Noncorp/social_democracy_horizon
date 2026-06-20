@@ -14,23 +14,23 @@ Wilhelm Marx, former Center Party chancellor and presidential candidate, has cho
 The consensus candidate on the right is Ludwig Kaas, a Catholic priest who represents the party's traditionalists. On the other hand, there is Joseph Joos, a leader of the Catholic trade unions, who has been more supportive of cooperation with the SPD than most of the Center Party.
 
 - @kaas: The Center Party elects Ludwig Kaas as the party chair.
+- @brauns: The Center Party elects Heinrich Braund as the party chair.
 - @joos: Influence the Center Party to select Joseph Joos as the party chair.
 - @joos_campaign: We must hold a campaign in support of Joseph Joos as party chair.
-- @Stegerwald: Stegerwald rises by the ranks.
-
-@Stegerwald
-subtitle: He does not yield enough of power anyway... Well?
-unavailable-subtitle: He will not win it anyways
-on-arrival: z_party_leader = "Stegerwald"; z_relation -= 10
-choose-if: workers_z > 30
-view-if: workers_z > 30 and z_relation < 50
-
-Stegerwald now presides over the party, turning party away from it's clericalist nature, however shifting party rightward.
+- @stegerwald: The Center Party elects Adam Stegerwald to the leadership.
 
 @kaas
+choose-if: prussian_concordat = 0
+unavailable-subtitle: He sees no reason to run in this conference with his goal accomplished.
 on-arrival: z_party_leader = "Kaas"; z_relation -= 5; prussian_concordat_progress += 1
 
 Ludwig Kaas has been selected as the chairman of the Center Party. He seems to represent a rightward turn from Marx, and will preside over a Center Party less inclined to compromise with the left. However, his election made some progress towards Concordat.
+
+@brauns
+view-if: prussian_concordat = 1
+on-arrival: z_party_leader = "Brauns"; z_relation += 2; workers_aid += 1; welfare + 1
+
+Heinrich Brauns has been selected as the chairman of the Center Party. Dynamic between our parties practically remained the same, so there is nothing to say about it.
 
 @joos
 unavailable-subtitle: Our relations are not good enough.
@@ -48,3 +48,11 @@ subtitle: -1 resource. Joos is likely to be friendlier to us than Kaas.
 on-arrival: resources -= 1; z_party_leader = "Joos"; catholics_spd += 5; workers_z += 3
 
 With our grassroots connections as well as a professional campaign, we have been able to influence the Center delegates to support Joseph Joos as the new Center chairman. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Kaas. He also increases the appeal of the Center Party to the working class.
+
+@stegerwald
+subtitle: He does not yield enough of power anyway... Well?
+unavailable-subtitle: Stegerwald has been recently very unpopular amongst civil servants and white collars. 
+on-arrival: z_party_leader = "Stegerwald"; z_relation -= 10
+view-if: 1 == 0
+
+Stegerwald now presides over the party, turning party away from it's clericalist nature, however shifting party rightward.
