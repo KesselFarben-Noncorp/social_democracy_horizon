@@ -87,7 +87,7 @@ if (gov_count > 0) {
     if (effective_votes < 50) {
         Q.government_collapsed = 1;
         Q.next_election_year = Q.year;
-        Q.next_election_month = Q.month + 1;
+        Q.next_election_month = Q.month + 2;
         if (Q.next_election_month > 12) {
             Q.next_election_month = 1;
             Q.next_election_year += 1;
@@ -555,7 +555,7 @@ if (Q.year >= 1928 && Q.year < 1929 && Q.geest_wildfire == 1 && (Q.state_buyer =
     Q.landvolk_fury = 0;
 }
 
-if (Q.year == 1930 && Q.month == 11 && Q.weeks < 2 && Q.scholz_victory || Q.dvp_successor_outcome == "scholz_victory") {
+if (Q.year == 1930 && Q.month == 11 && Q.weeks < 2 && (Q.scholz_victory || Q.dvp_successor_outcome == "scholz_victory")) {
     Q.dvp_party_leader = "Eduard Dingeldey";
     Q.dvp_ideology = "Authoritarian National Liberalism";
 }
@@ -3422,7 +3422,7 @@ function computeTarget(party, c) {
                let edu_pen = (Q.education_science || 0) * 0.02
                            + (Q.secularized       || 0) * 0.03
                            + (Q.womens_rights     || 0) * 0.03;
-               base = (rep * 0.30 + wp_strength + mittelstand_bonus - edu_pen) * 56 * econ_conf * im.ddp;
+               base = (rep * 0.30 + wp_strength + mittelstand_bonus - edu_pen) * 52 * econ_conf * im.ddp;
 
                const class_mods = {
                    workers:     0.40 * (Q.peoples_party === 1 ? 0.93 : 1),
@@ -3491,13 +3491,13 @@ function computeTarget(party, c) {
         case 'bvp': {
             if (Q.bvp_banned) return 0;
             let cath = Q.catholics * 0.15;
-            let rur  = Q.rural    * 0.05;
-            base = Math.min(4.8, rep * 55 * im.bvp + cath + rur);
+            let rur  = Q.rural    * 0.08;
+            base = Math.min(4.9, rep * 58 * im.bvp + cath + rur);
 
-            let rural_m = 1.50 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
+            let rural_m = 1.80 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
             const class_mods = {
                 workers:     0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
-                old_middle:  1.25 * (Q.peoples_party === 1 ? 0.96 : 1),
+                old_middle:  1.35 * (Q.peoples_party === 1 ? 0.96 : 1),
                 new_middle:  0.88 * (Q.peoples_party === 1 ? 0.96 : 1),
                 rural:       rural_m,
                 unemployedc: 0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
@@ -3663,16 +3663,16 @@ function computeTarget(party, c) {
        case 'dbp': {
     if (Q.dbp_banned) return 0;
 
-    let rural_weight    = Q.rural / 70;  // slightly less rural-dependent than BB (Q.rural/60)
+    let rural_weight    = Q.rural / 75;  // slightly less rural-dependent than BB (Q.rural/60)
     let deflation_bonus = Q.inflation < 0 ? (1 + Math.abs(Q.inflation) * 0.06) : 1.0;
-    let lib_bonus       = (rep * 0.4) + ((100 - Q.nationalism) / 100) * 0.15;
+    let lib_bonus       = (rep * 0.45) + ((100 - Q.nationalism) / 100) * 0.15;
 
-    base = (rep * 12 + nat * 8) * rural_weight * deflation_bonus * lib_bonus * (im.dbp || 1);
+    base = (rep * 19 + nat * 4) * rural_weight * deflation_bonus * lib_bonus * (im.dbp || 1);
 
     const class_mods = {
         workers:     0.15,   // minimal worker base
-        old_middle:  0.65,   // small traders, rural artisans — present but not the core
-        new_middle:  0.35,   // modest white-collar presence
+        old_middle:  0.75,   // small traders, rural artisans — present but not the core
+        new_middle:  0.40,   // modest white-collar presence
         rural:       2.20,   // rural core, slightly softer than BB's 2.10 since more liberal
         unemployedc: 0.25,
     };
