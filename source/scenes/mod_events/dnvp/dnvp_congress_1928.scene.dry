@@ -1,16 +1,16 @@
 Title: D.N.V.P Party Congress
-Subtitle: October of 1928, 20th March.
+Subtitle: 20th October of 1928
 tags: event
-view-if: year >= 1928 and month >= 10
+view-if: year >= 1928 and month >= 10 and weeks >= 2
 max-visits: 1
 new-page: true
 face-image: img/dnvp.png
 
-= Party Congress of D.N.V.P, October, 20th March of 1928.
+= Party Congress of D.N.V.P
 
-Following the May election losses, the German National People’s Party (DNVP) has entered a period of profound internal reckoning. The "Lambach Case", sparked by Walther Lambach’s public questioning of the monarchist principle in favor of a Hindenburg-centric "People’s Conservatism"—has become the catalyst for a battle over the party’s very soul.
+Following the May election losses, the German National People's Party (DNVP) has entered a period of profound internal reckoning. The "Lambach Case", sparked by Walther Lambach's public questioning of the monarchist principle in favor of a Hindenburg-centric "People's Conservatism"—has become the catalyst for a battle over the party's very soul.
 
-​While a majority of the Reichstag delegation initially favored a moderate censure of Lambach's tactics rather than his expulsion, Alfred Hugenberg and his radical allies remained unsatisfied. By July, the rift became structural: fifteen of the forty-five regional associations, organized under General von Dommes, openly revolted against Count Westarp’s leadership. These "recalcitrant" associations demand that the party cease being a "community of interests" (a parliamentary "mishmash" of workers, farmers, and aristocrats) and transform into a "community of opinion"—a rigid "Block of Stone" dedicated to uncompromising nationalist ideology.
+​While a majority of the Reichstag delegation initially favored a moderate censure of Lambach's tactics rather than his expulsion, Alfred Hugenberg and his radical allies remained unsatisfied. By July, the rift became structural: fifteen of the forty-five regional associations, organized under General von Dommes, openly revolted against Count Westarp's leadership. These "recalcitrant" associations demand that the party cease being a "community of interests" (a parliamentary "mishmash" of workers, farmers, and aristocrats) and transform into a "community of opinion"—a rigid "Block of Stone" dedicated to uncompromising nationalist ideology.
 
 As the delegates prepare to meet in Berlin, the question expands far beyond the Lambach: Will DNVP move to the Radical Far Right or keep the Parliamentarist Course?
 
@@ -38,19 +38,20 @@ if (Q.lambach_reinstated == 1 || Q.dnvp_votes_display > 16.4) {
 } else {
     Q.leader_b = "Walter von Keudell";
     Q.leader_b_title = "Former Reich Interior Minister";
-    if (Q.pro_republic >= 89) {
-        Q.leader_b = "Gottfried Treviranus";
-        Q.leader_b_title = "Young Conservative Faction Member";
-    }
 }
 
-// Faction C Leader (Labor Wing)
+// Faction C Candidates (Popular Conservatives) — banner-bearers of each internal
+// wing. Which one actually leads the bloc is decided further below, once the
+// relative strength of each wing on the floor is known.
+Q.leader_c_yocon = "Gottfried Treviranus";
+Q.leader_c_yocon_title = "Young Conservative Faction Member";
+
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
-    Q.leader_c = "Walther Lambach";
-    Q.leader_c_title = "Leader of the DHV wing";
+    Q.leader_c_christsoc = "Walther Lambach";
+    Q.leader_c_christsoc_title = "Leader of the DHV wing";
 } else {
-    Q.leader_c = "Emil Hartwig";
-    Q.leader_c_title = "Christian-Social Delegate";
+    Q.leader_c_christsoc = "Emil Hartwig";
+    Q.leader_c_christsoc_title = "Christian-Social Delegate";
 }
 
 // === DELEGATE CALCULATIONS ===
@@ -136,7 +137,29 @@ Q.delegate_power_a += (Q.old_middle_dnvp * 0.55);
 Q.delegate_power_b += (Q.rural_dnvp * 1.24);
 Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
 
-Q.delegate_power_c += (Q.workers_dnvp * 2.4 + Q.new_middle_dnvp * 0.87);
+// Popular Conservatives split into two wings. Young Conservatives draw a
+// small slice of the workers, the bulk of the new middle class, and some of
+// the old middle class. Christian Socials draw most of the workers and half
+// of the new middle class.
+Q.delegate_power_yocon = (Q.workers_dnvp * 0.4) + (Q.new_middle_dnvp * 0.95) + (Q.old_middle_dnvp * 0.3);
+Q.delegate_power_christsoc = (Q.workers_dnvp * 2.0) + (Q.new_middle_dnvp * 0.45);
+Q.delegate_power_c += Q.delegate_power_yocon + Q.delegate_power_christsoc;
+
+// === POPULAR CONSERVATIVE INTERNAL LEADERSHIP ===
+// Whichever wing carries more weight on the floor puts forward its leader.
+if (Q.delegate_power_yocon > Q.delegate_power_christsoc) {
+    Q.leader_c = Q.leader_c_yocon;
+    Q.leader_c_title = Q.leader_c_yocon_title;
+    Q.popcon_wing = "yocon";
+    Q.popcon_wing_name = "Young Conservative";
+    Q.popcon_wing_desc = "a youthful, urban current rooted in the new middle class and a sliver of the white-collar workforce, restless with both Junker privilege and DHV trade unionism";
+} else {
+    Q.leader_c = Q.leader_c_christsoc;
+    Q.leader_c_title = Q.leader_c_christsoc_title;
+    Q.popcon_wing = "christsoc";
+    Q.popcon_wing_name = "Christian Social";
+    Q.popcon_wing_desc = "the DHV's labor wing of workers and white-collar employees, paternalist and corporatist, fiercely anti-Marxist yet wary of subordinating labor's voice to landed interests";
+}
 
 // 5. Ideological Reinforcements
 Q.hugenberg_momentum += Q.nationalism * 20;
@@ -166,11 +189,44 @@ if (Q.dnvp_votes < 13) {
     Q.delegate_power_c += 15;
 };
 
-// 7. Finalize vote totals
-Q.hugenberg_final_votes = Math.round(Q.hugenberg_momentum);
-Q.moderate_a_final_votes = Math.round(Q.delegate_power_a);
-Q.moderate_b_final_votes = Math.round(Q.delegate_power_b);
-Q.moderate_c_final_votes = Math.round(Q.delegate_power_c);
+// 7. Finalize vote totals — apportioned across exactly 100 congress seats
+// using the Largest Remainder Method (the same logic real proportional
+// delegate allocation follows), so every path always sums to 100.
+Q.popcon_wing_ratio = (Q.delegate_power_yocon + Q.delegate_power_christsoc) > 0
+    ? (Q.delegate_power_yocon / (Q.delegate_power_yocon + Q.delegate_power_christsoc))
+    : 0.5;
+Q.yocon_share_raw = Q.delegate_power_c * Q.popcon_wing_ratio;
+Q.christsoc_share_raw = Q.delegate_power_c - Q.yocon_share_raw;
+
+var seatBuckets = [
+    { key: "hugenberg_final_votes", raw: Math.max(Q.hugenberg_momentum, 0) },
+    { key: "moderate_a_final_votes", raw: Math.max(Q.delegate_power_a, 0) },
+    { key: "moderate_b_final_votes", raw: Math.max(Q.delegate_power_b, 0) },
+    { key: "yocon_final_votes", raw: Math.max(Q.yocon_share_raw, 0) },
+    { key: "christsoc_final_votes", raw: Math.max(Q.christsoc_share_raw, 0) }
+];
+
+var seatTotalRaw = 0;
+for (var s = 0; s < seatBuckets.length; s++) { seatTotalRaw += seatBuckets[s].raw; }
+
+var seatsAllocated = 0;
+for (var s2 = 0; s2 < seatBuckets.length; s2++) {
+    var exact = seatTotalRaw > 0 ? (seatBuckets[s2].raw / seatTotalRaw * 100) : 0;
+    seatBuckets[s2].floor = Math.floor(exact);
+    seatBuckets[s2].remainder = exact - seatBuckets[s2].floor;
+    seatsAllocated += seatBuckets[s2].floor;
+}
+
+var remainingSeats = 100 - seatsAllocated;
+var sortedBuckets = seatBuckets.slice().sort(function(x, y) { return y.remainder - x.remainder; });
+for (var s3 = 0; s3 < sortedBuckets.length; s3++) {
+    sortedBuckets[s3].seats = sortedBuckets[s3].floor + (s3 < remainingSeats ? 1 : 0);
+}
+for (var s4 = 0; s4 < seatBuckets.length; s4++) {
+    Q[seatBuckets[s4].key] = seatBuckets[s4].seats;
+}
+
+Q.moderate_c_final_votes = Q.yocon_final_votes + Q.christsoc_final_votes;
 Q.total_moderate_final_votes = Q.moderate_a_final_votes + Q.moderate_b_final_votes + Q.moderate_c_final_votes;
 
 // 8. Congress path — determined by leading individual faction
@@ -211,497 +267,11 @@ go-to: natcon_win if congress_path = "capitulation"; pragcon_win if congress_pat
 @natcon_win
 on-display: {!
 var factionData = [
-    { id: "faction_c", name: Q.leader_c, subtitle: Q.leader_c_title,
-      votes: Q.moderate_c_final_votes, color: "#1a3a5c", outline: "#00cc44",
-      label: "Social Wing", side: "moderate" },
-    { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
-      votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
-      label: "Coalitionists", side: "moderate" },
-    { id: "faction_b", name: Q.leader_b, subtitle: Q.leader_b_title,
-      votes: Q.moderate_b_final_votes, color: "#5c4a1e", outline: "#00cc44",
-      label: "Traditionalists", side: "moderate" },
-    { id: "hugenberg", name: "Alfred Hugenberg",
-      subtitle: "Radical Bloc / Dissident Associations",
-      votes: Q.hugenberg_final_votes, color: "#3d0000", outline: "#cc0000",
-      label: "Hugenberg Bloc", side: "radical" }
-];
-
-var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
-var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
-
-if (window && d3 && document.getElementById("dnvp-congress")) {
-    var width = 600;
-    var height = 300;
-    var contentEl = document.getElementById('content');
-    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
-    if (screenWidth < width - 50) {
-        width = screenWidth - 50;
-        height = Math.round(width / 2);
-    }
-
-    var svg = document.getElementById("dnvp-congress");
-    svg.style.width = width + "px";
-    svg.style.height = height + "px";
-
-    var data = visibleFactions.map(function(f) {
-        return { id: f.id, legend: f.label, name: f.label,
-                 seats: Math.round(f.votes), color: f.color };
-    });
-
-    var parliament = d3.parliament();
-    parliament.width(width).height(height).innerRadiusCoef(0.4);
-    parliament.enter.fromCenter(true).smallToBig(true);
-    parliament.exit.toCenter(false).bigToSmall(true);
-    d3.select("#dnvp-congress").datum(data).call(parliament);
-
-    visibleFactions.forEach(function(f) {
-        d3.selectAll("#dnvp-congress circle")
-            .filter(function(d) { return d && d.data && d.data.id === f.id; })
-            .style("stroke", f.outline)
-            .style("stroke-width", "2px")
-            .style("fill", f.color);
-    });
-}
-
-var container = document.getElementById("dnvp-factions");
-if (container) {
-    container.innerHTML = "";
-    container.style.marginTop = "16px";
-    container.style.fontFamily = "Georgia, serif";
-
-    visibleFactions.forEach(function(f) {
-        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
-        var isRadical = f.side === "radical";
-
-        var block = document.createElement("div");
-        block.style.marginBottom = "12px";
-
-        var header = document.createElement("div");
-        header.style.display = "flex";
-        header.style.justifyContent = "space-between";
-        header.style.alignItems = "baseline";
-        header.style.marginBottom = "3px";
-
-        var nameSpan = document.createElement("span");
-        nameSpan.style.fontWeight = "bold";
-        nameSpan.style.fontSize = "0.92em";
-        nameSpan.style.color = isRadical ? "#cc2200" : "#1a4a2a";
-        nameSpan.textContent = f.label + " — " + f.name;
-
-        var voteSpan = document.createElement("span");
-        voteSpan.style.fontSize = "0.85em";
-        voteSpan.style.color = "#666";
-        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
-
-        header.appendChild(nameSpan);
-        header.appendChild(voteSpan);
-
-        var sub = document.createElement("div");
-        sub.style.fontSize = "0.78em";
-        sub.style.color = "#888";
-        sub.style.marginBottom = "4px";
-        sub.style.fontStyle = "italic";
-        sub.textContent = f.subtitle;
-
-        var barTrack = document.createElement("div");
-        barTrack.style.width = "100%";
-        barTrack.style.height = "14px";
-        barTrack.style.backgroundColor = "#e8e8e8";
-        barTrack.style.borderRadius = "3px";
-        barTrack.style.overflow = "hidden";
-        barTrack.style.border = "1px solid " + f.outline;
-
-        var barFill = document.createElement("div");
-        barFill.style.width = pct + "%";
-        barFill.style.height = "100%";
-        barFill.style.backgroundColor = f.color;
-        barFill.style.transition = "width 0.6s ease";
-
-        barTrack.appendChild(barFill);
-        block.appendChild(header);
-        block.appendChild(sub);
-        block.appendChild(barTrack);
-        container.appendChild(block);
-    });
-}
-
-var verdict = document.getElementById("dnvp-verdict");
-if (verdict) {
-    var hugPct = totalVotes > 0 ? (Q.hugenberg_final_votes / totalVotes * 100) : 0;
-    var modPct = 100 - hugPct;
-
-    verdict.innerHTML = "";
-    verdict.style.marginTop = "14px";
-    verdict.style.padding = "10px 14px";
-    verdict.style.borderRadius = "4px";
-    verdict.style.fontSize = "0.88em";
-    verdict.style.fontStyle = "italic";
-    verdict.style.fontFamily = "Georgia, serif";
-
-    if (Q.congress_path === "capitulation") {
-        verdict.style.backgroundColor = "#3d0000";
-        verdict.style.color = "#ffcccc";
-        verdict.style.border = "1px solid #cc0000";
-        verdict.textContent = "⚑ The radical bloc commands " + hugPct.toFixed(1) + "% of the congress. The moderates do not contest the floor.";
-    } else if (Q.can_push_triumvirate == 1) {
-        verdict.style.backgroundColor = "#1a3320";
-        verdict.style.color = "#ccffcc";
-        verdict.style.border = "1px solid #00cc44";
-        verdict.textContent = "⚖ The moderate factions hold a combined " + modPct.toFixed(1) + "% — sufficient to challenge the radical bloc's " + hugPct.toFixed(1) + "%. A coalition of restraint is possible.";
-    } else {
-        verdict.style.backgroundColor = "#2a2a1a";
-        verdict.style.color = "#ffffcc";
-        verdict.style.border = "1px solid #aa8800";
-        verdict.textContent = "⚡ The congress hangs in the balance. Hugenberg holds " + hugPct.toFixed(1) + "% against a fractured moderate opposition of " + modPct.toFixed(1) + "%.";
-    }
-}
-!}
-
-{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
-{!<div id="dnvp-factions"></div>!}
-{!<div id="dnvp-verdict"></div>!}
-
-*The final tally of delegate votes:*
-*Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
-*[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
-*[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
-*[+ leader_c +] (Social Wing): [+ moderate_c_final_votes +]*
-
-The announcement of the secret ballot results is met with a roar from the dissident associations that drowns out the deathly silence of the front benches. Alfred Hugenberg has secured the chairmanship, marking the total triumph of the Pan-German axis and the radical industrialist wing. The delegates have chosen the "Block of Stone," rejecting the tactical flexibility of the past decade in favor of a crusade against the "System" of Weimar.
-
-​In his acceptance speech, Hugenberg does not offer an olive branch; he demands total submission. He makes it clear that the party is no longer a collection of interests, but a unified movement of opinion where dissent is synonymous with betrayal. The "Hugenberg-maxxing" of the party begins immediately, as he moves to consolidate power over the Reichstag delegation and the party press.
-
-@authcon_win
-on-display: {!
-var factionData = [
-    { id: "faction_c", name: Q.leader_c, subtitle: Q.leader_c_title,
-      votes: Q.moderate_c_final_votes, color: "#1a3a5c", outline: "#00cc44",
-      label: "Social Wing", side: "moderate" },
-    { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
-      votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
-      label: "Coalitionists", side: "moderate" },
-    { id: "faction_b", name: Q.leader_b, subtitle: Q.leader_b_title,
-      votes: Q.moderate_b_final_votes, color: "#5c4a1e", outline: "#00cc44",
-      label: "Traditionalists", side: "moderate" },
-    { id: "hugenberg", name: "Alfred Hugenberg",
-      subtitle: "Radical Bloc / Dissident Associations",
-      votes: Q.hugenberg_final_votes, color: "#3d0000", outline: "#cc0000",
-      label: "Hugenberg Bloc", side: "radical" }
-];
-
-var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
-var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
-
-if (window && d3 && document.getElementById("dnvp-congress")) {
-    var width = 600;
-    var height = 300;
-    var contentEl = document.getElementById('content');
-    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
-    if (screenWidth < width - 50) {
-        width = screenWidth - 50;
-        height = Math.round(width / 2);
-    }
-
-    var svg = document.getElementById("dnvp-congress");
-    svg.style.width = width + "px";
-    svg.style.height = height + "px";
-
-    var data = visibleFactions.map(function(f) {
-        return { id: f.id, legend: f.label, name: f.label,
-                 seats: Math.round(f.votes), color: f.color };
-    });
-
-    var parliament = d3.parliament();
-    parliament.width(width).height(height).innerRadiusCoef(0.4);
-    parliament.enter.fromCenter(true).smallToBig(true);
-    parliament.exit.toCenter(false).bigToSmall(true);
-    d3.select("#dnvp-congress").datum(data).call(parliament);
-
-    visibleFactions.forEach(function(f) {
-        d3.selectAll("#dnvp-congress circle")
-            .filter(function(d) { return d && d.data && d.data.id === f.id; })
-            .style("stroke", f.outline)
-            .style("stroke-width", "2px")
-            .style("fill", f.color);
-    });
-}
-
-var container = document.getElementById("dnvp-factions");
-if (container) {
-    container.innerHTML = "";
-    container.style.marginTop = "16px";
-    container.style.fontFamily = "Georgia, serif";
-
-    visibleFactions.forEach(function(f) {
-        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
-        var isRadical = f.side === "radical";
-
-        var block = document.createElement("div");
-        block.style.marginBottom = "12px";
-
-        var header = document.createElement("div");
-        header.style.display = "flex";
-        header.style.justifyContent = "space-between";
-        header.style.alignItems = "baseline";
-        header.style.marginBottom = "3px";
-
-        var nameSpan = document.createElement("span");
-        nameSpan.style.fontWeight = "bold";
-        nameSpan.style.fontSize = "0.92em";
-        nameSpan.style.color = isRadical ? "#cc2200" : "#1a4a2a";
-        nameSpan.textContent = f.label + " — " + f.name;
-
-        var voteSpan = document.createElement("span");
-        voteSpan.style.fontSize = "0.85em";
-        voteSpan.style.color = "#666";
-        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
-
-        header.appendChild(nameSpan);
-        header.appendChild(voteSpan);
-
-        var sub = document.createElement("div");
-        sub.style.fontSize = "0.78em";
-        sub.style.color = "#888";
-        sub.style.marginBottom = "4px";
-        sub.style.fontStyle = "italic";
-        sub.textContent = f.subtitle;
-
-        var barTrack = document.createElement("div");
-        barTrack.style.width = "100%";
-        barTrack.style.height = "14px";
-        barTrack.style.backgroundColor = "#e8e8e8";
-        barTrack.style.borderRadius = "3px";
-        barTrack.style.overflow = "hidden";
-        barTrack.style.border = "1px solid " + f.outline;
-
-        var barFill = document.createElement("div");
-        barFill.style.width = pct + "%";
-        barFill.style.height = "100%";
-        barFill.style.backgroundColor = f.color;
-        barFill.style.transition = "width 0.6s ease";
-
-        barTrack.appendChild(barFill);
-        block.appendChild(header);
-        block.appendChild(sub);
-        block.appendChild(barTrack);
-        container.appendChild(block);
-    });
-}
-
-var verdict = document.getElementById("dnvp-verdict");
-if (verdict) {
-    var hugPct = totalVotes > 0 ? (Q.hugenberg_final_votes / totalVotes * 100) : 0;
-    var modPct = 100 - hugPct;
-
-    verdict.innerHTML = "";
-    verdict.style.marginTop = "14px";
-    verdict.style.padding = "10px 14px";
-    verdict.style.borderRadius = "4px";
-    verdict.style.fontSize = "0.88em";
-    verdict.style.fontStyle = "italic";
-    verdict.style.fontFamily = "Georgia, serif";
-
-    if (Q.congress_path === "capitulation") {
-        verdict.style.backgroundColor = "#3d0000";
-        verdict.style.color = "#ffcccc";
-        verdict.style.border = "1px solid #cc0000";
-        verdict.textContent = "⚑ The radical bloc commands " + hugPct.toFixed(1) + "% of the congress. The moderates do not contest the floor.";
-    } else if (Q.can_push_triumvirate == 1) {
-        verdict.style.backgroundColor = "#1a3320";
-        verdict.style.color = "#ccffcc";
-        verdict.style.border = "1px solid #00cc44";
-        verdict.textContent = "⚖ The moderate factions hold a combined " + modPct.toFixed(1) + "% — sufficient to challenge the radical bloc's " + hugPct.toFixed(1) + "%. A coalition of restraint is possible.";
-    } else {
-        verdict.style.backgroundColor = "#2a2a1a";
-        verdict.style.color = "#ffffcc";
-        verdict.style.border = "1px solid #aa8800";
-        verdict.textContent = "⚡ The congress hangs in the balance. Hugenberg holds " + hugPct.toFixed(1) + "% against a fractured moderate opposition of " + modPct.toFixed(1) + "%.";
-    }
-}
-!}
-
-{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
-{!<div id="dnvp-factions"></div>!}
-{!<div id="dnvp-verdict"></div>!}
-
-*The final tally of delegate votes:*
-*Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
-*[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
-*[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
-*[+ leader_c +] (Social Wing): [+ moderate_c_final_votes +]*
-
-[+ leader_a +]'s victory has secured the victory for moderates, who are more than keen on forming next iteration of Marx cabinet, only to keep SPD out - whatever are the means.
-
-​While this preserves the DNVP’s status as a party of government, the victory is fragile. Hugenberg’s press empire remains a hostile power outside the official leadership, and the dissident associations are already whispering of a "betrayal of the national cause." [+ leader_a +] must now navigate a party that is half-convinced its own leader is too soft for the coming storm.
-
-@pragcon_win
-on-display: {!
-var factionData = [
-    { id: "faction_c", name: Q.leader_c, subtitle: Q.leader_c_title,
-      votes: Q.moderate_c_final_votes, color: "#1a3a5c", outline: "#00cc44",
-      label: "Social Wing", side: "moderate" },
-    { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
-      votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
-      label: "Coalitionists - Moderates", side: "moderate" },
-    { id: "faction_b", name: Q.leader_b, subtitle: Q.leader_b_title,
-      votes: Q.moderate_b_final_votes, color: "#5c4a1e", outline: "#00cc44",
-      label: "Traditionalists", side: "moderate" },
-    { id: "hugenberg", name: "Alfred Hugenberg",
-      subtitle: "Radical Bloc / Dissident Associations",
-      votes: Q.hugenberg_final_votes, color: "#3d0000", outline: "#cc0000",
-      label: "Hugenberg Bloc", side: "radical" }
-];
-
-var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
-var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
-
-if (window && d3 && document.getElementById("dnvp-congress")) {
-    var width = 600;
-    var height = 300;
-    var contentEl = document.getElementById('content');
-    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
-    if (screenWidth < width - 50) {
-        width = screenWidth - 50;
-        height = Math.round(width / 2);
-    }
-
-    var svg = document.getElementById("dnvp-congress");
-    svg.style.width = width + "px";
-    svg.style.height = height + "px";
-
-    var data = visibleFactions.map(function(f) {
-        return { id: f.id, legend: f.label, name: f.label,
-                 seats: Math.round(f.votes), color: f.color };
-    });
-
-    var parliament = d3.parliament();
-    parliament.width(width).height(height).innerRadiusCoef(0.4);
-    parliament.enter.fromCenter(true).smallToBig(true);
-    parliament.exit.toCenter(false).bigToSmall(true);
-    d3.select("#dnvp-congress").datum(data).call(parliament);
-
-    visibleFactions.forEach(function(f) {
-        d3.selectAll("#dnvp-congress circle")
-            .filter(function(d) { return d && d.data && d.data.id === f.id; })
-            .style("stroke", f.outline)
-            .style("stroke-width", "2px")
-            .style("fill", f.color);
-    });
-}
-
-var container = document.getElementById("dnvp-factions");
-if (container) {
-    container.innerHTML = "";
-    container.style.marginTop = "16px";
-    container.style.fontFamily = "Georgia, serif";
-
-    visibleFactions.forEach(function(f) {
-        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
-        var isRadical = f.side === "radical";
-
-        var block = document.createElement("div");
-        block.style.marginBottom = "12px";
-
-        var header = document.createElement("div");
-        header.style.display = "flex";
-        header.style.justifyContent = "space-between";
-        header.style.alignItems = "baseline";
-        header.style.marginBottom = "3px";
-
-        var nameSpan = document.createElement("span");
-        nameSpan.style.fontWeight = "bold";
-        nameSpan.style.fontSize = "0.92em";
-        nameSpan.style.color = isRadical ? "#cc2200" : "#1a4a2a";
-        nameSpan.textContent = f.label + " — " + f.name;
-
-        var voteSpan = document.createElement("span");
-        voteSpan.style.fontSize = "0.85em";
-        voteSpan.style.color = "#666";
-        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
-
-        header.appendChild(nameSpan);
-        header.appendChild(voteSpan);
-
-        var sub = document.createElement("div");
-        sub.style.fontSize = "0.78em";
-        sub.style.color = "#888";
-        sub.style.marginBottom = "4px";
-        sub.style.fontStyle = "italic";
-        sub.textContent = f.subtitle;
-
-        var barTrack = document.createElement("div");
-        barTrack.style.width = "100%";
-        barTrack.style.height = "14px";
-        barTrack.style.backgroundColor = "#e8e8e8";
-        barTrack.style.borderRadius = "3px";
-        barTrack.style.overflow = "hidden";
-        barTrack.style.border = "1px solid " + f.outline;
-
-        var barFill = document.createElement("div");
-        barFill.style.width = pct + "%";
-        barFill.style.height = "100%";
-        barFill.style.backgroundColor = f.color;
-        barFill.style.transition = "width 0.6s ease";
-
-        barTrack.appendChild(barFill);
-        block.appendChild(header);
-        block.appendChild(sub);
-        block.appendChild(barTrack);
-        container.appendChild(block);
-    });
-}
-
-var verdict = document.getElementById("dnvp-verdict");
-if (verdict) {
-    var hugPct = totalVotes > 0 ? (Q.hugenberg_final_votes / totalVotes * 100) : 0;
-    var modPct = 100 - hugPct;
-
-    verdict.innerHTML = "";
-    verdict.style.marginTop = "14px";
-    verdict.style.padding = "10px 14px";
-    verdict.style.borderRadius = "4px";
-    verdict.style.fontSize = "0.88em";
-    verdict.style.fontStyle = "italic";
-    verdict.style.fontFamily = "Georgia, serif";
-
-    if (Q.congress_path === "capitulation") {
-        verdict.style.backgroundColor = "#3d0000";
-        verdict.style.color = "#ffcccc";
-        verdict.style.border = "1px solid #cc0000";
-        verdict.textContent = "⚑ The radical bloc commands " + hugPct.toFixed(1) + "% of the congress. The moderates do not contest the floor.";
-    } else if (Q.can_push_triumvirate == 1) {
-        verdict.style.backgroundColor = "#1a3320";
-        verdict.style.color = "#ccffcc";
-        verdict.style.border = "1px solid #00cc44";
-        verdict.textContent = "⚖ The moderate factions hold a combined " + modPct.toFixed(1) + "% — sufficient to challenge the radical bloc's " + hugPct.toFixed(1) + "%. A coalition of restraint is possible.";
-    } else {
-        verdict.style.backgroundColor = "#2a2a1a";
-        verdict.style.color = "#ffffcc";
-        verdict.style.border = "1px solid #aa8800";
-        verdict.textContent = "⚡ The congress hangs in the balance. Hugenberg holds " + hugPct.toFixed(1) + "% against a fractured moderate opposition of " + modPct.toFixed(1) + "%.";
-    }
-}
-!}
-
-{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
-{!<div id="dnvp-factions"></div>!}
-{!<div id="dnvp-verdict"></div>!}
-
-*The final tally of delegate votes:*
-*Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
-*[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
-*[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
-*[+ leader_c +] (Social Wing): [+ moderate_c_final_votes +]*
-
-Traditional wing of Junkers and Owners' representative majority seized victory once again, keeping the status-quo intact.
-
-​However, the win exposes a deep generational and class rift. The urban radicals and the nationalist youth view this as a victory for a "dying caste." While [+ leader_b +] has saved the party's soul from the "Block of Stone," he now leads a movement that increasingly grows irrelevant in the current realities of Weimar.
-
-@laborcon_win
-on-display: {!
-var factionData = [
-    { id: "faction_c", name: Q.leader_c, subtitle: Q.leader_c_title,
-      votes: Q.moderate_c_final_votes, color: "#1a3a5c", outline: "#00cc44",
+    { id: "yocon", name: Q.leader_c_yocon, subtitle: Q.leader_c_yocon_title,
+      votes: Q.yocon_final_votes, color: "#595BFF", outline: "#00cc44",
+      label: "Young Conservatives", side: "moderate" },
+    { id: "christsoc", name: Q.leader_c_christsoc, subtitle: Q.leader_c_christsoc_title,
+      votes: Q.christsoc_final_votes, color: "#FC7CD2", outline: "#00cc44",
       label: "Christian Socials", side: "moderate" },
     { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
       votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
@@ -850,12 +420,514 @@ if (verdict) {
 {!<div id="dnvp-factions"></div>!}
 {!<div id="dnvp-verdict"></div>!}
 
-*The final tally of delegate votes:*
+*The final tally of delegate votes (100 congress seats):*
 *Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
 *[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
 *[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
-*[+ leader_c +] (Christian Social Wing): [+ moderate_c_final_votes +]*
+*[+ leader_c_yocon +] (Young Conservatives): [+ yocon_final_votes +]*
+*[+ leader_c_christsoc +] (Christian Socials): [+ christsoc_final_votes +]*
 
-In unexpected electoral run, Christian Socials have secured the win against all the odds. Christian Socials, wing formed of workers and white collars of DHV, are the furthermost left faction of DNVP, though this comes as far as being paternalist corporatist - they are ardent anti marxists, socialists and stand opposed against any co-operation with parties to the left of DDP.
+The announcement of the secret ballot results is met with a roar from the dissident associations that drowns out the deathly silence of the front benches. Alfred Hugenberg has secured the chairmanship, marking the total triumph of the Pan-German axis and the radical industrialist wing. The delegates have chosen the "Block of Stone," rejecting the tactical flexibility of the past decade in favor of a crusade against the "System" of Weimar.
 
-[+ leader_c +] - leader of the Christian Socials, will lead DNVP from now on. 
+​In his acceptance speech, Hugenberg does not offer an olive branch; he demands total submission. He makes it clear that the party is no longer a collection of interests, but a unified movement of opinion where dissent is synonymous with betrayal. The "Hugenberg-maxxing" of the party begins immediately, as he moves to consolidate power over the Reichstag delegation and the party press.
+
+@authcon_win
+on-display: {!
+var factionData = [
+    { id: "yocon", name: Q.leader_c_yocon, subtitle: Q.leader_c_yocon_title,
+      votes: Q.yocon_final_votes, color: "#595BFF", outline: "#00cc44",
+      label: "Young Conservatives", side: "moderate" },
+    { id: "christsoc", name: Q.leader_c_christsoc, subtitle: Q.leader_c_christsoc_title,
+      votes: Q.christsoc_final_votes, color: "#FC7CD2", outline: "#00cc44",
+      label: "Christian Socials", side: "moderate" },
+    { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
+      votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
+      label: "Coalitionists", side: "moderate" },
+    { id: "faction_b", name: Q.leader_b, subtitle: Q.leader_b_title,
+      votes: Q.moderate_b_final_votes, color: "#5c4a1e", outline: "#00cc44",
+      label: "Traditionalists", side: "moderate" },
+    { id: "hugenberg", name: "Alfred Hugenberg",
+      subtitle: "Radical Bloc / Dissident Associations",
+      votes: Q.hugenberg_final_votes, color: "#3d0000", outline: "#cc0000",
+      label: "Hugenberg Bloc", side: "radical" }
+];
+
+var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
+var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
+
+if (window && d3 && document.getElementById("dnvp-congress")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("dnvp-congress");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = visibleFactions.map(function(f) {
+        return { id: f.id, legend: f.label, name: f.label,
+                 seats: Math.round(f.votes), color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#dnvp-congress").datum(data).call(parliament);
+
+    visibleFactions.forEach(function(f) {
+        d3.selectAll("#dnvp-congress circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", f.outline)
+            .style("stroke-width", "2px")
+            .style("fill", f.color);
+    });
+}
+
+var container = document.getElementById("dnvp-factions");
+if (container) {
+    container.innerHTML = "";
+    container.style.marginTop = "16px";
+    container.style.fontFamily = "Georgia, serif";
+
+    visibleFactions.forEach(function(f) {
+        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
+        var isRadical = f.side === "radical";
+
+        var block = document.createElement("div");
+        block.style.marginBottom = "12px";
+
+        var header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "baseline";
+        header.style.marginBottom = "3px";
+
+        var nameSpan = document.createElement("span");
+        nameSpan.style.fontWeight = "bold";
+        nameSpan.style.fontSize = "0.92em";
+        nameSpan.style.color = isRadical ? "#cc2200" : "#1a4a2a";
+        nameSpan.textContent = f.label + " — " + f.name;
+
+        var voteSpan = document.createElement("span");
+        voteSpan.style.fontSize = "0.85em";
+        voteSpan.style.color = "#666";
+        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
+
+        header.appendChild(nameSpan);
+        header.appendChild(voteSpan);
+
+        var sub = document.createElement("div");
+        sub.style.fontSize = "0.78em";
+        sub.style.color = "#888";
+        sub.style.marginBottom = "4px";
+        sub.style.fontStyle = "italic";
+        sub.textContent = f.subtitle;
+
+        var barTrack = document.createElement("div");
+        barTrack.style.width = "100%";
+        barTrack.style.height = "14px";
+        barTrack.style.backgroundColor = "#e8e8e8";
+        barTrack.style.borderRadius = "3px";
+        barTrack.style.overflow = "hidden";
+        barTrack.style.border = "1px solid " + f.outline;
+
+        var barFill = document.createElement("div");
+        barFill.style.width = pct + "%";
+        barFill.style.height = "100%";
+        barFill.style.backgroundColor = f.color;
+        barFill.style.transition = "width 0.6s ease";
+
+        barTrack.appendChild(barFill);
+        block.appendChild(header);
+        block.appendChild(sub);
+        block.appendChild(barTrack);
+        container.appendChild(block);
+    });
+}
+
+var verdict = document.getElementById("dnvp-verdict");
+if (verdict) {
+    var hugPct = totalVotes > 0 ? (Q.hugenberg_final_votes / totalVotes * 100) : 0;
+    var modPct = 100 - hugPct;
+
+    verdict.innerHTML = "";
+    verdict.style.marginTop = "14px";
+    verdict.style.padding = "10px 14px";
+    verdict.style.borderRadius = "4px";
+    verdict.style.fontSize = "0.88em";
+    verdict.style.fontStyle = "italic";
+    verdict.style.fontFamily = "Georgia, serif";
+
+    if (Q.congress_path === "capitulation") {
+        verdict.style.backgroundColor = "#3d0000";
+        verdict.style.color = "#ffcccc";
+        verdict.style.border = "1px solid #cc0000";
+        verdict.textContent = "⚑ The radical bloc commands " + hugPct.toFixed(1) + "% of the congress. The moderates do not contest the floor.";
+    } else if (Q.can_push_triumvirate == 1) {
+        verdict.style.backgroundColor = "#1a3320";
+        verdict.style.color = "#ccffcc";
+        verdict.style.border = "1px solid #00cc44";
+        verdict.textContent = "⚖ The moderate factions hold a combined " + modPct.toFixed(1) + "% — sufficient to challenge the radical bloc's " + hugPct.toFixed(1) + "%. A coalition of restraint is possible.";
+    } else {
+        verdict.style.backgroundColor = "#2a2a1a";
+        verdict.style.color = "#ffffcc";
+        verdict.style.border = "1px solid #aa8800";
+        verdict.textContent = "⚡ The congress hangs in the balance. Hugenberg holds " + hugPct.toFixed(1) + "% against a fractured moderate opposition of " + modPct.toFixed(1) + "%.";
+    }
+}
+!}
+
+{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
+{!<div id="dnvp-factions"></div>!}
+{!<div id="dnvp-verdict"></div>!}
+
+*The final tally of delegate votes (100 congress seats):*
+*Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
+*[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
+*[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
+*[+ leader_c_yocon +] (Young Conservatives): [+ yocon_final_votes +]*
+*[+ leader_c_christsoc +] (Christian Socials): [+ christsoc_final_votes +]*
+
+[+ leader_a +]'s victory has secured the victory for moderates, who are more than keen on forming next iteration of Marx cabinet, only to keep SPD out - whatever are the means.
+
+​While this preserves the DNVP's status as a party of government, the victory is fragile. Hugenberg's press empire remains a hostile power outside the official leadership, and the dissident associations are already whispering of a "betrayal of the national cause." [+ leader_a +] must now navigate a party that is half-convinced its own leader is too soft for the coming storm.
+
+@pragcon_win
+on-display: {!
+var factionData = [
+    { id: "yocon", name: Q.leader_c_yocon, subtitle: Q.leader_c_yocon_title,
+      votes: Q.yocon_final_votes, color: "#595BFF", outline: "#00cc44",
+      label: "Young Conservatives", side: "moderate" },
+    { id: "christsoc", name: Q.leader_c_christsoc, subtitle: Q.leader_c_christsoc_title,
+      votes: Q.christsoc_final_votes, color: "#FC7CD2", outline: "#00cc44",
+      label: "Christian Socials", side: "moderate" },
+    { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
+      votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
+      label: "Coalitionists", side: "moderate" },
+    { id: "faction_b", name: Q.leader_b, subtitle: Q.leader_b_title,
+      votes: Q.moderate_b_final_votes, color: "#5c4a1e", outline: "#00cc44",
+      label: "Traditionalists", side: "moderate" },
+    { id: "hugenberg", name: "Alfred Hugenberg",
+      subtitle: "Radical Bloc / Dissident Associations",
+      votes: Q.hugenberg_final_votes, color: "#3d0000", outline: "#cc0000",
+      label: "Hugenberg Bloc", side: "radical" }
+];
+
+var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
+var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
+
+if (window && d3 && document.getElementById("dnvp-congress")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("dnvp-congress");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = visibleFactions.map(function(f) {
+        return { id: f.id, legend: f.label, name: f.label,
+                 seats: Math.round(f.votes), color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#dnvp-congress").datum(data).call(parliament);
+
+    visibleFactions.forEach(function(f) {
+        d3.selectAll("#dnvp-congress circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", f.outline)
+            .style("stroke-width", "2px")
+            .style("fill", f.color);
+    });
+}
+
+var container = document.getElementById("dnvp-factions");
+if (container) {
+    container.innerHTML = "";
+    container.style.marginTop = "16px";
+    container.style.fontFamily = "Georgia, serif";
+
+    visibleFactions.forEach(function(f) {
+        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
+        var isRadical = f.side === "radical";
+
+        var block = document.createElement("div");
+        block.style.marginBottom = "12px";
+
+        var header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "baseline";
+        header.style.marginBottom = "3px";
+
+        var nameSpan = document.createElement("span");
+        nameSpan.style.fontWeight = "bold";
+        nameSpan.style.fontSize = "0.92em";
+        nameSpan.style.color = isRadical ? "#cc2200" : "#1a4a2a";
+        nameSpan.textContent = f.label + " — " + f.name;
+
+        var voteSpan = document.createElement("span");
+        voteSpan.style.fontSize = "0.85em";
+        voteSpan.style.color = "#666";
+        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
+
+        header.appendChild(nameSpan);
+        header.appendChild(voteSpan);
+
+        var sub = document.createElement("div");
+        sub.style.fontSize = "0.78em";
+        sub.style.color = "#888";
+        sub.style.marginBottom = "4px";
+        sub.style.fontStyle = "italic";
+        sub.textContent = f.subtitle;
+
+        var barTrack = document.createElement("div");
+        barTrack.style.width = "100%";
+        barTrack.style.height = "14px";
+        barTrack.style.backgroundColor = "#e8e8e8";
+        barTrack.style.borderRadius = "3px";
+        barTrack.style.overflow = "hidden";
+        barTrack.style.border = "1px solid " + f.outline;
+
+        var barFill = document.createElement("div");
+        barFill.style.width = pct + "%";
+        barFill.style.height = "100%";
+        barFill.style.backgroundColor = f.color;
+        barFill.style.transition = "width 0.6s ease";
+
+        barTrack.appendChild(barFill);
+        block.appendChild(header);
+        block.appendChild(sub);
+        block.appendChild(barTrack);
+        container.appendChild(block);
+    });
+}
+
+var verdict = document.getElementById("dnvp-verdict");
+if (verdict) {
+    var hugPct = totalVotes > 0 ? (Q.hugenberg_final_votes / totalVotes * 100) : 0;
+    var modPct = 100 - hugPct;
+
+    verdict.innerHTML = "";
+    verdict.style.marginTop = "14px";
+    verdict.style.padding = "10px 14px";
+    verdict.style.borderRadius = "4px";
+    verdict.style.fontSize = "0.88em";
+    verdict.style.fontStyle = "italic";
+    verdict.style.fontFamily = "Georgia, serif";
+
+    if (Q.congress_path === "capitulation") {
+        verdict.style.backgroundColor = "#3d0000";
+        verdict.style.color = "#ffcccc";
+        verdict.style.border = "1px solid #cc0000";
+        verdict.textContent = "⚑ The radical bloc commands " + hugPct.toFixed(1) + "% of the congress. The moderates do not contest the floor.";
+    } else if (Q.can_push_triumvirate == 1) {
+        verdict.style.backgroundColor = "#1a3320";
+        verdict.style.color = "#ccffcc";
+        verdict.style.border = "1px solid #00cc44";
+        verdict.textContent = "⚖ The moderate factions hold a combined " + modPct.toFixed(1) + "% — sufficient to challenge the radical bloc's " + hugPct.toFixed(1) + "%. A coalition of restraint is possible.";
+    } else {
+        verdict.style.backgroundColor = "#2a2a1a";
+        verdict.style.color = "#ffffcc";
+        verdict.style.border = "1px solid #aa8800";
+        verdict.textContent = "⚡ The congress hangs in the balance. Hugenberg holds " + hugPct.toFixed(1) + "% against a fractured moderate opposition of " + modPct.toFixed(1) + "%.";
+    }
+}
+!}
+
+{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
+{!<div id="dnvp-factions"></div>!}
+{!<div id="dnvp-verdict"></div>!}
+
+*The final tally of delegate votes (100 congress seats):*
+*Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
+*[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
+*[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
+*[+ leader_c_yocon +] (Young Conservatives): [+ yocon_final_votes +]*
+*[+ leader_c_christsoc +] (Christian Socials): [+ christsoc_final_votes +]*
+
+Traditional wing of Junkers and Owners' representative majority seized victory once again, keeping the status-quo intact.
+
+​However, the win exposes a deep generational and class rift. The urban radicals and the nationalist youth view this as a victory for a "dying caste." While [+ leader_b +] has saved the party's soul from the "Block of Stone," he now leads a movement that increasingly grows irrelevant in the current realities of Weimar.
+
+@laborcon_win
+on-display: {!
+var factionData = [
+    { id: "yocon", name: Q.leader_c_yocon, subtitle: Q.leader_c_yocon_title,
+      votes: Q.yocon_final_votes, color: "#595BFF", outline: "#00cc44",
+      label: "Young Conservatives", side: "moderate" },
+    { id: "christsoc", name: Q.leader_c_christsoc, subtitle: Q.leader_c_christsoc_title,
+      votes: Q.christsoc_final_votes, color: "#FC7CD2", outline: "#00cc44",
+      label: "Christian Socials", side: "moderate" },
+    { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
+      votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
+      label: "Coalitionists", side: "moderate" },
+    { id: "faction_b", name: Q.leader_b, subtitle: Q.leader_b_title,
+      votes: Q.moderate_b_final_votes, color: "#5c4a1e", outline: "#00cc44",
+      label: "Traditionalists", side: "moderate" },
+    { id: "hugenberg", name: "Alfred Hugenberg",
+      subtitle: "Radical Bloc / Dissident Associations",
+      votes: Q.hugenberg_final_votes, color: "#3d0000", outline: "#cc0000",
+      label: "Hugenberg Bloc", side: "radical" }
+];
+
+var totalVotes = factionData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
+var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
+
+if (window && d3 && document.getElementById("dnvp-congress")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("dnvp-congress");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = visibleFactions.map(function(f) {
+        return { id: f.id, legend: f.label, name: f.label,
+                 seats: Math.round(f.votes), color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#dnvp-congress").datum(data).call(parliament);
+
+    visibleFactions.forEach(function(f) {
+        d3.selectAll("#dnvp-congress circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", f.outline)
+            .style("stroke-width", "2px")
+            .style("fill", f.color);
+    });
+}
+
+var container = document.getElementById("dnvp-factions");
+if (container) {
+    container.innerHTML = "";
+    container.style.marginTop = "16px";
+    container.style.fontFamily = "Georgia, serif";
+
+    visibleFactions.forEach(function(f) {
+        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
+        var isRadical = f.side === "radical";
+
+        var block = document.createElement("div");
+        block.style.marginBottom = "12px";
+
+        var header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "baseline";
+        header.style.marginBottom = "3px";
+
+        var nameSpan = document.createElement("span");
+        nameSpan.style.fontWeight = "bold";
+        nameSpan.style.fontSize = "0.92em";
+        nameSpan.style.color = isRadical ? "#cc2200" : "#1a4a2a";
+        nameSpan.textContent = f.label + " — " + f.name;
+
+        var voteSpan = document.createElement("span");
+        voteSpan.style.fontSize = "0.85em";
+        voteSpan.style.color = "#666";
+        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
+
+        header.appendChild(nameSpan);
+        header.appendChild(voteSpan);
+
+        var sub = document.createElement("div");
+        sub.style.fontSize = "0.78em";
+        sub.style.color = "#888";
+        sub.style.marginBottom = "4px";
+        sub.style.fontStyle = "italic";
+        sub.textContent = f.subtitle;
+
+        var barTrack = document.createElement("div");
+        barTrack.style.width = "100%";
+        barTrack.style.height = "14px";
+        barTrack.style.backgroundColor = "#e8e8e8";
+        barTrack.style.borderRadius = "3px";
+        barTrack.style.overflow = "hidden";
+        barTrack.style.border = "1px solid " + f.outline;
+
+        var barFill = document.createElement("div");
+        barFill.style.width = pct + "%";
+        barFill.style.height = "100%";
+        barFill.style.backgroundColor = f.color;
+        barFill.style.transition = "width 0.6s ease";
+
+        barTrack.appendChild(barFill);
+        block.appendChild(header);
+        block.appendChild(sub);
+        block.appendChild(barTrack);
+        container.appendChild(block);
+    });
+}
+
+var verdict = document.getElementById("dnvp-verdict");
+if (verdict) {
+    var hugPct = totalVotes > 0 ? (Q.hugenberg_final_votes / totalVotes * 100) : 0;
+    var modPct = 100 - hugPct;
+
+    verdict.innerHTML = "";
+    verdict.style.marginTop = "14px";
+    verdict.style.padding = "10px 14px";
+    verdict.style.borderRadius = "4px";
+    verdict.style.fontSize = "0.88em";
+    verdict.style.fontStyle = "italic";
+    verdict.style.fontFamily = "Georgia, serif";
+
+    if (Q.congress_path === "capitulation") {
+        verdict.style.backgroundColor = "#3d0000";
+        verdict.style.color = "#ffcccc";
+        verdict.style.border = "1px solid #cc0000";
+        verdict.textContent = "⚑ The radical bloc commands " + hugPct.toFixed(1) + "% of the congress. The moderates do not contest the floor.";
+    } else if (Q.can_push_triumvirate == 1) {
+        verdict.style.backgroundColor = "#1a3320";
+        verdict.style.color = "#ccffcc";
+        verdict.style.border = "1px solid #00cc44";
+        verdict.textContent = "⚖ The moderate factions hold a combined " + modPct.toFixed(1) + "% — sufficient to challenge the radical bloc's " + hugPct.toFixed(1) + "%. A coalition of restraint is possible.";
+    } else {
+        verdict.style.backgroundColor = "#2a2a1a";
+        verdict.style.color = "#ffffcc";
+        verdict.style.border = "1px solid #aa8800";
+        verdict.textContent = "⚡ The congress hangs in the balance. Hugenberg holds " + hugPct.toFixed(1) + "% against a fractured moderate opposition of " + modPct.toFixed(1) + "%.";
+    }
+}
+!}
+
+{!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
+{!<div id="dnvp-factions"></div>!}
+{!<div id="dnvp-verdict"></div>!}
+
+*The final tally of delegate votes (100 congress seats):*
+*Hugenberg (Radical Bloc): [+ hugenberg_final_votes +]*
+*[+ leader_a +] (Coalitionists): [+ moderate_a_final_votes +]*
+*[+ leader_b +] (Traditionalists): [+ moderate_b_final_votes +]*
+*[+ leader_c_yocon +] (Young Conservatives): [+ yocon_final_votes +]*
+*[+ leader_c_christsoc +] (Christian Socials): [+ christsoc_final_votes +]*
+
+In an unexpected electoral run, the Popular Conservatives have secured the win against all the odds — the furthermost-left current within the DNVP, though this extends no further than a paternalist, corporatist creed. Ardently anti-Marxist, the bloc nonetheless champions an active social policy and looks uneasily on any cooperation with parties to the left of the DDP.
+
+​The floor belongs to the [+ popcon_wing_name +] wing: [+ popcon_wing_desc +]. [+ leader_c +] - leader of the Popular Conservatives, will lead the DNVP from now on.
