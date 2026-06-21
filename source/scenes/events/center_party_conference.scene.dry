@@ -1,9 +1,10 @@
-title: Center Party Conference
+Title: Center Party Conference
 subtitle: The Center Party chooses their new leader...
 view-if: year = 1928 and month = 12 and z_party_leader = "Marx"
 max-visits: 1
 tags: event
 new-page: true
+go-to: z_post_concordat if prussian_concordat >= 1
 
 = Center Party Conference
 
@@ -14,10 +15,8 @@ Wilhelm Marx, former Center Party chancellor and presidential candidate, has cho
 The consensus candidate on the right is Ludwig Kaas, a Catholic priest who represents the party's traditionalists. On the other hand, there is Joseph Joos, a leader of the Catholic trade unions, who has been more supportive of cooperation with the SPD than most of the Center Party.
 
 - @kaas: The Center Party elects Ludwig Kaas as the party chair.
-- @brauns: The Center Party elects Heinrich Braund as the party chair.
 - @joos: Influence the Center Party to select Joseph Joos as the party chair.
 - @joos_campaign: We must hold a campaign in support of Joseph Joos as party chair.
-- @stegerwald: The Center Party elects Adam Stegerwald to the leadership.
 
 @kaas
 choose-if: prussian_concordat = 0
@@ -25,12 +24,6 @@ unavailable-subtitle: He sees no reason to run in this conference with his goal 
 on-arrival: z_party_leader = "Kaas"; z_relation -= 5; prussian_concordat_progress += 1
 
 Ludwig Kaas has been selected as the chairman of the Center Party. He seems to represent a rightward turn from Marx, and will preside over a Center Party less inclined to compromise with the left. However, his election made some progress towards Concordat.
-
-@brauns
-view-if: prussian_concordat = 1
-on-arrival: z_party_leader = "Brauns"; z_relation += 2; workers_aid += 1; welfare += 1
-
-Heinrich Brauns has been selected as the chairman of the Center Party. Dynamic between our parties practically remained the same, so there is nothing to say about it.
 
 @joos
 unavailable-subtitle: Our relations are not good enough.
@@ -49,10 +42,41 @@ on-arrival: resources -= 1; z_party_leader = "Joos"; catholics_spd += 5; workers
 
 With our grassroots connections as well as a professional campaign, we have been able to influence the Center delegates to support Joseph Joos as the new Center chairman. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Kaas. He also increases the appeal of the Center Party to the working class.
 
-@stegerwald
-subtitle: He does not yield enough of power anyway... Well?
-unavailable-subtitle: Stegerwald has been recently very unpopular amongst civil servants and white collars. 
-on-arrival: z_party_leader = "Stegerwald"; z_relation -= 10
-view-if: 1 == 0
+@z_post_concordat
 
-Stegerwald now presides over the party, turning party away from it's clericalist nature, however shifting party rightward.
+- @brauns: The Center Party elects Heinrich Brauns as the party chair.
+- @stegerwald: The Center Party elects Adam Stegerwald to the leadership.
+- @joos_campaign_2: We must hold a campaign in support of Joseph Joos as party chair.
+
+As the result of the Prussian concordat being signed earlier than Kaas could depart to the Vatican, Kaas has refused to stand in, citing that he will be focused on the Reichskonkordat between the Papacy and the Reich. 
+
+Instead, the majority of the party has pushed forward Heinrich Brauns, who has been Labor Minister for his 8-year-long career. His labor leanings have forced Joseph Joos to also drop out in the face of a threat of splitting against Adam Stegerwald—another leader of the Christian labor trade unions who, unlike Joos or Brauns, is right-wing oriented and opposes church interference in party politics. The resignation of Kaas has seriously split the Center across two labor candidates and has even made some consider abstaining in opposition.
+
+[? if z_relation > 70: We can force Joseph Joos in, however we will have to likely use an absurd amount of political capital in order to have Joseph Joos win this heated race. ?]
+
+@stegerwald
+subtitle: Right wing and reluctant center of Zentrum have secured majority for Adam Stegerwald.
+choose-if: z_relation < 50
+unavailable-subtitle: Stegerwald has been recently very unpopular amongst civil servants and white collars.
+on-arrival: z_party_leader = "Stegerwald"; z_relation -= 15; workers_z += 5
+
+Stegerwald now presides over the party, turning the party away from its clericalist nature, however shifting the party rightward. [? if z_in_government and spd_in_government: This is big rock in current coalition, as Adam Stegerwald dislikes SPD enough to be willing to sabotage current coalition. ?]
+
+@brauns
+subtitle: Left and reluctant center defeated Adam Stegerwald, clearing way for Heinrich Brauns.
+choose-if: z_relation >= 50
+unavailable-subtitle: Brauns has been defeated by the right wing forces of Zentrum.
+on-arrival: z_party_leader = "Brauns"; z_relation += 2; workers_aid += 1; welfare += 1
+
+Heinrich Brauns has been selected as the chairman of the Center Party. The dynamics between our parties practically remain the same, ensuring a baseline of stable cooperation. However his position is very fragile and entirely depends on whether reluctant center dislikes Stegerwald or not.
+
+@joos_campaign_2
+choose-if: z_relation >= 70 and resources >= 3
+view-if: z_relation > 60
+unavailable-subtitle: [? if z_relation <= 70 : Joseph Joos is not willing to disrupt this run, preferring to back Brauns instead. ?] [? if resources < 3 : We do not have enough resources. ?]
+subtitle: -3 resources. Joos is likely to be friendlier to us than Brauns, however this move will likely cause chaos inside Zentrum.
+on-arrival: resources -= 3; z_party_leader = "Joos"; new_middle_spd += 2; workers_z += 3; z_relation -= 10
+
+With our grassroots connections as well as a professional campaign, we have been able to influence the Center delegates to support Joseph Joos as the new Center chairman. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Brauns. He also increases the appeal of the Center Party to the working class.
+
+This move caused a significant drop in relations between our parties due to our heavy-handed intervention.
