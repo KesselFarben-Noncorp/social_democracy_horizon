@@ -5,8 +5,6 @@ on-arrival: {!
 Q.game_over = 1;
 this.achieve('game_completed');
 
-if (Q.dnvp_votes >= 20) { this.achieve('konservolution'); }
-if (Q.nsdap_votes >= 30) { this.achieve('durchbruch'); }
 if (Q.president == 'Braun' && Q.chancellor == 'Braun' && Q.spd_prussia) { this.achieve('red_tzar_of_prussia'); }
 if (Q.long_war) { this.achieve('civil_war'); }
 if (Q.president === "Gustav Noske" && Q.historical_mode === 1 && Q.civil_war_end === "republic") { this.achieve('noske_leader_historical'); }
@@ -250,11 +248,17 @@ go-to: eg_menu if started == 1; root.start_menu_2 if started == 0
 = Achievements
 
 {!<style>
-.ach { display: flex; align-items: center; padding: 8px; margin: 4px 0; border-left: 4px solid; }
-.ach-icon { display: inline-block; width: 12px; height: 12px; margin-right: 8px; flex-shrink: 0; }
+.ach { display: flex; align-items: flex-start; padding: 10px 8px; margin: 4px 0; border-left: 4px solid; gap: 10px; }
+.ach-icon { display: inline-block; width: 12px; height: 12px; margin-right: 0; margin-top: 4px; flex-shrink: 0; }
+.ach-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ach-title { font-weight: bold; line-height: 1.25; }
+.ach-title strong { font-weight: bold; }
+.ach-subtitle { font-size: 0.82em; font-weight: normal; opacity: 0.75; line-height: 1.35; }
 .ach-locked { border-color: #999 !important; background-color: rgba(150,150,150,0.1) !important; color: #999; }
 .ach-locked .ach-icon { background-color: #999 !important; }
+.ach-locked .ach-subtitle { opacity: 0.6; }
 .ach-new { font-size: 0.72em; background: #E3000F; color: white; padding: 1px 6px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+.ach-title .ach-new { margin-left: 6px; }
 .ach-mod { padding-left: 24px; }
 h1, h2, h3 { margin-bottom: 12px; margin-top: 20px; }
 .ach-grid {
@@ -789,7 +793,14 @@ h1, h2, h3 { margin-bottom: 12px; margin-top: 20px; }
 {!<div class="ach ach-mod" style="border-color:#E3000F; background:rgba(227,0,15,0.1)"><span class="ach-icon" style="background:#FFD700; border:2px solid #E3000F; width:10px; height:10px"></span><strong>Christian Duet</strong> - Two men of greater purpose.!}[? if game_achievement_christian_revolution : {!<span class="ach-new">New!</span>!}?]{!</div>!}
 ?]
 [? if not achievement_christian_revolution :
-{!<div class="ach ach-mod ach-locked"><span class="ach-icon"></span><<strong>Christian Duet</strong> - Two men of greater purpose.</div>!}
+{!<div class="ach ach-mod ach-locked"><span class="ach-icon"></span><strong>Christian Duet</strong> - Two men of greater purpose.</div>!}
+?]
+
+[? if achievement_national_rejuvenation :
+{!<div class="ach ach-mod" style="border-color:#E3000F; background:rgba(227,0,15,0.1)"><span class="ach-icon" style="background:#FFD700; border:2px solid #E3000F; width:10px; height:10px"></span><strong>National Rejuvenation</strong> - German nation before all differences.!}[? if game_achievement_national_rejuvenation : {!<span class="ach-new">New!</span>!}?]{!</div>!}
+?]
+[? if not achievement_national_rejuvenation :
+{!<div class="ach ach-mod ach-locked"><span class="ach-icon"></span><strong>Christian Duet</strong> - Two men of greater purpose.</div>!}
 ?]
 
 [? if achievement_cyberworld :
@@ -878,6 +889,42 @@ h1, h2, h3 { margin-bottom: 12px; margin-top: 20px; }
 
 {!<script>
 (function() {
+  function restructureCards() {
+    document.querySelectorAll('.ach').forEach(function(div) {
+      if (div.querySelector('.ach-text')) return;
+      var strongEl = div.querySelector('strong');
+      if (!strongEl) return;
+      var badgeEl = div.querySelector('.ach-new');
+      var nodes = Array.from(div.childNodes);
+      var iconNodes = [];
+      var subtitleText = '';
+      var passedStrong = false;
+      nodes.forEach(function(node) {
+        if (node === strongEl) { passedStrong = true; return; }
+        if (badgeEl && node === badgeEl) { return; }
+        if (!passedStrong) {
+          iconNodes.push(node);
+        } else {
+          subtitleText += node.textContent;
+        }
+      });
+      subtitleText = subtitleText.replace(/^[\s\u2013\u2014-]+/, '').trim();
+      div.innerHTML = '';
+      iconNodes.forEach(function(n) { div.appendChild(n); });
+      var textWrap = document.createElement('div');
+      textWrap.className = 'ach-text';
+      var titleDiv = document.createElement('div');
+      titleDiv.className = 'ach-title';
+      titleDiv.appendChild(strongEl);
+      if (badgeEl) titleDiv.appendChild(badgeEl);
+      var subDiv = document.createElement('div');
+      subDiv.className = 'ach-subtitle';
+      subDiv.textContent = subtitleText;
+      textWrap.appendChild(titleDiv);
+      textWrap.appendChild(subDiv);
+      div.appendChild(textWrap);
+    });
+  }
   function reflow() {
     document.querySelectorAll('.ach-section').forEach(function(section) {
       var items = Array.from(section.querySelectorAll('.ach'));
@@ -897,10 +944,14 @@ h1, h2, h3 { margin-bottom: 12px; margin-top: 20px; }
       section.appendChild(grid);
     });
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', reflow);
-  } else {
+  function init() {
+    restructureCards();
     reflow();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
 </script>!}
