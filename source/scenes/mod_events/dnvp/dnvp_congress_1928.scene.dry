@@ -151,13 +151,14 @@ go-to: congress_result
 
 @congress_result
 on-display: {!
+on-display: {!
 var factionData = [
-    { id: "yocon", name: Q.leader_c_yocon, subtitle: Q.leader_c_yocon_title,
-      votes: Q.yocon_final_votes, color: "#595BFF", outline: "#00cc44",
-      label: "Young Conservatives", side: "moderate" },
     { id: "christsoc", name: Q.leader_c_christsoc, subtitle: Q.leader_c_christsoc_title,
       votes: Q.christsoc_final_votes, color: "#FC7CD2", outline: "#00cc44",
       label: "Christian Socials", side: "moderate" },
+    { id: "yocon", name: Q.leader_c_yocon, subtitle: Q.leader_c_yocon_title,
+      votes: Q.yocon_final_votes, color: "#595BFF", outline: "#00cc44",
+      label: "Young Conservatives", side: "moderate" },
     { id: "faction_a", name: Q.leader_a, subtitle: Q.leader_a_title,
       votes: Q.moderate_a_final_votes, color: "#4a7c59", outline: "#00cc44",
       label: "Coalitionists", side: "moderate" },
@@ -176,16 +177,18 @@ var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
 if (window && d3 && document.getElementById("dnvp-congress")) {
     var width = 600;
     var height = 300;
-    var contentEl = document.getElementById('content');
+    var wrapEl = document.getElementById('dnvp-mobile-wrap');
+    var contentEl = wrapEl || document.getElementById('content');
     var screenWidth = contentEl ? contentEl.offsetWidth : 600;
-    if (screenWidth < width - 50) {
-        width = screenWidth - 50;
+    if (screenWidth < width - 24) {
+        width = Math.max(screenWidth - 24, 260);
         height = Math.round(width / 2);
     }
 
     var svg = document.getElementById("dnvp-congress");
     svg.style.width = width + "px";
     svg.style.height = height + "px";
+    svg.style.maxWidth = "100%";
 
     var data = visibleFactions.map(function(f) {
         return { id: f.id, legend: f.label, name: f.label,
@@ -205,6 +208,51 @@ if (window && d3 && document.getElementById("dnvp-congress")) {
             .style("stroke-width", "2px")
             .style("fill", f.color);
     });
+
+    // Draw a grouping outline around the Popular Conservative wings
+    // (Christian Socials + Young Conservatives) so the diagram reads as
+    // one bloc split into two currents, matching the narrative framing.
+    d3.select("#dnvp-congress").select("g.popcon-wrapper").remove();
+    var popconIds = ["christsoc", "yocon"];
+    var popconCircles = d3.selectAll("#dnvp-congress circle")
+        .filter(function(d) { return d && d.data && popconIds.indexOf(d.data.id) !== -1; });
+
+    if (popconCircles.size() > 0) {
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        popconCircles.each(function() {
+            var cx = +d3.select(this).attr("cx");
+            var cy = +d3.select(this).attr("cy");
+            var r = +d3.select(this).attr("r") || 6;
+            if (cx - r < minX) minX = cx - r;
+            if (cy - r < minY) minY = cy - r;
+            if (cx + r > maxX) maxX = cx + r;
+            if (cy + r > maxY) maxY = cy + r;
+        });
+
+        var pad = 8;
+        var svgRoot = d3.select("#dnvp-congress");
+        var wrapperG = svgRoot.insert("g", ":first-child").attr("class", "popcon-wrapper");
+
+        wrapperG.append("rect")
+            .attr("x", minX - pad)
+            .attr("y", minY - pad)
+            .attr("width", (maxX - minX) + pad * 2)
+            .attr("height", (maxY - minY) + pad * 2)
+            .attr("rx", 10)
+            .style("fill", "none")
+            .style("stroke", "#aa66cc")
+            .style("stroke-width", "2px")
+            .style("stroke-dasharray", "5,4");
+
+        wrapperG.append("text")
+            .attr("x", minX - pad)
+            .attr("y", minY - pad - 6)
+            .style("font-family", "Georgia, serif")
+            .style("font-size", "11px")
+            .style("font-style", "italic")
+            .style("fill", "#aa66cc")
+            .text("Popular Conservatives");
+    }
 }
 
 var container = document.getElementById("dnvp-factions");
@@ -212,6 +260,8 @@ if (container) {
     container.innerHTML = "";
     container.style.marginTop = "16px";
     container.style.fontFamily = "Georgia, serif";
+    container.style.maxWidth = "100%";
+    container.style.boxSizing = "border-box";
 
     visibleFactions.forEach(function(f) {
         var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
@@ -270,6 +320,12 @@ if (container) {
 }
 
 !}
+
+{!<div id="dnvp-mobile-wrap" style="width:100%; max-width:600px; margin:0 auto; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+  <svg id="dnvp-congress" style="width:600px; height:300px; max-width:100%;"></svg>
+  <div id="dnvp-factions"></div>
+</div>!}
+
 
 {!<svg id="dnvp-congress" style="width:600px; height:300px;"></svg>!}
 {!<div id="dnvp-factions"></div>!}
