@@ -14,7 +14,7 @@ Following the May election losses, the German National People's Party (DNVP) has
 
 As the delegates prepare to meet in Berlin, the question expands far beyond the Lambach: Will DNVP move to the Radical Far Right or keep the Parliamentarist Course?
 
-- @check: Who are the candidates?
+- @check: Who will win this one...?
 
 @check
 on-arrival: {!
@@ -22,7 +22,7 @@ on-arrival: {!
 // === CANDIDATE SELECTION ===
 
 // Faction A Leader (Coalitionists)
-if ((Q.rural_dnvp + Q.old_middle_dnvp / 3) > 34 && Q.cnbl_crisis == 0) {
+if ((Q.rural_dnvp_display + Q.old_middle_dnvp_display / 3) > 36 || Q.cnbl_crisis == 0) {
     Q.leader_a = "Friedrich Winckler";
     Q.leader_a_title = "Leader of the Prussian Landtag Delegation";
 } else {
@@ -43,11 +43,11 @@ if (Q.lambach_reinstated == 1 || Q.dnvp_votes_display > 16.4) {
 // wing. Which one actually leads the bloc is decided further below, once the
 // relative strength of each wing on the floor is known.
 Q.leader_c_yocon = "Gottfried Treviranus";
-Q.leader_c_yocon_title = "Young Conservative Faction Member";
+Q.leader_c_yocon_title = "Young Conservative Faction Leader";
 
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
     Q.leader_c_christsoc = "Walther Lambach";
-    Q.leader_c_christsoc_title = "Leader of the DHV wing";
+    Q.leader_c_christsoc_title = "Leader of the Christian Social - DHV wing";
 } else {
     Q.leader_c_christsoc = "Emil Hartwig";
     Q.leader_c_christsoc_title = "Christian-Social Delegate";
@@ -56,132 +56,12 @@ if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
 // === DELEGATE CALCULATIONS ===
 
 // 1. Base scores
-Q.faction_a_score = 20;
-Q.faction_b_score = 40;
-Q.hugenberg_score = 25;
+Q.delegate_power_a = Q.delegate_power_a || 20;
+Q.delegate_power_b = Q.delegate_power_b || 40;
+Q.hugenberg_momentum = Q.hugenberg_momentum || 25;
+Q.delegate_power_yocon = Q.delegate_power_yocon || 9;      
+Q.delegate_power_christsoc = Q.delegate_power_christsoc || 8;  
 
-Q.delegate_power_a = Q.faction_a_score;
-Q.delegate_power_b = Q.faction_b_score;
-Q.hugenberg_momentum = Q.hugenberg_score;
-
-// Popular Conservatives start as independent tracks
-Q.delegate_power_yocon = 9;      // was half of faction_c_score (17)
-Q.delegate_power_christsoc = 8;  // the other half
-
-// 2. Lambach Fallout
-if (Q.lambach_exile == 1) {
-    Q.hugenberg_momentum += 18;
-    Q.delegate_power_christsoc -= 7;   // DHV wing bleeds most
-    Q.delegate_power_yocon -= 3;
-    Q.delegate_power_b -= 5;
-} else if (Q.lambach_reinstated == 1) {
-    Q.hugenberg_momentum += 8;
-    Q.delegate_power_a += 5;
-    Q.delegate_power_christsoc += 2;
-    Q.delegate_power_yocon += 1;
-} else if (Q.lambach_exile == 0) {
-    Q.delegate_power_christsoc += 18; // DHV vindicated
-    Q.delegate_power_yocon += 12;
-} else {
-    Q.hugenberg_momentum += 10;
-}
-
-// 3. Dommes Factor
-if (Q.cnbl_crisis == 1) {
-    Q.hugenberg_momentum += 20;
-} else {
-    Q.delegate_power_b += 10;
-    Q.delegate_power_yocon += 3;
-    Q.delegate_power_christsoc += 2;
-}
-
-if (Q.vnr_momentum == 0) {
-    Q.delegate_power_yocon += 8;    // Young Cons benefit more from VNR absence
-    Q.delegate_power_christsoc += 4;
-    Q.delegate_power_a += 5;
-} else {
-    Q.delegate_power_b += 10;
-    Q.hugenberg_momentum += 15;
-}
-
-if (Q.geest_wildfire == 0) {
-    Q.delegate_power_yocon += 3;
-    Q.delegate_power_christsoc += 2;
-    Q.delegate_power_a += 5;
-    Q.delegate_power_b += 10;
-    Q.hugenberg_momentum -= 5;
-} else {
-    Q.hugenberg_momentum += 25;
-    Q.delegate_power_yocon += 6;    // split the old +10 to c
-    Q.delegate_power_christsoc += 4;
-    Q.delegate_power_a += 5;
-    Q.delegate_power_b -= 15;
-}
-
-// 3b. Media Dominance Check
-if (Q.commercialized_media >= 1 || Q.radio >= 1) {
-    Q.hugenberg_momentum -= 10;
-}
-
-// 3c. Land Reform Threat
-if (Q.land_reform > 0) {
-    Q.hugenberg_momentum += 20 * Q.land_reform;
-}
-
-// 3d. Government Participation Bonus
-if (Q.dnvp_in_government) {
-    Q.delegate_power_a += 50;
-    Q.delegate_power_b += 25;
-    Q.delegate_power_yocon += 6;
-    Q.delegate_power_christsoc += 4;
-}
-
-// 4. Class Influence
-Q.hugenberg_momentum += (Q.old_middle_dnvp * 1.35);
-Q.hugenberg_momentum += (Q.rural_dnvp * 0.83);
-
-Q.delegate_power_a += (Q.new_middle_dnvp * 1.59);
-Q.delegate_power_a += (Q.old_middle_dnvp * 0.55);
-
-Q.delegate_power_b += (Q.rural_dnvp * 1.24);
-Q.delegate_power_b += (Q.old_middle_dnvp * 0.4);
-
-// Young Conservatives: new middle class + small worker slice + some old middle
-Q.delegate_power_yocon += (Q.workers_dnvp * 0.4) + (Q.new_middle_dnvp * 0.95) + (Q.old_middle_dnvp * 0.3);
-// Christian Socials: worker-heavy + half of new middle
-Q.delegate_power_christsoc += (Q.workers_dnvp * 2.0) + (Q.new_middle_dnvp * 0.45);
-
-// 5. Ideological Reinforcements
-Q.hugenberg_momentum += Q.nationalism * 20;
-Q.delegate_power_b += Q.nationalism * 0.65 * Q.pro_republic * 0.1;
-Q.delegate_power_a += Q.pro_republic * 0.17 + Q.nationalism * 0.28;
-Q.delegate_power_yocon += Q.pro_republic * 0.4;
-Q.delegate_power_christsoc += Q.socialism * 0.9 + Q.pro_republic * 0.2;
-
-// 6. Failure Penalty
-if (Q.dnvp_votes < 13) {
-    Q.delegate_power_a -= 10;
-    Q.delegate_power_b -= 10;
-    Q.hugenberg_momentum += 15;
-} else if (Q.dnvp_votes < 14) {
-    Q.delegate_power_a -= 3;
-    Q.delegate_power_b -= 5;
-    Q.hugenberg_momentum += 5;
-    Q.delegate_power_yocon += 3;
-    Q.delegate_power_christsoc += 2;
-} else if (Q.dnvp_votes < 16) {
-    Q.delegate_power_a -= 1;
-    Q.delegate_power_b -= 2;
-    Q.hugenberg_momentum += 3;
-    Q.delegate_power_yocon += 5;
-    Q.delegate_power_christsoc += 3;
-} else {
-    Q.delegate_power_a += 4;
-    Q.delegate_power_b -= 6;
-    Q.hugenberg_momentum -= 4;
-    Q.delegate_power_yocon += 9;
-    Q.delegate_power_christsoc += 6;
-}
 
 // === POPULAR CONSERVATIVE INTERNAL LEADERSHIP ===
 // Now resolved from independently-built totals — no ratio needed
