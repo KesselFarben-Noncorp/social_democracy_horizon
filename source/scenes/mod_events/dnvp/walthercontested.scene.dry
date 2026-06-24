@@ -25,39 +25,21 @@ Q.pro_lambach = 0;
 Q.anti_lambach = 0;
 Q.abstain_lambach = 0;
 
-// --- AGAINST: Hugenberg bloc, half of Young Conservatives, slice of Coalitionists ---
-Q.anti_lambach += Q.hugenberg_final_votes;
+// --- AGAINST: Hugenberg bloc la Traditionists ---
+Q.anti_lambach += Q.hugenberg_final_votes * Q.nationalism;
 Q.anti_lambach += Math.round(Q.delegate_power_b / 3);
 
-
-// Hugenberg media empire erodes
-Q.anti_lambach -= (Q.radio > 0) ? Q.radio * 5 : 0;
-Q.anti_lambach -= (Q.commercialized_media >= 1) ? Q.commercialized_media * 3.5 : 0;
-
-// --- FOR: Christian Socials core + some Traditionalist holdovers ---
+// --- FOR: Christian Socials core + some folk holdovers ---
 Q.pro_lambach += Q.christsoc_final_votes;
 Q.pro_lambach += Math.round(Q.delegate_power_yocon / 2.5);
 Q.pro_lambach += Math.round(Q.delegate_power_a * 0.28);
 
 // Lambach's personal standing: not-yet-exiled / has momentum
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
-    Q.pro_lambach += 20;
-    Q.anti_lambach -= 20;
+    Q.pro_lambach += 5;
+    Q.anti_lambach -= 5;
 }
 
-// DHV union and white-collar base
-Q.pro_lambach += (Q.workers_dnvp_display * 1.4) + (Q.new_middle_dnvp_display * 0.89);
-
-// Old middle class / rural base tilts hostile
-Q.anti_lambach += (Q.old_middle_dnvp_display * 0.87) * (Q.rural_dnvp_display * 0.57);
-
-// Player spd ideology modifiers
-Q.pro_lambach += (Q.ideology == "Reformist") ? 10 : 0;
-Q.pro_lambach -= (Q.ideology == "Left") ? 5 : 0;
-Q.pro_lambach -= (Q.ideology == "Labor") ? 10 : 0;
-
-// Hugenberg press attacks weaken resolve of fence-sitters on Lambach's side
-Q.anti_lambach -= (Q.hugenberg_media_attack > 0) ? Q.hugenberg_media_attack * 13 : 0;
 
 // --- ABSTAINERS: the remainder of the two moderate factions who won't commit ---
 // Young Conservative half not in Anti, rest of Coalitionists not in Anti, half of Traditionalists not in Pro
