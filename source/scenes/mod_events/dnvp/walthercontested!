@@ -40,6 +40,8 @@ Q.pro_lambach += (Q.ideology == "Reformist") ? 10 : 0;
 Q.pro_lambach -= (Q.ideology == "Left") ? 5 : 0;
 Q.pro_lambach -= (Q.ideology == "Labor") ? 10 : 0;
 
+Q.anti_lambach -= (Q.hugenberg_media_attack > 0) ? Q.hugenberg_media_attack * 13 : 0;
+
 Q.lambach_ousting = (Q.pro_lambach <= Q.anti_lambach) ? 1: 0;
 !}
 go-to: cooked if lambach_ousting = 1; survives if lambach_ousting = 0
