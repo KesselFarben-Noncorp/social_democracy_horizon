@@ -13,7 +13,7 @@ As we have control over the Interior Ministry, we can direct police and intellig
 
 - @deport_hitler
 - @kill_thalmann: Kill Thalmann.
-- @obstruct_hugenberg: Obstruct Hugenberg's media empire.
+- @obstruct_hugenberg
 - @ban_sa: Ban the SA.
 - @unban_sa: Unban the SA.
 - @persecute_sa
@@ -26,14 +26,6 @@ As we have control over the Interior Ministry, we can direct police and intellig
 - @ban_rfb_noske: Ban the Communist RFB effectively and definitively.
 - @ban_kpd: Ban the Communist Party of Germany indefinitely.
 - @root: Take no action for now.
-
-@obstruct_hugenberg
-subtitle: Hugenberg will surely retaliate against us...
-choose-if: judicial_reform > 0 and interior_police_loyalty >= 0.70
-unavailable-subtitle: [? if judicial_reform < 0: Justiciary will immediately initiate act against us! ?] [? interior_police_loyalty < 0.70: Interior ministry police units are not loyal or willing enough to consider this option. ?]
-on-arrival: hugenberg_media_attack += 1; resources -= 1 * hugenberg_media_attack; commercialized_media += 1; dnvp_relation -= 10 if dnvp_party_leader = "Alfred Hugenberg"; interior_police_loyalty -= 0.05 if dnvp_in_government; interior_police_loyalty -= 0.02 if dvp_in_government; capital_strike_progress += 1; budget -= 1 if capital_strike_progress > 6; old_middle -= 0.01; z_relation -= 5 if z_party_leader = "Adam Stegerwald"; dvp_relation -= 5 if dvp_party_leader = "Ernst Scholz"; interior_police_loyalty -= 0.03
-
-Our interior police units have obstructed Hugenberg's media empire through seizings and informal obstructions of their usual work! 
 
 @ban_kpd
 view-if: (kpd_r > 20 or kpd_votes > 25) and strife >= 6 and kpd_relation < 30 and april_challenge = 1 and thalmann_dead
@@ -74,6 +66,15 @@ The streets of Berlin are full of men with weapons and no remaining patience for
 Are we doomed?
 
 - @socfac_civilwar: Whatever is coming, we are doomed.
+
+@obstruct_hugenberg
+title: Obstruct Hugenberg's media empire.
+subtitle: Hugenberg will surely retaliate against us...
+choose-if: judicial_reform > 0 and interior_police_loyalty >= 0.70
+unavailable-subtitle: [? if judicial_reform < 0: Justiciary will immediately initiate act against us! ?] [? interior_police_loyalty < 0.70: Interior ministry police units are not loyal or willing enough to consider this option. ?]
+on-arrival: hugenberg_media_attack += 1; resources -= 1 * hugenberg_media_attack; commercialized_media += 1; dnvp_relation -= 10 if dnvp_party_leader = "Alfred Hugenberg"; interior_police_loyalty -= 0.05 if dnvp_in_government; interior_police_loyalty -= 0.02 if dvp_in_government; capital_strike_progress += 1; budget -= 1 if capital_strike_progress > 6; old_middle -= 0.01; z_relation -= 5 if z_party_leader = "Adam Stegerwald"; dvp_relation -= 5 if dvp_party_leader = "Ernst Scholz"; interior_police_loyalty -= 0.03
+
+Our interior police units have obstructed Hugenberg's media empire through seizings and informal obstructions of their usual work! 
 
 @ban_sa
 view-if: nazi_urgency >= 3 and sa_banned == 0
