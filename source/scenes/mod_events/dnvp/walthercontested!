@@ -29,4 +29,23 @@ Q.anti_lambach -= 20
 
 Q.pro_lambach += (Q.workers_dnvp_display * 1.4) + (Q.new_middle_dnvp_display * 0.89);
 Q.anti_lambach += (Q.old_middle_dnvp_display * 0.87) * (Q.rural_dnvp_display * 0.57);
+
+Q.pro_lambach += (Q.ideology == "Reformist") ? 10 : 0;
+Q.pro_lambach -= (Q.ideology == "Left") ? 5 : 0;
+Q.pro_lambach -= (Q.ideology == "Labor") ? 10 : 0;
+
+Q.lambach_ousting = (Q.pro_lambach <= Q.anti_lambach) ? 1: 0;
 !}
+go-to: cooked if lambach_ousting = 1; survives if lambach_ousting = 0
+
+@cooked
+
+= Cooked
+
+Lambach lost
+
+@survives
+
+= Survived
+
+Lambach win
