@@ -13,7 +13,7 @@ General von Dommes, Reinhold Quaatz, Baron Axel von Freytagh-Loringhoven (chairm
 
 Longstanding indirect allies of Walther Lambach - Kuno von Westarp, Martin Schiele, Walther von Keudell, Siegfried Lüttichau, Oskar Hergt and others have decided to break ties with Lambach, leaving his faction and himself alone against Hugenberg's powerful empire. Even Treviranus, supporter of deradicalization course of DNVP, has ever since November been disinterested in co-operation with Christian Socials and their leadership.
 
-**Will gods have mercy on this young and charismatic man?**
+**Will his unions and youth save him this time?**
 
 - @result: And it all ends on...
 
@@ -22,15 +22,15 @@ on-arrival:{!
 Q.pro_lambach = 0;
 Q.anti_lambach = 0;
 
-Q.anti_lambach += Q.hugenberg_final_votes;
-Q.pro_lambach += Q.christsoc_final_votes;
+Q.anti_lambach += Q.hugenberg_final_votes + (Q.delegate_power_yocon / 2) + (Q.delegate_power_a * 0.28);
+Q.pro_lambach += Q.christsoc_final_votes + (Q.delegate_power_b / 3);
 
 Q.anti_lambach -= (Q.radio > 0) ? Q.radio * 5 : 0;
 Q.anti_lambach -= (Q.commercialized_media >= 1) ? Q.commercialized_media * 3.5 : 0;
 
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
-Q.pro_lambach += 20;
-Q.anti_lambach -= 20
+    Q.pro_lambach += 20;
+    Q.anti_lambach -= 20
 }
 
 Q.pro_lambach += (Q.workers_dnvp_display * 1.4) + (Q.new_middle_dnvp_display * 0.89);
@@ -48,12 +48,12 @@ go-to: cooked if lambach_ousting = 1; survives if lambach_ousting = 0
 
 @cooked
 
-= Cooked
+= Lambach has been defeated in vote of no confidence!
 
 Lambach lost
 
 @survives
 
-= Survived
+= Lambach survives the vote of no confidence!
 
 Lambach win
