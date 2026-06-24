@@ -22,6 +22,12 @@ on-arrival:{!
 Q.pro_lambach = 0;
 Q.anti_lambach = 0;
 
+Q.anti_lambach += Q.hugenberg_final_votes;
+Q.pro_lambach += Q.christsoc_final_votes;
+
+Q.anti_lambach -= (Q.radio > 0) ? Q.radio * 5 : 0;
+Q.anti_lambach -= (Q.commercialized_media >= 1) ? Q.commercialized_media * 3.5 : 0;
+
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
 Q.pro_lambach += 20;
 Q.anti_lambach -= 20
