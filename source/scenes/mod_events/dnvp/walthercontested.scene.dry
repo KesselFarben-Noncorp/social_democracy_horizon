@@ -9,9 +9,9 @@ face-image: img/portraits/LambachWalther.jpg
 
 Walther Lambach, candidate of the Christian Social faction, securing the victory in the result of congress election, has caused widespread internal dissent amongst the members of other factions, even up to Moderates, who deem policies of Lambach contradictory to the vision of Sammelpartei. However the attack first has been launched by the radicals and volkists, allies of Alfred Hugenberg. They argue that Walther Lambach seeks to dismantle the ideals of the German nationalism to turn this party into engine of his interests and influence, transitioning in the result to "one-man" party. Criticism also comes from the fact that Lambach's base contradicts with influence of powerful groups inside DNVP such as Junkers and Industrialists, who all see Lambach as the threat to their power.
 
-General von Dommes, Reinhold Quaatz, Baron Axel von Freytagh-Loringhoven (chairman of the DNVP’s National Racist Committee), Hans Hilpert (being forced by radicals (and by Maximilian von Dziembowski) and recently radicalized Bavarian chapter), Walther Hirzel (Württemberg Burgher Party, DNVP’s Württemberg affiliate), majority of members of Bavaria, Württemberg, East Prussia, and Frankfurt an der Oder chapters, and Alfred Hugenberg himself have launched vote of no confidence to overthrow Walther Lambach from his position, using instability of Traditionalists inside party to reach this goal.
+General von Dommes, Reinhold Quaatz, Baron Axel von Freytagh-Loringhoven (chairman of the DNVP's National Racist Committee), Hans Hilpert (being forced by radicals and by Maximilian von Dziembowski) and recently radicalized Bavarian chapter, Walther Hirzel (Württemberg Burgher Party, DNVP's Württemberg affiliate), majority of members of Bavaria, Württemberg, East Prussia, and Frankfurt an der Oder chapters, and Alfred Hugenberg himself have launched vote of no confidence to overthrow Walther Lambach from his position, using instability of Traditionalists inside party to reach this goal.
 
-Longstanding indirect allies of Walther Lambach - Kuno von Westarp, Martin Schiele, Walther von Keudell, Siegfried Lüttichau, Oskar Hergt and others have decided to break ties with Lambach, leaving his faction and himself alone against Hugenberg's powerful empire. Even Treviranus, supporter of deradicalization course of DNVP, has ever since November been disinterested in co-operation with Christian Socials and their leadership.
+Longstanding indirect allies of Walther Lambach — Kuno von Westarp, Martin Schiele, Walther von Keudell, Siegfried Lüttichau, Oskar Hergt and others have decided to break ties with Lambach, leaving his faction and himself alone against Hugenberg's powerful empire. Even Treviranus, supporter of deradicalization course of DNVP, has ever since November been disinterested in co-operation with Christian Socials and their leadership.
 
 **Will his unions and youth save him this time?**
 
@@ -19,41 +19,264 @@ Longstanding indirect allies of Walther Lambach - Kuno von Westarp, Martin Schie
 
 @result
 on-arrival:{!
+
+// === RAW BLOC SCORES ===
 Q.pro_lambach = 0;
 Q.anti_lambach = 0;
+Q.abstain_lambach = 0;
 
-Q.anti_lambach += Q.hugenberg_final_votes + (Q.delegate_power_yocon / 2) + (Q.delegate_power_a * 0.28);
-Q.pro_lambach += Q.christsoc_final_votes + (Q.delegate_power_b / 3);
+// --- AGAINST: Hugenberg bloc, half of Young Conservatives, slice of Coalitionists ---
+Q.anti_lambach += Q.hugenberg_final_votes;
+Q.anti_lambach += Math.round(Q.delegate_power_b / 3);
 
+
+// Hugenberg media empire erodes
 Q.anti_lambach -= (Q.radio > 0) ? Q.radio * 5 : 0;
 Q.anti_lambach -= (Q.commercialized_media >= 1) ? Q.commercialized_media * 3.5 : 0;
 
+// --- FOR: Christian Socials core + some Traditionalist holdovers ---
+Q.pro_lambach += Q.christsoc_final_votes;
+Q.pro_lambach += Math.round(Q.delegate_power_yocon / 2.5);
+Q.pro_lambach += Math.round(Q.delegate_power_a * 0.28);
+
+// Lambach's personal standing: not-yet-exiled / has momentum
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
     Q.pro_lambach += 20;
-    Q.anti_lambach -= 20
+    Q.anti_lambach -= 20;
 }
 
+// DHV union and white-collar base
 Q.pro_lambach += (Q.workers_dnvp_display * 1.4) + (Q.new_middle_dnvp_display * 0.89);
+
+// Old middle class / rural base tilts hostile
 Q.anti_lambach += (Q.old_middle_dnvp_display * 0.87) * (Q.rural_dnvp_display * 0.57);
 
+// Player spd ideology modifiers
 Q.pro_lambach += (Q.ideology == "Reformist") ? 10 : 0;
 Q.pro_lambach -= (Q.ideology == "Left") ? 5 : 0;
 Q.pro_lambach -= (Q.ideology == "Labor") ? 10 : 0;
 
+// Hugenberg press attacks weaken resolve of fence-sitters on Lambach's side
 Q.anti_lambach -= (Q.hugenberg_media_attack > 0) ? Q.hugenberg_media_attack * 13 : 0;
 
-Q.lambach_ousting = (Q.pro_lambach <= Q.anti_lambach) ? 1: 0;
+// --- ABSTAINERS: the remainder of the two moderate factions who won't commit ---
+// Young Conservative half not in Anti, rest of Coalitionists not in Anti, half of Traditionalists not in Pro
+Q.abstain_lambach += Math.round(Q.delegate_power_yocon / 1.5);              // other YCon half sits out
+Q.abstain_lambach += Math.round(Q.delegate_power_a * (1 - 0.28));         // Coalitionists not in Anti
+Q.abstain_lambach += Math.round(Q.delegate_power_b * (1 - 1/3));          // Traditionalists not in Pro
+
+// Floor at zero
+Q.pro_lambach    = Math.max(0, Math.round(Q.pro_lambach));
+Q.anti_lambach   = Math.max(0, Math.round(Q.anti_lambach));
+Q.abstain_lambach = Math.max(0, Math.round(Q.abstain_lambach));
+
+// === NORMALIZE TO 100 SEATS (Largest Remainder) ===
+var vonc_raw_total = Q.pro_lambach + Q.anti_lambach + Q.abstain_lambach;
+
+var vonc_buckets = [
+    { key: "vonc_pro",     raw: Q.pro_lambach },
+    { key: "vonc_anti",    raw: Q.anti_lambach },
+    { key: "vonc_abstain", raw: Q.abstain_lambach }
+];
+
+var vonc_allocated = 0;
+for (var i = 0; i < vonc_buckets.length; i++) {
+    var exact = vonc_raw_total > 0 ? (vonc_buckets[i].raw / vonc_raw_total * 100) : 0;
+    vonc_buckets[i].floor = Math.floor(exact);
+    vonc_buckets[i].remainder = exact - vonc_buckets[i].floor;
+    vonc_allocated += vonc_buckets[i].floor;
+}
+
+var vonc_remaining = 100 - vonc_allocated;
+var vonc_sorted = vonc_buckets.slice().sort(function(x, y) { return y.remainder - x.remainder; });
+for (var j = 0; j < vonc_sorted.length; j++) {
+    vonc_sorted[j].seats = vonc_sorted[j].floor + (j < vonc_remaining ? 1 : 0);
+}
+for (var k = 0; k < vonc_buckets.length; k++) {
+    Q[vonc_buckets[k].key] = vonc_buckets[k].seats;
+}
+
+// === OUTCOME ===
+// Passes if Anti > Pro (abstainers do not save him)
+Q.lambach_ousting = (Q.vonc_anti > Q.vonc_pro) ? 1 : 0;
+
 !}
+go-to: vonc_display
+
+@vonc_display
+on-display: {!
+
+var voncData = [
+    {
+        id: "anti",
+        label: "For the VoNC",
+        sublabel: "Hugenberg Bloc · Pan-Germans · radical Associations",
+        votes: Q.vonc_anti,
+        color: "#3d0000",
+        outline: "#cc0000",
+        side: "anti"
+    },
+    {
+        id: "abstain",
+        label: "Abstaining",
+        sublabel: "Majority Young Conservatives · uncommitted Coalitionists · silent Traditionalists",
+        votes: Q.vonc_abstain,
+        color: "#a8a8a8",
+        outline: "#666666",
+        side: "abstain"
+    },
+    {
+        id: "pro",
+        label: "Against the VoNC",
+        sublabel: "DHV unions · Christian Socials · Part of Young Conservatives",
+        votes: Q.vonc_pro,
+        color: "#FC7CD2",
+        outline: "#cc44aa",
+        side: "pro"
+    }
+];
+
+var totalVotes = voncData.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
+var visibleFactions = voncData.filter(function(f) { return f.votes > 0; });
+
+// --- Parliament diagram ---
+if (window && d3 && document.getElementById("lambach-vonc")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("lambach-vonc");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = visibleFactions.map(function(f) {
+        return { id: f.id, legend: f.label, name: f.label, seats: f.votes, color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#lambach-vonc").datum(data).call(parliament);
+
+    // Re-apply colors and outlines by id
+    visibleFactions.forEach(function(f) {
+        d3.selectAll("#lambach-vonc circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", f.outline)
+            .style("stroke-width", "2px")
+            .style("fill", f.color);
+    });
+}
+
+// --- Faction bars ---
+var container = document.getElementById("lambach-vonc-factions");
+if (container) {
+    container.innerHTML = "";
+    container.style.marginTop = "16px";
+    container.style.fontFamily = "Georgia, serif";
+
+    visibleFactions.forEach(function(f) {
+        var pct = totalVotes > 0 ? (f.votes / totalVotes * 100) : 0;
+
+        var nameColor = "#1a1a1a";
+        if (f.side === "pro")     nameColor = "#8b005a";
+        if (f.side === "anti")    nameColor = "#cc2200";
+        if (f.side === "abstain") nameColor = "#444444";
+
+        var block = document.createElement("div");
+        block.style.marginBottom = "12px";
+
+        var header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "baseline";
+        header.style.marginBottom = "3px";
+
+        var nameSpan = document.createElement("span");
+        nameSpan.style.fontWeight = "bold";
+        nameSpan.style.fontSize = "0.92em";
+        nameSpan.style.color = nameColor;
+        nameSpan.textContent = f.label;
+
+        var voteSpan = document.createElement("span");
+        voteSpan.style.fontSize = "0.85em";
+        voteSpan.style.color = "#666";
+        voteSpan.textContent = f.votes + " delegates (" + pct.toFixed(1) + "%)";
+
+        header.appendChild(nameSpan);
+        header.appendChild(voteSpan);
+
+        var sub = document.createElement("div");
+        sub.style.fontSize = "0.78em";
+        sub.style.color = "#888";
+        sub.style.marginBottom = "4px";
+        sub.style.fontStyle = "italic";
+        sub.textContent = f.sublabel;
+
+        var barTrack = document.createElement("div");
+        barTrack.style.width = "100%";
+        barTrack.style.height = "14px";
+        barTrack.style.backgroundColor = "#e8e8e8";
+        barTrack.style.borderRadius = "3px";
+        barTrack.style.overflow = "hidden";
+        barTrack.style.border = "1px solid " + f.outline;
+
+        var barFill = document.createElement("div");
+        barFill.style.width = pct + "%";
+        barFill.style.height = "100%";
+        barFill.style.backgroundColor = f.color;
+        barFill.style.transition = "width 0.6s ease";
+
+        barTrack.appendChild(barFill);
+        block.appendChild(header);
+        block.appendChild(sub);
+        block.appendChild(barTrack);
+        container.appendChild(block);
+    });
+
+    // Majority line label
+    var majorityNote = document.createElement("div");
+    majorityNote.style.fontSize = "0.78em";
+    majorityNote.style.color = "#666";
+    majorityNote.style.marginTop = "6px";
+    majorityNote.style.fontStyle = "italic";
+    majorityNote.textContent = "Majority threshold: 51 delegates. Abstentions do not count as support.";
+    container.appendChild(majorityNote);
+}
+
+!}
+
+{!<svg id="lambach-vonc" style="width:600px; height:300px;"></svg>!}
+{!<div id="lambach-vonc-factions"></div>!}
+
+*The final tally of delegate votes (100 congress seats):*
+
+*For the VoNC (Hugenberg Bloc & allies): [+ vonc_anti +]*
+
+*Against the VoNC (Christian Socials & loyalists): [+ vonc_pro +]*
+
+*Abstaining (uncommitted centre): [+ vonc_abstain +]*
+
 go-to: cooked if lambach_ousting = 1; survives if lambach_ousting = 0
 
 @cooked
 
-= Lambach has been defeated in vote of no confidence!
+= Lambach has been defeated in the vote of no confidence!
 
-Lambach lost
+The tally is announced to a hushed congress floor. Hugenberg's bloc, swelled by the defection of former allies and the indifference of the centre, has carried the day. Walther Lambach rises from the chairman's seat without ceremony, the DHV standard-bearers in the gallery stunned into silence.
+
+The "Block of Stone" did not need to swing a single Coalitionist. The abstentions were enough. The party will now convene to choose a successor—and Hugenberg's name is already on every radical's lips.
 
 @survives
 
 = Lambach survives the vote of no confidence!
 
-Lambach win
+When the count is read aloud, a wave of relief surges through the Christian Social benches. The unions held. The white-collar delegates did not break. Hugenberg's press empire, for all its fury, could not dislodge a chairman whose base proved more loyal than his enemies had calculated.
+
+Lambach returns to the podium — bruised, embattled, but still standing. The vote has not ended the war inside the DNVP; it has only clarified the front lines.
