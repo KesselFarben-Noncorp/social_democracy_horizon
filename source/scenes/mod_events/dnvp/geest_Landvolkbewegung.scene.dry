@@ -17,10 +17,17 @@ on-arrival: {!
     Q.pro_republic <= 53,
     Q.nationalism > 21,
     Q.socialism > 10,
-    Q.rural_z_display > 12.57
+    Q.rural_z_display > 13.3,
+    Q.campaign_focus = "rural",
+    Q.local_rally > 0,
+    Q.dnvp_relation > 25,
+    Q.z_relation > 60,
+    Q.ideology = "reformist",
+    Q.rural > 21.30,
   ];
   
   Q.landvolk_fury = conditions.filter(Boolean).length;
+  Q.landvolk_fury -= Q.cultural_organizations || 0;
   console.log("==========================================");
   console.log("Final Engine Count:", Q.landvolk_fury);
 !}
@@ -41,7 +48,7 @@ The geographical cleavage of the movement is immediately clear: <br>
 - @evaluate_regional_echoes: The black flags are flying high. How far does the fire spread?
 
 @evaluate_regional_echoes
-go-to: geest_ignited if landvolk_fury >= 5; geest_simmers if landvolk_fury < 5
+go-to: geest_ignited if landvolk_fury >= 6; geest_simmers if landvolk_fury < 6
 
 @geest_ignited
 face-image: img/geest_protest.png
