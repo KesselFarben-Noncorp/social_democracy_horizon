@@ -328,6 +328,7 @@ var partyData = [
 { id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!(Q.csvd_flee && Q.csvd_r > 0) },
 { id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!(Q.kvp_flee  && Q.kvp_r  > 0) },
 { id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: !!(Q.dnvp_r && Q.dnvp_r > 0) },
+{ id: "dnvp", name: "DNF",       color:  "#000F70", seats: Q.dnf_seats, show: !!(Q.dnf_r && Q.dnf_r > 0) },
 { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: !!(Q.other_r && Q.other_r > 0) },
 { id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: !!(Q.nsdap_r && Q.nsdap_r > 0) },
 { id: "dtsp", name: "DtsP",       color: "#3B1A00", seats: Q.dtsp_seats, show: !!(Q.dtsp_r  && Q.dtsp_r  > 0) },
@@ -669,6 +670,15 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right; [? if change_dnvp_seats_num > 0 : color: green; ?][? if change_dnvp_seats_num < 0 : color: red; ?]">[+ str_change_dnvp_seats_num +]</td>
 </tr>
 ?]
+[? if dnf_votes > 0 :
+<tr class="row-far-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#434F99; display:inline-block; margin-right:8px;'> </div>DNF</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dnf_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_dnf_r > 0 : color: green; ?][? if change_dnf_r < 0 : color: red; ?]">[+ str_change_dnf +]</td>
+    <td style="padding: 8px; text-align: right;">[+ dnf_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_dnf_seats_num > 0 : color: green; ?][? if change_dnf_seats_num < 0 : color: red; ?]">[+ str_change_dnf_seats_num +]</td>
+</tr>
+?]
 [? if other_votes > 0 :
 <tr class="row-neutral">
     <td style="padding: 8px;"><div class="box" style='background-color:#a0a0a0; display:inline-block; margin-right:8px;'> </div>Others</td>
@@ -786,7 +796,7 @@ function president_party_score(party) {
         CNBL: 'Hepp',      CSVD: 'Lambach',    DNVP: Q.dnvp_line === 3 ? 'Hugenberg' : 'Westarp',
         NSDAP:'Hitler',    VRP:  'Drewitz',    CSRP: 'Vitus Heller',
         KVP:  'Westarp',   DHP:  'Hamkens',    BB:   'Hamkens',
-        SRPD: 'Horsing', DVFP: 'Graefe'
+        SRPD: 'Horsing', DVFP: 'Graefe', DNF: 'Alfred Hugenberg'
     };
     var proxy = party_chancellor_proxy[party] || '';
     if (cam[proxy] !== undefined) score += cam[proxy] * 0.4;
