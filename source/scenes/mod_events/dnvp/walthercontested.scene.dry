@@ -33,17 +33,17 @@ Q.anti_lambach += Q.hugenberg_final_votes;
 Q.pro_lambach += Q.christsoc_final_votes;
 
 // --- Young Conservatives: 40% pro (1/2.5), 60% remainder -> abstain ---
-var yocon_pro = Q.yocon_final_votes / 2.5;
+var yocon_pro = Q.yocon_final_votes / 2;
 Q.pro_lambach += yocon_pro;
 Q.abstain_lambach += (Q.yocon_final_votes - yocon_pro);
 
-// --- Coalitionists (moderate_a): 28% pro, 72% remainder -> abstain ---
-var moda_pro = Q.moderate_a_final_votes * 0.28;
+// --- Coalitionists (moderate_a): 35% pro, 65% remainder -> abstain ---
+var moda_pro = Q.moderate_a_final_votes * 0.35;
 Q.pro_lambach += moda_pro;
 Q.abstain_lambach += (Q.moderate_a_final_votes - moda_pro);
 
-// --- Traditionalists (moderate_b): 50% anti, 50% remainder -> abstain ---
-var modb_anti = Q.moderate_b_final_votes / 2;
+// --- Traditionalists (moderate_b): 33% anti, 66% remainder -> abstain ---
+var modb_anti = Q.moderate_b_final_votes / 2.5;
 Q.anti_lambach += modb_anti;
 Q.abstain_lambach += (Q.moderate_b_final_votes - modb_anti);
 
@@ -54,10 +54,15 @@ nationalism_pull = Math.min(nationalism_pull, Q.abstain_lambach); // can't pull 
 Q.anti_lambach += nationalism_pull;
 Q.abstain_lambach -= nationalism_pull;
 
-// Lambach's personal standing: not-yet-exiled / has momentum
+// --- Lambach's personal standing: pulls a % of the abstain pool into pro ---
+// (only applies if he hasn't been exiled, or has regained momentum)
 if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
-    Q.pro_lambach += 3;
-    Q.anti_lambach -= 1;
+    var lambach_pull_rate = 0.25; // tune this — analogous to nationalism/100
+    var lambach_pull = Q.abstain_lambach * lambach_pull_rate;
+    lambach_pull = Math.min(lambach_pull, Q.abstain_lambach); // can't pull more than exists
+
+    Q.pro_lambach += lambach_pull;
+    Q.abstain_lambach -= lambach_pull;
 }
 
 // Floor at zero
