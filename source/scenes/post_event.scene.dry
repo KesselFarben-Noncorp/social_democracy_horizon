@@ -5197,6 +5197,72 @@ if (!Q.math_broken) {
 }
 
 
+
+
+
+// ============================================================
+// IDENTITY (SOCIAL GROUP) VOTE NORMALIZATION
+// Mirrors CLASS VOTE NORMALIZATION, but for catholics/protestants/
+// seculars/youth instead of workers/old_middle/new_middle/rural/unemployedc.
+// Each identity group gets its own per-party share, drifting off
+// Q.identity_modifier (already computed earlier in the tick) rather
+// than the economic thermostat — these are NOT additive populations
+// (they overlap), so they're tracked and normalized independently
+// per group, then blended into final support as a secondary weight.
+// ============================================================
+
+Q.identities = Q.identities || ['catholics', 'protestants', 'seculars', 'youth'];
+
+if (!Q.math_broken) {
+    for (var idn of Q.identities) {
+        var id_votes = 0;
+
+        for (var party of Q.parties) {
+            var ikey = idn + '_' + party;
+            // Initialize and drift toward identity_modifier-weighted target
+            // im.<party> > 1 means that identity group favors the party;
+            // < 1 means it resists. We use the same normalized-class value
+            // as a base so identity drift tracks the party's actual current
+            // support level, then tilts it by the identity multiplier.
+            var im_mult = (Q.identity_modifier && Q.identity_modifier[party] !== undefined)
+                ? Q.identity_modifier[party] : 1.0;
+
+            var base_share = Q[party + '_normalized'] || (1 / Q.parties.length);
+            var id_target  = Math.max(0, base_share * im_mult);
+
+            Q[ikey] = Q[ikey] || base_share;
+            Q[ikey] = Q[ikey] + (id_target - Q[ikey]) * 0.15; // slow drift, avoids thrash
+            Q[ikey] = Math.max(0, Q[ikey]);
+
+            id_votes += Q[ikey];
+        }
+
+        for (var party of Q.parties) {
+            var ikey = idn + '_' + party;
+            Q[ikey + '_normalized'] = id_votes > 0 ? Q[ikey] / id_votes : 0;
+            Q[ikey + '_display']    = (Q[ikey + '_normalized'] * 100).toFixed(1);
+        }
+    }
+} else {
+    for (var idn of Q.identities) {
+        var id_votes = Q.impossible_add(0, 0);
+        for (var party of Q.parties) {
+            var ikey = idn + '_' + party;
+            Q[ikey] = Q.impossible_add(Q[ikey] || 0, 0);
+            id_votes = Q.impossible_add(id_votes, Q[ikey]);
+        }
+        for (var party of Q.parties) {
+            var ikey = idn + '_' + party;
+            Q[ikey + '_normalized'] = Q.impossible_multiply(Q[ikey], 1 / id_votes);
+            Q[ikey + '_display']    = Q.impossible_percentage(Q[ikey + '_normalized'] * 100).toFixed(1);
+        }
+    }
+}
+
+
+
+
+
 // === PARTY SUPPORT CALCULATION (SKIP IN CHAOS MODE) ===
 if (!Q.math_broken) {
     // NORMAL: Party support calculated correctly
@@ -5210,6 +5276,23 @@ if (!Q.math_broken) {
                 party_support += Q[c] * Q[c + '_' + party + '_normalized'];
             }
         }
+
+        // Identity overlay: blend in social-group share at reduced weight.
+        // Economic class remains the primary driver (additive, sums to 100%);
+        // identity acts as a secondary tilt, not a replacement.
+        let identity_support = 0;
+        let identity_weight_sum = 0;
+        for (var idn of Q.identities) {
+            identity_support     += Q[idn] * Q[idn + '_' + party + '_normalized'];
+            identity_weight_sum  += Q[idn];
+        }
+        let identity_pct = identity_weight_sum > 0 ? identity_support / identity_weight_sum : 0;
+
+        // IDENTITY_BLEND controls how much social groups matter vs class.
+        // 0 = pure economic class (old behavior), 1 = pure identity.
+        const IDENTITY_BLEND = 0.25;
+        party_support = party_support * (1 - IDENTITY_BLEND) + (identity_pct * 100) * IDENTITY_BLEND;
+
         Q[party + '_support'] = party_support;
         total_support += party_support;
     }
@@ -5224,6 +5307,10 @@ if (!Q.math_broken) {
             } else {
                 party_support = Q.impossible_add(party_support, Q.impossible_multiply(Q[c], Q[c + '_' + party + '_normalized']));
             }
+        }
+        for (var idn of Q.identities) {
+            party_support = Q.impossible_add(party_support,
+                Q.impossible_multiply(Q[idn], Q[idn + '_' + party + '_normalized']));
         }
         Q[party + '_support'] = party_support;
         total_support = Q.impossible_add(total_support, party_support);
