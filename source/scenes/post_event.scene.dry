@@ -2957,6 +2957,7 @@ function buildIdentityModifier(cs, ps, ss, ys) {
         rdp:   1 + (ss * 0.30) + (ps * 0.05) - (cs * 0.20) - (ys * 0.18),
         cvp:   1 + (cs * 0.55) - (ss * 0.28) - (ys * 0.12),
         lb:    1 + (ss * 0.25) + (ys * 0.18) - (cs * 0.18),
+        dnf:   1 + (ps * 0.60) + (ys * 0.15),
         other: 1 + (ys * 0.10),
     };
 }
@@ -3292,6 +3293,63 @@ function computeTarget(party, c) {
             if (Q.dem_challenge === 1) base *= 0.80;
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
+
+        case 'dnf': { // Deutschnationale Front (Hugenberg's radicalized DNVP / Kampffront)
+            if (Q.dnf_banned || Q.dnvp_banned) return 0;
+            
+            // Base calculation mirrors Hugenberg's aggressive anti-republican shifts
+            if (Q.dnf_line === 1) {
+                // The Media Empire & Liberty Law Line (Anti-Young Plan Campaign)
+                let media_bonus = Q.hugenberg_media_control ? 20 : 0;
+                base = ((nat * 55) + ((1 - rep) * 30) + media_bonus) * (im.dnf || im.dnvp);
+            } else if (Q.dnf_line === 2) {
+                // The Harzburg Front Line (Radical Right Alliance with the NSDAP & Stahlhelm)
+                let polarization = (1 - rep) * 55;
+                let crisis_bonus = Q.unemployment * 65;
+                // Hugenberg thrives in absolute chaos, but risks being overshadowed by Hitler
+                base = ((nat * 45) + polarization + crisis_bonus) * (im.dnf || im.dnvp);
+            } else {
+                // Kampffront Schwarz-Weiß-Rot / Bourgeois Concentration Line (1933)
+                // Severe penalty if chaos/unrest overflows too far into KPD/NSDAP territory
+                let chaos_penalty = unr > 0.65 ? (unr * 25) : 0;
+                base = ((nat * 75) + (rep * 10) - chaos_penalty) * (im.dnf || im.dnvp);
+            }
+
+            const isHarzburg   = Q.harzburg_front_seen === true;
+            const mediaBlitz   = Q.hugenberg_media_blitz === true;
+
+            // Hugenberg completely alienated the urban working-class trade unionists (Lambach's wing)
+            let workers_m     = 0.16
+                * (mediaBlitz                                  ? 1.20 : 1)
+                * (isHarzburg                                  ? 0.70 : 1); // Workers flee to left-wing parties or NSDAP
+
+            // Traditional shopkeepers, artisans, and small business owners who loathe Weimar
+            let old_middle_m  = 1.78 * (1 + Math.min(Q.nationalism/100,1)*0.40)
+                * (Q.peoples_party                      === 1 ? 0.90 : 1)
+                * (mediaBlitz                                  ? 1.15 : 1);
+
+            // White-collar employees, susceptible to media nationalism but wary of industrial autocracy and alienated
+            let new_middle_m  = 0.50 * (1 + Math.min(Q.nationalism/100,1)*0.22)
+                * (mediaBlitz                                  ? 1.35 : 1)
+                * (isHarzburg                                  ? 1.10 : 1);
+
+            // Junker estates and conservative peasantry—Hugenberg's bread and butter.
+            // Heavily suppressed if agrarian rivals like the CNBL or the NSDAP cannibalize them.
+            let rural_m       = 2.15 * (1 + Math.min(Q.nationalism/100,1)*0.45)
+                * (Q.peoples_party                      === 1 ? 0.90 : 1)
+                * (Q.parties.includes('dbp')                  ? 0.85 : 1)
+                * (Q.parties.includes('cnbl')                 ? 0.68 : 1) // CNBL deeply fractures this base
+                * (isHarzburg                                  ? 0.80 : 1); // Rural voters drift towards Hitler
+
+            // The unemployed generally despised Hugenberg due to his plutocratic, big-business profile
+            let unemployedc_m = 0.30
+                * (Q.unemployment > 0.28                      ? 1.15 : 1);
+
+            const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
+            
+            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+        }
+
 
         case 'dsbp': {
             if (Q.dsbp_banned) return 0;
@@ -3829,6 +3887,7 @@ function computeSpeed(party, c) {
     const base_speeds = {
         // Crisis-reactive — fast
         nsdap:  0.18,
+        dnf:    0.175,
         kpd:    0.17,
         sapd:   0.14,
         dvfp:   0.13,
@@ -3873,7 +3932,7 @@ function computeSpeed(party, c) {
     let speed = base_speeds[party] || base_speeds.default;
 
     // Crisis bonus: reactive parties get faster when conditions are extreme
-    const crisis_parties = ['nsdap', 'kpd', 'sapd', 'dvfp', 'dnvp', 'srpd'];
+    const crisis_parties = ['nsdap', 'kpd', 'sapd', 'dvfp', 'dnf', 'dnvp', 'srpd'];
     if (crisis_parties.includes(party)) {
         speed *= (1 + Math.min(unr * 0.12, 0.50));  // up to +50% faster in deep crisis
     }
@@ -4943,7 +5002,7 @@ if (this.ui && this.ui.show_portraits) {
 
 
 
-var parties = ['z','srpd','ddp','dvp','csrp','sapd','kpd','bvp','wp','cnbl','dhp','bb','vrp','kvp','csvd','dnvp','nsdap'];
+var parties = ['z','srpd','ddp','dvp','csrp','sapd','kpd','bvp','wp','cnbl','dhp','bb','vrp','kvp','csvd','dnvp','nsdap', 'dnf'];
 
 if (!Q.math_broken) {
     // NORMAL: Coalition dissent is a straightforward sum
