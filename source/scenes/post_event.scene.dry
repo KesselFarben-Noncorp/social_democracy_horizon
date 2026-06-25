@@ -2944,81 +2944,42 @@ var prot_share  = Q.protestants / 100;
 var sec_share   = Q.seculars   / 100;
 var youth_share = Q.youth      / 100;
 
-// Pre-compute identity bonuses/penalties per party
-// Format: base multiplier applied after all other cap calculations
-Q.identity_modifier = {
-    // SPD: secular and youth friendly, loses ground with catholics
-    spd:   1 + (sec_share * 0.20) + (youth_share * 0.08) - (cath_share * 0.10),
 
-    // SRPD: similar to SPD
-    srpd:  1 + (sec_share * 0.15) + (youth_share * 0.06) - (cath_share * 0.08),
+// === PARTY DRIFT OVERHAUL: IDENTITY MODIFIERS ===
+// Wrapped in a function so it can be re-invoked with isolated
+// share inputs later (for the per-identity display breakdown),
+// without duplicating any of the formulas by hand.
+function buildIdentityModifier(cs, ps, ss, ys) {
+    return {
+        spd:   1 + (ss * 0.20) + (ys * 0.08) - (cs * 0.10),
+        srpd:  1 + (ss * 0.15) + (ys * 0.06) - (cs * 0.08),
+        kpd:   1 + (ss * 0.30) + (ys * 0.15) - (cs * 0.15),
+        sapd:  1 + (ss * 0.20) + (ys * 0.10) - (cs * 0.10),
+        nsdap: 1 + (ps * 0.34) + (ys * 0.45) - (cs * 0.40) - (ss * 0.10),
+        dnvp:  1 + (ps * 0.45) - (ys * 0.15) - (cs * 0.10),
+        dvfp:  1 + (ps * 0.25) - (ys * 0.25) - (cs * 0.10),
+        dvp:   1 + (ss * 0.15) + (ps * 0.10) - (ys * 0.12),
+        ddp:   1 + (ss * 0.25) + (ps * 0.05) - (ys * 0.20),
+        z:     1 + (cs * 0.60) - (ss * 0.30) - (ys * 0.10),
+        bvp:   1 + (cs * 0.70) - (ss * 0.35) - (ys * 0.08),
+        cnbl:  1 + (ps * 0.15) - (ys * 0.10),
+        wp:    1 + (ss * 0.10) - (ys * 0.18),
+        csvd:  1 + (ps * 0.20) - (ys * 0.12) - (cs * 0.08),
+        csrp:  1 + (ss * 0.15) - (cs * 0.10),
+        vrp:   1 + (ss * 0.10) - (ys * 0.25),
+        bb:    1 + (ps * 0.12) - (ys * 0.08),
+        dhp:   1 + (ps * 0.15) - (ys * 0.10),
+        kvp:   1 + (ps * 0.12) - (ys * 0.15),
+        dtsp:  1 + (ps * 0.28) + (ys * 0.20) - (cs * 0.35) - (ss * 0.08),
+        sls:   1 + (ss * 0.08) - (cs * 0.05),
+        rdp:   1 + (ss * 0.30) + (ps * 0.05) - (cs * 0.20) - (ys * 0.18),
+        cvp:   1 + (cs * 0.55) - (ss * 0.28) - (ys * 0.12),
+        lb:    1 + (ss * 0.25) + (ys * 0.18) - (cs * 0.18),
+        other: 1 + (ys * 0.10),
+    };
+}
 
-    // KPD: strongly secular, youth volatile — gains youth in crisis
-    kpd:   1 + (sec_share * 0.30) + (youth_share * 0.15) - (cath_share * 0.15),
-
-    // SAPD: similar to KPD but weaker
-    sapd:  1 + (sec_share * 0.20) + (youth_share * 0.10) - (cath_share * 0.10),
-
-    // NSDAP: Protestant and youth are its hunting ground
-    // Catholics resist strongly, seculars partially resist
-    nsdap: 1 + (prot_share * 0.34) + (youth_share * 0.45) 
-             - (cath_share * 0.40) - (sec_share * 0.10),
-
-    // DNVP: Protestant conservative base, loses youth
-    dnvp:  1 + (prot_share * 0.45) - (youth_share * 0.15) - (cath_share * 0.10),
-
-    //DVFP
-    dvfp:  1 + (prot_share * 0.25) - (youth_share * 0.25) - (cath_share * 0.10),
-
-    // DVP: secular liberal business, loses catholics and youth extremes
-    dvp:   1 + (sec_share * 0.15) + (prot_share * 0.10) - (youth_share * 0.12),
-
-    // DDP: strongly secular, loses heavily in crisis youth environment
-    ddp:   1 + (sec_share * 0.25) + (prot_share * 0.05) - (youth_share * 0.20),
-
-    // Z: Catholic party — catholic share is its lifeline
-    z:     1 + (cath_share * 0.60) - (sec_share * 0.30) - (youth_share * 0.10),
-
-    // BVP: same as Z, even more catholic-dependent
-    bvp:   1 + (cath_share * 0.70) - (sec_share * 0.35) - (youth_share * 0.08),
-
-    // CNBL: rural Protestant, weak youth appeal
-    cnbl:  1 + (prot_share * 0.15) - (youth_share * 0.10),
-
-    // WP: middle class secular-ish, neutral on religion
-    wp:    1 + (sec_share * 0.10) - (youth_share * 0.18),
-
-    // CSVD: Protestant conservative, anti-Nazi but still nationalist
-    csvd:  1 + (prot_share * 0.20) - (youth_share * 0.12) - (cath_share * 0.08),
-
-    // CSRP: small, secular-left
-    csrp:  1 + (sec_share * 0.15) - (cath_share * 0.10),
-
-    // VRP: secular, youth hostile
-    vrp:   1 + (sec_share * 0.10) - (youth_share * 0.25),
-
-    // BB: rural Protestant agrarian
-    bb:    1 + (prot_share * 0.12) - (youth_share * 0.08),
-
-    // DHB: Protestant conservative regional
-    dhp:   1 + (prot_share * 0.15) - (youth_share * 0.10),
-
-    // KVP: Protestant moderate conservative
-    kvp:   1 + (prot_share * 0.12) - (youth_share * 0.15),
-
-dtsp:  1 + (prot_share * 0.28) + (youth_share * 0.20) - (cath_share * 0.35) - (sec_share * 0.08),
-
-sls:   1 + (sec_share * 0.08) - (cath_share * 0.05),
-
-rdp:   1 + (sec_share * 0.30) + (prot_share * 0.05) - (cath_share * 0.20) - (youth_share * 0.18),
-
-cvp:   1 + (cath_share * 0.55) - (sec_share * 0.28) - (youth_share * 0.12),
-
-lb:    1 + (sec_share * 0.25) + (youth_share * 0.18) - (cath_share * 0.18),
-
-    // OTHER: catch-all, slight youth boost (protest votes)
-    other: 1 + (youth_share * 0.10)
-};
+Q.identity_modifier = buildIdentityModifier(cath_share, prot_share, sec_share, youth_share);
 
 
 // === PARTY DRIFT OVERHAUL ===
@@ -5201,37 +5162,36 @@ if (!Q.math_broken) {
 
 
 // ============================================================
-// IDENTITY (SOCIAL GROUP) VOTE NORMALIZATION
-// Mirrors CLASS VOTE NORMALIZATION, but for catholics/protestants/
-// seculars/youth instead of workers/old_middle/new_middle/rural/unemployedc.
-// Each identity group gets its own per-party share, drifting off
-// Q.identity_modifier (already computed earlier in the tick) rather
-// than the economic thermostat — these are NOT additive populations
-// (they overlap), so they're tracked and normalized independently
-// per group, then blended into final support as a secondary weight.
+// IDENTITY (SOCIAL GROUP) DISPLAY EXTRACTION — post-computation
+// Re-runs buildIdentityModifier() with each identity isolated
+// (the other three shares zeroed) to read off that identity's
+// own contribution to im.<party>, with no separate coefficient
+// table to fall out of sync. Any future edit to
+// buildIdentityModifier automatically propagates here.
 // ============================================================
 
 Q.identities = Q.identities || ['catholics', 'protestants', 'seculars', 'youth'];
 
+var isolated_im = {
+    catholics:   buildIdentityModifier(cath_share, 0, 0, 0),
+    protestants: buildIdentityModifier(0, prot_share, 0, 0),
+    seculars:    buildIdentityModifier(0, 0, sec_share, 0),
+    youth:       buildIdentityModifier(0, 0, 0, youth_share),
+};
+
 if (!Q.math_broken) {
     for (var idn of Q.identities) {
         var id_votes = 0;
+        var im_iso   = isolated_im[idn];
 
         for (var party of Q.parties) {
-            var ikey = idn + '_' + party;
-            // Initialize and drift toward identity_modifier-weighted target
-            // im.<party> > 1 means that identity group favors the party;
-            // < 1 means it resists. We use the same normalized-class value
-            // as a base so identity drift tracks the party's actual current
-            // support level, then tilts it by the identity multiplier.
-            var im_mult = (Q.identity_modifier && Q.identity_modifier[party] !== undefined)
-                ? Q.identity_modifier[party] : 1.0;
+            var ikey       = idn + '_' + party;
+            var aff_mult   = (im_iso[party] !== undefined) ? im_iso[party] : 1.0;
+            var base_share = Q[party + '_normalized'] || 0;
+            var id_target  = Math.max(0, base_share * aff_mult);
 
-            var base_share = Q[party + '_normalized'] || (1 / Q.parties.length);
-            var id_target  = Math.max(0, base_share * im_mult);
-
-            Q[ikey] = Q[ikey] || base_share;
-            Q[ikey] = Q[ikey] + (id_target - Q[ikey]) * 0.15; // slow drift, avoids thrash
+            Q[ikey] = (Q[ikey] !== undefined) ? Q[ikey] : id_target;
+            Q[ikey] = Q[ikey] + (id_target - Q[ikey]) * 0.20;
             Q[ikey] = Math.max(0, Q[ikey]);
 
             id_votes += Q[ikey];
