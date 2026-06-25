@@ -83,7 +83,8 @@ var CANDIDATES = {
     Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
     Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" }
+    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
+    Hugenberg: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
 };
 
 var CANDIDATE_ALIAS = {};
@@ -145,6 +146,7 @@ var PARTIES = {
     dsbp:  { label: "DSBP", tier: "major", requires: "Q.dsbp_r > 0 && !Q.dsbp_banned" },
     dvfp:  { label: "DVFP", tier: "major", requires: "!Q.dvfp_banned" },
     csrp:  { label: "CSRP", tier: "major" },
+    dnf:   { label: "DNF", tier:  "major", requires: "Q.dnf_votes > 0 && !Q.dnf_banned"}
 
     kpo:   { label: "KPO",  tier: "minor", parent: "kpd",  requires: "Q.kpo_r > 0" },
     sl:    { label: "SL",   tier: "minor", parent: "sapd", requires: "Q.sl_r > 0" },
@@ -208,6 +210,23 @@ var LEADER_PREFERENCE = {
         { if: "Q.hitler_deported", pick: "Goring" },
         { default: "Hitler" }
     ],
+
+        dnf: [
+        // If allied in the Harzburg Front, they will support the Nazi candidate if Hitler is viable
+        { if: "Q.dnf_line === 2 && !Q.nsdap_banned && !Q.hitler_dead && !Q.hitler_deported", pick: "Hitler" },
+        { if: "Q.harzburg_front_seen && !Q.nsdap_banned && !Q.hitler_dead && !Q.hitler_deported", pick: "Hitler" },
+        
+        // Harzburg Front sub-conditions if Hitler is out of the picture
+        { if: "(Q.dnf_line === 2 || Q.harzburg_front_formed) && Q.hitler_dead && Q.dnf_relation_nsdap >= 70", pick: "Goebbels" },
+        { if: "(Q.dnf_line === 2 || Q.harzburg_front_formed) && Q.hitler_deported", pick: "Goring" },
+        
+        // In Line 3 (Kampffront), they try to run independently unless the NSDAP is overwhelmingly dominant
+        { if: "Q.dnf_line === 3 && Q.nsdap_r >= 33 && !Q.nsdap_banned && !Q.hitler_dead", pick: "Hitler" },
+        
+        // Under Line 1 (Media/Liberty Law), during a ban, or as a general rule: Hugenberg leads the ticket
+        { default: "Hugenberg" }
+    ],
+
 
     dnvp: [
         { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
@@ -469,7 +488,7 @@ if (!Q.dnvp_banned && (Q.dnvp_line === 0 || Q.dnvp_line === 1 || Q.dnvp_line ===
 var RESOLUTION_ORDER = [
     "nsdap", "kpd", "dnvp", "z", "bvp", "dvp", "ddp", "wp", "cnbl",
     "bb", "dhp", "csvd", "kvp", "vrp", "sapd", "srpd", "dbp", "dsbp",
-    "dvfp", "csrp"
+    "dvfp", "csrp", "dnf"
 ];
 
 for (var ri = 0; ri < RESOLUTION_ORDER.length; ri++) {
@@ -545,8 +564,10 @@ for (var mp in MINOR_PARENTS) {
 [? if not nsdap_banned : • NSDAP — *[+ nsdap_candidate +]* <br> ?]
 [? if not dvfp_banned and dvfp_formed and dvfp_r > 0 : • DVFP — *[+ dvfp_candidate +]* <br> ?]
 [? if dtsp_r > 0 : • DtsP — *[+ dtsp_candidate +]* <br> ?]
+[? if dnf_r > 0 : • DNF — *[+ dnf_candidate +]* <br> ?]
 
 **SPD:**
+
 We must choose our candidate and strategy.
 
 - @spd_candidate_menu: Choose our candidate.
@@ -973,7 +994,8 @@ var CAND_INFO = {
     Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
     Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" }
+    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
+    Hugenberg: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
 };
 var CAND_ALIAS = {};
 for (var ck0 in CAND_INFO) {
@@ -990,7 +1012,7 @@ function canon(name) {
 // Hard kill: if Hindenburg is dead, zero out any stale candidate assignments
 if (Q.hindenburg_dead) {
     Q.hindenburg_running = 0;
-    var ALL_PARTY_KEYS = ['spd','z','dnvp','dvp','ddp','kpd','nsdap','bvp','wp','cnbl','bb','dhp','csvd','kvp','vrp','sapd','srpd','dbp','dsbp','dvfp','csrp','kpo','sl','aspd','vnr','hl','lb','rdp','cvp','sls','dtsp'];
+    var ALL_PARTY_KEYS = ['spd','z','dnvp','dvp','ddp','kpd','nsdap','bvp','wp','cnbl','bb','dhp','csvd','kvp','vrp','sapd','srpd','dbp','dsbp','dvfp','csrp','kpo','sl','aspd','vnr','hl','lb','rdp','cvp','sls','dtsp', 'dnf'];
     for (var i = 0; i < ALL_PARTY_KEYS.length; i++) {
         if (canon(Q[ALL_PARTY_KEYS[i] + '_candidate']) === 'Hindenburg') Q[ALL_PARTY_KEYS[i] + '_candidate'] = null;
         if (canon(Q[ALL_PARTY_KEYS[i] + '_default_candidate']) === 'Hindenburg') Q[ALL_PARTY_KEYS[i] + '_default_candidate'] = null;
@@ -1287,6 +1309,25 @@ if (Q.sls_r > 0) {
 }
 
 // ========================================
+// DNF — finalize
+// ========================================
+if (Q.dnf_banned) {
+    Q.dnf_candidate = null;
+} else if (Q.dnf_candidate) {
+    // Already decided at arrival time, keep
+} else if ((Q.dnf_line === 2 || Q.harzburg_front_seen) && !Q.nsdap_banned && Q.nsdap_candidate) {
+    // Harzburg Front Alliance: Swallows pride to back the fascist candidate
+    Q.dnf_candidate = Q.nsdap_candidate;
+} else if (Q.dnf_line === 3 && Q.nsdap_r >= 33 && !Q.nsdap_banned && Q.nsdap_candidate) {
+    // Kampffront Pragmatism: If the NSDAP is overwhelmingly dominant, avoid splitting the nationalist vote
+    Q.dnf_candidate = Q.nsdap_candidate;
+} else {
+    // Line 1, minor lines, or running a independent bourgeois-nationalist spoiler ticket
+    Q.dnf_candidate = "Hugenberg";
+}
+
+
+// ========================================
 // 1932 HINDENBURG OVERRIDE — when active, Hindenburg becomes the
 // default anti-extremist consensus pick for essentially every
 // democratic/centrist/conservative party at once.
@@ -1343,6 +1384,7 @@ if (!Q.hindenburg_dead && Q.year >= 1932) {
 [? if not dvfp_banned and dvfp_formed and dvfp_r > 0 : • DVFP — *[+ dvfp_candidate +]* <br> ?]
 [? if not dnvp_banned and dnvp_candidate != nsdap_candidate and dnvp_candidate != z_dnvp_joint_candidate : • DNVP — *[+ dnvp_candidate +]* <br> ?]
 [? if not dnvp_banned and dnvp_candidate == nsdap_candidate : • DNVP — *Supporting [+ nsdap_candidate +]* <br> ?]
+[? if dnf_r > 0 : • DNF — *[+ dnf_candidate +]* <br> ?]
 
 🎖️ **NATIONALISTS**
 [? if not dnvp_banned and z_dnvp_joint_possible and dnvp_candidate == z_dnvp_joint_candidate : • DNVP — *[+ dnvp_candidate +]* (Conservative Unity) <br> ?]
@@ -1542,7 +1584,8 @@ var CAND_INFO = {
     Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch" },
     Quidde:     { name: "Ludwig Quidde",       party: "RDP" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" }
+    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" },
+    Hugenberg: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
 };
 var CAND_ALIAS = {};
 for (var ck0 in CAND_INFO) {
@@ -1672,7 +1715,7 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5", dnf: "#000F70"
 };
 
 var partyLabels = {
@@ -1681,7 +1724,7 @@ var partyLabels = {
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
     aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP", dsbp: "DSBP"
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP", dsbp: "DSBP", dnf: "DNF"
 };
 
 var allParties = Q.parties;
@@ -1875,7 +1918,7 @@ var BLOCS = {
     center_left:  ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"],
     center:       ["Adenauer", "Kaas", "Bruning", "Noske", "Fehr"],
     center_right: ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Behrens", "Lambach2"],
-    far_right:    ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"]
+    far_right:    ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff", "Hugenberg"]
 };
 if (!Q.hindenburg_dead) {
     BLOCS.center_left.push("Hindenburg");
@@ -1980,6 +2023,7 @@ function consolidateRound2() {
     if (Q.dvfp_candidate) Q.dvfp_candidate = pickClosestFinalist(Q.dvfp_candidate, ["far_right", "center_right", "center"]);
     if (Q.dbp_r > 0 && Q.dbp_candidate) Q.dbp_candidate = pickClosestFinalist(Q.dbp_candidate, ["center", "center_right", "center_left"]);
     if (Q.dsbp_r > 0 && Q.dsbp_candidate) Q.dsbp_candidate = pickClosestFinalist(Q.dsbp_candidate, ["center_left", "center", "center_right"]);
+    if (Q.dnf_votes > 0 && Q.dnf_candidate) Q.dnf_candidate = pickClosestFinalist(Q.dnf_candidate, ["far_right", "center_right", "center"]);
 
     // Minor parties — same generic priorities as their parent normally uses.
     if (Q.kpo_r > 0 && Q.kpo_candidate) Q.kpo_candidate = pickClosestFinalist(Q.kpo_candidate, ["far_left", "left", "cultural"]);
