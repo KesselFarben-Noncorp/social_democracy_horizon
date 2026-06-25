@@ -1430,7 +1430,7 @@ Q.z_party_leader = "Marx"; // Wilhelm Marx (1928 start)
 Q.bvp_party_leader = "Held"; // Heinrich Held
 Q.ddp_party_leader = "Koch-Weser"; // Erich Koch-Weser
 Q.dvp_party_leader = "Stresemann"; // Gustav Stresemann (until 1929)
-Q.dnvp_party_leader = "Westarp"; // Kuno von Westarp (moderate, until 1928)
+Q.dnvp_party_leader = "Kuno von Westarp"; // Kuno von Westarp (moderate, until 1928)
 Q.nsdap_party_leader = "Hitler"; // Adolf Hitler
 Q.kpd_party_leader = "Thälmann"; // Ernst Thälmann (or "Conciliators" if they take over)
 Q.wp_party_leader = "Drewitz"; // Hermann Drewitz
@@ -1444,6 +1444,7 @@ Q.kvp_party_leader = "Westarp";           // Not formed yet in 1928
 Q.dhp_party_leader = "Boden";        // Wilhelm Boden, Deutsch-Hannoversche Partei
 Q.bb_party_leader = "Eisenberger";   // Karl Eisenberger, Bayerischer Bauernbund chairman
 Q.dbp_party_leader = "Fehr";
+Q.dnf_party_leader = "Alfred Hugenberg";
 
 
 // === DEPRECATED - Keep for compatibility, sync with party_leader ===
@@ -2215,6 +2216,7 @@ Choose which optional parties will appear in your game. Core parties (SPD, KPD, 
 > *DTSP: [? if custom_party_dtsp = 1: ON ?][? if custom_party_dtsp != 1: OFF ?]*
 > *DBP: [? if custom_party_dbp = 1: ON ?][? if custom_party_dbp != 1: OFF ?]*
 > *DSBP: [? if custom_party_dsbp = 1: ON ?][? if custom_party_dsbp != 1: OFF ?]*
+> *DNF: [? if custom_party_dnf = 1: ON ?][? if custom_party_dnf != 1: OFF ?]*
 
 Vanilla: <br>
 > *WP: [? if custom_party_wp = 1: ON ?][? if custom_party_wp != 1: OFF ?]*
@@ -2286,7 +2288,19 @@ Vanilla: <br>
 - @pp_dbp_off: DBP (German agrarians)
 - @pp_dsbp_on: DSBP
 - @pp_dsbp_off: DSBP
+- @pp_dnf_on: DNF
+- @pp_dnf_off: DNF
 - @challenge: Back
+
+@pp_dnf_on
+view-if: custom_party_dnf = 0
+on-arrival: custom_party_dnf = 1; dnf_banned = 0
+go-to: party_picker
+
+@pp_dnf_off
+view-if: custom_party_dnf = 1
+on-arrival: custom_party_dnf = 0; dnf_banned = 1
+go-to: party_picker
 
 @pp_dbp_on
 view-if: custom_party_dbp = 0
@@ -3279,7 +3293,7 @@ if (Q.inverted_challenge === 1) {
     // ===== PARTY RELATIONS MATRIX =====
     var all_parties_inv = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','VRP',
                            'CSVD','DVP','WP','CNBL','KVP','BB','DHP','DNVP','NSDAP',
-                           'DVFP','DHD','ASPD','HL','VNR','LB','RDP','CVP','SLS','DTSP','DBP', 'DSBP'];
+                           'DVFP','DHD','ASPD','HL','VNR','LB','RDP','CVP','SLS','DTSP','DBP', 'DSBP', 'DNF'];
 
     Q.party_relations = {};
     for (var i_inv = 0; i_inv < all_parties_inv.length; i_inv++) {
@@ -3404,6 +3418,7 @@ if (Q.custom_party_cvp === 1 && !Q.parties.includes('cvp')) { Q.parties.push('cv
 if (Q.custom_party_dtsp === 1 && !Q.parties.includes('dtsp')) { Q.parties.push('dtsp'); }
 if (Q.custom_party_dbp === 1 && !Q.parties.includes('dbp')) { Q.parties.push('dbp'); }
 if (Q.custom_party_dsbp === 1 && !Q.parties.includes('dsbp')) { Q.parties.push('dsbp'); }
+if (Q.custom_party_dnf === 1 && !Q.parties.includes('dnf')) { Q.parties.push('dnf'); }
 
 !}
 go-to: apberg if april_challenge = 1; starum if april_challenge = 0
