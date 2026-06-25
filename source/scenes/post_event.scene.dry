@@ -571,13 +571,13 @@ if (Q.geest_wildfire == 0) {
 
 // 3b. Media Dominance Check
 if (Q.commercialized_media >= 1 || Q.radio >= 1) {
-    Q.hugenberg_momentum -= 2.0;
+    Q.hugenberg_momentum -= 3.0;
 }
 
 // Media beating
 
 if (Q.hugenberg_media_attack >= 1 ) {
-    Q.hugenberg_momentum -= 5.0;
+    Q.hugenberg_momentum -= 10.0;
 }
 
 // 3c. Land Reform Threat
@@ -587,26 +587,26 @@ if (Q.land_reform > 0) {
 
 // 3d. Government Participation Bonus
 if (Q.dnvp_in_government) {
-    Q.delegate_power_a += 8.0;
-    Q.delegate_power_b += 5.0;
-    Q.delegate_power_yocon += 1.2;
-    Q.delegate_power_christsoc += 0.8;
+    Q.delegate_power_a += 4.0;
+    Q.delegate_power_b += 2.0;
+    Q.delegate_power_yocon += 2.2;
+    Q.delegate_power_christsoc += 1.8;
 }
 
 // 4. Class Influence
-Q.hugenberg_momentum += (Q.old_middle_dnvp * 0.27);
-Q.hugenberg_momentum += (Q.rural_dnvp * 0.17);
+Q.hugenberg_momentum += (Q.old_middle_dnvp_display * 0.27);
+Q.hugenberg_momentum += (Q.rural_dnvp_display * 0.17);
 
-Q.delegate_power_a += (Q.new_middle_dnvp * 0.32);
-Q.delegate_power_a += (Q.old_middle_dnvp * 0.11);
+Q.delegate_power_a += (Q.new_middle_dnvp_display * 0.32);
+Q.delegate_power_a += (Q.old_middle_dnvp_display * 0.11);
 
-Q.delegate_power_b += (Q.rural_dnvp * 0.25);
-Q.delegate_power_b += (Q.old_middle_dnvp * 0.08);
+Q.delegate_power_b += (Q.rural_dnvp_display * 0.25);
+Q.delegate_power_b += (Q.old_middle_dnvp_display * 0.08);
 
 // Young Conservatives: new middle class + small worker slice + some old middle
-Q.delegate_power_yocon += (Q.workers_dnvp * 0.08) + (Q.new_middle_dnvp * 0.19) + (Q.old_middle_dnvp * 0.06);
+Q.delegate_power_yocon += (Q.workers_dnvp_display * 0.16) + (Q.new_middle_dnvp_display * 0.25) + (Q.old_middle_dnvp_display * 0.06);
 // Christian Socials: worker-heavy + half of new middle
-Q.delegate_power_christsoc += (Q.workers_dnvp * 0.4) + (Q.new_middle_dnvp * 0.09);
+Q.delegate_power_christsoc += (Q.workers_dnvp_display * 0.6) + (Q.new_middle_dnvp_display * 0.19);
 
 // 5. Ideological Reinforcements
 Q.hugenberg_momentum += Q.nationalism * 4.2;
