@@ -1,0 +1,270 @@
+title: Second vote of no confidence launched on Walther Lambach!
+subtitle: Last attack of the remnants...
+tags: event
+new-page: true
+view-if: year = 1929 and lambach_stage = 1 and month >= 5
+max-visits: 1
+face-image: img/portraits/LambachWalther.jpg
+
+= Second Vote of No Confidence!
+
+The expulsions and upheaval following Lambach's survival have not quelled the opposition — they have hardened it. Without Hugenberg's faction, which has already departed to form the **DNF**, the remaining dissidents have regrouped. The Traditionalists, unwilling to accept Lambach's consolidation of power, have rallied the uncommitted Moderates and pulled a portion of the Young Conservatives back into opposition.
+
+This is their last throw of the dice. If they cannot oust him now, Lambach's grip on the DNVP will be unbreakable.
+
+**Will he survive a second time?**
+
+- @result2: And it all ends on...
+
+@result2
+on-arrival: {!
+
+// === SECOND VONC — Hugenberg bloc is gone (DNF split) ===
+Q.pro_lambach2  = 0;
+Q.anti_lambach2 = 0;
+Q.abstain_lambach2 = 0;
+
+// --- Christian Socials: entirely pro ---
+Q.pro_lambach2 += Q.christsoc_final_votes;
+
+// --- Young Conservatives: 1/4 anti, 3/4 pro ---
+var yocon2_anti = Q.yocon_final_votes * 0.25;
+Q.anti_lambach2 += yocon2_anti;
+Q.pro_lambach2  += (Q.yocon_final_votes - yocon2_anti);
+
+// --- Traditionalists (moderate_b): entirely anti ---
+Q.anti_lambach2 += Q.moderate_b_final_votes;
+
+// --- Coalitionists (moderate_a): 0.9x anti, remainder pro ---
+var moda2_anti = Q.moderate_a_final_votes * 0.9;
+Q.anti_lambach2 += moda2_anti;
+Q.pro_lambach2  += (Q.moderate_a_final_votes - moda2_anti);
+
+// --- Hugenberg remnants (10% stayed, did not follow DNF): entirely anti ---
+var hugenberg2_anti = Q.hugenberg_final_votes * 0.10;
+Q.anti_lambach2 += hugenberg2_anti;
+
+// --- Lambach's personal standing: small pro pull from abstain pool ---
+if (Q.lambach_exile == 0 || Q.lambach_momentum == 1) {
+    var lambach2_pull = Q.abstain_lambach2 * 0.25;
+    lambach2_pull = Math.min(lambach2_pull, Q.abstain_lambach2);
+    Q.pro_lambach2    += lambach2_pull;
+    Q.abstain_lambach2 -= lambach2_pull;
+}
+
+// Floor at zero
+Q.pro_lambach2     = Math.max(0, Math.round(Q.pro_lambach2));
+Q.anti_lambach2    = Math.max(0, Math.round(Q.anti_lambach2));
+Q.abstain_lambach2 = Math.max(0, Math.round(Q.abstain_lambach2));
+
+// === NORMALIZE TO 100 SEATS (Largest Remainder) ===
+var vonc2_raw_total = Q.pro_lambach2 + Q.anti_lambach2 + Q.abstain_lambach2;
+
+var vonc2_buckets = [
+    { key: "vonc2_pro",     raw: Q.pro_lambach2 },
+    { key: "vonc2_anti",    raw: Q.anti_lambach2 },
+    { key: "vonc2_abstain", raw: Q.abstain_lambach2 }
+];
+
+var vonc2_allocated = 0;
+for (var i = 0; i < vonc2_buckets.length; i++) {
+    var exact2 = vonc2_raw_total > 0 ? (vonc2_buckets[i].raw / vonc2_raw_total * 100) : 0;
+    vonc2_buckets[i].floor = Math.floor(exact2);
+    vonc2_buckets[i].remainder = exact2 - vonc2_buckets[i].floor;
+    vonc2_allocated += vonc2_buckets[i].floor;
+}
+
+var vonc2_remaining = 100 - vonc2_allocated;
+var vonc2_sorted = vonc2_buckets.slice().sort(function(x, y) { return y.remainder - x.remainder; });
+for (var j = 0; j < vonc2_sorted.length; j++) {
+    vonc2_sorted[j].seats = vonc2_sorted[j].floor + (j < vonc2_remaining ? 1 : 0);
+}
+for (var k = 0; k < vonc2_buckets.length; k++) {
+    Q[vonc2_buckets[k].key] = vonc2_buckets[k].seats;
+}
+
+// === OUTCOME ===
+Q.lambach_ousting2 = (Q.vonc2_anti > Q.vonc2_pro) ? 1 : 0;
+
+!}
+go-to: vonc2_display
+
+@vonc2_display
+on-display: {!
+
+var voncData2 = [
+    {
+        id: "anti2",
+        label: "For the VoNC",
+        sublabel: "Traditionalists · majority of Moderates · quarter of Young Conservatives · Hugenberg remnants",
+        votes: Q.vonc2_anti,
+        color: "#3d0000",
+        outline: "#cc0000",
+        side: "anti"
+    },
+    {
+        id: "abstain2",
+        label: "Abstaining",
+        sublabel: "",
+        votes: Q.vonc2_abstain,
+        color: "#a8a8a8",
+        outline: "#666666",
+        side: "abstain"
+    },
+    {
+        id: "pro2",
+        label: "Against the VoNC",
+        sublabel: "Christian Socials · majority of Young Conservatives · remaining Moderates",
+        votes: Q.vonc2_pro,
+        color: "#FC7CD2",
+        outline: "#cc44aa",
+        side: "pro"
+    }
+];
+
+var totalVotes2 = voncData2.reduce(function(s, f) { return s + (f.votes || 0); }, 0);
+var visibleFactions2 = voncData2.filter(function(f) { return f.votes > 0; });
+
+if (window && d3 && document.getElementById("lambach-vonc2")) {
+    var width2 = 600;
+    var height2 = 300;
+    var contentEl2 = document.getElementById('content');
+    var screenWidth2 = contentEl2 ? contentEl2.offsetWidth : 600;
+    if (screenWidth2 < width2 - 50) {
+        width2 = screenWidth2 - 50;
+        height2 = Math.round(width2 / 2);
+    }
+
+    var svg2 = document.getElementById("lambach-vonc2");
+    svg2.style.width = width2 + "px";
+    svg2.style.height = height2 + "px";
+
+    var data2 = visibleFactions2.map(function(f) {
+        return { id: f.id, legend: f.label, name: f.label, seats: f.votes, color: f.color };
+    });
+
+    var parliament2 = d3.parliament();
+    parliament2.width(width2).height(height2).innerRadiusCoef(0.4);
+    parliament2.enter.fromCenter(true).smallToBig(true);
+    parliament2.exit.toCenter(false).bigToSmall(true);
+    d3.select("#lambach-vonc2").datum(data2).call(parliament2);
+
+    visibleFactions2.forEach(function(f) {
+        d3.selectAll("#lambach-vonc2 circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", f.outline)
+            .style("stroke-width", "2px")
+            .style("fill", f.color);
+    });
+}
+
+var container2 = document.getElementById("lambach-vonc2-factions");
+if (container2) {
+    container2.innerHTML = "";
+    container2.style.marginTop = "16px";
+    container2.style.fontFamily = "Georgia, serif";
+
+    visibleFactions2.forEach(function(f) {
+        var pct2 = totalVotes2 > 0 ? (f.votes / totalVotes2 * 100) : 0;
+
+        var nameColor2 = "#1a1a1a";
+        if (f.side === "pro")     nameColor2 = "#8b005a";
+        if (f.side === "anti")    nameColor2 = "#cc2200";
+        if (f.side === "abstain") nameColor2 = "#444444";
+
+        var block2 = document.createElement("div");
+        block2.style.marginBottom = "12px";
+
+        var header2 = document.createElement("div");
+        header2.style.display = "flex";
+        header2.style.justifyContent = "space-between";
+        header2.style.alignItems = "baseline";
+        header2.style.marginBottom = "3px";
+
+        var nameSpan2 = document.createElement("span");
+        nameSpan2.style.fontWeight = "bold";
+        nameSpan2.style.fontSize = "0.92em";
+        nameSpan2.style.color = nameColor2;
+        nameSpan2.textContent = f.label;
+
+        var voteSpan2 = document.createElement("span");
+        voteSpan2.style.fontSize = "0.85em";
+        voteSpan2.style.color = "#666";
+        voteSpan2.textContent = f.votes + " delegates (" + pct2.toFixed(1) + "%)";
+
+        header2.appendChild(nameSpan2);
+        header2.appendChild(voteSpan2);
+
+        var sub2 = document.createElement("div");
+        sub2.style.fontSize = "0.78em";
+        sub2.style.color = "#888";
+        sub2.style.marginBottom = "4px";
+        sub2.style.fontStyle = "italic";
+        sub2.textContent = f.sublabel;
+
+        var barTrack2 = document.createElement("div");
+        barTrack2.style.width = "100%";
+        barTrack2.style.height = "14px";
+        barTrack2.style.backgroundColor = "#e8e8e8";
+        barTrack2.style.borderRadius = "3px";
+        barTrack2.style.overflow = "hidden";
+        barTrack2.style.border = "1px solid " + f.outline;
+
+        var barFill2 = document.createElement("div");
+        barFill2.style.width = pct2 + "%";
+        barFill2.style.height = "100%";
+        barFill2.style.backgroundColor = f.color;
+        barFill2.style.transition = "width 0.6s ease";
+
+        barTrack2.appendChild(barFill2);
+        block2.appendChild(header2);
+        block2.appendChild(sub2);
+        block2.appendChild(barTrack2);
+        container2.appendChild(block2);
+    });
+
+    var majorityNote2 = document.createElement("div");
+    majorityNote2.style.fontSize = "0.78em";
+    majorityNote2.style.color = "#666";
+    majorityNote2.style.marginTop = "6px";
+    majorityNote2.style.fontStyle = "italic";
+    majorityNote2.textContent = "Majority threshold: 51 delegates. Abstentions do not count as support.";
+    container2.appendChild(majorityNote2);
+}
+
+!}
+go-to: cooked2 if lambach_ousting2 = 1; survives2 if lambach_ousting2 = 0
+
+{!<svg id="lambach-vonc2" style="width:600px; height:300px;"></svg>!}
+{!<div id="lambach-vonc2-factions"></div>!}
+
+*The final tally of delegate votes (100 congress seats):*
+
+*For the VoNC (Traditionalists & remaining opposition): [+ vonc2_anti +]*
+
+*Against the VoNC (Christian Socials & loyalists): [+ vonc2_pro +]*
+
+*Abstaining: [+ vonc2_abstain +]*
+
+
+@cooked2
+on-arrival: dnvp_party_leader = "Kuno von Westarp"; dnvp_ideology = "National Conservatism"; old_middle_dnvp += 5; rural_dnvp += 3; workers_dnvp -= 3; new_middle_dnvp -= 5; pro_republic -= 5; nationalism += 5; dnvp_relation -= 20
+
+= Lambach falls on the second vote!
+
+With Hugenberg's bloc already gone, it was the quiet defection of the Moderates and the resolute Traditionalists that finished him. The Christian Socials fought to the last, but without the broader coalition Lambach once relied upon, the numbers were simply not there.
+
+Walther Lambach steps down from the chairmanship, his experiment in remaking the DNVP ending in defeat.
+
+[Your consequences here]
+
+@survives2
+on-arrival: lambach_stage = 2; workers_dnvp += 5; new_middle_dnvp += 5
+
+= Lambach survives a second time — his grip is iron!
+
+Against all expectations, Walther Lambach has beaten back a second attempt to remove him. The rump opposition, stripped of Hugenberg's resources and organisation, could not muster enough votes even among the Traditionalists and Moderates to cross the threshold.
+
+His position is now unassailable. The dissenters have exhausted every parliamentary tool available to them. What remains of the old DNVP either falls in line — or leaves.
+
+[Your consequences here]
