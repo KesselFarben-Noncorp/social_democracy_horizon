@@ -318,7 +318,7 @@ var partyData = [
 { id: "sls",  name: "SLS",        color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) },
 { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
 { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r  && Q.dhp_r  > 0) },
-{ id: "dsbp", name: Q.dsbp_name,  color: "#7A9DB5", seats: Q.dsbp_seats, show: !!(Q.dsbp_r && Q.dsbp_r > 0) },
+{ id: "Q.dsbp_name", name: Q.dsbp_name,  color: "#7A9DB5", seats: Q.dsbp_seats, show: !!(Q.dsbp_r && Q.dsbp_r > 0) },
 { id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: !!(Q.dvp_r  && Q.dvp_r  > 0) },
 { id: "vrp",  name: "VRP",        color: "#8B7355", seats: Q.vrp_seats,  show: !!(Q.vrp_r  && Q.vrp_r  > 0) },
 { id: "wp",   name: "WP",         color: "#424242", seats: Q.wp_seats,   show: !!(Q.wp_r   && Q.wp_r   > 0) },
@@ -591,7 +591,7 @@ go-to: coalition_formation_start
 ?]
 [? if dsbp_votes > 0 :
 <tr class="row-center">
-    <td style="padding: 8px;"><div class="box" style='background-color:#7A9DB5; display:inline-block; margin-right:8px;'> </div>DSBP</td>
+    <td style="padding: 8px;"><div class="box" style='background-color:#7A9DB5; display:inline-block; margin-right:8px;'> </div>[+ dsbp_name +]</td>
     <td style="padding: 8px; text-align: right; font-weight: bold;">[+ dsbp_r_disp +]%</td>
     <td style="padding: 8px; text-align: right; [? if change_dsbp_r > 0 : color: green; ?][? if change_dsbp_r < 0 : color: red; ?]">[+ str_change_dsbp +]</td>
     <td style="padding: 8px; text-align: right;">[+ dsbp_seats +]</td>
@@ -754,7 +754,8 @@ var special_display_names = {
     'z': 'Z',
     'other': 'other',
     'dtsp': 'DtsP',
-    'dsbp': Q.dsbp_name || 'DSBP'
+    'dsbp': Q.dsbp_name || 'DSBP',
+    'dlp': Q.dsbp_name || 'DLP
 };
 
 // 3. Automatically run every party currently active in your game
