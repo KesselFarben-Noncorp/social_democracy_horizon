@@ -621,14 +621,7 @@ Object.keys(wordPhrases).forEach(function(phrase) {
       $('#bg2').css('background-image', 'url("' + savedBg + '")');
     }
     var savedMusic = localStorage.getItem(_MUSICKEY);
-    if (savedMusic) {
-      var audio = new Audio(savedMusic);
-      audio.loop = true;
-      audio.volume = 1;
-      audio.play();
-      window.dendryUI.currentAudio = audio;
-      window.dendryUI.currentAudioURL = savedMusic;
-    }
+    // Legacy single-track custom music is now handled by MusicPlayer.
     // Restore custom styles
   (function() {
   var saved = window.csLoad ? window.csLoad() : {};
@@ -1173,46 +1166,10 @@ window.clearCustomBg = function() {
 
 
 
+
+
+
 var _MUSICKEY = 'Social Fascism: An Alternate Horizon_Gaufenspelt_custom_music';
-
-window.importCustomMusic = function(input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var request = indexedDB.open('gaufenspelt_db', 1);
-    request.onupgradeneeded = function(e) {
-      e.target.result.createObjectStore('assets');
-    };
-    request.onsuccess = function(e) {
-      var db = e.target.result;
-      var tx = db.transaction('assets', 'readwrite');
-      tx.objectStore('assets').put(e.target.result, 'custom_music');
-    };
-    // Stop whatever is playing
-    if (window.dendryUI.currentAudio) {
-      window.dendryUI.currentAudio.pause();
-    }
-    // Start custom track
-    var audio = new Audio(e.target.result);
-    audio.loop = true;
-    audio.volume = 1;
-    audio.play();
-    window.dendryUI.currentAudio = audio;
-    window.dendryUI.currentAudioURL = e.target.result;
-    window.dendryUI.saveSettings();
-  };
-  reader.readAsDataURL(file);
-};
-
-window.clearCustomMusic = function() {
-  localStorage.removeItem(_MUSICKEY);
-  if (window.dendryUI.currentAudio) {
-    window.dendryUI.currentAudio.pause();
-    window.dendryUI.currentAudio = null;
-  }
-  window.dendryUI.saveSettings();
-};
 
 
 
@@ -1239,8 +1196,8 @@ var _bgPatchInterval = setInterval(function() {
 
   var _originalAudio = window.dendryUI.audio.bind(window.dendryUI);
   window.dendryUI.audio = function(audioStr) {
-      var customMusic = localStorage.getItem(_MUSICKEY);
-      if (customMusic) return; // ignore scene-driven audio changes
+      // If MusicPlayer has user tracks AND scene audio is disabled, block game audio changes
+      if (window.MusicPlayer && window.MusicPlayer.isUserControlled() && !window.MusicPlayer.sceneAudioEnabled()) return;
       _originalAudio(audioStr);
     };
 }, 100);
@@ -1545,3 +1502,488 @@ window.toggleFocusMode = function () {
   }
 };
 
+
+
+
+
+/* =====================================================================
+   MUSIC PLAYER  — v1.0
+   Self-contained playlist system with UI overlay.
+   Persists playlist metadata (names + durations) in localStorage.
+   Audio blobs are kept in IndexedDB across sessions.
+   ===================================================================== */
+
+window.MusicPlayer = (function () {
+
+  /* ── Storage keys ────────────────────────────────────────────────── */
+  var _DB_NAME      = 'gaufenspelt_music_db';
+  var _DB_VERSION   = 2;
+  var _STORE        = 'tracks';
+  var _META_KEY     = 'Social Fascism: An Alternate Horizon_Gaufenspelt_mp_meta';
+
+  /* ── State ───────────────────────────────────────────────────────── */
+  var _audio        = new Audio();
+  var _playlist     = [];   // [{id, name, duration}]
+  var _currentIdx   = -1;
+  var _shuffle      = false;
+  var _loop         = false;  // 'none' | 'one' | 'all'  — stored as bool for simplicity; one press = all
+  var _loopMode     = 'none'; // 'none' | 'one' | 'all'
+  var _volume       = 0.8;
+  var _playing      = false;
+  var _userControlled = false;   // true when user has loaded their own tracks
+  var _sceneAudio   = true;      // allow scene-driven audio
+  var _db           = null;
+  var _seekRAF      = null;
+  var _shuffleOrder = [];
+
+  /* ── IndexedDB ───────────────────────────────────────────────────── */
+  function _openDB(cb) {
+    if (_db) { cb(_db); return; }
+    var req = indexedDB.open(_DB_NAME, _DB_VERSION);
+    req.onupgradeneeded = function (e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains(_STORE)) {
+        db.createObjectStore(_STORE);
+      }
+    };
+    req.onsuccess = function (e) { _db = e.target.result; cb(_db); };
+    req.onerror   = function ()  { console.error('MusicPlayer: IDB open failed'); };
+  }
+
+  function _dbPut(id, blob, cb) {
+    _openDB(function (db) {
+      var tx = db.transaction(_STORE, 'readwrite');
+      tx.objectStore(_STORE).put(blob, id);
+      tx.oncomplete = cb || function(){};
+    });
+  }
+
+  function _dbGet(id, cb) {
+    _openDB(function (db) {
+      var tx  = db.transaction(_STORE, 'readonly');
+      var req = tx.objectStore(_STORE).get(id);
+      req.onsuccess = function () { cb(req.result); };
+      req.onerror   = function () { cb(null); };
+    });
+  }
+
+  function _dbDelete(id, cb) {
+    _openDB(function (db) {
+      var tx = db.transaction(_STORE, 'readwrite');
+      tx.objectStore(_STORE).delete(id);
+      tx.oncomplete = cb || function(){};
+    });
+  }
+
+  function _dbClear(cb) {
+    _openDB(function (db) {
+      var tx = db.transaction(_STORE, 'readwrite');
+      tx.objectStore(_STORE).clear();
+      tx.oncomplete = cb || function(){};
+    });
+  }
+
+  /* ── Persistence (metadata only) ────────────────────────────────── */
+  function _saveMeta() {
+    try {
+      localStorage.setItem(_META_KEY, JSON.stringify({
+        playlist:     _playlist,
+        currentIdx:   _currentIdx,
+        shuffle:      _shuffle,
+        loopMode:     _loopMode,
+        volume:       _volume,
+        sceneAudio:   _sceneAudio,
+      }));
+    } catch(e) {}
+  }
+
+  function _loadMeta() {
+    try {
+      var raw = localStorage.getItem(_META_KEY);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      _playlist   = d.playlist   || [];
+      _currentIdx = d.currentIdx != null ? d.currentIdx : -1;
+      _shuffle    = !!d.shuffle;
+      _loopMode   = d.loopMode  || 'none';
+      _volume     = d.volume    != null ? d.volume : 0.8;
+      _sceneAudio = d.sceneAudio != null ? d.sceneAudio : true;
+      _userControlled = _playlist.length > 0;
+      _audio.volume   = _volume;
+    } catch(e) {}
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────────────── */
+  function _fmtTime(secs) {
+    if (!isFinite(secs) || secs < 0) return '—';
+    var m = Math.floor(secs / 60);
+    var s = Math.floor(secs % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function _trackId(name) {
+    return 'track_' + name.replace(/[^a-z0-9]/gi, '_') + '_' + Date.now();
+  }
+
+  function _buildShuffleOrder() {
+    _shuffleOrder = _playlist.map(function(_, i) { return i; });
+    for (var i = _shuffleOrder.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = _shuffleOrder[i]; _shuffleOrder[i] = _shuffleOrder[j]; _shuffleOrder[j] = tmp;
+    }
+  }
+
+  function _nextIdx() {
+    if (_playlist.length === 0) return -1;
+    if (_loopMode === 'one') return _currentIdx;
+    if (_shuffle) {
+      if (_shuffleOrder.length === 0) _buildShuffleOrder();
+      var pos = _shuffleOrder.indexOf(_currentIdx);
+      return _shuffleOrder[(pos + 1) % _shuffleOrder.length];
+    }
+    if (_loopMode === 'all') return (_currentIdx + 1) % _playlist.length;
+    // no loop
+    return _currentIdx + 1 < _playlist.length ? _currentIdx + 1 : -1;
+  }
+
+  function _prevIdx() {
+    if (_playlist.length === 0) return -1;
+    if (_shuffle) {
+      if (_shuffleOrder.length === 0) _buildShuffleOrder();
+      var pos2 = _shuffleOrder.indexOf(_currentIdx);
+      return _shuffleOrder[(pos2 - 1 + _shuffleOrder.length) % _shuffleOrder.length];
+    }
+    if (_currentIdx <= 0) return _loopMode === 'all' ? _playlist.length - 1 : 0;
+    return _currentIdx - 1;
+  }
+
+  /* ── Audio events ────────────────────────────────────────────────── */
+  _audio.addEventListener('ended', function () {
+    var ni = _nextIdx();
+    if (ni === _currentIdx && _loopMode === 'one') {
+      _audio.currentTime = 0; _audio.play(); return;
+    }
+    if (ni >= 0 && ni !== _currentIdx) {
+      _playIdx(ni);
+    } else {
+      _playing = false; _refreshUI();
+    }
+  });
+
+  _audio.addEventListener('timeupdate', function () { _updateProgress(); });
+  _audio.addEventListener('loadedmetadata', function () {
+    // Update stored duration if we didn't have it
+    if (_currentIdx >= 0 && _playlist[_currentIdx]) {
+      _playlist[_currentIdx].duration = _audio.duration;
+      _saveMeta();
+      _renderPlaylist();
+    }
+    _updateProgress();
+  });
+
+  /* ── Playback core ───────────────────────────────────────────────── */
+  function _playIdx(idx) {
+    if (idx < 0 || idx >= _playlist.length) return;
+    var track = _playlist[idx];
+    _currentIdx = idx;
+    _dbGet(track.id, function (blob) {
+      if (!blob) {
+        console.warn('MusicPlayer: blob not found for', track.name);
+        _refreshUI(); return;
+      }
+      var url = URL.createObjectURL(blob);
+      var oldSrc = _audio.src;
+      _audio.src = url;
+      _audio.volume = _volume;
+      _audio.play().then(function () {
+        _playing = true;
+        _userControlled = true;
+        if (oldSrc) URL.revokeObjectURL(oldSrc);
+        _saveMeta();
+        _refreshUI();
+        _renderPlaylist();
+      }).catch(function (err) {
+        console.warn('MusicPlayer: play blocked', err);
+        _playing = false; _refreshUI();
+      });
+    });
+  }
+
+  /* ── Public API ──────────────────────────────────────────────────── */
+  function importFiles(input) {
+    var files = Array.prototype.slice.call(input.files);
+    if (!files.length) return;
+    var count = files.length;
+    files.forEach(function (file) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var data  = e.target.result;
+        var id    = _trackId(file.name);
+        var name  = file.name.replace(/\.[^.]+$/, '');
+        // Measure duration
+        var tmpAudio = new Audio(data);
+        tmpAudio.addEventListener('loadedmetadata', function () {
+          var dur = tmpAudio.duration;
+          _playlist.push({ id: id, name: name, duration: dur });
+          _userControlled = true;
+          // Store blob in IDB
+          fetch(data).then(function (r) { return r.blob(); }).then(function (blob) {
+            _dbPut(id, blob, function () {
+              count--;
+              if (count === 0) {
+                _saveMeta();
+                _renderPlaylist();
+                // Auto-start if nothing playing
+                if (!_playing && _currentIdx < 0) {
+                  _playIdx(0);
+                }
+              }
+            });
+          });
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    // Reset file input so same files can be re-added
+    input.value = '';
+  }
+
+  function clearPlaylist() {
+    _audio.pause();
+    _audio.src = '';
+    _playing = false;
+    _currentIdx = -1;
+    _playlist = [];
+    _userControlled = false;
+    _dbClear(function () {
+      _saveMeta();
+      _renderPlaylist();
+      _refreshUI();
+    });
+  }
+
+  function removeTrack(idx) {
+    if (idx < 0 || idx >= _playlist.length) return;
+    var track = _playlist[idx];
+    var wasPlaying = idx === _currentIdx && _playing;
+    _dbDelete(track.id);
+    _playlist.splice(idx, 1);
+    if (_currentIdx >= _playlist.length) _currentIdx = _playlist.length - 1;
+    if (_playlist.length === 0) { _userControlled = false; _audio.pause(); _audio.src = ''; _playing = false; }
+    else if (wasPlaying) { _playIdx(_currentIdx >= 0 ? _currentIdx : 0); }
+    _saveMeta();
+    _renderPlaylist();
+    _refreshUI();
+  }
+
+  function togglePlay() {
+    if (_playlist.length === 0) return;
+    if (_playing) {
+      _audio.pause(); _playing = false; _refreshUI();
+    } else {
+      if (_currentIdx < 0) _currentIdx = 0;
+      if (!_audio.src || _audio.src === window.location.href) {
+        _playIdx(_currentIdx);
+      } else {
+        _audio.play().then(function () { _playing = true; _refreshUI(); }).catch(function(){});
+      }
+    }
+    _saveMeta();
+  }
+
+  function next() {
+    var ni = _nextIdx();
+    if (ni >= 0) _playIdx(ni); else { _audio.pause(); _playing = false; _refreshUI(); }
+  }
+
+  function prev() {
+    if (_audio.currentTime > 3) { _audio.currentTime = 0; return; }
+    _playIdx(_prevIdx());
+  }
+
+  function seek(val) {
+    if (_audio.duration) _audio.currentTime = (val / 100) * _audio.duration;
+  }
+
+  function setVolume(val) {
+    _volume = val / 100;
+    _audio.volume = _volume;
+    var lbl = document.getElementById('mp-vol-label');
+    if (lbl) lbl.textContent = val + '%';
+    _saveMeta();
+  }
+
+  function toggleShuffle() {
+    _shuffle = !_shuffle;
+    if (_shuffle) _buildShuffleOrder();
+    _saveMeta();
+    var btn = document.getElementById('mp-shuffle-btn');
+    if (btn) btn.classList.toggle('active', _shuffle);
+  }
+
+  function toggleLoop() {
+    var modes = ['none', 'all', 'one'];
+    var idx   = modes.indexOf(_loopMode);
+    _loopMode = modes[(idx + 1) % modes.length];
+    _saveMeta();
+    _refreshLoopBtn();
+  }
+
+  function toggleSceneAudio(val) {
+    _sceneAudio = val;
+    _saveMeta();
+  }
+
+  function isUserControlled() { return _userControlled && _playlist.length > 0; }
+
+  /* ── UI ──────────────────────────────────────────────────────────── */
+  function showUI() {
+    var el = document.getElementById('music-overlay');
+    if (!el) return;
+    _renderPlaylist();
+    _refreshUI();
+    el.style.display = 'block';
+    if (!el._mpClick) {
+      el._mpClick = true;
+      el.addEventListener('click', function (e) {
+        if (e.target === el) hideUI();
+      });
+    }
+  }
+
+  function hideUI() {
+    var el = document.getElementById('music-overlay');
+    if (el) el.style.display = 'none';
+  }
+
+  function _updateProgress() {
+    var seek = document.getElementById('mp-seek');
+    var cur  = document.getElementById('mp-time-cur');
+    var dur  = document.getElementById('mp-time-dur');
+    if (!seek) return;
+    if (_audio.duration) {
+      seek.value = (_audio.currentTime / _audio.duration) * 100;
+    } else {
+      seek.value = 0;
+    }
+    if (cur) cur.textContent = _fmtTime(_audio.currentTime);
+    if (dur) dur.textContent = _fmtTime(_audio.duration);
+  }
+
+  function _refreshUI() {
+    // Play button
+    var playBtn = document.getElementById('mp-play-btn');
+    if (playBtn) playBtn.textContent = _playing ? '⏸' : '▶';
+
+    // Track name + sub
+    var nameEl = document.getElementById('mp-track-name');
+    var subEl  = document.getElementById('mp-track-sub');
+    if (nameEl) {
+      if (_currentIdx >= 0 && _playlist[_currentIdx]) {
+        nameEl.textContent = _playlist[_currentIdx].name;
+        subEl.textContent  = (_currentIdx + 1) + ' / ' + _playlist.length;
+      } else {
+        nameEl.textContent = 'No track loaded';
+        subEl.textContent  = '—';
+      }
+    }
+
+    // Volume
+    var volSlider = document.getElementById('mp-volume');
+    var volLbl    = document.getElementById('mp-vol-label');
+    if (volSlider) { volSlider.value = Math.round(_volume * 100); }
+    if (volLbl)    { volLbl.textContent = Math.round(_volume * 100) + '%'; }
+
+    // Shuffle
+    var shuffleBtn = document.getElementById('mp-shuffle-btn');
+    if (shuffleBtn) shuffleBtn.classList.toggle('active', _shuffle);
+
+    // Loop
+    _refreshLoopBtn();
+
+    // Scene audio checkbox
+    var sceneChk = document.getElementById('mp-scene-audio');
+    if (sceneChk) sceneChk.checked = _sceneAudio;
+
+    // Music link pulse
+    var mlink = document.getElementById('music-link');
+    if (mlink) mlink.style.color = _playing ? 'var(--link-color)' : '';
+  }
+
+  function _refreshLoopBtn() {
+    var btn = document.getElementById('mp-loop-btn');
+    if (!btn) return;
+    var icons = { none: '↺', all: '↺', one: '↻¹' };
+    btn.textContent = icons[_loopMode] || '↺';
+    btn.classList.toggle('active', _loopMode !== 'none');
+    btn.title = _loopMode === 'none' ? 'Loop: Off' : _loopMode === 'all' ? 'Loop: All' : 'Loop: One';
+  }
+
+  function _renderPlaylist() {
+    var ul = document.getElementById('mp-playlist');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (_playlist.length === 0) {
+      var li = document.createElement('li');
+      li.className = 'mp-playlist-empty';
+      li.textContent = 'No tracks. Import audio files below.';
+      ul.appendChild(li);
+      return;
+    }
+    _playlist.forEach(function (track, idx) {
+      var li = document.createElement('li');
+      li.className = 'mp-playlist-item' + (idx === _currentIdx ? ' playing' : '');
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className   = 'mp-playlist-track-name';
+      nameSpan.textContent = track.name;
+      nameSpan.title       = track.name;
+
+      var durSpan = document.createElement('span');
+      durSpan.className   = 'mp-playlist-dur';
+      durSpan.textContent = _fmtTime(track.duration);
+
+      var rmBtn = document.createElement('button');
+      rmBtn.className   = 'mp-playlist-remove';
+      rmBtn.textContent = '✕';
+      rmBtn.title       = 'Remove';
+      rmBtn.onclick = (function (i) { return function (e) { e.stopPropagation(); removeTrack(i); }; })(idx);
+
+      li.appendChild(nameSpan);
+      li.appendChild(durSpan);
+      li.appendChild(rmBtn);
+      li.onclick = (function (i) { return function () { _playIdx(i); }; })(idx);
+      ul.appendChild(li);
+    });
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────── */
+  function _init() {
+    _loadMeta();
+    _audio.volume = _volume;
+    // If there were tracks last session, restore playing state (but don't autoplay until user interacts)
+    _refreshUI();
+  }
+
+  _init();
+
+  return {
+    showUI:           showUI,
+    hideUI:           hideUI,
+    importFiles:      importFiles,
+    clearPlaylist:    clearPlaylist,
+    removeTrack:      removeTrack,
+    togglePlay:       togglePlay,
+    next:             next,
+    prev:             prev,
+    seek:             seek,
+    setVolume:        setVolume,
+    toggleShuffle:    toggleShuffle,
+    toggleLoop:       toggleLoop,
+    toggleSceneAudio: toggleSceneAudio,
+    isUserControlled: isUserControlled,
+    // Expose for dendryUI audio patch
+    sceneAudioEnabled: function () { return _sceneAudio; },
+  };
+
+}());
