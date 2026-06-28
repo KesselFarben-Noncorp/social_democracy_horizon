@@ -294,6 +294,12 @@
 
   // This function allows you to modify the text before it's displayed.
   window.displayText = function(text) {
+
+    var dsbp_name = window.dendryUI.dendryEngine.state.qualities.dsbp_name || 'DSBP';
+if (dsbp_name !== 'DSBP') {
+    text = text.replace(/\bDSBP\b/g, dsbp_name);
+}
+    
   var wordPhrases = {
     'Weimar Republic': ['#DCCA4A', '#E3000F'],   // Weimar=gold, Republic=red
     'German Reich':    ['#111111', '#C0392B'],    // German=black, Reich=red
