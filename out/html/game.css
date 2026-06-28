@@ -1,13 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap');
 
-/* ===================================================
-   MERGED CSS
-   Theme/visuals: second CSS (Crimson Text serif, dark/retro/crt modes)
-   Layout/structure: first CSS (CSS Grid, sidebar right+sticky,
-                     #main_column, #bottom_panel, .stats-box)
-   Target HTML: older HTML (#mid_panel, #tools_wrapper, #stats_sidebar, single #qualities)
-   =================================================== */
-
 /* =====================================================================
    CRT FLICKER / JITTER ANIMATIONS (kept from second CSS)
    ===================================================================== */
@@ -637,12 +629,15 @@ ul.choices a {
 
 .overlay_top {
   position: relative;
-  max-width: 540px;
-  margin: 100px auto;
+  width: max-content;
+  max-width: min(92vw, 820px);
+  min-width: 320px;
+  margin: 60px auto;
   background: var(--content-bg-color);
   border: 2px solid var(--border-color);
   color: var(--text-color);
   padding: 1em;
+  box-sizing: border-box;
 }
 
 .overlay_top,
@@ -683,7 +678,8 @@ input[type="radio"] {
 
 table {
   border-spacing: 0.5em;
-  width: 100%;
+  width: auto;
+  min-width: 100%;
   font-family: "Crimson Text", Georgia, serif;
   font-size: 0.95em;
   color: var(--text-color);
@@ -1417,4 +1413,277 @@ body.crt-mode tr.row-neutral   { background-color: rgba(51, 255, 100, 0.02); }
 #super-event-overlay.ambient-glow #super-event-video-wrap {
   box-shadow: 0 0 60px 20px var(--se-ambient-color, rgba(255, 80, 0, 0.35));
   transition: box-shadow 1s ease;
+}
+
+
+
+/* =====================================================================
+   MUSIC PLAYER OVERLAY
+   ===================================================================== */
+
+.music-player-panel {
+  width: max-content;
+  min-width: 320px;
+  max-width: min(92vw, 480px);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Header bar */
+.mp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--tab-bg-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.5em 0.8em;
+}
+.mp-title-label {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 0.95em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+.mp-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1em;
+  padding: 0.1em 0.4em;
+  cursor: pointer;
+  line-height: 1;
+}
+.mp-close-btn:hover { color: var(--link-color); }
+
+/* Now playing */
+.mp-now-playing {
+  padding: 0.9em 1em 0.5em;
+  text-align: center;
+}
+.mp-track-name {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1em;
+  font-weight: bold;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.mp-track-sub {
+  font-size: 0.78em;
+  color: var(--unavailable-color, #999);
+  margin-top: 0.15em;
+  margin-bottom: 0.5em;
+}
+.mp-progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: 0.3em;
+}
+.mp-time {
+  font-size: 0.72em;
+  color: var(--unavailable-color, #888);
+  min-width: 2.8em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Seek + volume slider */
+.mp-seek {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--tab-bg-color);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--link-color);
+}
+.mp-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--link-color);
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* Controls row */
+.mp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.4em 1em 0.6em;
+}
+.mp-btn {
+  font-family: inherit;
+  background: var(--tab-bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 0.3em 0.7em;
+  cursor: pointer;
+  font-size: 1.05em;
+  line-height: 1;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+  min-width: 2.2em;
+}
+.mp-btn:hover {
+  background: var(--link-hover-color);
+  color: var(--link-color);
+}
+.mp-play-btn {
+  font-size: 1.3em;
+  padding: 0.3em 0.9em;
+  background: var(--content-bg-color);
+  border-width: 2px;
+}
+.mp-mode-btn.active {
+  background: var(--link-color);
+  color: var(--content-bg-color);
+  border-color: var(--link-color);
+}
+
+/* Volume row */
+.mp-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em 1em 0.5em;
+}
+.mp-vol-icon { font-size: 0.85em; }
+.mp-vol-label {
+  font-size: 0.72em;
+  color: var(--unavailable-color, #888);
+  min-width: 2.8em;
+  text-align: right;
+}
+
+/* Section label */
+.mp-section-label {
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--unavailable-color, #999);
+  padding: 0 1em 0.3em;
+}
+
+/* Playlist */
+.mp-playlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+.mp-playlist::-webkit-scrollbar       { width: 4px; }
+.mp-playlist::-webkit-scrollbar-track { background: var(--tab-bg-color); }
+.mp-playlist::-webkit-scrollbar-thumb { background: var(--border-color); }
+
+.mp-playlist-empty {
+  padding: 0.8em 1em;
+  color: var(--unavailable-color, #999);
+  font-size: 0.85em;
+  font-style: italic;
+  text-align: center;
+}
+.mp-playlist-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4em 0.8em;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(128,128,128,0.1);
+  font-size: 0.85em;
+  color: var(--text-color);
+  gap: 0.5em;
+  transition: background 0.12s ease;
+}
+.mp-playlist-item:hover { background: var(--link-hover-color); }
+.mp-playlist-item.playing {
+  background: var(--tab-bg-color);
+  color: var(--link-color);
+  font-weight: 600;
+}
+.mp-playlist-item.playing::before {
+  content: "▶";
+  font-size: 0.7em;
+  flex-shrink: 0;
+}
+.mp-playlist-item:not(.playing)::before {
+  content: "";
+  display: inline-block;
+  width: 0.7em;
+  flex-shrink: 0;
+}
+.mp-playlist-track-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mp-playlist-dur {
+  flex-shrink: 0;
+  font-size: 0.8em;
+  color: var(--unavailable-color, #999);
+  font-variant-numeric: tabular-nums;
+}
+.mp-playlist-remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--unavailable-color, #999);
+  font-size: 0.85em;
+  cursor: pointer;
+  padding: 0 0.2em;
+  line-height: 1;
+  opacity: 0.5;
+}
+.mp-playlist-remove:hover { opacity: 1; color: #c00; }
+
+/* Import + clear row */
+.mp-import-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.6em 1em 0.3em;
+}
+.mp-import-label {
+  flex: 1;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-family: "Crimson Text", Georgia, serif;
+  background: var(--tab-bg-color);
+  color: var(--link-color);
+  border: 1px solid var(--border-color);
+  padding: 0.3em 0.7em;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.mp-import-label:hover {
+  background: var(--link-hover-color);
+}
+.mp-clear-btn {
+  font-size: 0.8em;
+  padding: 0.3em 0.6em;
+}
+
+/* Scene audio toggle */
+.mp-scene-row {
+  padding: 0.4em 1em 0.7em;
+  font-size: 0.82em;
+  color: var(--text-color);
+}
+.mp-scene-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  cursor: pointer;
 }
