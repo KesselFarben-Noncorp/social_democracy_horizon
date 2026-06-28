@@ -61,14 +61,6 @@
             <td><label for="audio_no">Off</label></td>
             <td><input type="radio" id="audio_no" name="audio" value="0" onclick="window.disableAudio();"></td>
           </tr>
-          <tr>
-            <td>Custom Music:</td>
-            <td colspan="3">
-            <input type="file" id="custom_music_import" accept="audio/*"
-               onchange="window.importCustomMusic(this);">
-            </td>
-            <td><button onclick="window.clearCustomMusic();">Clear</button></td>
-          </tr>
           <tr><td><hr></td></tr>
           <tr>
             <td>Color scheme:</td>
@@ -307,6 +299,7 @@
             <a onclick="dendryUI.showSaveSlots();" href="#">Save/Load</a>
             <a onclick="window.showOptions();" href="#">Options</a>
             <a onclick="window.showCustomStyle();" href="#">Style</a>
+            <a onclick="window.MusicPlayer.showUI();" href="#" id="music-link">♫ Music</a>
             <a onclick="window.showSandbox();" href="#" id="sandbox-link" style="display:none">Sandbox</a>
           </div>
         </header>
@@ -323,6 +316,77 @@
       </div><!-- /#main_column -->
 
     </div><!-- /#page -->
+
+    <!-- ═══════════════════════════════════════════════
+         MUSIC PLAYER OVERLAY
+         ═══════════════════════════════════════════════ -->
+    <div id="music-overlay" class="overlay" style="display:none;">
+      <div class="overlay_top music-player-panel">
+        <div class="mp-header">
+          <span class="mp-title-label">♫ Music Player</span>
+          <button class="mp-close-btn" onclick="window.MusicPlayer.hideUI();">✕</button>
+        </div>
+
+        <!-- Now Playing -->
+        <div class="mp-now-playing">
+          <div class="mp-track-name" id="mp-track-name">No track loaded</div>
+          <div class="mp-track-sub" id="mp-track-sub">—</div>
+          <div class="mp-progress-bar-wrap">
+            <span class="mp-time" id="mp-time-cur">0:00</span>
+            <input type="range" id="mp-seek" class="mp-seek" min="0" max="100" value="0"
+                   oninput="window.MusicPlayer.seek(this.value)">
+            <span class="mp-time" id="mp-time-dur">0:00</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mp-controls">
+          <button class="mp-btn mp-mode-btn" id="mp-shuffle-btn" title="Shuffle"
+                  onclick="window.MusicPlayer.toggleShuffle();">⇄</button>
+          <button class="mp-btn" title="Previous" onclick="window.MusicPlayer.prev();">⏮</button>
+          <button class="mp-btn mp-play-btn" id="mp-play-btn" title="Play/Pause"
+                  onclick="window.MusicPlayer.togglePlay();">▶</button>
+          <button class="mp-btn" title="Next" onclick="window.MusicPlayer.next();">⏭</button>
+          <button class="mp-btn mp-mode-btn" id="mp-loop-btn" title="Loop"
+                  onclick="window.MusicPlayer.toggleLoop();">↺</button>
+        </div>
+
+        <!-- Volume -->
+        <div class="mp-volume-row">
+          <span class="mp-vol-icon">🔈</span>
+          <input type="range" id="mp-volume" class="mp-seek" min="0" max="100" value="80"
+                 oninput="window.MusicPlayer.setVolume(this.value)">
+          <span class="mp-vol-icon">🔊</span>
+          <span class="mp-vol-label" id="mp-vol-label">80%</span>
+        </div>
+
+        <hr style="opacity:0.3; margin:0.6em 0;">
+
+        <!-- Playlist -->
+        <div class="mp-section-label">Playlist</div>
+        <ul class="mp-playlist" id="mp-playlist">
+          <li class="mp-playlist-empty">No tracks. Import audio files below.</li>
+        </ul>
+
+        <!-- Import -->
+        <div class="mp-import-row">
+          <label class="mp-import-label" for="mp-file-input">+ Add tracks</label>
+          <input type="file" id="mp-file-input" accept="audio/*" multiple
+                 onchange="window.MusicPlayer.importFiles(this);" style="display:none;">
+          <button class="mp-btn mp-clear-btn" onclick="window.MusicPlayer.clearPlaylist();">Clear all</button>
+        </div>
+
+        <!-- Game-driven audio toggle -->
+        <div class="mp-scene-row">
+          <label>
+            <input type="checkbox" id="mp-scene-audio" checked
+                   onchange="window.MusicPlayer.toggleSceneAudio(this.checked);">
+            Allow game music (scene-driven)
+          </label>
+        </div>
+      </div>
+    </div>
+    <!-- END MUSIC PLAYER OVERLAY -->
 
         <!-- ERUDA MOBILE DEVTOOLS START -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
