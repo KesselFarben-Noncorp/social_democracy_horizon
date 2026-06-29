@@ -410,11 +410,70 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +] [? if determini
 
 @polls
 on-arrival: {!
+
+// Build party results list
 Q.party_results_list = "";
 for (var i = 0; i < Q.parties.length; i++) {
     var p = Q.parties[i];
     Q.party_results_list += p.toUpperCase() + ": " + (Q[p + '_r'] || 0).toFixed(1) + "%\n";
 }
+
+// Party display labels (fallback to uppercase abbreviation)
+Q.party_labels = {};
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    if (p === 'ddp') {
+        Q.party_labels[p] = Q.ddp_name || 'DDP';
+    } else if (p === 'dsbp') {
+        Q.party_labels[p] = Q.dsbp_name || 'DSBP';
+    } else if (p === 'wp') {
+        Q.party_labels[p] = 'The Reich Party of the German Middle Class / WP';
+    } else if (p === 'other') {
+        Q.party_labels[p] = 'Others';
+    } else {
+        Q.party_labels[p] = p.toUpperCase();
+    }
+}
+
+// Build breakdown strings for all groups
+var allGroups = Q.classes.concat(Q.classesI);
+for (var g = 0; g < allGroups.length; g++) {
+    var group = allGroups[g];
+    var line = "";
+    for (var i = 0; i < Q.parties.length; i++) {
+        var p = Q.parties[i];
+        var val = Q[group + '_' + p + '_display'];
+        if (val !== undefined && val > 1) {
+            line += Q.party_labels[p] + ": " + val + "%, ";
+        }
+    }
+    Q[group + '_breakdown'] = line.replace(/, $/, "");
+}
+
+// Build section display strings
+Q.classes_breakdown_display = "";
+for (var g = 0; g < Q.classes.length; g++) {
+    var group = Q.classes[g];
+    Q.classes_breakdown_display += group + " (" + Q[group] + "):\n" + Q[group + '_breakdown'] + "\n\n";
+}
+
+Q.classesI_breakdown_display = "";
+for (var g = 0; g < Q.classesI.length; g++) {
+    var group = Q.classesI[g];
+    Q.classesI_breakdown_display += group + " (" + Q[group] + "):\n" + Q[group + '_breakdown'] + "\n\n";
+}
+
+// Build projected results string
+var out = "";
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    var votes = Q[p + '_votes'];
+    if (votes !== undefined && votes > 1) {
+        out += Q.party_labels[p] + ": " + votes + "%\n";
+    }
+}
+Q.projected_results = out;
+
 !}
 
 = Reichstag
@@ -423,387 +482,15 @@ for (var i = 0; i < Q.parties.length; i++) {
 
 = Projected election results
 
-[? if kpd_votes > 1: KPD: [+ kpd_votes +]% ?]
-
-[? if sapd_votes > 1: SAPD: [+ sapd_votes +]% ?]
-
-[? if spd_votes > 1: SPD: [+ spd_votes +]% ?]
-
-[? if srpd_votes > 1: SRPD: [+ srpd_votes +]% ?]
-
-[? if z_votes > 1: Z: [+ z_votes +]% ?]
-
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ ddp_votes +]% ?]
-
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ dsbp_votes +]% ?]
-
-[? if csrp_votes > 1: CSRP: [+ csrp_votes +]% ?]
-
-[? if bb_votes > 1: BB: [+ bb_votes +]% ?]
-
-[? if dhp_votes > 1: DHP: [+ dhp_votes +]% ?]
-
-[? if bvp_votes > 1: BVP: [+ bvp_votes +]% ?]
-
-[? if dvp_votes > 1: DVP: [+ dvp_votes +]% ?]
-
-[? if aspd_votes > 1: ASPD: [+ aspd_votes +]% ?]
-
-[? if hl_votes > 1: HL: [+ hl_votes +]% ?]
-
-[? if sl_votes > 1: SL: [+ sl_votes +]% ?]
-
-[? if kpo_votes > 1: KPO: [+ kpo_votes +]% ?]
-
-[? if lb_votes > 1: LB: [+ lb_votes +]% ?]
-
-[? if rdp_votes > 1: RDP: [+ rdp_votes +]% ?]
-
-[? if cvp_votes > 1: CVP: [+ cvp_votes +]% ?]
-
-[? if sls_votes > 1: SLS: [+ sls_votes +]% ?]
-
-[? if vnr_votes > 1: VNR: [+ vnr_votes +]% ?]
-
-[? if vrp_votes > 1: VRP: [+ vrp_votes +]% ?]
-
-[? if wp_votes > 1: The Reich Party of the German Middle Class / WP: [+ wp_votes +]% ?]
-
-[? if cnbl_votes > 1: CNBL: [+ cnbl_votes +]% ?]
-
-[? if csvd_votes > 1: CSVD: [+ csvd_votes +]% ?]
-
-[? if kvp_votes > 1: KVP: [+ kvp_votes +]% ?]
-
-[? if dnvp_votes > 1: DNVP: [+ dnvp_votes +]% ?]
-
-[? if dtsp_votes > 1: DTSP: [+ dtsp_votes +]% ?]
-
-[? if nsdap_votes > 1: NSDAP: [+ nsdap_votes +]% ?]
-
-[? if dvfp_votes > 1: DVFP: [+ dvfp_votes +]% ?]
-
-[? if other_votes > 1: Others: [+ other_votes +]% ?]
+[+ projected_results +]
 
 **Detailed results for each demographic**
 
-Workers ([+ workers +]):       
-
-[? if spd_votes > 1: SPD: [+ workers_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ workers_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ workers_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ workers_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ workers_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ workers_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ workers_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ workers_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ workers_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ workers_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ workers_vrp_display +]% ?]
-[? if wp_votes > 1: WP: [+ workers_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ workers_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ workers_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ workers_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ workers_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ workers_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ workers_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ workers_csvd_display +]%, ?]
-[? if csrp_votes > 1: CSRP: [+ workers_csrp_display +]%, ?]
-[? if dvfp_votes > 1: DVFP: [+ workers_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ workers_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ workers_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ workers_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ workers_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ workers_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ workers_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ workers_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ workers_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ workers_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ workers_dtsp_display +]%, ?]
-
-
-
-New Middle Class ([+ new_middle +]):
-
-[? if spd_votes > 1: SPD: [+ new_middle_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ new_middle_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ new_middle_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ new_middle_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ new_middle_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ new_middle_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ new_middle_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ new_middle_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ new_middle_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ new_middle_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ new_middle_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ new_middle_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ new_middle_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ new_middle_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ new_middle_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ new_middle_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ new_middle_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ new_middle_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ new_middle_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ new_middle_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ new_middle_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ new_middle_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ new_middle_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ new_middle_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ new_middle_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ new_middle_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ new_middle_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ new_middle_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ new_middle_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ new_middle_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ new_middle_dtsp_display +]%, ?]
-
-
-
-Old Middle Class ([+ old_middle +]):
-
-[? if spd_votes > 1: SPD: [+ old_middle_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ old_middle_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ old_middle_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ old_middle_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ old_middle_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ old_middle_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ old_middle_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ old_middle_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ old_middle_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ old_middle_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ old_middle_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ old_middle_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ old_middle_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ old_middle_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ old_middle_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ old_middle_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ old_middle_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ old_middle_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ old_middle_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ old_middle_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ old_middle_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ old_middle_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ old_middle_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ old_middle_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ old_middle_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ old_middle_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ old_middle_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ old_middle_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ old_middle_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ old_middle_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ old_middle_dtsp_display +]%, ?]
-
-
-Rural ([+ rural +]):
-
-[? if spd_votes > 1: SPD: [+ rural_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ rural_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ rural_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ rural_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ rural_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ rural_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ rural_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ rural_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ rural_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ rural_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ rural_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ rural_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ rural_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ rural_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ rural_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ rural_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ rural_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ rural_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ rural_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ rural_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ rural_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ rural_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ rural_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ rural_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ rural_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ rural_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ rural_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ rural_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ rural_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ rural_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ rural_dtsp_display +]%, ?]
-
-
-
-Unemployed ([+ unemployedc +]):
-
-[? if spd_votes > 1: SPD: [+ unemployedc_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ unemployedc_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ unemployedc_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ unemployedc_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ unemployedc_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ unemployedc_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ unemployedc_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ unemployedc_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ unemployedc_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ unemployedc_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ unemployedc_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ unemployedc_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ unemployedc_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ unemployedc_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ unemployedc_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ unemployedc_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ unemployedc_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ unemployedc_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ unemployedc_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ unemployedc_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ unemployedc_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ unemployedc_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ unemployedc_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ unemployedc_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ unemployedc_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ unemployedc_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ unemployedc_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ unemployedc_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ unemployedc_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ unemployedc_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ unemployedc_dtsp_display +]%, ?]
+[+ classes_breakdown_display +]
 
 = Proportions of the social groups
 
-Catholics ([+ catholics +]):
-
-[? if spd_votes > 1: SPD: [+ catholics_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ catholics_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ catholics_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ catholics_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ catholics_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ catholics_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ catholics_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ catholics_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ catholics_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ catholics_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ catholics_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ catholics_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ catholics_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ catholics_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ catholics_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ catholics_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ catholics_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ catholics_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ catholics_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ catholics_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ catholics_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ catholics_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ catholics_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ catholics_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ catholics_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ catholics_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ catholics_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ catholics_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ catholics_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ catholics_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ catholics_dtsp_display +]%, ?]
-
-
-Protestants ([+ protestants +]):
-
-[? if spd_votes > 1: SPD: [+ protestants_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ protestants_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ protestants_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ protestants_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ protestants_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ protestants_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ protestants_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ protestants_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ protestants_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ protestants_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ protestants_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ protestants_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ protestants_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ protestants_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ protestants_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ protestants_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ protestants_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ protestants_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ protestants_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ protestants_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ protestants_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ protestants_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ protestants_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ protestants_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ protestants_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ protestants_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ protestants_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ protestants_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ protestants_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ protestants_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ protestants_dtsp_display +]%, ?]
-
-
-Seculars ([+ seculars +]):
-
-[? if spd_votes > 1: SPD: [+ seculars_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ seculars_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ seculars_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ seculars_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ seculars_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ seculars_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ seculars_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ seculars_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ seculars_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ seculars_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ seculars_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ seculars_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ seculars_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ seculars_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ seculars_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ seculars_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ seculars_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ seculars_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ seculars_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ seculars_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ seculars_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ seculars_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ seculars_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ seculars_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ seculars_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ seculars_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ seculars_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ seculars_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ seculars_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ seculars_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ seculars_dtsp_display +]%, ?]
-
-
-Youth ([+ youth +]):
-
-[? if spd_votes > 1: SPD: [+ youth_spd_display +]%, ?]
-[? if z_votes > 1: Z: [+ youth_z_display +]%, ?]
-[? if bvp_votes > 1: BVP: [+ youth_bvp_display +]%, ?]
-[? if kpd_votes > 1: KPD: [+ youth_kpd_display +]%, ?]
-[? if dhp_votes > 1: DHP: [+ youth_dhp_display +]%, ?]
-[? if bb_votes > 1: BB: [+ youth_bb_display +]%, ?]
-[? if kvp_votes > 1: KVP: [+ youth_kvp_display +]%, ?]
-[? if ddp_votes > 1: [? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]: [+ youth_ddp_display +]%, ?]
-[? if dsbp_votes > 1: [+ dsbp_name +]: [+ youth_dsbp_display +]%, ?]
-[? if dvp_votes > 1: DVP: [+ youth_dvp_display +]%, ?]
-[? if vrp_votes > 1: VRP: [+ youth_vrp_display +]%, ?]
-[? if wp_votes > 1: WP: [+ youth_wp_display +]%, ?]
-[? if cnbl_votes > 1: CNBL: [+ youth_cnbl_display +]%, ?]
-[? if dnvp_votes > 1: DNVP: [+ youth_dnvp_display +]%, ?]
-[? if nsdap_votes > 1: NSDAP: [+ youth_nsdap_display +]%, ?]
-[? if other_votes > 1: Others: [+ youth_other_display +]%, ?]
-[? if sapd_votes > 1: SAPD: [+ youth_sapd_display +]%, ?]
-[? if srpd_votes > 1: SRPD: [+ youth_srpd_display +]%, ?]
-[? if csvd_votes > 1: CSVD: [+ youth_csvd_display +]% ?]
-[? if csrp_votes > 1: CSRP: [+ youth_csrp_display +]% ?]
-[? if dvfp_votes > 1: DVFP: [+ youth_dvfp_display +]%, ?]
-[? if aspd_votes > 1: ASPD: [+ youth_aspd_display +]%, ?]
-[? if hl_votes > 1: HL: [+ youth_hl_display +]%, ?]
-[? if sl_votes > 1: SL: [+ youth_sl_display +]%, ?]
-[? if kpo_votes > 1: KPO: [+ youth_kpo_display +]%, ?]
-[? if vnr_votes > 1: VNR: [+ youth_vnr_display +]%, ?]
-[? if lb_votes > 1: LB: [+ youth_lb_display +]%, ?]
-[? if rdp_votes > 1: RDP: [+ youth_rdp_display +]%, ?]
-[? if cvp_votes > 1: CVP: [+ youth_cvp_display +]%, ?]
-[? if sls_votes > 1: SLS: [+ youth_sls_display +]%, ?]
-[? if dtsp_votes > 1: DTSP: [+ youth_dtsp_display +]%, ?]
+[+ classesI_breakdown_display +]
 
 @foreign
 on-arrival: {!
