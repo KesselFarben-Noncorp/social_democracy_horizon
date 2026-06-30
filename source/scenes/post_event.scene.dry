@@ -3279,41 +3279,45 @@ function computeTarget(party, c) {
 
         case 'dnvp': {
             if (Q.dnvp_banned) return 0;
-            if (Q.dnvp_line === 1) {
-                let stability_bonus = Math.max(0, (1.5 - unr) * 12);
-                base = ((nat * 25) + (rep * 35) + stability_bonus) * im.dnvp;
-            } else if (Q.dnvp_line === 3) {
-                let polarization = (1 - rep) * 45;
-                let crisis_bonus = Q.unemployment * 55;
-                base = ((nat * 40) + polarization + crisis_bonus) * im.dnvp;
-            } else {
-                let chaos_penalty = unr > 0.7 ? (unr * 1) : 0;
-                base = ((nat * 60) + (rep * 36) - chaos_penalty) * im.dnvp;
-            }
+
+            let chaos_penalty = unr > 0.7 ? unr : 0;
+            base = ((nat * 60) + (rep * 36) - chaos_penalty) * im.dnvp;
 
             const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
             const lambachEarly = Q.year < 1929;
+            const isNatCon      = Q.dnvp_ideology === "National Conservatism";
+            const isSocCorp     = Q.dnvp_ideology === "Social Corporatism";
 
-            let workers_m     = 0.53
+            let workers_m     = 0.68
                 * (Q.peoples_party                      === 1 ? 1.10 : 1)
                 * (Q.lambach_reinstated && lambachEarly        ? 1.20 : 1)
                 * (Q.lambach_momentum   && lambachEarly        ? 1.70 : 1)
-                * (isLambach                                   ? 1.35 : 1.00);
-            let old_middle_m  = 1.52 * (1 + Math.min(Q.nationalism/100,1)*0.28)
+                * (isLambach                                   ? 1.35 : 1.00)
+                * (isSocCorp                                   ? 1.40 : 1.00)
+                * (isNatCon                                    ? 0.85 : 1.00);
+            let old_middle_m  = 1.51 * (1 + Math.min(Q.nationalism/100,1)*0.28)
                 * (Q.peoples_party                      === 1 ? 0.95 : 1)
-                * (isLambach                                   ? 0.87 : 1.00);
-            let new_middle_m  = 0.95 * (1 + Math.min(Q.nationalism/100,1)*0.18)
+                * (isLambach                                   ? 0.87 : 1.00)
+                * (isNatCon                                    ? 1.20 : 1.00)
+                * (isSocCorp                                   ? 0.86 : 1.00);
+            let new_middle_m  = 0.98 * (1 + Math.min(Q.nationalism/100,1)*0.18)
                 * (Q.peoples_party                      === 1 ? 0.95 : 1)
                 * (Q.lambach_reinstated && lambachEarly        ? 1.35 : 1)
                 * (Q.lambach_momentum   && lambachEarly        ? 2.65 : 1)
-                * (isLambach                                   ? 1.50 : 1.00);
+                * (isLambach                                   ? 1.50 : 1.00)
+                * (isSocCorp                                   ? 1.35 : 1.00)
+                * (isNatCon                                    ? 0.90 : 1.00);
             let rural_m       = 1.72 * (1 + Math.min(Q.nationalism/100,1)*0.30)
                 * (Q.peoples_party                      === 1 ? 0.95 : 1)
                 * (Q.parties.includes('dbp')                  ? 0.9111 : 1)
                 * (Q.parties.includes('cnbl')                  ? 0.7953 : 1)
-                * (isLambach                                   ? 0.87 : 1.00);
-            let unemployedc_m = 0.52
-                * (Q.peoples_party                      === 1 ? 1.05 : 1);
+                * (isLambach                                   ? 0.87 : 1.00)
+                * (isNatCon                                    ? 1.25 : 1.00)
+                * (isSocCorp                                   ? 0.80 : 1.00);
+            let unemployedc_m = 0.30
+                * (Q.peoples_party                      === 1 ? 1.05 : 1)
+                * (isSocCorp                                   ? 1.30 : 1.00)
+                * (isNatCon                                    ? 0.80 : 1.00);
 
             const class_mods = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
             if (Q.dem_challenge === 1) base *= 0.80;
