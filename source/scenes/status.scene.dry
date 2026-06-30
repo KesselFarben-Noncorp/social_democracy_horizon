@@ -411,67 +411,63 @@ Prussian police loyalty: [+ prussian_police_loyalty : loyalty +] [? if determini
 @polls
 on-arrival: {!
 
-// Build party results list
-Q.party_results_list = "";
-for (var i = 0; i < Q.parties.length; i++) {
-    var p = Q.parties[i];
-    Q.party_results_list += "- " + p.toUpperCase() + ":&nbsp;" + (Q[p + '_r'] || 0).toFixed(1) + "%//\n";
+function fmtLine(label, value) {
+    return "- " + label + ": " + value + "%\n";
 }
 
-// Party display labels (fallback to uppercase abbreviation)
 Q.party_labels = {};
 for (var i = 0; i < Q.parties.length; i++) {
     var p = Q.parties[i];
-    if (p === 'ddp') {
-        Q.party_labels[p] = Q.ddp_name || 'DDP';
-    } else if (p === 'dsbp') {
-        Q.party_labels[p] = Q.dsbp_name || 'DSBP';
-    } else if (p === 'wp') {
-        Q.party_labels[p] = 'The Reich Party of the German Middle Class / WP';
-    } else if (p === 'other') {
-        Q.party_labels[p] = 'Others';
-    } else {
-        Q.party_labels[p] = p.toUpperCase();
+    switch (p) {
+        case 'ddp':   Q.party_labels[p] = Q.ddp_name || 'DDP'; break;
+        case 'dsbp':  Q.party_labels[p] = Q.dsbp_name || 'DSBP'; break;
+        case 'wp':    Q.party_labels[p] = 'The Reich Party of the German Middle Class / WP'; break;
+        case 'other': Q.party_labels[p] = 'Others'; break;
+        default:      Q.party_labels[p] = p.toUpperCase();
     }
 }
 
-// Build breakdown strings for all groups
-var allGroups = Q.classes.concat(Q.classesI);
-for (var g = 0; g < allGroups.length; g++) {
-    var group = allGroups[g];
-    var line = "";
-    for (var i = 0; i < Q.parties.length; i++) {
-        var p = Q.parties[i];
-        var val = Q[group + '_' + p + '_display'];
-        if (val !== undefined && val > 1) {
-            line += "- " + Q.party_labels[p] + ":&nbsp;" + val + "%//\n";
-        }
+// Reichstag (current results)
+Q.party_results_list = "";
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    var val = Q[p + '_r'];
+    if (val !== undefined) {
+        Q.party_results_list += fmtLine(Q.party_labels[p], val.toFixed(1));
     }
-    Q[group + '_breakdown'] = line;
 }
 
-// Build section display strings
-Q.classes_breakdown_display = "";
-for (var g = 0; g < Q.classes.length; g++) {
-    var group = Q.classes[g];
-    Q.classes_breakdown_display += group + " (" + Q[group] + "):" + "//\n" + Q[group + '_breakdown'] + "//\n";
-}
-
-Q.classesI_breakdown_display = "";
-for (var g = 0; g < Q.classesI.length; g++) {
-    var group = Q.classesI[g];
-    Q.classesI_breakdown_display += group + " (" + Q[group] + "):" + "//\n" + Q[group + '_breakdown'] + "//\n";
-}
-
-// Build projected results string
+// Projected election results
 Q.projected_results = "";
 for (var i = 0; i < Q.parties.length; i++) {
     var p = Q.parties[i];
     var votes = Q[p + '_votes'];
     if (votes !== undefined && votes > 1) {
-        Q.projected_results += "- " + Q.party_labels[p] + ":&nbsp;" + votes + "%//\n";
+        Q.projected_results += fmtLine(Q.party_labels[p], votes);
     }
 }
+
+// Build one breakdown section (used for both classes and classesI)
+function buildSection(groupList) {
+    var out = "";
+    for (var g = 0; g < groupList.length; g++) {
+        var group = groupList[g];
+        var breakdown = "";
+        for (var i = 0; i < Q.parties.length; i++) {
+            var p = Q.parties[i];
+            var val = Q[group + '_' + p + '_display'];
+            if (val !== undefined && val > 1) {
+                breakdown += fmtLine(Q.party_labels[p], val);
+            }
+        }
+        Q[group + '_breakdown'] = breakdown;
+        out += group + " (" + Q[group] + "):\n" + breakdown + "\n";
+    }
+    return out;
+}
+
+Q.classes_breakdown_display = buildSection(Q.classes);
+Q.classesI_breakdown_display = buildSection(Q.classesI);
 
 !}
 
