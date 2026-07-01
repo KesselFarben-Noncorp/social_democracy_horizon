@@ -3289,7 +3289,7 @@ function computeTarget(party, c) {
             const isSocCorp     = Q.dnvp_ideology === "Social Corporatism";
 
             let chaos_penalty = unr > 0.7 ? unr : 0;
-            base = ((nat * 65) + (isSocCorp ? rep * 10 : 0) - chaos_penalty) * im.dnvp;
+            base = ((nat * 50) + (isSocCorp ? rep * 25 : 15) - chaos_penalty) * im.dnvp;
 
             const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
             const lambachEarly = Q.year < 1929;
@@ -3526,7 +3526,7 @@ function computeTarget(party, c) {
             if (Q.campaign_focus === 'unemployed' && ci > 0) campaign_boost += ci * 0.36;
             if (Q.campaign_focus === 'women'      && ci > 0) campaign_boost += ci * 0.25;
             if (Q.campaign_focus === 'middle'     && ci > 0) campaign_boost += ci * 0.25;
-            base = (r * 105 + s * 54) * im.spd * campaign_boost;
+            base = (r * 99 + s * 58) * im.spd * campaign_boost;
 
             let m;
             if (c === 'workers') {
@@ -3627,7 +3627,7 @@ function computeTarget(party, c) {
            if (!Q.ddp_name || Q.ddp_name === 'DDP') {
                let sec_bonus = (100 - Q.catholics) / 100 * 0.10;
                let nat_pen   = (Q.nationalism / 100) * 0.15;
-               base = (rep * 53 * (1.1 + sec_bonus - nat_pen + edu_bonus)) * econ_conf * im.ddp;
+               base = (rep * 47 * (1.1 + sec_bonus - nat_pen + edu_bonus)) * econ_conf * im.ddp;
 
                const class_mods = {
                    workers:     (0.60) * (Q.peoples_party === 1 ? 0.93 : 1),
@@ -3680,7 +3680,7 @@ function computeTarget(party, c) {
             let unemp_pen   = Math.pow(Math.max(0, Q.unemployed - 5) / 25, 1.1);
             let econ_conf   = Math.max(0.35, 1 - (infl_pen * 0.50) - (unemp_pen * 0.50));
             let scale       = Q.dvp_right_shift ? 2.2 : 1.8;
-            base = factor * 49 * scale * econ_conf * (im.dvp || 1);
+            base = factor * 40 * scale * econ_conf * (im.dvp || 1);
 
             const class_mods = {
                 workers:     0.45 * (Q.peoples_party === 1 ? 0.92 : 1),
@@ -3884,11 +3884,11 @@ function computeTarget(party, c) {
        case 'dbp': {
     if (Q.dbp_banned) return 0;
 
-    let rural_weight    = Q.rural / 75;  // slightly less rural-dependent than BB (Q.rural/60)
+    let rural_weight    = Q.rural / 70;  // slightly less rural-dependent than BB (Q.rural/60)
     let deflation_bonus = Q.inflation < 0 ? (1 + Math.abs(Q.inflation) * 0.06) : 1.0;
     let lib_bonus       = (rep * 0.45) + ((100 - Q.nationalism) / 100) * 0.15;
 
-    base = (rep * 19 + nat * 4) * rural_weight * deflation_bonus * lib_bonus * (im.dbp || 1);
+    base = (rep * 29 + nat * 8) * rural_weight * deflation_bonus * lib_bonus * (im.dbp || 1);
 
     const class_mods = {
         workers:     0.15,   // minimal worker base
