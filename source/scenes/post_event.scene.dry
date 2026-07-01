@@ -784,6 +784,24 @@ if (Q.year >= 1932 && Q.communist_revolution_timer > 10 && Q.april_challenge == 
 
 
 
+// MODIFIERS OF PARTY ADVISORS AND OTHER STUFF
+
+
+
+if (Q.peoples_party == 1) {
+    if (Q.left_dissent < 45) Q.left_dissent += 1;
+    if (Q.center_dissent < 40) Q.center_dissent += 1;
+    if (Q.reformist_strength < 30) Q.reformist_strength += 1;
+    if (Q.neorevisionist_strength < 20) Q.neorevisionist_strength += 1;
+}
+
+
+
+
+
+
+
+
 
 // ÷====================== SMALL CHECKERS FOR CABINETS ===============÷=======
 
@@ -3467,13 +3485,13 @@ function computeTarget(party, c) {
         case 'kpd': {
             if (Q.kpd_banned) return 0;
             let buff = Q.april_challenge === 1 ? 1.20 : 1;
-            base = soc * 45 * 2.0 * (1 + unr * 0.13) * buff * im.kpd;
+            base = soc * 45 * 1.9 * (1 + unr * 0.13) * buff * im.kpd;
 
-            let workers_m     = 1.50 * (Q.peoples_party === 1 ? 1.08 : 1);
-            let old_middle_m  = 0.20 * (Q.peoples_party === 1 ? 0.92 : 1);
-            let new_middle_m  = 0.35 * (Q.peoples_party === 1 ? 0.92 : 1);
-            let rural_m       = 0.15 * (Q.peoples_party === 1 ? 0.92 : 1);
-            let unemployedc_m = 1.40 * (Q.peoples_party === 1 ? 1.08 : 1);
+            let workers_m     = 1.55 * (Q.peoples_party === 1 ? 1.08 : 1);
+            let old_middle_m  = 0.10 * (Q.peoples_party === 1 ? 0.92 : 1);
+            let new_middle_m  = 0.30 * (Q.peoples_party === 1 ? 0.92 : 1);
+            let rural_m       = 0.20 * (Q.peoples_party === 1 ? 0.92 : 1);
+            let unemployedc_m = 1.45 * (Q.peoples_party === 1 ? 1.08 : 1);
             const class_mods  = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
@@ -4799,7 +4817,7 @@ Q.bill_proposed_this_month = 0;
 // === PARAMILITARY STRENGTH UPDATES ===
 
 if (Q.nsdap_banned) {
-    Q.sa_strength *= 0.90;
+    Q.sa_strength *= 0.98;
     Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
 } else {
     Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
@@ -4813,17 +4831,17 @@ if (Q.dnvp_banned || Q.sh_banned) {
 }
 
 if (Q.rfb_banned && !Q.april_challenge) {
-    Q.rfb_strength *= 0.95;
+    Q.rfb_strength *= 0.98;
     Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
 } else if (Q.rfb_true_ban && Q.april_challenge) {
-    Q.rfb_strength *= 0.95;
+    Q.rfb_strength *= 0.97;
     Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.01);
 } else {
     Q.rfb_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
 }
 
 if (Q.rb_banned) {
-    Q.rb_strength *= 0.90;
+    Q.rb_strength *= 0.93;
     Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
 } else {
     Q.rb_strength += Q.random_factor(Q.unrest_factor / 20, 0.3);
@@ -4859,18 +4877,11 @@ Q.rfb_strength    -= Q.random_factor(Q.combined_decay, 0.25);
 Q.rb_strength     -= Q.random_factor(Q.combined_decay, 0.25);
 Q.jungdo_strength -= Q.random_factor(Q.combined_decay, 0.25);
 
-// Caps for banned orgs
-if (Q.nsdap_banned) Q.sa_strength     = Math.min(Q.sa_strength, 10);
-if (Q.dnvp_banned || Q.sh_banned) Q.sh_strength = Math.min(Q.sh_strength, 15);
-if (Q.rfb_banned && !Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 10);
-if (Q.rfb_true_ban && Q.april_challenge) Q.rfb_strength = Math.min(Q.rfb_strength, 3);
-
-
 // Caps for RB.
 
 if (Q.prussian_police_training < 1) {
     Q.rb_militancy = Math.min(Q.rb_militancy, 0.20); 
-    }
+}
 
 
         // === PARAMILITARY CONSTRAINTS (SKIP IN CHAOS MODE) ===
