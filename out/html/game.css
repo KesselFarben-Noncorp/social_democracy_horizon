@@ -1,23 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 /* =====================================================================
-   CRT FLICKER / JITTER ANIMATIONS (kept from second CSS)
+   ANIMATIONS
    ===================================================================== */
 @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
-}
-
-@keyframes crt-jitter {
-  0%   { transform: translateX(0); }
-  50%  { transform: translateX(0.15px); }
-  100% { transform: translateX(0); }
-}
-
-@keyframes crt-flicker {
-  0%   { opacity: 1; }
-  50%  { opacity: 0.985; }
-  100% { opacity: 1; }
 }
 
 .keyword-party { font-weight: bold; } /* FOR COLORED ONES. /*
@@ -78,95 +66,6 @@ body.dark-mode .stats-box {
   border-width: 4px;
   border-color: #888;
 }
-
-/* =====================================================================
-   RETRO MODE
-   ===================================================================== */
-body.retro-mode {
-  --bg-color:             #1a1510;
-  --border-color:         #a89060;
-  --content-bg-color:     #211c14;
-  --text-color:           #d4bc8a;
-  --link-color:           #c8855a;
-  --link-hover-color:     rgba(200, 133, 90, 0.12);
-  --tab-bg-color:         #2a2218;
-  --tab-color:            #332b1e;
-  --tab-hover-color:      #2f2820;
-  --card-border-color:    #7a6440;
-  --card-bg-color:        #241e15;
-  --unavailable-bg-color: rgba(255,255,255,0.04);
-  --unavailable-color:    #6a5c40;
-}
-
-body.retro-mode #content,
-body.retro-mode .stats-box {
-  border-style: double;
-  border-width: 4px;
-  border-color: #888;
-}
-
-/* =====================================================================
-   CRT MODE
-   ===================================================================== */
-body.crt-mode {
-  --bg-color:             #000000;
-  --content-bg-color:     #000000;
-  --card-bg-color:        #000000;
-  --text-color:           #7ecfa0;
-  --unavailable-color:    #1f6633;
-  --link-color:           #a0dbb8;
-  --link-hover-color:     #b8e8cc;
-  --border-color:         #2d6645;
-  --card-border-color:    #2d6645;
-  --tab-bg-color:         #000000;
-  --tab-color:            #000000;
-  --tab-hover-color:      #000000;
-  --unavailable-bg-color: transparent;
-
-  font-family: "VT323", "Courier New", monospace;
-  text-shadow:
-    0 0 1px rgba(126,207,160,0.6),
-    0 0 3px rgba(126,207,160,0.2);
-  animation: crt-flicker 8s infinite;
-}
-
-body.crt-mode #content,
-body.crt-mode .stats-box {
-  border: 2px solid var(--border-color);
-  background: var(--bg-color);
-  animation: crt-jitter 6s infinite linear;
-}
-
-/* Scanlines */
-body.crt-mode::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.015),
-    rgba(255,255,255,0.015) 1px,
-    rgba(0,0,0,0.02) 2px
-  );
-  opacity: 0.35;
-  z-index: 9999;
-}
-
-/* Vignette */
-body.crt-mode::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0,0,0,0) 60%,
-    rgba(0,0,0,0.25) 100%
-  );
-  z-index: 9998;
-}
-
 
 
 
@@ -283,10 +182,8 @@ body.focus-mode-expanded #content {
 .tools::-webkit-scrollbar-track { background: var(--tab-bg-color); }
 .tools::-webkit-scrollbar-thumb { background: var(--border-color); }
 
-/* Dark/retro mode sidebar borders */
+/* Dark mode sidebar borders */
 body.dark-mode .tools  { border-style: double; border-width: 4px; border-color: #888; }
-body.retro-mode .tools { border-style: double; border-width: 4px; border-color: #888; }
-body.crt-mode .tools   { border: 2px solid var(--border-color); background: var(--bg-color); animation: crt-jitter 6s infinite linear; }
 
 /* =====================================================================
    QUALITIES PANEL (#qualities — single panel in older HTML)
@@ -951,22 +848,6 @@ body.dark-mode tr.row-right     { background-color: rgba(60,  90,  180, 0.12); }
 body.dark-mode tr.row-far-right { background-color: rgba(149, 75,  0,   0.18); }
 body.dark-mode tr.row-neutral   { background-color: rgba(120, 120, 120, 0.10); }
 
-/* Election table rows — retro mode */
-body.retro-mode tr.row-left      { background-color: rgba(180, 60,  40,  0.18); }
-body.retro-mode tr.row-center    { background-color: rgba(160, 140, 50,  0.15); }
-body.retro-mode tr.row-liberal   { background-color: rgba(80,  120, 160, 0.15); }
-body.retro-mode tr.row-right     { background-color: rgba(70,  100, 160, 0.15); }
-body.retro-mode tr.row-far-right { background-color: rgba(140, 80,  20,  0.20); }
-body.retro-mode tr.row-neutral   { background-color: rgba(100, 90,  70,  0.12); }
-
-/* Election table rows — CRT mode (nearly invisible tint, let text carry it) */
-body.crt-mode tr.row-left      { background-color: rgba(51, 255, 100, 0.06); }
-body.crt-mode tr.row-center    { background-color: rgba(51, 255, 100, 0.04); }
-body.crt-mode tr.row-liberal   { background-color: rgba(51, 255, 100, 0.04); }
-body.crt-mode tr.row-right     { background-color: rgba(51, 255, 100, 0.03); }
-body.crt-mode tr.row-far-right { background-color: rgba(51, 255, 100, 0.08); }
-body.crt-mode tr.row-neutral   { background-color: rgba(51, 255, 100, 0.02); }
-
 /* =====================================================================
    RESPONSIVE
    ===================================================================== */
@@ -1227,6 +1108,31 @@ body.crt-mode tr.row-neutral   { background-color: rgba(51, 255, 100, 0.02); }
 }
 
 .super-event-right-body { flex: 1 1 auto; }
+
+/* ── Structured fields (Label: value pairs) ─────────────────────────── */
+.super-event-fields {
+  margin: 0 0 1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.6rem;
+  row-gap: 0.35rem;
+}
+.super-event-fields dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  font-weight: 700;
+}
+.super-event-fields dd {
+  margin: 0;
+  color: #f2f2f2;
+  font-weight: 600;
+  text-align: right;
+}
+
 
 /* ── Quote — full width BELOW the frame ──────────────────────────── */
 .super-event-quote {
