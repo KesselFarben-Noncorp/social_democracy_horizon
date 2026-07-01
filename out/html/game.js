@@ -211,41 +211,13 @@
 
   window.enableLightMode = function() {
       window.dendryUI.dark_mode = false;
-      window.dendryUI.retro_mode = false;
-      window.dendryUI.crt_mode = false;
       document.body.classList.remove('dark-mode');
-      document.body.classList.remove('crt-mode');
-      document.body.classList.remove('retro-mode');
       window.dendryUI.saveSettings();
   };
 
   window.enableDarkMode = function() {
     window.dendryUI.dark_mode = true;
-    window.dendryUI.crt_mode = false; 
-    window.dendryUI.retro_mode = false;
-    document.body.classList.remove('crt-mode');
-    document.body.classList.remove('retro-mode');
     document.body.classList.add('dark-mode');
-    window.dendryUI.saveSettings();
-  };
-
-  window.enableRetroMode = function() {
-    window.dendryUI.retro_mode = true; 
-    window.dendryUI.crt_mode = false; 
-    window.dendryUI.dark_mode = false;
-    document.body.classList.remove('dark-mode');
-    document.body.classList.remove('crt-mode');
-    document.body.classList.add('retro-mode');
-    window.dendryUI.saveSettings();
-  };
-
-  window.enableCRTMode = function() {
-    window.dendryUI.crt_mode = true;
-    window.dendryUI.dark_mode = false;
-    window.dendryUI.retro_mode = false;
-    document.body.classList.remove('dark-mode');
-    document.body.classList.remove('retro-mode');
-    document.body.classList.add('crt-mode');
     window.dendryUI.saveSettings();
   };
 
@@ -277,16 +249,6 @@
     }
     if (window.dendryUI.dark_mode) {
         $('#dark_mode')[0].checked = true;
-    } else {
-        $('#light_mode')[0].checked = true;
-    }
-    if (window.dendryUI.retro_mode) {
-        $('#retro_mode')[0].checked = true;
-    } else {
-        $('#light_mode')[0].checked = true;
-    }
-    if (window.dendryUI.crt_mode) {
-        $('#crt_mode')[0].checked = true;
     } else {
         $('#light_mode')[0].checked = true;
     }
@@ -616,9 +578,6 @@ Object.keys(wordPhrases).forEach(function(phrase) {
     if (window.dendryUI.dark_mode) {
         document.body.classList.add('dark-mode');
     }
-    if (window.dendryUI.dark_mode)  document.body.classList.add('dark-mode');
-    if (window.dendryUI.retro_mode) document.body.classList.add('retro-mode');
-    if (window.dendryUI.crt_mode)   document.body.classList.add('crt-mode');
     window.pinnedCardsDescription = "Advisor cards - actions are only usable once per x turns.";
     window.updateSandboxLink();
     var savedBg = localStorage.getItem(_BGKEY);
@@ -656,12 +615,25 @@ Object.keys(wordPhrases).forEach(function(phrase) {
 
 const SuperEvent = (() => {
 
+  /* ── Presets ─────────────────────────────────────────────────────────
+     Named option bundles. trigger(opts, 'presetName') merges the preset
+     as a base, with opts overriding any field. Add your own freely —
+     either edit this table or do SuperEvent.presets.myName = {...}.
+     ──────────────────────────────────────────────────────────────────── */
+  const SUPER_EVENT_PRESETS = {
+    crisis:  { size: 'lg', effect: 'glitch',    scanlines: true,  ambientColor: '#a00000' },
+    victory: { size: 'xl', effect: 'cinematic', ambientColor: '#d4af37' },
+    intel:   { size: 'md', layout: 'right-only', effect: 'static' },
+    quiet:   { size: 'sm', layout: 'centered',   effect: 'none' },
+  };
+
   /* ── Private state ──────────────────────────────────────────────── */
   let _overlay      = null;
   let _video        = null;
   let _leftPanel    = null;
   let _rightPanel   = null;
   let _videoWrap    = null;
+  let _fieldsList   = null;
   let _endHandler   = null;
   let _staticCanvas = null;
   let _staticRAF    = null;
@@ -693,6 +665,7 @@ const SuperEvent = (() => {
           </video>
         </div>
         <div class="super-event-right">
+          <dl class="super-event-fields"></dl>
           <div class="super-event-right-body"></div>
         </div>
       </div>
@@ -707,6 +680,7 @@ const SuperEvent = (() => {
     _leftPanel  = overlay.querySelector('.super-event-left');
     _rightPanel = overlay.querySelector('.super-event-right');
     _videoWrap  = overlay.querySelector('#super-event-video-wrap');
+    _fieldsList = overlay.querySelector('.super-event-fields');
   }
 
   /* ── Helpers ────────────────────────────────────────────────────── */
@@ -851,7 +825,15 @@ const SuperEvent = (() => {
   }
 
   /* ── Trigger ────────────────────────────────────────────────────── */
-  function trigger(opts = {}) {
+  // presetName (optional): looks up SUPER_EVENT_PRESETS[presetName] and uses
+  // it as the base config; anything in opts overrides the preset's fields.
+  function trigger(opts = {}, presetName = null) {
+    const preset = presetName ? (SUPER_EVENT_PRESETS[presetName] || {}) : {};
+    if (presetName && !SUPER_EVENT_PRESETS[presetName]) {
+      console.warn(`SuperEvent: unknown preset "${presetName}" — ignoring.`);
+    }
+    opts = { ...preset, ...opts };
+
     const {
       // Media
       videoSrc     = '',
@@ -867,6 +849,10 @@ const SuperEvent = (() => {
       right        = '',
       quote        = '',
       quoteCite    = '',
+      fields       = null,      // {Label: value, ...} — rendered above right-panel body
+
+      // Custom hook
+      customClass  = '',        // space-separated class(es) added to the overlay for bespoke CSS
 
       // Layout
       size         = 'md',      // 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'full'
@@ -919,13 +905,22 @@ const SuperEvent = (() => {
       _clearClasses(_overlay, 'effect-');
       _clearClasses(_overlay, 'ratio-');
       _overlay.classList.remove('scanlines', 'vignette', 'ambient-glow');
+      if (_overlay.dataset.customClass) {
+        _overlay.classList.remove(..._overlay.dataset.customClass.split(/\s+/).filter(Boolean));
+        delete _overlay.dataset.customClass;
+      }
 
       /* ── Apply config classes ───────────────────────────────────── */
       _overlay.classList.add(`size-${size}`);
       if (layout !== 'default') _overlay.classList.add(`layout-${layout}`);
       if (effect !== 'none')    _overlay.classList.add(`effect-${effect}`);
       if (scanlines)            _overlay.classList.add('scanlines');
-      if (vignette)             _overlay.classList.add('vignette');
+      if (vignette)              _overlay.classList.add('vignette');
+      if (customClass) {
+        const classes = customClass.split(/\s+/).filter(Boolean);
+        _overlay.classList.add(...classes);
+        _overlay.dataset.customClass = classes.join(' ');
+      }
 
       if (ambientColor) {
         _overlay.classList.add('ambient-glow');
@@ -991,12 +986,24 @@ const SuperEvent = (() => {
       if (leftImage) leftContent = `<img src="${leftImage}" style="width:100%;display:block;margin-bottom:0.5rem;" alt="">` + left;
       _setOrHide(_leftPanel, leftContent, true);
 
+      /* ── Structured fields (Label: value pairs) ───────────────────── */
+      if (fields && typeof fields === 'object' && Object.keys(fields).length) {
+        _fieldsList.innerHTML = Object.entries(fields)
+          .map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`)
+          .join('');
+        _fieldsList.style.display = '';
+      } else {
+        _fieldsList.innerHTML = '';
+        _fieldsList.style.display = 'none';
+      }
+
       /* ── Right panel (sidebar content only — no quote) ──────────── */
       let rightContent = right;
       if (rightImage) rightContent = `<img src="${rightImage}" style="width:100%;display:block;margin-bottom:0.5rem;" alt="">` + right;
       _rightPanel.querySelector('.super-event-right-body').innerHTML = rightContent || '';
-      // Hide the right panel when there is no sidebar content
-      _rightPanel.style.display = (right || rightImage) ? '' : 'none';
+      // Hide the right panel when there is no sidebar content and no fields
+      const hasFields = fields && typeof fields === 'object' && Object.keys(fields).length;
+      _rightPanel.style.display = (right || rightImage || hasFields) ? '' : 'none';
 
       /* ── Quote — rendered BELOW the frame ──────────────────────── */
       const quoteEl = _overlay.querySelector('.super-event-quote');
@@ -1080,13 +1087,14 @@ const SuperEvent = (() => {
     _queueRunning = true;
     const next = _queue.shift();
     const original = next.onClose;
+    const presetName = next.preset || null;
     trigger({
       ...next,
       onClose: () => {
         if (typeof original === 'function') original();
         _runQueue();
       }
-    });
+    }, presetName);
   }
 
   /* ── Skip (public) ──────────────────────────────────────────────── */
@@ -1110,7 +1118,7 @@ const SuperEvent = (() => {
     return _active;
   }
 
-  return { trigger, skip, close, queue, isActive };
+  return { trigger, skip, close, queue, isActive, presets: SUPER_EVENT_PRESETS };
 
 })();
 
