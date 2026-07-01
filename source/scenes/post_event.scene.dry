@@ -3289,7 +3289,7 @@ function computeTarget(party, c) {
             const isSocCorp     = Q.dnvp_ideology === "Social Corporatism";
 
             let chaos_penalty = unr > 0.7 ? unr : 0;
-            base = ((nat * 65) + (isSocCorp ? rep * 30 : 20) - chaos_penalty) * im.dnvp;
+            base = ((nat * 85) + (isSocCorp ? rep * 30 : 20) - chaos_penalty) * im.dnvp;
 
             const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
             const lambachEarly = Q.year < 1929;
@@ -3713,12 +3713,12 @@ function computeTarget(party, c) {
             if (Q.bvp_banned) return 0;
             let cath = Q.catholics * 0.15;
             let rur  = Q.rural    * 0.08;
-            base = Math.min(4.9, rep * 58 * im.bvp + cath + rur);
+            base = Math.min(45, rep * 58 * im.bvp + cath + rur);
 
             let rural_m = 1.80 * (1 + Math.min(Q.rural / 100, 0.25)) * (Q.peoples_party === 1 ? 0.96 : 1);
             const class_mods = {
                 workers:     0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
-                old_middle:  1.35 * (Q.peoples_party === 1 ? 0.96 : 1),
+                old_middle:  1.45 * (Q.peoples_party === 1 ? 0.96 : 1),
                 new_middle:  0.88 * (Q.peoples_party === 1 ? 0.96 : 1),
                 rural:       rural_m,
                 unemployedc: 0.70 * (Q.peoples_party === 1 ? 0.94 : 1),
