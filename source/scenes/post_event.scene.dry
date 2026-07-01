@@ -695,6 +695,11 @@ if (Q.year == 1928 && Q.month >= 1 && Q.bayernbund_flavor_1 != 1) {
     Q.bb_banned = 1;
 }
 
+if (Q.year == 1928 && Q.month >= 4 && Q.urban_plan_flavor_1 != 1 && Q.workers_nsdap_display * 3 >= Q.rural_nsdap_display) {
+    Q.urban_plan_flavor_1 = 1;
+    Q.workers_nsdap += 2;
+}
+
 if (Q.year >= 1929 && Q.vnr_momentum_trigger_flavor_1 == 0) { 
     Q.vnr_momentum = 0;
     Q.vnr_momentum_trigger_flavor_1 = 1;
