@@ -3289,24 +3289,24 @@ function computeTarget(party, c) {
             const isSocCorp     = Q.dnvp_ideology === "Social Corporatism";
 
             let chaos_penalty = unr > 0.7 ? unr : 0;
-            base = ((nat * 50) + (isSocCorp ? rep * 25 : 15) - chaos_penalty) * im.dnvp;
+            base = ((nat * 65) + (isSocCorp ? rep * 30 : 20) - chaos_penalty) * im.dnvp;
 
             const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
             const lambachEarly = Q.year < 1929;
 
-            let workers_m     = 0.68
+            let workers_m     = 0.69
                 * (Q.peoples_party                      === 1 ? 1.10 : 1)
                 * (Q.lambach_reinstated && lambachEarly        ? 1.20 : 1)
                 * (Q.lambach_momentum   && lambachEarly        ? 1.70 : 1)
                 * (isLambach                                   ? 1.35 : 1.00)
                 * (isSocCorp                                   ? 1.40 : 1.00)
                 * (isNatCon                                    ? 0.85 : 1.00);
-            let old_middle_m  = 1.51 * (1 + Math.min(Q.nationalism/100,1)*0.28)
+            let old_middle_m  = 1.55 * (1 + Math.min(Q.nationalism/100,1)*0.28)
                 * (Q.peoples_party                      === 1 ? 0.95 : 1)
                 * (isLambach                                   ? 0.87 : 1.00)
-                * (isNatCon                                    ? 1.20 : 1.00)
+                * (isNatCon                                    ? 1.25 : 1.00)
                 * (isSocCorp                                   ? 0.86 : 1.00);
-            let new_middle_m  = 0.98 * (1 + Math.min(Q.nationalism/100,1)*0.18)
+            let new_middle_m  = 0.99 * (1 + Math.min(Q.nationalism/100,1)*0.18)
                 * (Q.peoples_party                      === 1 ? 0.95 : 1)
                 * (Q.lambach_reinstated && lambachEarly        ? 1.35 : 1)
                 * (Q.lambach_momentum   && lambachEarly        ? 2.65 : 1)
@@ -3318,9 +3318,9 @@ function computeTarget(party, c) {
                 * (Q.parties.includes('dbp')                  ? 0.9111 : 1)
                 * (Q.parties.includes('cnbl')                  ? 0.7953 : 1)
                 * (isLambach                                   ? 0.87 : 1.00)
-                * (isNatCon                                    ? 1.25 : 1.00)
+                * (isNatCon                                    ? 1.20 : 1.00)
                 * (isSocCorp                                   ? 0.80 : 1.00);
-            let unemployedc_m = 0.30
+            let unemployedc_m = 0.33
                 * (Q.peoples_party                      === 1 ? 1.05 : 1)
                 * (isSocCorp                                   ? 1.30 : 1.00)
                 * (isNatCon                                    ? 0.80 : 1.00);
