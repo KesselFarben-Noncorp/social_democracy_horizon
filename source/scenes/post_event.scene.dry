@@ -695,7 +695,7 @@ if (Q.year == 1928 && Q.month >= 1 && Q.bayernbund_flavor_1 != 1) {
     Q.bb_banned = 1;
 }
 
-if (Q.year == 1928 && Q.month >= 4 && Q.urban_plan_flavor_1 != 1 && Q.workers_nsdap_display * 3 >= Q.rural_nsdap_display) {
+if (Q.year == 1928 && Q.month = 4 && Q.urban_plan_flavor_1 != 1 && Q.workers_nsdap_display * 3 >= Q.rural_nsdap_display) {
     Q.urban_plan_flavor_1 = 1;
     Q.workers_nsdap += 2;
 }
@@ -3285,13 +3285,14 @@ function computeTarget(party, c) {
         case 'dnvp': {
             if (Q.dnvp_banned) return 0;
 
+            const isNatCon      = Q.dnvp_ideology === "National Conservatism";
+            const isSocCorp     = Q.dnvp_ideology === "Social Corporatism";
+
             let chaos_penalty = unr > 0.7 ? unr : 0;
-            base = ((nat * 60) + (rep * 36) - chaos_penalty) * im.dnvp;
+            base = ((nat * 65) + (isSocCorp ? rep * 10 : 0) - chaos_penalty) * im.dnvp;
 
             const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
             const lambachEarly = Q.year < 1929;
-            const isNatCon      = Q.dnvp_ideology === "National Conservatism";
-            const isSocCorp     = Q.dnvp_ideology === "Social Corporatism";
 
             let workers_m     = 0.68
                 * (Q.peoples_party                      === 1 ? 1.10 : 1)
