@@ -502,105 +502,120 @@ if (Q.economic_growth) {
 }
 !}
 
-= **GOVERNMENT**
+{!
+"<style>
+.status-wrap { font-family: Georgia, serif; color: #2b2b2b; max-width: 700px; }
+.status-section { margin-bottom: 22px; }
+.status-title { font-size: 1.1em; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; border-bottom: 2px solid #6b1414; padding-bottom: 4px; margin-bottom: 8px; color: #6b1414; }
+table.status-table { width: 100%; border-collapse: collapse; }
+table.status-table td, table.status-table th { padding: 5px 10px; text-align: left; border-bottom: 1px solid #ddd; }
+table.status-table tr:nth-child(even) { background-color: #f6f3ee; }
+table.status-table td:first-child { font-weight: bold; width: 45%; color: #444; }
+</style>
 
-**Cabinet Composition:**
+<div class='status-wrap'>
 
-Foreign Ministry: [+ foreign_minister_party +] ([+ foreign_minister +])
+<div class='status-section'>
+<div class='status-title'>Government &mdash; Cabinet Composition</div>
+<table class='status-table'>
+<tr><th>Ministry</th><th>Party (Minister)</th></tr>
+<tr><td>Foreign Ministry</td><td>" + foreign_minister_party + " (" + foreign_minister + ")</td></tr>
+<tr><td>Interior Ministry</td><td>" + interior_minister_party + " (" + interior_minister + ")</td></tr>
+<tr><td>Justice Ministry</td><td>" + justice_minister_party + " (" + justice_minister + ")</td></tr>
+<tr><td>Labor Ministry</td><td>" + labor_minister_party + " (" + labor_minister + ")</td></tr>
+<tr><td>Economic Ministry</td><td>" + economic_minister_party + " (" + economic_minister + ")</td></tr>
+<tr><td>Finance Ministry</td><td>" + finance_minister_party + " (" + finance_minister + ")</td></tr>
+<tr><td>Agriculture Ministry</td><td>" + agriculture_minister_party + " (" + agriculture_minister + ")</td></tr>
+<tr><td>Transport Ministry</td><td>" + transport_minister_party + " (" + transport_minister + ")</td></tr>
+<tr><td>Reichswehr Ministry</td><td>" + reichswehr_minister + "</td></tr>
+</table>
+</div>
 
-Interior Ministry: [+ interior_minister_party +] ([+ interior_minister +])
+<div class='status-section'>
+<div class='status-title'>Relationships</div>
+<table class='status-table'>
+<tr><th>Nation / Bloc</th><th>Relationship</th></tr>
+<tr><td>UK / France</td><td>" + west_relation + "</td></tr>
+<tr><td>United Kingdom</td><td>" + britain_relation + "</td></tr>
+<tr><td>France</td><td>" + france_relation + "</td></tr>
+<tr><td>USSR</td><td>" + soviet_relation + "</td></tr>
+<tr><td>Italy</td><td>" + italy_relation + "</td></tr>
+<tr><td>Poland</td><td>" + poland_relation + "</td></tr>
+<tr><td>Czechoslovakia</td><td>" + czech_relation + "</td></tr>
+<tr><td>Hungary</td><td>" + hungary_relation + "</td></tr>
+</table>
+</div>
 
-Justice Ministry: [+ justice_minister_party +] ([+ justice_minister +])
+" + (eu == 1 ? (
+"<div class='status-section'>
+<div class='status-title'>European Union Status</div>
+<p>Membership of the European Union: Germany, United Kingdom, France, Netherlands, Belgium, Luxembourg, Denmark, Norway, Poland, Czechoslovakia, Romania, Bulgaria, Albania, Yugoslavia" + (austria_victory ? ", Austria" : (austria_peace ? ", Austria." : "")) + "</p>
+<p><strong>Leading Thought:</strong> " + (eu_identity == "spinelli" ? "Spinellist Federation" : (eu_identity == "kalergi" ? "Pan European Movement" : (eu_identity == "briand" ? "European Pragmatism" : ""))) + "</p>
+</div>"
+) : "") + "
 
-Labor Ministry: [+ labor_minister_party +] ([+ labor_minister +])
+<div class='status-section'>
+<div class='status-title'>Policies</div>
+<table class='status-table'>
+<tr><th>Policy Area</th><th>Status</th></tr>
+<tr><td>Judiciary Reformation Progress</td><td>" + judicial_reform + (full_reform_initiated ? " &mdash; Judiciary System is fully reformed!" : "") + "</td></tr>
+<tr><td>Land Reform Progress</td><td>" + land_reform + (state_buyer ? " &mdash; State Buyer is active!" : "") + "</td></tr>
+<tr><td>Welfare Status</td><td>" + welfare + "</td></tr>
+<tr><td>Workers Aid Status</td><td>" + workers_aid + "</td></tr>
+<tr><td>Pro-Consumer Policies</td><td>" + pro_consumer + "</td></tr>
+<tr><td>Agricultural Financial Funding</td><td>" + agricultural_finance + "</td></tr>
+<tr><td>Women's Rights</td><td>" + womens_rights + "</td></tr>
+<tr><td>Women's Rights in Workplace</td><td>" + womens_work + "</td></tr>
+<tr><td>Women's Rights in Family Place</td><td>" + family_law + (abortion_rights ? " &mdash; Abortion rights: " + abortion_rights : "") + "</td></tr>
+<tr><td>Trans Rights</td><td>" + trans_rights + "</td></tr>
+<tr><td>Homosexual Rights</td><td>" + homosexual_rights + (reformed_183 ? " &mdash; Public display decriminalized (reformed 183rd)" : "") + (repealed_175 ? " &mdash; Homosexual acts decriminalized (175th repealed)" : "") + "</td></tr>
+<tr><td>Economic Democratization</td><td>" + economic_democracy + "</td></tr>
+<tr><td>Work Councils Progress</td><td>" + works_councils + "</td></tr>
+<tr><td>Nationalization Progress</td><td>" + socialization + "</td></tr>
+<tr><td>Worker and Consumer Cooperatives</td><td>" + cooperatives + (commonwealth_cooperation > 0 ? " &mdash; Commonwealth Cooperation Progress: " + commonwealth_cooperation : "") + "</td></tr>
+</table>
+</div>
 
-Economic Ministry: [+ economic_minister_party +] ([+ economic_minister +])
+<div class='status-section'>
+<div class='status-title'>Economics</div>
+<table class='status-table'>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Inflation</td><td>" + inflation_2 + "%</td></tr>
+<tr><td>Unemployment</td><td>" + unemployed_2 + "%</td></tr>
+<tr><td>Economic Growth</td><td>" + economic_growth_2 + "%</td></tr>
+<tr><td>Current Phase</td><td>" + phase + "</td></tr>
+</table>
+</div>
 
-Finance Ministry: [+ finance_minister_party +] ([+ finance_minister +])
+<div class='status-section'>
+<div class='status-title'>Quality of Life</div>
+<table class='status-table'>
+<tr><th>Group</th><th>QOL</th></tr>
+<tr><td>Workers</td><td>" + workers_qol_display + "</td></tr>
+<tr><td>Old Middle</td><td>" + old_middle_qol_display + "</td></tr>
+<tr><td>Unemployed</td><td>" + unemployed_qol_display + "</td></tr>
+<tr><td>New Middle</td><td>" + new_middle_qol_display + "</td></tr>
+<tr><td>Rural</td><td>" + rural_qol_display + "</td></tr>
+</table>
+</div>
 
-Agriculture Ministry: [+ agriculture_minister_party +] ([+ agriculture_minister +])
+<div class='status-section'>
+<div class='status-title'>Miscellaneous</div>
+<table class='status-table'>
+<tr><th>Value</th><th>Amount</th></tr>
+<tr><td>Business Unrest Value</td><td>" + capital_strike_progress + "</td></tr>
+<tr><td>Coup Progress Value</td><td>" + coup_progress + "</td></tr>
+<tr><td>General Strike Value</td><td>" + general_strike_progress + "</td></tr>
+<tr><td>Seed</td><td>" + rng_seed + "</td></tr>
+</table>
+</div>
 
-Transport Ministry: [+ transport_minister_party +] ([+ transport_minister +])
+" + (end == 1 ? "<p><em>This is simply mere end, you mortal.</em></p>" : "") + "
+" + (deterministic_mode == 1 ? "<p><em>Deterministic mode on.</em></p>" : "") + "
 
-Reichswehr Ministry: [+ reichswehr_minister +]
+</div>"
+!}
 
-= Relationships
-
-Relationship with UK/France: [+ west_relation +]
-
-Relationship with United Kingdom: [+ britain_relation +]
-
-Relationship with France: [+ france_relation +]
-
-Relationship with USSR: [+ soviet_relation +]
-
-Relationship with Italy: [+ italy_relation +]
-
-Relationship with Poland [+ poland_relation +]
-
-Relationship with Czechoslovakia [+ czech_relation +]
-
-Relationship with Hungary: [+ hungary_relation +]
-
-= [? if eu == 1 : European Union Status ?]
-
-[? if eu == 1 : Membership of the European Union: Germany, United Kingdom, France, Netherlands, Belgium, Luxembourg, Denmark, Norway, Poland, Czechoslovakia, Romania, Bulgaria, Albania, Yugoslavia. ?][? if eu == 1 and austria_victory : , Austria ?][? if eu == 1 and austria_peace : , Austria. ?]
-
-[? if eu == 1 and eu_identity == "spinelli" : Leading Thought: Spinellist Federation ?]
-[? if eu == 1 and eu_identity == "kalergi" : Leading Thought: Pan European Movement ?]
-[? if eu == 1 and eu_identity == "briand" : Leading Thought: European Pragmatism ?]
-
-= Policies
-
-Judiciary Reformation Progress: [+ judicial_reform +] | [? if full_reform_initiated: Judiciary System is fully reformed! ?]
-
-Land Reform Progress: [+ land_reform +] | [? if state_buyer: State Buyer is active! ?]
-
-Welfare Status: [+ welfare +] | Workers Aid status: [+ workers_aid +]
-
-Pro - Consumer Policies: [+ pro_consumer +] || Agricultural Financial Funding: [+ agricultural_finance +]
-
-Women's Rights: [+ womens_rights +] || Women's Rights in Workplace: [+ womens_work +] || Women's rights in familyplace: [+ family_law +] [? if abortion_rights: || Abortion rights: [+ abortion_rights +] ?]
-
-Trans Rights: [+ trans_rights +] || Homosexual Rights: [+ homosexual_rights +] [? if reformed_183: || Public display of homosexuality decriminalized with reformed 183rd. ?] [? if repealed_175: || Homosexual acts are decriminalized with repeal of 175th ?]
-
-Economic Democratization: [+ economic_democracy +] || Work Councils Progress: [+ works_councils +] || Nationalization progress: [+ socialization +] || Worker and Consumer Cooperatives: [+ cooperatives +] [? if commonwealth_cooperation > 0: || Commonwealth Cooperation Progress: [+ commonwealth_cooperation +] ?]
-
-= Economics
-
-Inflation: [+ inflation_2 +]%
-
-Unemployment: [+ unemployed_2 +]%
-
-Economic growth: [+ economic_growth_2 +]%
-
-Current Phase: [+ phase +]
-
-= QOL
-
-Workers: [+ workers_qol_display +]
-
-Old Middle: [+ old_middle_qol_display +]
-
-Unemployed: [+ unemployed_qol_display +]
-
-New Middle: [+ new_middle_qol_display +]
-
-Rural: [+ rural_qol_display +]
-
-= Miscellanious
-
-Business Unrest Value: [+ capital_strike_progress +]
-
-Coup Progress Value: [+ coup_progress +]
-
-General Strike Value : [+ general_strike_progress +]
-
-Seed: [+ rng_seed +]
-
-[? if end = 1: This is simply mere end, you mortal. ?]
-
-[? if deterministic_mode = 1: Deterministic mode on. ?]
 
 @legis
 on-display: {!
