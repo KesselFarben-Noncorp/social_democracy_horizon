@@ -1,4 +1,4 @@
-title: Emergency Act
+title: Emergency Action
 new-page: true
 is-card: true
 tags: party_affairs
@@ -8,3 +8,42 @@ card-image: img/sangerbund.jpg
 #subtitle: Setting the direction for our newspapers and radio.
 
 Time has come. [+ chancellor +] has taken over the country. We need to act fast and decisive enough before all of the card house collapses. 
+
+- @resource
+- @unity
+- @weimar
+- @rearnament
+
+@resource
+subtitle: Two of resources.
+title: Resources are must.
+on-arrival: resources += 2
+
+Resources are mandatory.
+
+@unity
+subtitle: Calm down everyone.
+title: Unity is must.
+on-arrival: {!
+for (var c of Q.factions) {
+    Q[c+'_dissent'] -= 5;
+}
+!}
+
+Unity is mandatory.
+
+
+@weimar
+subtitle: Our political allies...
+title: Allies are must.
+on-arrival: z_relation += 5; ddp_relation += 7; kpd_relation += 2
+
+Allies are mandatory.
+
+
+@rearnament
+subtitle: Reichsbanner...
+title: Rearming is must.
+on-arrival: rb_strength += 50; rb_militancy += 0.01
+
+Rearming is mandatory.
