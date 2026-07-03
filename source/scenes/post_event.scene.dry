@@ -836,61 +836,21 @@ for (const name of CABINET_CHANCELLORS) {
 
 
     
-// ============================================================
-// ECONOMIC SIMULATION — v5 (WEIMAR CALIBRATION)
+// ECONOMIC SIMULATION — v6 (WEIMAR UNCHAINED SANDBOX)
 //
 // Philosophy:
-//   - All phases have EXPLICIT EXIT conditions, not just entry.
-//     Hyperinflation in particular must be escapable through
-//     genuine austerity + credibility restoration.
-//   - Depression is non-deterministic: bad policy raises risk,
-//     not certainty. Natural floors prevent permanent collapse.
-//   - Weimar mechanic: monetization_pressure tracks deficit
-//     financing, directly eroding expectations anchoring.
-//   - Phase transitions use separate entry/exit tscores so
-//     a phase cannot be simultaneously "should enter" and
-//     "should exit" — the primary cause of thrashing.
-//   - No forcedPhase overrides (they bypassed exit logic).
-//     Instead, extreme conditions sharply boost tscore signals.
-//
-// Key changes from v4:
-//   W1  — monetization_pressure: rises when budget < -15 AND
-//          fiscal_stance < 0. Directly unanchors expectations
-//          and feeds price_pressure. Decays on fiscal tightening.
-//   W2  — Each phase has its own tscore_exit accumulator.
-//          Phase changes require BOTH entry score of the target
-//          AND exit score of the current phase to be above threshold.
-//          Exception: growth↔correction which use net scores.
-//   W3  — Hyperinflation exit: requires inflation < 6 sustained
-//          (tscore_exit_hyperinflation) AND expectations re-anchor.
-//          Extreme austerity (fiscal_stance > 3) fast-tracks exit.
-//   W4  — Depression floor: every 10 ticks in depression a natural
-//          liquidation/restructuring pulse fires. Growth cannot
-//          go below -15; at that floor a strong rebound force applies.
-//          No "every 6 ticks" pulse removed — too mechanical.
-//   W5  — Stagflation→hyperinflation gated on monetization_pressure
-//          > 0.4, not just inflation > 9. High inflation alone without
-//          money-printing doesn't trigger hyperinflation.
-//   W6  — Phase duration reset now preserves post_crisis_ticks
-//          correctly across all transitions (not just dep/hyp).
-//   W7  — DT_SCALE = 0.65, IMPULSE_SCALE = 0.70 retained.
-//   W8  — Delta caps from v4 retained (±2.0 growth, ±1.4 unemp,
-//          ±1.2 inflation). Depth growth cap still scales with depth.
-//   W9  — Removed the "fortnightly % 6" depression pulses.
-//          Replaced with smoother continuous relief proportional
-//          to phase_duration, avoiding mechanical periodicities.
-//   W10 — Capital pressure fully decoupled from phase-specific
-//          special cases. One unified mean-reversion with
-//          phase-appropriate targets. Depression auto-liquidation
-//          retained but smoothed.
-// ============================================================
-
+//   - Total player freedom: No hard caps, no artificial railroads.
+//   - Sovereign external burden forces choices: Print to buy FX or risk default.
+//   - Olivera-Tanzi Effect: High inflation creates an organic fiscal doom loop by melting tax value.
+//   - Velocity of Money (V): Public panic accelerates inflation independently of base money volume.
+//   - Logarithmic Math Shift: Protects internal float variables at astronomical numbers.
+//   - Rentenmark Gambit: High-stakes currency reset that requires prior fiscal stabilization.
 
 // ============================================================
 // SECTION 0 — SPEED CONSTANTS
 // ============================================================
 
-const DT_SCALE      = 0.65;   // fortnightly pace (~35% slower than monthly)
+const DT_SCALE      = 0.65;   // fortnightly pace
 const IMPULSE_SCALE = 0.70;   // one-shot policy impulse damper
 const dt            = 1 * DT_SCALE;
 
@@ -924,8 +884,15 @@ if (!Q.economyInitialized) {
     Q.fiscal_stance         = 0;
     Q.distribution_shift    = 0;
 
-    // W1: Weimar monetization pressure
+    // Weimar Monetization & Sandbox Extension
     Q.monetization_pressure = 0;
+    Q.sovereign_burden      = 20.0;  // Foreign-denominated obligations (Reparations)
+    Q.fx_reserves           = 50.0;  // Hard currency / Gold backing reserves
+    Q.velocity_multiplier   = 1.0;   // Money Velocity (V) - scales panic exponentially
+    Q.tax_collection_delay  = 0.15;  // Institutional lag factor for tax collection
+    Q.currency_denomination = 1.0;   // Tracker for lopping off zeroes (UI scaling)
+    Q.defaulted_on_debt     = false; // Systemic toggle for breaking foreign trust
+    Q.currency_reset_active = false; // Systemic toggle for the Rentenmark action
 
     Q.phase                 = "growth";
     Q.phase_duration        = 0;
@@ -933,15 +900,11 @@ if (!Q.economyInitialized) {
     Q.cycle_phase           = 0;
     Q.tick                  = 0;
 
-    // W2: Separate entry and exit tscores per phase
-    // Entry: pressure to move INTO this phase
-    // Exit:  pressure to leave the CURRENT phase (different concept)
     Q.ts_enter_depression     = 0;
     Q.ts_enter_growth         = 0;
     Q.ts_enter_overheating    = 0;
     Q.ts_enter_stagflation    = 0;
     Q.ts_enter_hyperinflation = 0;
-    // Exit scores for phases that need sustained exit pressure
     Q.ts_exit_hyperinflation  = 0;
     Q.ts_exit_depression      = 0;
     Q.ts_exit_stagflation     = 0;
@@ -981,16 +944,49 @@ if (Q.distribution_shift_impulse) {
 
 
 // ============================================================
-// SECTION 1b — W1: WEIMAR MONETIZATION PRESSURE
-//
-// Rises when the state finances deficits by printing (budget
-// deeply negative AND fiscal_stance loose/expansionary).
-// Decays when fiscal policy tightens or budget improves.
-// This is the primary Weimar hyperinflation trigger — not
-// just high inflation, but structural money-printing.
+// HIGH-STAKES INSTITUTIONAL RESET (THE RENTENMARK GAMBIT)
+// ============================================================
+
+if (Q.currency_reset_active) {
+    // A reset requires balanced real fiscal metrics to anchor public confidence
+    if (Q.budget >= -5 && Q.fiscal_stance >= 0) {
+        Q.inflation = 2.5;
+        Q.inflation_expectations = 2.5;
+        Q.expectations_anchored = true;
+        Q.monetization_pressure = 0;
+        Q.velocity_multiplier = 1.0;
+        Q.phase = "correction";
+        Q.capital_pressure = 1.2;     // Stabilization crisis: Credit completely freezes
+        Q.ts_enter_depression = 2.5;  // Severe immediate risk of depression
+    } else {
+        // Failed stabilization: Government continues printing behind the new currency facade
+        Q.velocity_multiplier *= 2.5;
+        Q.capital_pressure = 1.2;
+        Q.inflation_expectations += 35.0;
+        Q.expectations_anchored = false;
+    }
+    Q.currency_reset_active = false;
+}
+
+
+// ============================================================
+// SECTION 1b — WEIMAR DEBT & MONETIZATION FEEDBACK
 // ============================================================
 
 {
+    // 1. Foreign-Denominated Debt Drainage
+    if (!Q.defaulted_on_debt && Q.sovereign_burden > 0) {
+        Q.fx_reserves -= Q.sovereign_burden * 0.05 * dt;
+    }
+
+    // 2. The FX Printing Loop (Dumping local marks to buy gold/foreign currency notes)
+    let fxPrintingPressure = 0;
+    if (Q.fx_reserves <= 0 && !Q.defaulted_on_debt) {
+        Q.fx_reserves = 0;
+        fxPrintingPressure = Q.sovereign_burden * 0.09;
+    }
+
+    // 3. Domestic Deficit Monetization
     const deficitPrinting = (Q.budget < -15 && Q.fiscal_stance < 0)
         ? Math.abs(Q.fiscal_stance) * (Math.abs(Q.budget) - 15) * 0.0015
         : 0;
@@ -999,19 +995,17 @@ if (Q.distribution_shift_impulse) {
         : 0;
 
     Q.monetization_pressure = (Q.monetization_pressure || 0);
-    Q.monetization_pressure += (deficitPrinting + deficitModerate) * dt;
+    Q.monetization_pressure += (deficitPrinting + deficitModerate + fxPrintingPressure) * dt;
 
-    // Decay: fiscal tightening or surplus erodes monetization
     const monet_decay = (Q.fiscal_stance > 1 || Q.budget > 0) ? 0.12 : 0.03;
     Q.monetization_pressure *= Math.exp(-monet_decay * dt);
-    Q.monetization_pressure  = Math.max(0, Math.min(2.0, Q.monetization_pressure));
+    Q.monetization_pressure  = Math.max(0, Q.monetization_pressure);
 
     // Monetization directly feeds price pressure and unanchors expectations
     if (Q.monetization_pressure > 0.2) {
         Q.price_pressure += (Q.monetization_pressure - 0.2) * 0.04 * dt;
     }
     if (Q.monetization_pressure > 0.5 && Q.expectations_anchored) {
-        // Strong monetization erodes credibility faster
         Q.high_inflation_streak += (Q.monetization_pressure - 0.5) * 0.5 * dt;
     }
 }
@@ -1019,23 +1013,12 @@ if (Q.distribution_shift_impulse) {
 
 // ============================================================
 // SECTION 2 — PHASE STATE MACHINE
-//
-// W2: Separate entry/exit tscores.
-// Entry into a phase requires sustained entry signal.
-// Exit from a "sticky" phase (hyperinflation, depression,
-// stagflation) also requires sustained exit signal.
-// This prevents both thrashing AND lock-in.
-//
-// MIN_PHASE_DURATION = 2 (fortnightly — phases can change
-// within a month if conditions are extreme enough).
 // ============================================================
 
 const MIN_PHASE_DURATION  = 2;
-const ENTRY_THRESHOLD     = 1.5;   // tscore to enter a new phase
-const EXIT_THRESHOLD      = 1.2;   // tscore to leave a sticky phase
-                                    // (lower = easier to escape)
+const ENTRY_THRESHOLD     = 1.5;
+const EXIT_THRESHOLD      = 1.2;
 
-// Helper: exponential moving average for tscores
 function _ts(key, signal) {
     Q[key] = (Q[key] || 0) * 0.70 + signal * 0.30;
     return Q[key];
@@ -1059,27 +1042,20 @@ function _resetTscores() {
     const nairu = Q.NAIRU;
     const mon   = Q.monetization_pressure;
 
-    // --- Entry signals ---
-    // Scale: 0–3, one point per condition met.
-    // Extreme values grant fractional bonus (up to +1) instead of forced override.
-
     const sig_depression = (grw < -3 ? 1 : 0) + (inf < 1 ? 1 : 0) + (unem > 12 ? 1 : 0)
-        + (grw < -6 ? 0.5 : 0) + (inf < -4 ? 0.5 : 0);   // extremes boost signal
+        + (grw < -6 ? 0.5 : 0) + (inf < -4 ? 0.5 : 0);
 
     const sig_growth = (grw > 1 ? 1 : 0) + (inf < 5 ? 1 : 0)
         + (unem < nairu + 2 ? 1 : 0);
 
     const sig_overheating = (inf > 5 ? 1 : 0) + (unem < nairu ? 1 : 0) + (grw > 3 ? 1 : 0);
-
-    // Stagflation: high inflation AND high unemployment — doesn't need monetization
     const sig_stagflation = (inf > 4 ? 1 : 0) + (unem > nairu + 2 ? 1 : 0) + (grw < 1 ? 1 : 0);
 
-    // W5: Hyperinflation requires monetization, not just high inflation
-    // Without money-printing, extreme inflation is stagflation not hyperinflation
+    // Hyperinflation entering triggers seamlessly off raw inflation, velocity panic, or high printing
     const sig_hyperinflation = (inf > 8 ? 1 : 0)
         + (!Q.expectations_anchored ? 1 : 0)
-        + (mon > 0.4 ? 1 : 0)                   // W5: monetization required
-        + (mon > 0.8 ? 0.5 : 0);                // extreme monetization bonus
+        + (mon > 0.4 ? 1 : 0)
+        + (Q.velocity_multiplier > 2.0 ? 1.0 : 0);
 
     _ts("ts_enter_depression",     sig_depression);
     _ts("ts_enter_growth",         sig_growth);
@@ -1087,24 +1063,18 @@ function _resetTscores() {
     _ts("ts_enter_stagflation",    sig_stagflation);
     _ts("ts_enter_hyperinflation", sig_hyperinflation);
 
-    // --- Exit signals (conditions under which current phase is no longer appropriate) ---
-
-    // Hyperinflation exit: inflation cooling AND either policy credibility restored
-    // OR extreme austerity (fiscal_stance > 2)
     const sig_exit_hyp = (inf < 6 ? 1 : 0)
         + (Q.expectations_anchored ? 1 : 0)
         + (mon < 0.2 ? 1 : 0)
-        + (Q.fiscal_stance > 3 ? 1 : 0);        // W3: hard austerity fast-tracks exit
+        + (Q.fiscal_stance > 3 ? 1 : 0);
     _ts("ts_exit_hyperinflation", sig_exit_hyp);
 
-    // Depression exit: growth recovering, not falling further into deflation
     const sig_exit_dep = (grw > -1 ? 1 : 0)
         + (inf > -2 ? 1 : 0)
         + (Q.demand_pressure > 0 ? 0.5 : 0)
-        + (Q.phase_duration > 20 ? 0.5 : 0);    // long depression gets exit bonus
+        + (Q.phase_duration > 20 ? 0.5 : 0);
     _ts("ts_exit_depression", sig_exit_dep);
 
-    // Stagflation exit: either inflation or unemployment normalizing
     const sig_exit_stag = (inf < 4 ? 1 : 0) + (grw > 1 ? 1 : 0)
         + (unem < nairu + 3 ? 0.5 : 0);
     _ts("ts_exit_stagflation", sig_exit_stag);
@@ -1119,65 +1089,43 @@ if (Q.phase_duration >= MIN_PHASE_DURATION) {
 
     let nextPhase = null;
 
-    // ---- GROWTH transitions ----
     if (Q.phase === "growth") {
         if      (Q.ts_enter_overheating > ENTRY_THRESHOLD)  nextPhase = "overheating";
         else if (Q.ts_enter_depression  > ENTRY_THRESHOLD)  nextPhase = "correction";
-        // Stagflation direct from growth (supply shock scenario)
         else if (Q.ts_enter_stagflation > ENTRY_THRESHOLD + 0.5) nextPhase = "stagflation";
     }
-
-    // ---- OVERHEATING transitions ----
     else if (Q.phase === "overheating") {
-        // W5: hyperinflation only if monetization present
         if      (Q.ts_enter_hyperinflation > ENTRY_THRESHOLD)   nextPhase = "hyperinflation";
         else if (Q.ts_enter_stagflation    > ENTRY_THRESHOLD)   nextPhase = "stagflation";
         else if (Q.ts_enter_depression     > ENTRY_THRESHOLD)   nextPhase = "correction";
         else if (inf < 3.5 && grw < 2)                          nextPhase = "growth";
     }
-
-    // ---- HYPERINFLATION transitions (W3: exit-gated) ----
     else if (Q.phase === "hyperinflation") {
-        // Exit only if sustained exit signal OR hard austerity fast-track
         const hardAusterity = Q.fiscal_stance > 3 && Q.phase_duration >= 3;
         if (Q.ts_exit_hyperinflation > EXIT_THRESHOLD || hardAusterity) {
-            // Where does it exit TO?
             if (grw < -3 && unem > 12 && inf < 4)       nextPhase = "depression";
             else if (unem > nairu + 3 && inf > 4)        nextPhase = "stagflation";
             else if (inf < 5 && Q.expectations_anchored) nextPhase = "correction";
             else                                          nextPhase = "stagflation";
         }
-        // Can also collapse into depression without exit gating
-        // if economy is truly imploding (this replaces old forced override)
         else if (grw < -5 && unem > 15 && Q.ts_enter_depression > ENTRY_THRESHOLD) {
             nextPhase = "depression";
         }
     }
-
-    // ---- CORRECTION transitions ----
     else if (Q.phase === "correction") {
         if      (Q.ts_enter_depression  > ENTRY_THRESHOLD)           nextPhase = "depression";
         else if (Q.ts_enter_stagflation > ENTRY_THRESHOLD)           nextPhase = "stagflation";
-        // Recovery: slightly higher threshold to avoid premature exit
         else if (Q.ts_enter_growth > ENTRY_THRESHOLD + 0.4)          nextPhase = "growth";
-        // W5: hyperinflation from correction only with active monetization
         else if (Q.ts_enter_hyperinflation > ENTRY_THRESHOLD + 0.3)  nextPhase = "hyperinflation";
     }
-
-    // ---- DEPRESSION transitions (W4: exit-gated) ----
     else if (Q.phase === "depression") {
-        // Need sustained exit signal OR very long depression escape valve
         const escapeValve = Q.phase_duration > 25;
         if (Q.ts_exit_depression > EXIT_THRESHOLD || escapeValve) {
             if (Q.ts_enter_stagflation > ENTRY_THRESHOLD)  nextPhase = "stagflation";
             else                                            nextPhase = "correction";
         }
-        // Weimar path: depression + monetization → hyperinflation
-        // (e.g. Weimar 1921: tried to print out of depression)
         else if (Q.ts_enter_hyperinflation > ENTRY_THRESHOLD + 0.5) nextPhase = "hyperinflation";
     }
-
-    // ---- STAGFLATION transitions (W: exit-gated) ----
     else if (Q.phase === "stagflation") {
         if (Q.ts_exit_stagflation > EXIT_THRESHOLD) {
             if (inf < 3 && grw > 0)         nextPhase = "growth";
@@ -1192,23 +1140,19 @@ if (Q.phase_duration >= MIN_PHASE_DURATION) {
     if (nextPhase && nextPhase !== prev) {
         Q.phase          = nextPhase;
         Q.phase_duration = 0;
-        // W6: track post-crisis correctly for ALL phase exits
         Q.post_crisis_ticks = 0;
         _resetTscores();
 
-        // Entry adjustments for new phase
         if (Q.phase === "depression") {
             Q.capital_pressure = Math.min(Q.capital_pressure, 0.7);
             Q.demand_pressure  = Math.max(Q.demand_pressure,  -0.3);
         }
         if (Q.phase === "hyperinflation") {
-            // Hyperinflation onset — supply constraints worsen
             Q.supply_cost_drag = Math.min(Q.supply_cost_drag + 0.1, 0.5);
         }
     }
 }
 
-// post_crisis_ticks counts how long since last depression/hyperinflation
 if (Q.phase === "correction" || Q.phase === "growth") {
     Q.post_crisis_ticks = (Q.post_crisis_ticks || 0) + 1;
 } else {
@@ -1225,7 +1169,7 @@ Q.cycle_phase = (Q.cycle_phase || 0) + 0.018 * dt;
 const CYCLE_AMP = {
     growth:         1.4,
     overheating:    1.8,
-    hyperinflation: 0.8,   // hyperinflation disrupts normal cycle
+    hyperinflation: 0.8,   // disrupts normal cycle
     correction:     0.9,
     depression:     0.3 + Math.min(0.9, Q.phase_duration * 0.04),
     stagflation:    0.6,
@@ -1233,7 +1177,6 @@ const CYCLE_AMP = {
 const cycleAmp      = (CYCLE_AMP[Q.phase] || 1.0) * (1 + (Q.shock_residual || 0) * 0.3);
 const businessCycle = cycleAmp * Math.sin(Q.cycle_phase);
 
-// Low-frequency supply shocks (fortnightly calibration)
 if (Math.random() < 0.02 * dt) {
     const shock         = (Math.random() - 0.5) * 0.06;
     Q.price_pressure   += shock;
@@ -1243,10 +1186,10 @@ Q.shock_residual *= Math.exp(-0.4 * dt);
 
 
 // ============================================================
-// SECTION 4 — STRUCTURAL UPDATES
+// SECTION 4 — STRUCTURAL UPDATES & OLIVERA-TANZI EFFECT
 // ============================================================
 
-// --- NAIRU ---
+// NAIRU Evolution
 if (Q.phase === "depression") {
     if (Q.phase_duration > 8) {
         const hysteresis = Math.min(0.04, (Q.phase_duration - 8) * 0.003) * dt;
@@ -1260,8 +1203,7 @@ if (Q.phase === "depression") {
     Q.NAIRU += 0.003 * dt;
 }
 
-// --- Inflation expectations ---
-// W1 feeds high_inflation_streak via monetization_pressure above.
+// Inflation Expectations & Anchor Degradation
 if (Q.inflation > 5) {
     Q.high_inflation_streak += dt;
     Q.low_inflation_streak   = 0;
@@ -1272,52 +1214,63 @@ if (Q.inflation > 5) {
     Q.high_inflation_streak *= 0.85;
 }
 
-// Anchoring/unanchoring thresholds
 if ( Q.expectations_anchored && Q.high_inflation_streak > 4)  Q.expectations_anchored = false;
 if (!Q.expectations_anchored && Q.low_inflation_streak  > 6) {
     Q.expectations_anchored  = true;
     Q.high_inflation_streak  = 0;
 }
 
+// Money Velocity (V) engine handles expectation chasing
 if (Q.expectations_anchored) {
     Q.inflation_expectations += 0.03 * (Q.inflation - Q.inflation_expectations) * dt;
     Q.inflation_expectations += 0.04 * (2.5 - Q.inflation_expectations) * dt;
+    Q.velocity_multiplier    += (1.0 - Q.velocity_multiplier) * 0.15 * dt; // Returns smoothly to index level 1.0
 } else {
-    // Unanchored: expectations chase actual inflation, harder to pull back
-    const lead = 0.10 + (Q.phase === "hyperinflation" ? 0.10 : 0)
+    const lead = 0.10 + (Q.phase === "hyperinflation" ? 0.15 : 0)
                       + (Q.monetization_pressure > 0.5 ? 0.05 : 0);
     Q.inflation_expectations += lead * (Q.inflation - Q.inflation_expectations) * dt;
     Q.inflation_expectations += 0.05 * Math.max(0, Q.inflation - 4) * dt;
-    // Weimar: in hyperinflation with monetization, expectations can run away from actual
+
     if (Q.phase === "hyperinflation" && Q.monetization_pressure > 0.6) {
         Q.inflation_expectations += Q.monetization_pressure * 0.08 * dt;
     }
-}
 
-// --- Supply-cost drag ---
+    // Panic channels feed systemic money velocity
+    const panicSpread = Math.max(0, Q.inflation_expectations - Q.inflation);
+    Q.velocity_multiplier += (0.04 * panicSpread + Q.monetization_pressure * 0.09) * dt;
+}
+Q.velocity_multiplier = Math.max(1.0, Math.min(250.0, Q.velocity_multiplier));
+
+// Supply Cost Drags & Credit Loops
 if (Q.phase === "stagflation" || Q.phase === "hyperinflation" || Q.price_pressure > 0.3) {
     Q.supply_cost_drag = Math.min(0.5, Q.supply_cost_drag + Q.price_pressure * 0.06 * dt);
 } else {
     Q.supply_cost_drag *= Math.exp(-0.15 * dt);
 }
 
-// --- Credit expansion ---
 if (Q.phase === "growth" && Q.unemployed < Q.NAIRU - 1) {
     Q.credit_expansion = Math.min(0.8, Q.credit_expansion + 0.04 * Math.max(0, Q.NAIRU - 1 - Q.unemployed) * dt);
 } else {
     Q.credit_expansion *= Math.exp(-0.2 * dt);
 }
 
-// --- Budget ---
+// --- Budget and The Olivera-Tanzi Revenue Multiplier ---
 Q.budget += Q.fiscal_stance * 0.4 * dt;
 if (Q.upper_tax_rates && Q.lower_tax_rates) {
     const upperBase     = ((Q.old_middle || 0) + (Q.new_middle || 0)) / 100;
     const lowerBase     = ((Q.workers || 0) + (Q.unemployedc || 0) + (Q.rural || 0)) / 100;
-    const taxEfficiency = Math.max(0.5, Math.min(1.5, 1 + Q.economic_growth / 100 - Q.unemployed / 100));
+
+    // Olivera-Tanzi Calculation: tax efficiency drops relative to real time-delays and raw inflation rate
+    const inflationStrain = Math.max(0, Q.inflation);
+    const oliveraTanziMultiplier = 1 / (1 + (Q.tax_collection_delay * inflationStrain * 0.025));
+
+    const structuralEfficiency = Math.max(0.4, Math.min(1.5, 1 + Q.economic_growth / 100 - Q.unemployed / 100));
+    const finalTaxEfficiency = structuralEfficiency * oliveraTanziMultiplier;
+
     Q.budget += (Q.upper_tax_rates * upperBase * 0.035
-               + Q.lower_tax_rates * lowerBase * 0.018) * taxEfficiency * dt;
+               + Q.lower_tax_rates * lowerBase * 0.018) * finalTaxEfficiency * dt;
 }
-Q.budget = Math.max(-50, Math.min(50, Math.round(Q.budget * 100) / 100));
+Q.budget = Math.max(-100, Math.min(100, Q.budget)); // Expanded capacity boundaries
 
 
 // ============================================================
@@ -1328,44 +1281,36 @@ const outputGap   = Q.economic_growth - POTENTIAL_GROWTH;
 const u_gap       = Q.unemployed - Q.NAIRU;
 const overheating = Math.max(0, Q.economic_growth - 6);
 
-// ---- Demand force ----
 let demandForce = 0;
 demandForce += Q.demand_pressure;
 demandForce += Q.credit_expansion * 0.15;
 demandForce -= Q.fiscal_stance    * 0.20;
 demandForce += (Q.distribution_shift || 0) * 0.15;
 
-// Budget deficit creates some demand (Keynesian channel)
 if (Q.budget < 0)
     demandForce += -Q.budget * 0.008 * Math.max(0.3, 1 - Math.tanh((Q.unemployed - 10) / 5));
 
-// W9: Smooth continuous depression relief (replaces % 6 pulses)
-// Natural floor from asset liquidation, debt restructuring, etc.
 if (Q.phase === "depression") {
     const depRelief = Math.min(0.025, Q.phase_duration * 0.0008) * dt;
     demandForce    += depRelief;
 }
 
-// Correction deflation floor: natural market stabilizers
-// Fires continuously when deeply deflationary, not just every 8 ticks
 if (Q.phase === "correction" && Q.inflation < -2) {
     const strength  = Math.min(0.4, (-2 - Q.inflation) / 10);
     demandForce    += 0.012 * strength * dt;
 }
 
-// ---- Supply force ----
 let supplyForce = 0;
 supplyForce += Q.supply_pressure;
 supplyForce += 0.01 * dt * (1 - Q.capital_pressure * 0.2);
 supplyForce -= Q.supply_cost_drag * 0.3;
 supplyForce -= Q.capital_pressure * 0.3;
 
-// Hyperinflation supply destruction: productive capacity shrinks
 if (Q.phase === "hyperinflation") {
     supplyForce -= Q.monetization_pressure * 0.15;
+    supplyForce -= (Q.velocity_multiplier * 0.005); // Velocity panic disrupts resource logistics channels
 }
 
-// Depression continuous supply relief
 if (Q.phase === "depression") {
     const depRelief = Math.min(0.015, Q.phase_duration * 0.0005) * dt;
     supplyForce    += depRelief;
@@ -1374,7 +1319,6 @@ if (Q.phase === "depression") {
 
 // ============================================================
 // SECTION 6 — CAPITAL & TRADE PRESSURE
-// W10: Unified mean-reversion. No special-case depression overrides.
 // ============================================================
 
 if (Q.capital_relief) {
@@ -1383,18 +1327,21 @@ if (Q.capital_relief) {
     Q.capital_relief   = 0;
 }
 
-// Automatic accumulation from bad conditions
 if (Q.inflation > 8 || Q.budget < -20)     Q.capital_pressure += 0.020 * dt;
 if (Q.monetization_pressure > 0.5)         Q.capital_pressure += Q.monetization_pressure * 0.010 * dt;
 if (Q.inflation < 2 && Q.economic_growth > 3) Q.capital_pressure -= 0.015 * dt;
 if (Q.economic_growth > 4)                    Q.capital_pressure -= 0.010 * dt;
 
-// W10: Unified mean-reversion toward phase-appropriate target
+// Sovereign default impact on capital flight
+if (Q.defaulted_on_debt) {
+    Q.capital_pressure += 0.05 * dt;
+}
+
 {
     const capTarget = {
         growth:         0.05,
         overheating:    0.10,
-        hyperinflation: 0.70,   // hyperinflation: high capital flight
+        hyperinflation: 0.85,   // Elevated baseline flight stress
         correction:     0.25,
         depression:     0.40,
         stagflation:    0.35,
@@ -1403,55 +1350,48 @@ if (Q.economic_growth > 4)                    Q.capital_pressure -= 0.010 * dt;
     const capDecayRate = {
         growth:         0.018,
         overheating:    0.012,
-        hyperinflation: 0.004,   // slow to decay — capital flight is sticky
+        hyperinflation: 0.002,   // Heavily sticky outflight
         correction:     0.010,
-        depression:     0.007,   // slightly faster natural liquidation
+        depression:     0.007,
         stagflation:    0.008,
     }[Q.phase] || 0.010;
 
     Q.capital_pressure += (capTarget - Q.capital_pressure) * capDecayRate * dt;
 }
 
-// Depression: long-duration liquidation effect (continuous, not pulsed)
 if (Q.phase === "depression" && Q.phase_duration > 5) {
     const liquidation = Math.min(0.005, Q.phase_duration * 0.0002) * dt;
     Q.capital_pressure = Math.max(0, Q.capital_pressure - liquidation);
 }
 
-Q.capital_pressure = Math.max(0, Math.min(1.2, Q.capital_pressure));
+Q.capital_pressure = Math.max(0, Math.min(1.5, Q.capital_pressure));
 
-// Trade pressure
 if (Q.economic_growth > POTENTIAL_GROWTH + 2)      Q.trade_pressure += 0.020 * dt;
 else if (Q.economic_growth < POTENTIAL_GROWTH - 2) Q.trade_pressure -= 0.015 * dt;
-// Hyperinflation kills trade (currency collapse)
 if (Q.phase === "hyperinflation")                  Q.trade_pressure += Q.monetization_pressure * 0.01 * dt;
 if (Q.phase === "depression")                      Q.trade_pressure *= Math.exp(-0.04 * dt);
+if (Q.defaulted_on_debt)                           Q.trade_pressure = Math.min(1.5, Q.trade_pressure + 0.04 * dt);
 
 
 // ============================================================
-// SECTION 7 — DELTA COMPUTATION
+// SECTION 7 — DELTA COMPUTATION (THE UNCHAINED LOG ENGINE)
 // ============================================================
 
-// ---- dINFLATION ----
 let dInflation = 0;
-
 dInflation += 0.016 * -u_gap;
 dInflation += 0.010 * outputGap;
 dInflation += Q.price_pressure * 0.10;
 dInflation += Q.trade_pressure * 0.05;
 dInflation += 0.005 * Q.inflation * dt;
 
-// Expectations channel
 dInflation -= 0.05 * (Q.inflation - Q.inflation_expectations);
 if (!Q.expectations_anchored)
     dInflation += 0.06 * Math.max(0, Q.inflation_expectations - Q.inflation);
 
-// Weimar: monetization directly pushes inflation
 if (Q.monetization_pressure > 0.3) {
     dInflation += (Q.monetization_pressure - 0.3) * 0.12;
 }
 
-// Deflation spiral resistance
 if (Q.inflation < 0) {
     const dm = Math.abs(Q.inflation);
     dInflation -= 0.015 * dm / (1 + dm * 0.7) * (Q.unemployed / 20);
@@ -1460,14 +1400,20 @@ if (Q.inflation < 0) {
 }
 
 dInflation += (Math.random() - 0.5) * 0.02;
-dInflation  = Math.max(-1.2, Math.min(1.2, dInflation));
+
+// Scale via internal Money Velocity Multiplier
+dInflation *= Q.velocity_multiplier;
+
+// Logarithmic protection buffer for tracking runaways smoothly
+if (Q.inflation > 300) {
+    dInflation = Math.log10(Q.inflation) * 0.20;
+}
+dInflation = Math.max(-1.5, Math.min(4.0, dInflation));
 
 
 // ---- dUNEMPLOYMENT ----
 let dUnemployment = 0;
-
 const growthGap = Q.economic_growth - POTENTIAL_GROWTH;
-
 const okunsCoeff = growthGap < 0 ? 0.032 : 0.020;
 const okunsDepthScale = (Q.phase === "depression" || Q.phase === "correction")
     ? 0.20 + Math.min(0.40, Q.phase_duration * 0.018)
@@ -1475,15 +1421,12 @@ const okunsDepthScale = (Q.phase === "depression" || Q.phase === "correction")
 dUnemployment -= okunsCoeff * growthGap / (1 + Math.abs(growthGap) * okunsDepthScale);
 
 dUnemployment += 0.005 * Math.max(0, Q.inflation - 6);
-
 const demandUCoeff = (Q.phase === "depression" || Q.phase === "correction") ? 0.60 : 0.35;
 dUnemployment -= demandForce * demandUCoeff;
-
 dUnemployment += Q.capital_pressure * 0.06;
 dUnemployment += Math.min(Q.trade_pressure * 0.04, 1.0);
 
 if (Q.phase === "stagflation") dUnemployment += Q.supply_cost_drag * 0.4;
-// Hyperinflation creates unemployment through economic disruption
 if (Q.phase === "hyperinflation") dUnemployment += Q.monetization_pressure * 0.08;
 
 if (Q.unemployed > Q.NAIRU) {
@@ -1495,7 +1438,6 @@ if (Q.unemployed > Q.NAIRU) {
     }
 }
 
-// Deflation unemployment tiers
 {
     let deflUnempTotal = 0;
     if (Q.inflation < 0) {
@@ -1525,8 +1467,6 @@ dUnemployment  = Math.max(-1.4, Math.min(1.4, dUnemployment));
 
 // ---- dGROWTH ----
 let dGrowth = 0;
-
-// Triple crisis drag softener (prevents infinite collapse)
 const _infCrisis = Math.max(0, Math.min(1, (-Q.inflation - 2) / 10));
 const _grwCrisis = Math.max(0, Math.min(1, (-Q.economic_growth - 5) / 10));
 const _uCrisis   = Math.max(0, Math.min(1, (Q.unemployed - 15) / 20));
@@ -1541,7 +1481,6 @@ dGrowth += 0.020 * (outputGap / (1 + Math.abs(outputGap) * 0.25));
 dGrowth += businessCycle * 0.05;
 dGrowth += 0.01 * dt * (1 - Q.capital_pressure * 0.2) * 0.4;
 
-// Inflation drag
 if (Q.inflation > 6) dGrowth -= Math.min(0.015 * (Q.inflation - 6), 2.0);
 if (Q.inflation < -2) {
     const dm = Math.abs(Q.inflation);
@@ -1551,12 +1490,11 @@ if (Q.inflation < -2) {
 }
 dGrowth -= Math.min(0.003 * Math.pow(Math.abs(Q.inflation), 1.5), 0.7) * DS;
 
-// Hyperinflation destroys growth through uncertainty and supply disruption
 if (Q.phase === "hyperinflation") {
     dGrowth -= Q.monetization_pressure * 0.10;
+    dGrowth -= (Q.velocity_multiplier * 0.004); // System velocity chaos breaks real transactional capabilities
 }
 
-// Unemployment drag
 const uGapG = Math.max(0, Q.unemployed - Q.NAIRU);
 dGrowth -= Math.min(0.004 * uGapG / (1 + uGapG * 0.10), 1.5) * DS;
 if (Q.unemployed > 10)
@@ -1572,13 +1510,11 @@ dGrowth += supplyForce * 1.6 * depthBoost;
 dGrowth -= Math.min(Q.trade_pressure   * 0.07, 1.5) * DS;
 dGrowth -= Math.min(Q.capital_pressure * 0.08, 1.5) * DS;
 
-// W4: Depression floor — hard floor at -15, strong rebound below -10
 if (Q.phase === "depression") {
     if (Q.economic_growth < -10) {
         const floorStrength = Math.min(1.0, (-10 - Q.economic_growth) / 5);
         dGrowth += 0.20 * floorStrength;
     }
-    // Smooth continuous long-depression stimulus (replaces % 6 pulses)
     if (Q.phase_duration > 6) {
         dGrowth += Math.min(0.04, (Q.phase_duration - 6) * 0.002) * dt;
     }
@@ -1613,7 +1549,7 @@ const depDur = Q.phase === "depression" ? Q.phase_duration : 0;
 const BASE_DR = {
     growth:         { demand: 0.16, supply: 0.25, price: 0.25, trade: 0.30 },
     overheating:    { demand: 0.19, supply: 0.25, price: 0.18, trade: 0.30 },
-    hyperinflation: { demand: 0.20, supply: 0.06, price: 0.04, trade: 0.12 },
+    hyperinflation: { demand: 0.20, supply: 0.06, price: 0.02, trade: 0.12 }, // Slowdown price decay under runaways
     correction:     { demand: 0.35, supply: 0.25, price: 0.50, trade: 0.18 },
     depression:     { demand: Math.max(0.03, 0.08 - depDur * 0.004),
                       supply: Math.max(0.03, 0.25 - depDur * 0.006),
@@ -1624,7 +1560,6 @@ const BASE_DR = {
 
 let dr = BASE_DR[Q.phase] || { demand: 0.16, supply: 0.25, price: 0.25, trade: 0.30 };
 
-// Post-crisis grace: smoother transition out of depression decay rates
 if (Q.phase === "correction" && (Q.post_crisis_ticks || 0) < 10) {
     const t     = Q.post_crisis_ticks / 10;
     const depDr = BASE_DR.depression;
@@ -1640,27 +1575,35 @@ if (Q.phase === "correction" && (Q.post_crisis_ticks || 0) < 10) {
 Q.demand_pressure = (Q.demand_pressure || 0) < 0
     ? Q.demand_pressure * Math.exp(-0.25 * dt)
     : Q.demand_pressure * Math.exp(-dr.demand * dt);
-Q.supply_pressure    = (Q.supply_pressure   || 0) * Math.exp(-dr.supply * dt);
-Q.price_pressure     = (Q.price_pressure    || 0) * Math.exp(-dr.price  * dt);
-Q.trade_pressure     = (Q.trade_pressure    || 0) * Math.exp(-dr.trade  * dt);
-Q.fiscal_stance      = (Q.fiscal_stance     || 0) * Math.exp(-0.15 * dt);
-Q.distribution_shift = (Q.distribution_shift|| 0) * Math.exp(-0.08 * dt);
+Q.supply_pressure    = (Q.supply_pressure    || 0) * Math.exp(-dr.supply * dt);
+Q.price_pressure     = (Q.price_pressure     || 0) * Math.exp(-dr.price  * dt);
+Q.trade_pressure     = (Q.trade_pressure     || 0) * Math.exp(-dr.trade  * dt);
+Q.fiscal_stance      = (Q.fiscal_stance      || 0) * Math.exp(-0.15 * dt);
+Q.distribution_shift = (Q.distribution_shift || 0) * Math.exp(-0.08 * dt);
 
 
 // ============================================================
-// SECTION 10 — CONSTRAINTS
+// SECTION 10 — UNBOXED QUANTUM CONSTRAINTS
 // ============================================================
 
 if (!Q.math_broken) {
-    Q.inflation              = Math.max(-12, Math.min(99, Q.inflation));
-    Q.unemployed             = Math.max(0,   Math.min(75, Q.unemployed));
-    Q.economic_growth        = Math.max(-15, Math.min(20, Q.economic_growth));
-    Q.inflation_expectations = Math.max(-9,  Math.min(99, Q.inflation_expectations));
-    Q.capital_pressure       = Math.max(0,   Math.min(1.2, Q.capital_pressure));
+    // Rigid 99% hard inflation ceiling removed to allow organic arithmetic compounding
+    Q.inflation              = Math.max(-12, Math.min(5000000, Q.inflation));
+    Q.unemployed             = Math.max(0,   Math.min(85, Q.unemployed)); // Expanded bounds
+    Q.economic_growth        = Math.max(-15, Math.min(25, Q.economic_growth));
+    Q.inflation_expectations = Math.max(-9,  Math.min(5000000, Q.inflation_expectations));
+    Q.capital_pressure       = Math.max(0,   Math.min(1.5, Q.capital_pressure));
     if (Q.phase === "depression") Q.demand_pressure = Math.max(-0.5, Q.demand_pressure);
     Q.supply_cost_drag       = Math.max(0,   Math.min(0.5, Q.supply_cost_drag));
     Q.credit_expansion       = Math.max(0,   Math.min(0.8, Q.credit_expansion));
-    Q.monetization_pressure  = Math.max(0,   Math.min(2.0, Q.monetization_pressure));
+    Q.monetization_pressure  = Math.max(0,   Math.min(10.0, Q.monetization_pressure)); // Expanded
+
+    // Automated Zeros Redenomination: Keeps numerical values legible on the frontend UI
+    if (Q.inflation > 100000) {
+        Q.inflation /= 1000;
+        Q.inflation_expectations /= 1000;
+        Q.currency_denomination *= 1000;
+    }
 } else {
     Q.inflation              = Q.impossible_add(Q.inflation, 0);
     Q.unemployed             = Q.impossible_percentage(Q.unemployed);
@@ -1669,6 +1612,7 @@ if (!Q.math_broken) {
     Q.capital_pressure       = Q.impossible_add(Q.capital_pressure, 0);
     console.log("CONSTRAINT CHAOS: inflation=" + Q.inflation + " unemployed=" + Q.unemployed + " growth=" + Q.economic_growth);
 }
+
 
 
 
