@@ -1911,41 +1911,28 @@ on-arrival: {!
 // (here, after pushing out third, and after switching SPD's support).
 // ---------------------------------------------------------------------
 
-var BLOCS = {
-    far_left:     ["Thalmann", "Munzenberg"],
-    left:         ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"],
-    cultural:     ["Einstein", "Mann", "Ossietzky"],
-    center_left:  ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"],
-    center:       ["Adenauer", "Kaas", "Bruning", "Noske", "Fehr"],
-    center_right: ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Behrens", "Lambach2"],
-    far_right:    ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff", "Hugenberg"]
-};
-if (!Q.hindenburg_dead) {
-    BLOCS.center_left.push("Hindenburg");
-    BLOCS.center.push("Hindenburg");
-    BLOCS.center_right.push("Hindenburg");
-}
-var BLOC_ORDER_KEYS = ["far_left", "left", "cultural", "center_left", "center", "center_right", "far_right"];
+// ---------------------------------------------------------------------
+// RELATION/IDEOLOGY-DRIVEN CONSOLIDATION
+// ---------------------------------------------------------------------
+// Which finalist a party's voters flock to is now driven by two real
+// numbers instead of a hand-authored bloc-priority list per party:
+//   1. candIdeoScore(candidate) - the candidate's party's 1-10 ideology
+//      score (Q.<party>_ideo_score, computed once at game start from
+//      the party's named ideology string via ideoScore()).
+//   2. getRelationSafe(votingParty, finalistParty) - the live pairwise
+//      relation from Q.party_relations, reflecting coalition history,
+//      leader personality, bans, recent betrayals, etc.
+// Ideology dominates (heavily weighted gap), relation breaks ties
+// between similarly-distant finalists, and a hostile relation (<15)
+// applies a steepening penalty rather than an absolute veto - a party
+// can still "hold its nose" and back someone it despises if every
+// other option is ideologically far worse.
+// ---------------------------------------------------------------------
 
 function canon2(name) {
     if (!name) return name;
     return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
 }
-function isInBlock(c, blockNames) {
-    c = canon2(c);
-    for (var i = 0; i < blockNames.length; i++) {
-        if (BLOCS[blockNames[i]].indexOf(c) !== -1) return true;
-    }
-    return false;
-}
-function blocOf(c) {
-    c = canon2(c);
-    for (var i = 0; i < BLOC_ORDER_KEYS.length; i++) {
-        if (BLOCS[BLOC_ORDER_KEYS[i]].indexOf(c) !== -1) return i;
-    }
-    return 4; // unknown defaults to "center" distance
-}
-function getIdeologicalDistance(c1, c2) { return Math.abs(blocOf(c1) - blocOf(c2)); }
 
 // finalists is always derived fresh from current Q state, never assumed
 // to exist from another block's scope (this is what fixes the crash).
@@ -1955,29 +1942,53 @@ function currentFinalists() {
     return f;
 }
 
-function pickClosestFinalist(current_candidate, party_ideology_priority) {
+// Fallback ideology midpoints, used only when a candidate's party has
+// no Q.<party>_ideo_score yet (independents, splinters not in Q.parties).
+var BLOC_IDEO_FALLBACK = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
+                            center: 5, center_right: 6.5, far_right: 9.5 };
+
+function candIdeoScore(name) {
+    var key = canon2(name);
+    var c = CANDIDATES[key];
+    if (!c) return 5;
+    var partyKey = (c.party || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (Q[partyKey + '_ideo_score'] !== undefined) return Q[partyKey + '_ideo_score'];
+    return (c.bloc && BLOC_IDEO_FALLBACK[c.bloc] !== undefined) ? BLOC_IDEO_FALLBACK[c.bloc] : 5;
+}
+
+function vetoPenalty(relation) {
+    if (relation >= 15) return 0;
+    return (15 - relation) * 4;
+}
+
+function finalistScore(votingPartyKey, finalist) {
+    var fKey = canon2(finalist);
+    var c = CANDIDATES[fKey];
+    var finalistPartyLabel = c ? c.party : "";
+    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (finalistPartyLabel || "").toUpperCase());
+    var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
+    var ideoGap = Math.abs(myIdeo - candIdeoScore(finalist));
+    return -(ideoGap * 20) + (relation * 0.5) - vetoPenalty(relation);
+}
+
+function pickBestFinalist(votingPartyKey, current_candidate) {
     var finalists = currentFinalists();
     var canonCurrent = canon2(current_candidate);
     for (var fi = 0; fi < finalists.length; fi++) {
         if (canon2(finalists[fi]) === canonCurrent) return current_candidate; // already a finalist
     }
-    for (var i = 0; i < party_ideology_priority.length; i++) {
-        for (var j = 0; j < finalists.length; j++) {
-            if (isInBlock(finalists[j], [party_ideology_priority[i]])) return finalists[j];
-        }
-    }
-    var bestFinalist = finalists[0];
-    var bestDist = getIdeologicalDistance(current_candidate, finalists[0]);
+    var best = finalists[0];
+    var bestScore = finalistScore(votingPartyKey, finalists[0]);
     for (var f = 1; f < finalists.length; f++) {
-        var d = getIdeologicalDistance(current_candidate, finalists[f]);
-        if (d < bestDist) { bestDist = d; bestFinalist = finalists[f]; }
+        var s = finalistScore(votingPartyKey, finalists[f]);
+        if (s > bestScore) { bestScore = s; best = finalists[f]; }
     }
-    return bestFinalist;
+    return best;
 }
 
 // Re-runs consolidation for every party. Safe to call multiple times
 // (e.g. once at round-2 start, again after pushing out third, again
-// after SPD switches support) since pickClosestFinalist always reads
+// after SPD switches support) since pickBestFinalist always reads
 // live Q state and is a no-op for any party already on a finalist.
 function consolidateRound2() {
     var finalists = currentFinalists();
@@ -1995,47 +2006,47 @@ function consolidateRound2() {
             var nsdap_votes = Q[canon2(Q.nsdap_candidate) + '_votes'] || 0;
             var dnvp_votes = Q[canon2(Q.dnvp_candidate) + '_votes'] || 0;
             var preferred = (nsdap_votes >= dnvp_votes) ? Q.nsdap_candidate : Q.dnvp_candidate;
-            var landed = pickClosestFinalist(preferred, ["far_right", "center_right", "center"]);
+            var landed = pickBestFinalist("nsdap", preferred);
             Q.nsdap_candidate = landed;
             Q.dnvp_candidate = landed;
         }
     }
 
-    if (Q.z_candidate) {
-        Q.z_candidate = (Q.z_party_leader === "Kaas")
-            ? pickClosestFinalist(Q.z_candidate, ["center", "center_right", "center_left", "far_right"])
-            : pickClosestFinalist(Q.z_candidate, ["center", "center_left", "left", "center_right"]);
-    }
-    if (Q.csrp_candidate) Q.csrp_candidate = pickClosestFinalist(Q.csrp_candidate, ["center", "center_left", "left", "far_left", "cultural", "center_right"]);
-    if (Q.bvp_candidate) Q.bvp_candidate = pickClosestFinalist(Q.bvp_candidate, ["center_right", "center", "far_right", "center_left"]);
-    if (Q.dvp_candidate) Q.dvp_candidate = pickClosestFinalist(Q.dvp_candidate, ["center_left", "center", "center_right", "left"]);
-    if (Q.ddp_candidate) Q.ddp_candidate = pickClosestFinalist(Q.ddp_candidate, ["center_left", "center", "left", "cultural"]);
-    if (Q.kpd_candidate) Q.kpd_candidate = pickClosestFinalist(Q.kpd_candidate, ["far_left", "left", "cultural"]);
-    if (Q.sapd_formed && Q.sapd_candidate) Q.sapd_candidate = pickClosestFinalist(Q.sapd_candidate, ["left", "far_left", "cultural", "center_left"]);
-    if (Q.srpd_formed && Q.srpd_candidate) Q.srpd_candidate = pickClosestFinalist(Q.srpd_candidate, ["center_left", "center", "center_right", "left", "far_left"]);
-    if (Q.wp_candidate) Q.wp_candidate = pickClosestFinalist(Q.wp_candidate, ["center_right", "center", "center_left", "far_right", "left"]);
-    if (Q.cnbl_candidate) Q.cnbl_candidate = pickClosestFinalist(Q.cnbl_candidate, ["center_right", "center", "far_right", "center_left", "left"]);
-    if (Q.vrp_candidate) Q.vrp_candidate = pickClosestFinalist(Q.vrp_candidate, ["center_right", "center", "center_left", "far_right", "left"]);
-    if (Q.csvd_candidate) Q.csvd_candidate = pickClosestFinalist(Q.csvd_candidate, ["center_right", "center", "center_left", "cultural", "left"]);
-    if (Q.kvp_flee === 1 && Q.kvp_candidate) Q.kvp_candidate = pickClosestFinalist(Q.kvp_candidate, ["center_right", "center", "center_left", "far_right", "left"]);
-    if (Q.dhp_candidate) Q.dhp_candidate = pickClosestFinalist(Q.dhp_candidate, ["center_right", "center", "far_right", "center_left", "left"]);
-    if (Q.bb_candidate) Q.bb_candidate = pickClosestFinalist(Q.bb_candidate, ["center_right", "center", "far_right", "center_left", "left", "far_left"]);
-    if (Q.dvfp_candidate) Q.dvfp_candidate = pickClosestFinalist(Q.dvfp_candidate, ["far_right", "center_right", "center"]);
-    if (Q.dbp_r > 0 && Q.dbp_candidate) Q.dbp_candidate = pickClosestFinalist(Q.dbp_candidate, ["center", "center_right", "center_left"]);
-    if (Q.dsbp_r > 0 && Q.dsbp_candidate) Q.dsbp_candidate = pickClosestFinalist(Q.dsbp_candidate, ["center_left", "center", "center_right"]);
-    if (Q.dnf_votes > 0 && Q.dnf_candidate) Q.dnf_candidate = pickClosestFinalist(Q.dnf_candidate, ["far_right", "center_right", "center"]);
+    // Z's Kaas-vs-other leader split is already captured by the
+    // Q.z_party_leader === "Kaas" term inside the Z->NSDAP relation
+    // formula, so no hardcoded branch is needed here anymore.
+    if (Q.z_candidate) Q.z_candidate = pickBestFinalist("z", Q.z_candidate);
+    if (Q.csrp_candidate) Q.csrp_candidate = pickBestFinalist("csrp", Q.csrp_candidate);
+    if (Q.bvp_candidate) Q.bvp_candidate = pickBestFinalist("bvp", Q.bvp_candidate);
+    if (Q.dvp_candidate) Q.dvp_candidate = pickBestFinalist("dvp", Q.dvp_candidate);
+    if (Q.ddp_candidate) Q.ddp_candidate = pickBestFinalist("ddp", Q.ddp_candidate);
+    if (Q.kpd_candidate) Q.kpd_candidate = pickBestFinalist("kpd", Q.kpd_candidate);
+    if (Q.sapd_formed && Q.sapd_candidate) Q.sapd_candidate = pickBestFinalist("sapd", Q.sapd_candidate);
+    if (Q.srpd_formed && Q.srpd_candidate) Q.srpd_candidate = pickBestFinalist("srpd", Q.srpd_candidate);
+    if (Q.wp_candidate) Q.wp_candidate = pickBestFinalist("wp", Q.wp_candidate);
+    if (Q.cnbl_candidate) Q.cnbl_candidate = pickBestFinalist("cnbl", Q.cnbl_candidate);
+    if (Q.vrp_candidate) Q.vrp_candidate = pickBestFinalist("vrp", Q.vrp_candidate);
+    if (Q.csvd_candidate) Q.csvd_candidate = pickBestFinalist("csvd", Q.csvd_candidate);
+    if (Q.kvp_flee === 1 && Q.kvp_candidate) Q.kvp_candidate = pickBestFinalist("kvp", Q.kvp_candidate);
+    if (Q.dhp_candidate) Q.dhp_candidate = pickBestFinalist("dhp", Q.dhp_candidate);
+    if (Q.bb_candidate) Q.bb_candidate = pickBestFinalist("bb", Q.bb_candidate);
+    if (Q.dvfp_candidate) Q.dvfp_candidate = pickBestFinalist("dvfp", Q.dvfp_candidate);
+    if (Q.dbp_r > 0 && Q.dbp_candidate) Q.dbp_candidate = pickBestFinalist("dbp", Q.dbp_candidate);
+    if (Q.dsbp_r > 0 && Q.dsbp_candidate) Q.dsbp_candidate = pickBestFinalist("dsbp", Q.dsbp_candidate);
+    if (Q.dnf_votes > 0 && Q.dnf_candidate) Q.dnf_candidate = pickBestFinalist("dnf", Q.dnf_candidate);
 
-    // Minor parties — same generic priorities as their parent normally uses.
-    if (Q.kpo_r > 0 && Q.kpo_candidate) Q.kpo_candidate = pickClosestFinalist(Q.kpo_candidate, ["far_left", "left", "cultural"]);
-    if (Q.sl_r > 0 && Q.sl_candidate) Q.sl_candidate = pickClosestFinalist(Q.sl_candidate, ["left", "far_left", "cultural", "center_left"]);
-    if (Q.aspd_r > 0 && Q.aspd_candidate) Q.aspd_candidate = pickClosestFinalist(Q.aspd_candidate, ["center_right", "center", "center_left", "far_right", "left"]);
-    if (Q.vnr_r > 0 && Q.vnr_candidate) Q.vnr_candidate = pickClosestFinalist(Q.vnr_candidate, ["center_left", "center", "center_right", "far_right"]);
-    if (Q.hl_r > 0 && Q.hl_candidate) Q.hl_candidate = pickClosestFinalist(Q.hl_candidate, ["center_right", "center", "far_right", "center_left", "left"]);
-    if (Q.lb_r > 0 && Q.lb_candidate) Q.lb_candidate = pickClosestFinalist(Q.lb_candidate, ["far_left", "left", "cultural", "center_left"]);
-    if (Q.rdp_r > 0 && Q.rdp_candidate) Q.rdp_candidate = pickClosestFinalist(Q.rdp_candidate, ["center_left", "center", "left", "cultural"]);
-    if (Q.cvp_r > 0 && Q.cvp_candidate) Q.cvp_candidate = pickClosestFinalist(Q.cvp_candidate, ["center_right", "center", "far_right", "center_left"]);
-    if (Q.sls_r > 0 && Q.sls_candidate) Q.sls_candidate = pickClosestFinalist(Q.sls_candidate, ["center_left", "center", "left", "cultural"]);
-    if (Q.dtsp_r > 0 && Q.dtsp_candidate) Q.dtsp_candidate = pickClosestFinalist(Q.dtsp_candidate, ["far_right", "center_right", "center"]);
+    // Minor parties — inherit their parent's voting party key for the
+    // relation lookup, since Q.party_relations is keyed by major party.
+    if (Q.kpo_r > 0 && Q.kpo_candidate) Q.kpo_candidate = pickBestFinalist("kpd", Q.kpo_candidate);
+    if (Q.sl_r > 0 && Q.sl_candidate) Q.sl_candidate = pickBestFinalist("sapd", Q.sl_candidate);
+    if (Q.aspd_r > 0 && Q.aspd_candidate) Q.aspd_candidate = pickBestFinalist("dvp", Q.aspd_candidate);
+    if (Q.vnr_r > 0 && Q.vnr_candidate) Q.vnr_candidate = pickBestFinalist("dvp", Q.vnr_candidate);
+    if (Q.hl_r > 0 && Q.hl_candidate) Q.hl_candidate = pickBestFinalist("dhp", Q.hl_candidate);
+    if (Q.lb_r > 0 && Q.lb_candidate) Q.lb_candidate = pickBestFinalist("kpd", Q.lb_candidate);
+    if (Q.rdp_r > 0 && Q.rdp_candidate) Q.rdp_candidate = pickBestFinalist("ddp", Q.rdp_candidate);
+    if (Q.cvp_r > 0 && Q.cvp_candidate) Q.cvp_candidate = pickBestFinalist("z", Q.cvp_candidate);
+    if (Q.sls_r > 0 && Q.sls_candidate) Q.sls_candidate = pickBestFinalist("spd", Q.sls_candidate);
+    if (Q.dtsp_r > 0 && Q.dtsp_candidate) Q.dtsp_candidate = pickBestFinalist("nsdap", Q.dtsp_candidate);
 
     // If third place was pushed out (round2_has_third just turned off),
     // anyone still pointing at them gets re-homed onto a real finalist.
@@ -2046,7 +2057,7 @@ function consolidateRound2() {
             var cand = Q[p + '_candidate'];
             if (!cand) continue;
             if (canon2(cand) === canon2(Q.round1_third)) {
-                Q[p + '_candidate'] = pickClosestFinalist(cand, ["center_left", "center", "center_right", "left", "far_left", "far_right"]);
+                Q[p + '_candidate'] = pickBestFinalist(p, cand);
             }
         }
     }
@@ -2113,25 +2124,43 @@ on-arrival: {!
 // (ChoiceScript scopes JS per block, so this is intentionally the same
 // short, crash-free function rather than relying on another block's
 // scope — that mismatch is exactly what caused the original crash.)
-var BLOCS = {
-    far_left:     ["Thalmann", "Munzenberg"],
-    left:         ["Braun", "Schumacher", "Juchacz", "Rosenfeld", "Ollenhauer"],
-    cultural:     ["Einstein", "Mann", "Ossietzky"],
-    center_left:  ["Eckener", "Gessler", "Stresemann", "Horsing", "Schmid"],
-    center:       ["Adenauer", "Kaas", "Bruning", "Noske", "Fehr"],
-    center_right: ["Schaffer", "Westarp", "Treviranus", "Lambach", "Lindeiner", "Drewitz", "Hamkens", "Behrens", "Lambach2"],
-    far_right:    ["Hitler", "Goring", "Goebbels", "Seldte", "Hugenberg", "Graefe", "Ludendorff"]
-};
-if (!Q.hindenburg_dead) { BLOCS.center_left.push("Hindenburg"); BLOCS.center.push("Hindenburg"); BLOCS.center_right.push("Hindenburg"); }
+// Driven by Q.<party>_ideo_score (ideology, dominant) and
+// Q.party_relations (relation, tiebreaker + soft veto) instead of
+// hardcoded bloc-priority lists — see consolidateRound2() above for
+// the full rationale.
 function canon2(name) { if (!name) return name; return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, ""); }
-function isInBlock(c, blockNames) { c = canon2(c); for (var i=0;i<blockNames.length;i++){ if (BLOCS[blockNames[i]].indexOf(c)!==-1) return true; } return false; }
 function currentFinalists() { var f=[Q.round1_winner, Q.round1_runner_up]; if (Q.round2_has_third && Q.round1_third) f.push(Q.round1_third); return f; }
-function pickClosestFinalist(current_candidate, priority) {
+var BLOC_IDEO_FALLBACK = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
+                            center: 5, center_right: 6.5, far_right: 9.5 };
+function candIdeoScore(name) {
+    var key = canon2(name);
+    var c = CANDIDATES[key];
+    if (!c) return 5;
+    var partyKey = (c.party || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (Q[partyKey + '_ideo_score'] !== undefined) return Q[partyKey + '_ideo_score'];
+    return (c.bloc && BLOC_IDEO_FALLBACK[c.bloc] !== undefined) ? BLOC_IDEO_FALLBACK[c.bloc] : 5;
+}
+function vetoPenalty(relation) { if (relation >= 15) return 0; return (15 - relation) * 4; }
+function finalistScore(votingPartyKey, finalist) {
+    var fKey = canon2(finalist);
+    var c = CANDIDATES[fKey];
+    var finalistPartyLabel = c ? c.party : "";
+    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (finalistPartyLabel || "").toUpperCase());
+    var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
+    var ideoGap = Math.abs(myIdeo - candIdeoScore(finalist));
+    return -(ideoGap * 20) + (relation * 0.5) - vetoPenalty(relation);
+}
+function pickBestFinalist(votingPartyKey, current_candidate) {
     var finalists = currentFinalists();
     var cc = canon2(current_candidate);
     for (var fi=0; fi<finalists.length; fi++) if (canon2(finalists[fi]) === cc) return current_candidate;
-    for (var i=0;i<priority.length;i++) for (var j=0;j<finalists.length;j++) if (isInBlock(finalists[j],[priority[i]])) return finalists[j];
-    return finalists[0];
+    var best = finalists[0];
+    var bestScore = finalistScore(votingPartyKey, finalists[0]);
+    for (var f = 1; f < finalists.length; f++) {
+        var s = finalistScore(votingPartyKey, finalists[f]);
+        if (s > bestScore) { bestScore = s; best = finalists[f]; }
+    }
+    return best;
 }
 var parties_r2 = Q.parties;
 for (var i = 0; i < parties_r2.length; i++) {
@@ -2139,7 +2168,7 @@ for (var i = 0; i < parties_r2.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     if (canon2(cand) === canon2(Q.round1_third)) {
-        Q[p + '_candidate'] = pickClosestFinalist(cand, ["center_left","center","center_right","left","far_left","far_right"]);
+        Q[p + '_candidate'] = pickBestFinalist(p, cand);
     }
 }
 !}
