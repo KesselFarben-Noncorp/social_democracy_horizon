@@ -322,10 +322,12 @@ Object.keys(wordPhrases).forEach(function(phrase) {
         'DSBP':  '#7A9DB5',
         'DLP':   '#F7FF05',
         'LMP':   '#B8860B',
+        'DNF':   '#00008b',
 
         // Centre Party (Z) — avoid single-letter match, use full name below
         'Zentrum': '#333333',
         'BVP':   '#69A2BE',
+        'Z': '#111111',
 
         // ── Austrian Nationalrat parties ──────────────────────────
         'SDAPÖ': '#C0392B',
