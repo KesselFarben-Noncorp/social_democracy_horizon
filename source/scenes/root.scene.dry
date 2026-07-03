@@ -251,7 +251,7 @@ Q.dnvp_ideology = "National Conservatism";
 Q.nsdap_ideology = "National Socialism";
 Q.dvfp_ideology = "Völkisch Nationalism";
 Q.dbp_ideology = "Liberal Agrarianism";
-
+Q.dnf_ideology = "National Conservatism";
 
 Q.dsbp_name = "DSBP";
 
@@ -2116,6 +2116,85 @@ Q.custom_party_dnvp  = Q.custom_party_dnvp  || 1;
 Q.custom_party_nsdap = Q.custom_party_nsdap || 1;
 Q.custom_party_lb    = Q.custom_party_lb    || 0;
 Q.custom_party_kpo   = Q.custom_party_kpo   || 0;
+
+// ============================================================
+// AUTO IDEOLOGY SCORER — derives 1 (far-left) to 10 (far-right)
+
+const IDEO_KEYWORDS = [
+    // 1 — revolutionary / Leninist left
+    [/marxism-leninism/i,                 1],
+    [/council communism/i,                1],
+
+    // 2 — revolutionary but non-Leninist / left socialist
+    [/revolutionary socialism/i,          2],
+    [/left-wing socialism/i,              2],
+
+    // 3 — mainstream social democracy
+    [/social democracy/i,                 3],
+    [/social republicanism/i,             3],
+
+    // 4 — right social democracy / soft-left liberal
+    [/right-wing social democracy/i,      4],
+
+    // 5 — center / centrist liberal / cross-class Christian
+    [/social liberalism/i,                5],
+    [/christian socialism/i,              5],
+    [/catholic tent/i,                    5],
+    [/middle-class interest/i,            5],
+
+    // 6 — moderate conservative / regional Catholic conservative
+    [/bavarian conservatism/i,            6],
+    [/protestant social conservatism/i,   6],
+    [/moderate conservatism/i,            6],
+    [/liberal agrarianism/i,              6],
+
+    // 7 — national liberal / agrarian-liberal right-center
+    [/national liberalism/i,              7],
+    [/hanoverian agrarianism/i,           7],
+    [/hanseatic agrarian conservatism/i,  7],
+
+    // 8 — hard agrarian conservative
+    [/agrarian conservatism/i,            8],
+
+    // 9 — national conservative
+    [/national conservatism/i,            9],
+
+    // 10 — far-right nationalist / völkisch / Nazi
+    [/national socialism/i,               10],
+    [/völkisch nationalism/i,             10],
+    [/völkisch liberalism/i,              7], // liberal-flavored völkisch
+];
+
+function ideoScore(ideologyString) {
+    if (!ideologyString) return 5;
+    for (const [pattern, score] of IDEO_KEYWORDS) {
+        if (pattern.test(ideologyString)) return score;
+    }
+    return 5; // unrecognized ideology string -> treat as centrist/unknown
+}
+
+// Apply to every active party, reading straight from Q.[party]_ideology
+// (falls back to 5 if a party has no ideology string defined yet)
+for (const p of Q.parties) {
+    const key = p + '_ideology';
+    Q[p + '_ideo_score'] = ideoScore(Q[key]);
+}
+
+// Also cover parties tracked outside Q.parties but referenced in
+// party_relations / coalition_blocks (splinters, KPO, LB, etc.)
+const EXTRA_IDEO_PARTIES = [
+    'kpo', 'sl', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 'csrp', 'dvp', 'wp',
+    'cnbl', 'csvd', 'dnvp', 'vrp', 'kvp', 'dhp', 'bb', 'dvfp',
+    'aspd', 'vnr', 'hl', 'lb', 'rdp', 'cvp', 'sls', 'dtsp', 'dbp', 'dsbp', 'dnf'
+];
+for (const p of EXTRA_IDEO_PARTIES) {
+    const key = p + '_ideology';
+    if (Q[key] !== undefined) {
+        Q[p + '_ideo_score'] = ideoScore(Q[key]);
+    }
+}
+
+
 !}
 set-bg: img/map_2.jpg
 new-page: true
@@ -3365,22 +3444,12 @@ if (Q.inverted_challenge === 1) {
         NSDAP_DBP: false, DVFP_DBP: false, DTSP_DBP: false,
     };
 
-    // ===== IDEOLOGY OVERRIDES =====
-    var IDEO_DEFAULTS_INV = {
-        KPD: 1, SAPD: 2, SPD: 3, SRPD: 3,
-        DDP: 5, CSRP: 5, Z: 5, BVP: 6, CSVD: 6, KVP: 6,
-        DVP: 7, WP: 7, VRP: 7, DHP: 7,
-        BB: 7, CNBL: 8, DNVP: 9, NSDAP: 10, DVFP: 10,
-        DTSP: 10, LB: 1, RDP: 4, CVP: 5, SLS: 4,
-        DBP: 6, DSBP: 3
-    };
-
     for (var ip_inv = 0; ip_inv < all_parties_inv.length; ip_inv++) {
-        var p_inv = all_parties_inv[ip_inv];
-        var base_inv = IDEO_DEFAULTS_INV[p_inv] || 5;
-        var jitter_inv = Math.floor(Math.random() * 7) - 3;
-        Q[p_inv.toLowerCase() + '_ideo_override'] = Math.max(1, Math.min(10, base_inv + jitter_inv));
-    }
+    var p_inv = all_parties_inv[ip_inv].toLowerCase();
+    var base_inv = Q[p_inv + '_ideo_score'] ?? ideoScore(Q[p_inv + '_ideology']);
+    var jitter_inv = Math.floor(Math.random() * 7) - 3;
+    Q[p_inv + '_ideo_override'] = Math.max(1, Math.min(10, base_inv + jitter_inv));
+  }
 }
 
 // PARTY SELECTOR
