@@ -124,41 +124,46 @@ function blocIndex(blocName) {
 // PARTIES — display info + tier. "minor" tier parties have no rows in
 // OWN_BENCH at all; they always just inherit their parent's pick.
 // ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// PARTIES — display info + tier. "minor" tier parties have no rows in
+// OWN_BENCH at all; they always just inherit their parent's pick.
+// ---------------------------------------------------------------------
 var PARTIES = {
-    spd:   { label: "SPD",  tier: "major" },
-    z:     { label: "Z",    tier: "major" },
-    dnvp:  { label: "DNVP", tier: "major", requires: "!Q.dnvp_banned" },
-    dvp:   { label: "DVP",  tier: "major" },
-    ddp:   { label: "",     tier: "major" },
-    kpd:   { label: "KPD",  tier: "major", requires: "!Q.kpd_banned" },
-    nsdap: { label: "NSDAP",tier: "major", requires: "!Q.nsdap_banned" },
-    bvp:   { label: "BVP",  tier: "major" },
-    wp:    { label: "WP",   tier: "major" },
-    cnbl:  { label: "CNBL", tier: "major" },
-    bb:    { label: "BB",   tier: "major", requires: "!Q.bb_banned" },
-    dhp:   { label: "DHP",  tier: "major", requires: "!Q.dhp_banned" },
-    csvd:  { label: "CSVD", tier: "major", requires: "Q.csvd_flee === 1" },
-    kvp:   { label: "KVP",  tier: "major", requires: "Q.kvp_flee === 1 && !Q.kvp_banned" },
-    vrp:   { label: "VRP",  tier: "major", requires: "Q.vrp_votes > 0.2" },
-    sapd:  { label: "SAPD", tier: "major", requires: "Q.sapd_formed" },
-    srpd:  { label: "SRPD", tier: "major", requires: "Q.srpd_formed" },
-    dbp:   { label: "DBP",  tier: "major", requires: "Q.dbp_r > 0 && !Q.dbp_banned" },
-    dsbp:  { label: "DSBP", tier: "major", requires: "Q.dsbp_r > 0 && !Q.dsbp_banned" },
-    dvfp:  { label: "DVFP", tier: "major", requires: "!Q.dvfp_banned" },
-    csrp:  { label: "CSRP", tier: "major" },
-    dnf:   { label: "DNF", tier:  "major", requires: "Q.dnf_votes > 0 && !Q.dnf_banned"},
+    spd:   { label: "SPD",  tier: "major", requires: "Q.spd_votes > 0 && !Q.spd_banned" },
+    z:     { label: "Z",    tier: "major", requires: "Q.z_votes > 0 && !Q.z_banned" },
+    dnvp:  { label: "DNVP", tier: "major", requires: "Q.dnvp_votes > 0 && !Q.dnvp_banned" },
+    dvp:   { label: "DVP",  tier: "major", requires: "Q.dvp_votes > 0 && !Q.dvp_banned" },
+    ddp:   { label: "",     tier: "major", requires: "Q.ddp_votes > 0 && !Q.ddp_banned" },
+    kpd:   { label: "KPD",  tier: "major", requires: "Q.kpd_votes > 0 && !Q.kpd_banned" },
+    nsdap: { label: "NSDAP",tier: "major", requires: "Q.nsdap_votes > 0 && !Q.nsdap_banned" },
+    bvp:   { label: "BVP",  tier: "major", requires: "Q.bvp_votes > 0 && !Q.bvp_banned" },
+    wp:    { label: "WP",   tier: "major", requires: "Q.wp_votes > 0 && !Q.wp_banned" },
+    cnbl:  { label: "CNBL", tier: "major", requires: "Q.cnbl_votes > 0 && !Q.cnbl_banned" },
+    bb:    { label: "BB",   tier: "major", requires: "Q.bb_votes > 0 && !Q.bb_banned" },
+    dhp:   { label: "DHP",  tier: "major", requires: "Q.dhp_votes > 0 && !Q.dhp_banned" },
+    csvd:  { label: "CSVD", tier: "major", requires: "Q.csvd_votes > 0 && !Q.csvd_banned" },
+    kvp:   { label: "KVP",  tier: "major", requires: "Q.kvp_votes > 0 && !Q.kvp_banned " },
+    vrp:   { label: "VRP",  tier: "major", requires: "Q.vrp_votes > 0 && !Q.vrp_banned" },
+    sapd:  { label: "SAPD", tier: "major", requires: "Q.sapd_votes > 0 && !Q.sapd_banned" },
+    srpd:  { label: "SRPD", tier: "major", requires: "Q.srpd_votes > 0 && !Q.srpd_banned" },
+    dbp:   { label: "DBP",  tier: "major", requires: "Q.dbp_votes > 0 && !Q.dbp_banned" },
+    dsbp:  { label: "DSBP", tier: "major", requires: "Q.dsbp_votes > 0 && !Q.dsbp_banned" },
+    dvfp:  { label: "DVFP", tier: "major", requires: "Q.dvfp_votes > 0 && !Q.dvfp_banned" },
+    csrp:  { label: "CSRP", tier: "major", requires: "Q.csrp_votes > 0 && !Q.csrp_banned" },
+    dnf:   { label: "DNF",  tier: "major", requires: "Q.dnf_votes > 0 && !Q.dnf_banned" },
 
-    kpo:   { label: "KPO",  tier: "minor", parent: "kpd",  requires: "Q.kpo_r > 0" },
-    sl:    { label: "SL",   tier: "minor", parent: "sapd", requires: "Q.sl_r > 0" },
-    aspd:  { label: "ASPD", tier: "minor", parent: "dvp",  requires: "Q.aspd_r > 0" },
-    vnr:   { label: "VNR",  tier: "minor", parent: "dvp",  requires: "Q.vnr_r > 0" },
-    hl:    { label: "HL",   tier: "minor", parent: "dhp",  requires: "Q.hl_r > 0" },
-    lb:    { label: "LB",   tier: "minor", parent: "kpd",  requires: "Q.lb_r > 0" },
-    rdp:   { label: "RDP",  tier: "minor", parent: "ddp",  requires: "Q.rdp_r > 0" },
-    cvp:   { label: "CVP",  tier: "minor", parent: "z",    requires: "Q.cvp_r > 0" },
-    sls:   { label: "SLS",  tier: "minor", parent: "spd",  requires: "Q.sls_r > 0" },
-    dtsp:  { label: "DtsP", tier: "minor", parent: "nsdap",requires: "Q.dtsp_r > 0" }
+    kpo:   { label: "KPO",  tier: "minor", parent: "kpd",  requires: "Q.kpo_votes > 0 && !Q.kpo_banned" },
+    sl:    { label: "SL",   tier: "minor", parent: "sapd", requires: "Q.sl_votes > 0 && !Q.sl_banned" },
+    aspd:  { label: "ASPD", tier: "minor", parent: "dvp",  requires: "Q.aspd_votes > 0 && !Q.aspd_banned" },
+    vnr:   { label: "VNR",  tier: "minor", parent: "dvp",  requires: "Q.vnr_votes > 0 && !Q.vnr_banned" },
+    hl:    { label: "HL",   tier: "minor", parent: "dhp",  requires: "Q.hl_votes > 0 && !Q.hl_banned" },
+    lb:    { label: "LB",   tier: "minor", parent: "kpd",  requires: "Q.lb_votes > 0 && !Q.lb_banned" },
+    rdp:   { label: "RDP",  tier: "minor", parent: "ddp",  requires: "Q.rdp_votes > 0 && !Q.rdp_banned" },
+    cvp:   { label: "CVP",  tier: "minor", parent: "z",    requires: "Q.cvp_votes > 0 && !Q.cvp_banned" },
+    sls:   { label: "SLS",  tier: "minor", parent: "spd",  requires: "Q.sls_votes > 0 && !Q.sls_banned" },
+    dtsp:  { label: "DtsP", tier: "minor", parent: "nsdap",requires: "Q.dtsp_votes > 0 && !Q.dtsp_banned" }
 };
+
 
 function partyActive(p) {
     var req = PARTIES[p].requires;
@@ -500,13 +505,6 @@ for (var ri = 0; ri < RESOLUTION_ORDER.length; ri++) {
     var picked = (pkey === "csrp" || pkey === "dnf") ? ownBench : pickFreeCandidate(pkey, ownBench, resolvedSoFar);
     Q[pkey + '_candidate'] = picked;
     resolvedSoFar.push(picked);
-}
-
-// Z and BVP wait for SPD's choice unless a joint ticket already locked
-// them in (mirrors the original "will finalize after SPD" design).
-if (!jointActive()) {
-    Q.z_candidate = null;
-    Q.bvp_candidate = null;
 }
 
 // --- Minor parties: always mirror their parent's CURRENT pick so the
