@@ -84,7 +84,7 @@ var CANDIDATES = {
     Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
     Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
-    Hugenberg: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
+    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
 };
 
 var CANDIDATE_ALIAS = {};
@@ -238,7 +238,11 @@ function vetoPenaltyR1(relation) {
 // HOME_BENCH_BONUS: flat score bonus for a party's own candidate, so a
 // party only defects to backing someone else when that option is
 // clearly better, not on a coin-flip-sized ideology/relation delta.
-var HOME_BENCH_BONUS = 6;
+// Lowered from 6 -> 3, and the ideology-gap weight from 20 -> 12 below,
+// so relation/pragmatic politics can outweigh small ideological gaps
+// more often, producing more realistic cross-party backing/splits
+// instead of nearly every party defaulting to its own bench candidate.
+var HOME_BENCH_BONUS = 3;
 
 function optionScore(votingPartyKey, candidateName, isOwnBench) {
     var fKey = canon(candidateName);
@@ -247,7 +251,7 @@ function optionScore(votingPartyKey, candidateName, isOwnBench) {
     var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
     var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
     var ideoGap = Math.abs(myIdeo - candIdeoScoreR1(candidateName));
-    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyR1(relation);
+    var score = -(ideoGap * 12) + (relation * 0.5) - vetoPenaltyR1(relation);
     if (isOwnBench) score += HOME_BENCH_BONUS;
     return score;
 }
@@ -425,23 +429,8 @@ function ddpOwnCandidate() {
     return "Heuss";
 }
 
-// resolveCandidate walks OWN_BENCH rows top to bottom to find what a
-// party WOULD run alone (unchanged mechanism, narrative rows only now).
-function resolveCandidate(rows) {
-    for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        if (row.default !== undefined) {
-            return (typeof row.default === "function") ? row.default() : row.default;
-        }
-        var ok;
-        try { ok = !!eval(row.if); } catch (e) { ok = false; }
-        if (ok) {
-            var result = (typeof row.pick === "function") ? row.pick() : row.pick;
-            if (result) return result;
-        }
-    }
-    return null;
-}
+// resolveCandidate (defined above) walks OWN_BENCH rows top to bottom
+// to find what a party WOULD run alone (narrative rows only).
 
 // =====================================================================
 // ORCHESTRATION
@@ -1013,7 +1002,7 @@ var CAND_INFO = {
     Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
     Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
-    Hugenberg: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
+    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
 };
 var CAND_ALIAS = {};
 for (var ck0 in CAND_INFO) {
@@ -1060,7 +1049,8 @@ function vetoPenaltyFC(relation) {
     if (relation >= 15) return 0;
     return (15 - relation) * 4;
 }
-var HOME_BENCH_BONUS_FC = 6;
+// Kept in sync with HOME_BENCH_BONUS / ideology weight in @party_candidates.
+var HOME_BENCH_BONUS_FC = 3;
 function optionScoreFC(votingPartyKey, candidateName, isOwnBench) {
     var fKey = canon(candidateName);
     var c = CAND_INFO[fKey];
@@ -1068,7 +1058,7 @@ function optionScoreFC(votingPartyKey, candidateName, isOwnBench) {
     var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
     var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
     var ideoGap = Math.abs(myIdeo - candIdeoScoreFC(candidateName));
-    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyFC(relation);
+    var score = -(ideoGap * 12) + (relation * 0.5) - vetoPenaltyFC(relation);
     if (isOwnBench) score += HOME_BENCH_BONUS_FC;
     return score;
 }
@@ -1314,7 +1304,7 @@ if (Q.dnf_banned) {
     Q.dnf_candidate = Q.nsdap_candidate;
 } else {
     // Line 1, minor lines, or running a independent bourgeois-nationalist spoiler ticket
-    Q.dnf_candidate = "Hugenberg";
+    Q.dnf_candidate = "HugenbergDNF";
 }
 
 
@@ -1576,7 +1566,7 @@ var CAND_INFO = {
     Quidde:     { name: "Ludwig Quidde",       party: "RDP" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP", aliases: ["Böhm"] },
     Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" },
-    Hugenberg: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
+    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
 };
 var CAND_ALIAS = {};
 for (var ck0 in CAND_INFO) {
@@ -1614,7 +1604,7 @@ for (var i = 0; i < all_parties.length; i++) {
     var key = canon(supported_candidate);
     Q[key + '_running'] = 1;
 
-    var party_votes = Q[party + '_votes'] || Q[party + '_r'] || 0;
+    var party_votes = (Q[party + '_votes'] !== undefined && Q[party + '_votes'] !== null) ? Q[party + '_votes'] : (Q[party + '_r'] || 0);
     candidate_votes[key] = (candidate_votes[key] || 0)
         + (Q.math_broken ? Q.impossible_add(0, party_votes) : party_votes);
 }
@@ -1720,7 +1710,19 @@ var partyLabels = {
 
 var allParties = Q.parties;
 
-function canon2(name) { if (!name) return name; return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, ""); }
+// Alias-aware canonicalization (self-contained per this block's own
+// JS scope). Previously a bare accent-stripping canon2() with no
+// alias table -- any candidate stored under an alias spelling could
+// split into a duplicate row here instead of merging into one.
+var CAND_ALIAS_DISPLAY = { "G\u00f6ring": "Goring", "Br\u00fcning": "Bruning", "Sch\u00e4ffer": "Schaffer",
+    "L\u00fcders": "Luders", "Koch-Weser": "KochWeser", "Th\u00e4lmann": "Thalmann",
+    "M\u00fcnzenberg": "Munzenberg", "B\u00f6hm": "Bohm" };
+function canon2(name) {
+    if (!name) return name;
+    if (CAND_ALIAS_DISPLAY[name]) return CAND_ALIAS_DISPLAY[name];
+    var stripped = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
+    return CAND_ALIAS_DISPLAY[stripped] || stripped;
+}
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -1736,7 +1738,7 @@ for (var i = 0; i < allParties.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     var candNorm = canon2(cand);
-    var votes = Q[p + '_votes'] || Q[p + '_r'] || 0;
+    var votes = (Q[p + '_votes'] !== undefined && Q[p + '_votes'] !== null) ? Q[p + '_votes'] : (Q[p + '_r'] || 0);
     if (votes <= 0) continue;
     if (!candidateTotals[candNorm]) candidateTotals[candNorm] = 0;
     candidateTotals[candNorm] += votes;
@@ -1920,9 +1922,48 @@ on-arrival: {!
 // other option is ideologically far worse.
 // ---------------------------------------------------------------------
 
+// Local candidate registry (party + bloc only, all this block needs).
+// Previously missing entirely: candIdeoScore()/finalistScore() below
+// referenced a bare `CANDIDATES` that was never defined in this block's
+// scope, since ChoiceScript scopes JS per-block and @party_candidates's
+// CANDIDATES table isn't visible here. That left ideology scoring
+// silently broken (or erroring) for the entire round-2 runoff.
+var CANDIDATES = {
+    Hindenburg: { party: "I", bloc: "center" }, Eckener: { party: "Unity", bloc: "center_left" },
+    Gessler: { party: "Liberal", bloc: "center_left" }, Einstein: { party: "Independent", bloc: "cultural" },
+    Mann: { party: "Independent", bloc: "cultural" }, Ossietzky: { party: "Independent", bloc: "cultural" },
+    Hitler: { party: "NSDAP", bloc: "far_right" }, Goring: { party: "NSDAP", bloc: "far_right" },
+    Goebbels: { party: "NSDAP", bloc: "far_right" }, Westarp: { party: "DNVP", bloc: "center_right" },
+    Treviranus: { party: "DNVP", bloc: "center_right" }, Lambach: { party: "DNVP", bloc: "center_right" },
+    Lindeiner: { party: "DNVP", bloc: "center_right" }, Hugenberg: { party: "DNVP", bloc: "far_right" },
+    HugenbergDNF: { party: "DNF", bloc: "far_right" }, Seldte: { party: "DNVP/Stahlhelm", bloc: "far_right" },
+    Adenauer: { party: "Z", bloc: "center" }, Kaas: { party: "Z", bloc: "center" },
+    Bruning: { party: "Z", bloc: "center" }, Schaffer: { party: "BVP", bloc: "center_right" },
+    Stresemann: { party: "DVP", bloc: "center_left" }, Scholz: { party: "DVP", bloc: "center_right" },
+    Dingeldey: { party: "DVP", bloc: "center_right" }, Curtius: { party: "DVP", bloc: "center" },
+    Reinhold: { party: "DVP", bloc: "center_left" }, Heuss: { party: "DDP", bloc: "center_left" },
+    Dietrich: { party: "DDP", bloc: "center_left" }, Luders: { party: "DDP", bloc: "center_left" },
+    Lemmer: { party: "DDP", bloc: "center_left" }, Mahraun: { party: "DStP/Jungdo", bloc: "center_right" },
+    KochWeser: { party: "DStP", bloc: "center_left" }, Maier: { party: "DStP", bloc: "center_left" },
+    Thalmann: { party: "KPD", bloc: "far_left" }, Munzenberg: { party: "KPD", bloc: "far_left" },
+    Braun: { party: "SPD", bloc: "left" }, Schumacher: { party: "SPD", bloc: "left" },
+    Schmid: { party: "SPD (Reformist)", bloc: "center_left" }, Ollenhauer: { party: "SPD (Left)", bloc: "left" },
+    Juchacz: { party: "SPD", bloc: "left" }, Noske: { party: "SPD (Right)", bloc: "center" },
+    Rosenfeld: { party: "SAPD", bloc: "far_left" }, Horsing: { party: "SRPD", bloc: "center_left" },
+    Hamkens: { party: "CNBL", bloc: "center_right" }, Behrens: { party: "CNBL", bloc: "center_right" },
+    Fehr: { party: "DBP", bloc: "center" }, Drewitz: { party: "WP", bloc: "center_right" },
+    Lambach2: { party: "CSVD", bloc: "center_right" }, Graefe: { party: "DVFP", bloc: "far_right" },
+    Ludendorff: { party: "DVFP/Völkisch", bloc: "far_right" }, Quidde: { party: "RDP", bloc: "center_left" },
+    Bohm: { party: "VRP", bloc: "center_right" }, Kunze: { party: "DTSP", bloc: "far_right" }
+};
+var CANDIDATES_ALIAS = { "Göring": "Goring", "Brüning": "Bruning", "Schäffer": "Schaffer",
+    "Lüders": "Luders", "Koch-Weser": "KochWeser", "Thälmann": "Thalmann",
+    "Münzenberg": "Munzenberg", "Böhm": "Bohm" };
 function canon2(name) {
     if (!name) return name;
-    return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
+    if (CANDIDATES_ALIAS[name]) return CANDIDATES_ALIAS[name];
+    var stripped = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
+    return CANDIDATES_ALIAS[stripped] || stripped;
 }
 
 // finalists is always derived fresh from current Q state, never assumed
@@ -2119,7 +2160,46 @@ on-arrival: {!
 // Q.party_relations (relation, tiebreaker + soft veto) instead of
 // hardcoded bloc-priority lists — see consolidateRound2() above for
 // the full rationale.
-function canon2(name) { if (!name) return name; return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, ""); }
+// Local candidate registry (party + bloc only). Same fix as r2_start:
+// CANDIDATES was referenced below but never defined in this block's
+// own scope, since ChoiceScript scopes JS per-block.
+var CANDIDATES = {
+    Hindenburg: { party: "I", bloc: "center" }, Eckener: { party: "Unity", bloc: "center_left" },
+    Gessler: { party: "Liberal", bloc: "center_left" }, Einstein: { party: "Independent", bloc: "cultural" },
+    Mann: { party: "Independent", bloc: "cultural" }, Ossietzky: { party: "Independent", bloc: "cultural" },
+    Hitler: { party: "NSDAP", bloc: "far_right" }, Goring: { party: "NSDAP", bloc: "far_right" },
+    Goebbels: { party: "NSDAP", bloc: "far_right" }, Westarp: { party: "DNVP", bloc: "center_right" },
+    Treviranus: { party: "DNVP", bloc: "center_right" }, Lambach: { party: "DNVP", bloc: "center_right" },
+    Lindeiner: { party: "DNVP", bloc: "center_right" }, Hugenberg: { party: "DNVP", bloc: "far_right" },
+    HugenbergDNF: { party: "DNF", bloc: "far_right" }, Seldte: { party: "DNVP/Stahlhelm", bloc: "far_right" },
+    Adenauer: { party: "Z", bloc: "center" }, Kaas: { party: "Z", bloc: "center" },
+    Bruning: { party: "Z", bloc: "center" }, Schaffer: { party: "BVP", bloc: "center_right" },
+    Stresemann: { party: "DVP", bloc: "center_left" }, Scholz: { party: "DVP", bloc: "center_right" },
+    Dingeldey: { party: "DVP", bloc: "center_right" }, Curtius: { party: "DVP", bloc: "center" },
+    Reinhold: { party: "DVP", bloc: "center_left" }, Heuss: { party: "DDP", bloc: "center_left" },
+    Dietrich: { party: "DDP", bloc: "center_left" }, Luders: { party: "DDP", bloc: "center_left" },
+    Lemmer: { party: "DDP", bloc: "center_left" }, Mahraun: { party: "DStP/Jungdo", bloc: "center_right" },
+    KochWeser: { party: "DStP", bloc: "center_left" }, Maier: { party: "DStP", bloc: "center_left" },
+    Thalmann: { party: "KPD", bloc: "far_left" }, Munzenberg: { party: "KPD", bloc: "far_left" },
+    Braun: { party: "SPD", bloc: "left" }, Schumacher: { party: "SPD", bloc: "left" },
+    Schmid: { party: "SPD (Reformist)", bloc: "center_left" }, Ollenhauer: { party: "SPD (Left)", bloc: "left" },
+    Juchacz: { party: "SPD", bloc: "left" }, Noske: { party: "SPD (Right)", bloc: "center" },
+    Rosenfeld: { party: "SAPD", bloc: "far_left" }, Horsing: { party: "SRPD", bloc: "center_left" },
+    Hamkens: { party: "CNBL", bloc: "center_right" }, Behrens: { party: "CNBL", bloc: "center_right" },
+    Fehr: { party: "DBP", bloc: "center" }, Drewitz: { party: "WP", bloc: "center_right" },
+    Lambach2: { party: "CSVD", bloc: "center_right" }, Graefe: { party: "DVFP", bloc: "far_right" },
+    Ludendorff: { party: "DVFP/Völkisch", bloc: "far_right" }, Quidde: { party: "RDP", bloc: "center_left" },
+    Bohm: { party: "VRP", bloc: "center_right" }, Kunze: { party: "DTSP", bloc: "far_right" }
+};
+var CANDIDATES_ALIAS = { "Göring": "Goring", "Brüning": "Bruning", "Schäffer": "Schaffer",
+    "Lüders": "Luders", "Koch-Weser": "KochWeser", "Thälmann": "Thalmann",
+    "Münzenberg": "Munzenberg", "Böhm": "Bohm" };
+function canon2(name) {
+    if (!name) return name;
+    if (CANDIDATES_ALIAS[name]) return CANDIDATES_ALIAS[name];
+    var stripped = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
+    return CANDIDATES_ALIAS[stripped] || stripped;
+}
 function currentFinalists() { var f=[Q.round1_winner, Q.round1_runner_up]; if (Q.round2_has_third && Q.round1_third) f.push(Q.round1_third); return f; }
 var BLOC_IDEO_FALLBACK = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
                             center: 5, center_right: 6.5, far_right: 9.5 };
@@ -2351,7 +2431,8 @@ var CAND_INFO = {
     Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch" },
     Quidde:     { name: "Ludwig Quidde",       party: "RDP" },
     Bohm:       { name: "Johannes Böhm",       party: "VRP", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" }
+    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" },
+    HugenbergDNF: { name: "Alfred Hugenberg",  party: "DNF" }
 };
 var CAND_ALIAS = {};
 for (var ck0 in CAND_INFO) {
@@ -2383,7 +2464,7 @@ for (var i = 0; i < parties.length; i++) {
     if (!supported_candidate) continue;
 
     var key = canon(supported_candidate);
-    var party_votes = Q[party + '_votes'] || Q[party + '_r'] || 0;
+    var party_votes = (Q[party + '_votes'] !== undefined && Q[party + '_votes'] !== null) ? Q[party + '_votes'] : (Q[party + '_r'] || 0);
     candidate_votes[key] = (candidate_votes[key] || 0)
         + (Q.math_broken ? Q.impossible_add(0, party_votes) : party_votes);
 
@@ -2442,7 +2523,19 @@ partyLabels.dsbp = Q.dsbp_name || "DSBP";
 
 var allParties = Q.parties;
 
-function canon2(name) { if (!name) return name; return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, ""); }
+// Alias-aware canonicalization (self-contained per this block's own
+// JS scope). Previously a bare accent-stripping canon2() with no
+// alias table -- any candidate stored under an alias spelling could
+// split into a duplicate row here instead of merging into one.
+var CAND_ALIAS_DISPLAY = { "G\u00f6ring": "Goring", "Br\u00fcning": "Bruning", "Sch\u00e4ffer": "Schaffer",
+    "L\u00fcders": "Luders", "Koch-Weser": "KochWeser", "Th\u00e4lmann": "Thalmann",
+    "M\u00fcnzenberg": "Munzenberg", "B\u00f6hm": "Bohm" };
+function canon2(name) {
+    if (!name) return name;
+    if (CAND_ALIAS_DISPLAY[name]) return CAND_ALIAS_DISPLAY[name];
+    var stripped = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
+    return CAND_ALIAS_DISPLAY[stripped] || stripped;
+}
 
 var displayNames = {
     Thalmann:"Thälmann", Munzenberg:"Münzenberg", Bruning:"Brüning",
@@ -2463,7 +2556,7 @@ for (var i = 0; i < allParties.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     var candNorm = canon2(cand);
-    var votes = Q[p + '_votes'] || Q[p + '_r'] || 0;
+    var votes = (Q[p + '_votes'] !== undefined && Q[p + '_votes'] !== null) ? Q[p + '_votes'] : (Q[p + '_r'] || 0);
     if (votes <= 0) continue;
     var bucket = candNorm === finalist1 ? finalist1
                : candNorm === finalist2 ? finalist2
@@ -2542,7 +2635,7 @@ for (var i = 0; i < allParties.length; i++) {
     var cand = Q[p + '_candidate'];
     if (!cand) continue;
     var candNorm = canon2(cand);
-    var votes = Q[p + '_votes'] || Q[p + '_r'] || 0;
+    var votes = (Q[p + '_votes'] !== undefined && Q[p + '_votes'] !== null) ? Q[p + '_votes'] : (Q[p + '_r'] || 0);
     if (votes <= 0) continue;
     if (!grouped[candNorm]) grouped[candNorm] = [];
     grouped[candNorm].push({ party: p, votes: votes, cand: candNorm });
@@ -2703,7 +2796,7 @@ Q.president_party = WINNER_PARTY[winnerKey] || Q.president_party || "";
 
 !}
 on-arrival: tag_2_pred = 1; president_term_start = year; presidential_election_active = 0;
-go-to: ollenhauer_victory if winner = "Ollenhauer"; dvfp_victory if winner = "Graefe" or winner = "Ludendorff"; hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"; noske_win if winner = "Noske"
+go-to: ollenhauer_victory if winner = "Ollenhauer"; dvfp_victory if winner = "Graefe" or winner = "Ludendorff"; hindenburg_victory if winner = "Hindenburg"; hitler_victory if winner = "Hitler" or winner = "Göring" or winner = "Goring" or winner = "Goebbels"; seldte_victory if winner = "Seldte"; thalmann_victory if winner = "Thälmann" or winner = "Thalmann"; munzenberg_victory if winner = "Münzenberg" or winner = "Munzenberg"; eckener_win if winner = "Eckener"; juchacz_win if winner = "Juchacz"; bundesrepublik_win if winner = "Schumacher" or winner = "Schmid" or winner = "Adenauer" or winner = "Lambach2"; nazis_lose if winner = "Braun" or winner = "Gessler" or winner = "Stresemann" or winner = "Westarp"; cultural_victory if winner = "Ossietzky" or winner = "Mann"; einstein_victory if winner = "Einstein"; z_victory if winner = "Kaas" or winner = "Brüning" or winner = "Bruning"; bvp_victory if winner = "Schäffer" or winner = "Schaffer"; sapd_victory if winner = "Rosenfeld"; wp_victory if winner = "Drewitz"; srpd_victory if winner = "Horsing"; cnbl_victory if winner = "Hamkens" or winner = "Behrens"; noske_win if winner = "Noske"; seldte_victory if winner = "Hugenberg" or winner = "HugenbergDNF"
 
 [+ winner_desc +] is now President of Germany.
 
