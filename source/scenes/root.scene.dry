@@ -2218,7 +2218,8 @@ This is a game of alternate history. Despite being the modification of the semi 
 Choose your challenges!
 
 > *Spartacist Victory: [? if spartac_challenge = 1: ON ?][? if spartac_challenge != 1: OFF ?]* <br> 
-> *Inverted World: [? if inverted_challenge = 1: ON ?][? if inverted_challenge != 1: OFF ?]* <br>
+> *Randomized World: [? if inverted_challenge = 1: ON ?][? if inverted_challenge != 1: OFF ?]* <br>
+> *Randomized Ideologies: [? if inverted_ideos = 1: ON ?][? if inverted_ideos != 1: OFF ?]* <br>
 > *Gang: [? if gang_challenge = 1: ON ?][? if gang_challenge != 1: OFF ?]*<br>
 > *Modern Democracy: [? if dem_challenge = 1: ON ?][? if dem_challenge != 1: OFF ?]*<br>
 > *New Party: [? if new_partei_challenge = 1: ON ?][? if new_partei_challenge != 1: OFF ?]*<br>
@@ -2236,6 +2237,7 @@ Choose your challenges!
 - @spartacus: Spartacist Victory!
 - @bauern: Agrarian Revolution
 - @inverted: Randomize relationships!
+- @invert_id: Randomize ideologies!
 - @gang: All of the gang is here! 
 - @democracy: Democracy simulator, extremists are banned.
 - @separator_2: -----------------------------
@@ -2898,6 +2900,30 @@ go-to: camarilla
 Turned off!
 
 
+@invert_id
+
+= Random ideologies
+
+Subset of Randomized World! Ideologies!...
+
+- @invertedi_2: True
+- @invertedi_3: False
+- @challenge: Back.
+
+@invertedi_2
+view-if: inverted_ideos = 0
+on-arrival: inverted_ideos = 1
+go-to: invert_id
+
+Turned on!
+
+@invertedi_3
+view-if: inverted_ideos = 1
+on-arrival: inverted_ideos = 0
+go-to: invert_id
+
+Turned off!
+
 @inverted
 
 = Inverted World
@@ -3444,12 +3470,17 @@ if (Q.inverted_challenge === 1) {
         NSDAP_DBP: false, DVFP_DBP: false, DTSP_DBP: false,
     };
 
+}
+
+if (Q.inverted_ideos == 1) {
+
     for (var ip_inv = 0; ip_inv < all_parties_inv.length; ip_inv++) {
     var p_inv = all_parties_inv[ip_inv].toLowerCase();
-    var base_inv = Q[p_inv + '_ideo_score'] ?? ideoScore(Q[p_inv + '_ideology']);
-    var jitter_inv = Math.floor(Math.random() * 7) - 3;
-    Q[p_inv + '_ideo_score'] = Math.max(1, Math.min(10, base_inv + jitter_inv));
-    }
+    
+    // Generates a completely random integer from 1 to 10 inclusive
+    Q[p_inv + '_ideo_score'] = Math.floor(Math.random() * 10) + 1;
+}
+
 }
 
 // PARTY SELECTOR
