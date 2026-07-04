@@ -25,7 +25,7 @@ on-arrival: {!
 // ---------------------------------------------------------------------
 // Everything about "who can run, for whom, and where they sit
 // ideologically" lives in three tables below: CANDIDATES, PARTIES,
-// and LEADER_PREFERENCE. To add a new candidate, party, or leader
+// and OWN_BENCH. To add a new candidate, party, or leader
 // branch, add ONE row to ONE table here. Then mirror the candidate's
 // name/party/bloc in the small CAND_INFO lookup that appears in
 // @finalize_candidates, @post_r1, @r2_start, and @post_r2 (those blocks
@@ -122,7 +122,7 @@ function blocIndex(blocName) {
 
 // ---------------------------------------------------------------------
 // PARTIES — display info + tier. "minor" tier parties have no rows in
-// LEADER_PREFERENCE at all; they always just inherit their parent's pick.
+// OWN_BENCH at all; they always just inherit their parent's pick.
 // ---------------------------------------------------------------------
 var PARTIES = {
     spd:   { label: "SPD",  tier: "major" },
@@ -198,12 +198,94 @@ function getRelationSafe(a, b) {
 }
 
 // ---------------------------------------------------------------------
-// LEADER_PREFERENCE — one ranked list per major party. To add a new
-// leader-driven branch for a party, add one row to that party's array.
-// To add a wholly new major party, add a new key here plus a matching
-// entry in PARTIES above and in RESOLUTION_ORDER below.
+// ROUND 1 — FREE CANDIDATE SELECTION
 // ---------------------------------------------------------------------
-var LEADER_PREFERENCE = {
+// Each party now genuinely chooses, round to round, between fielding
+// its OWN bench candidate and BACKING another party's already-resolved
+// candidate — decided by the same ideology/relation scorer used in the
+// round-2 runoff, rather than a hand-authored list of "if relation with
+// X >= N, back X" rows per party.
+//
+// OWN_BENCH keeps all the narrative, state-driven logic for who a party
+// WOULD run if running alone (leadership fights, hitler_dead/deported
+// chains, DNVP's line 0/1/2/3, Z's Kaas/Bruning/Adenauer split, DVP's
+// leader-driven positioning, etc.) — that content is specific and
+// earned, not bloc math, so it stays exactly as authored.
+//
+// Cross-party backing is no longer hardcoded per party; instead each
+// party scores its own bench candidate against every other party's
+// candidate resolved so far (RESOLUTION_ORDER defines the dependency
+// chain, same order as before) and pick the highest-scoring option.
+// A "home bench" bonus keeps parties from reflexively defecting from a
+// perfectly good candidate of their own over a marginal score delta.
+// ---------------------------------------------------------------------
+
+var BLOC_IDEO_FALLBACK_R1 = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
+                               center: 5, center_right: 6.5, far_right: 9.5 };
+
+function candIdeoScoreR1(name) {
+    var key = canon(name);
+    var c = CANDIDATES[key];
+    if (!c) return 5;
+    var partyKey = (c.party || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (Q[partyKey + '_ideo_score'] !== undefined) return Q[partyKey + '_ideo_score'];
+    return (c.bloc && BLOC_IDEO_FALLBACK_R1[c.bloc] !== undefined) ? BLOC_IDEO_FALLBACK_R1[c.bloc] : 5;
+}
+function vetoPenaltyR1(relation) {
+    if (relation >= 15) return 0;
+    return (15 - relation) * 4;
+}
+// HOME_BENCH_BONUS: flat score bonus for a party's own candidate, so a
+// party only defects to backing someone else when that option is
+// clearly better, not on a coin-flip-sized ideology/relation delta.
+var HOME_BENCH_BONUS = 6;
+
+function optionScore(votingPartyKey, candidateName, isOwnBench) {
+    var fKey = canon(candidateName);
+    var c = CANDIDATES[fKey];
+    var candPartyLabel = c ? c.party : "";
+    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
+    var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
+    var ideoGap = Math.abs(myIdeo - candIdeoScoreR1(candidateName));
+    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyR1(relation);
+    if (isOwnBench) score += HOME_BENCH_BONUS;
+    return score;
+}
+
+// Picks between a party's own bench candidate and every other already-
+// resolved party's candidate. `resolvedSoFar` is the list of candidate
+// names resolved earlier in RESOLUTION_ORDER (dependency chain intact,
+// same as the original design — e.g. Z/BVP still wait for SPD since
+// SPD resolves outside this loop, before RESOLUTION_ORDER runs).
+function pickFreeCandidate(votingPartyKey, ownBenchCandidate, resolvedSoFar) {
+    if (!ownBenchCandidate && (!resolvedSoFar || resolvedSoFar.length === 0)) return null;
+
+    var best = ownBenchCandidate || null;
+    var bestScore = ownBenchCandidate ? optionScore(votingPartyKey, ownBenchCandidate, true) : -Infinity;
+
+    if (resolvedSoFar) {
+        var seen = {};
+        for (var i = 0; i < resolvedSoFar.length; i++) {
+            var cand = resolvedSoFar[i];
+            if (!cand) continue;
+            var ck = canon(cand);
+            if (seen[ck]) continue; // don't score the same candidate twice
+            seen[ck] = true;
+            if (ownBenchCandidate && ck === canon(ownBenchCandidate)) continue;
+            var s = optionScore(votingPartyKey, cand, false);
+            if (s > bestScore) { bestScore = s; best = cand; }
+        }
+    }
+    return best;
+}
+
+// ---------------------------------------------------------------------
+// OWN_BENCH — one ranked list per major party, narrative/state-driven
+// only (who they'd run if running alone). No cross-party fallback rows
+// live here anymore; pickFreeCandidate() handles all cross-party
+// backing generically via the scorer above.
+// ---------------------------------------------------------------------
+var OWN_BENCH = {
 
     nsdap: [
         { if: "Q.hitler_dead", pick: "Goebbels" },
@@ -211,22 +293,9 @@ var LEADER_PREFERENCE = {
         { default: "Hitler" }
     ],
 
-        dnf: [
-        // If allied in the Harzburg Front, they will support the Nazi candidate if Hitler is viable
-        { if: "Q.dnf_line === 2 && !Q.nsdap_banned && !Q.hitler_dead && !Q.hitler_deported", pick: "Hitler" },
-        { if: "Q.harzburg_front_seen && !Q.nsdap_banned && !Q.hitler_dead && !Q.hitler_deported", pick: "Hitler" },
-        
-        // Harzburg Front sub-conditions if Hitler is out of the picture
-        { if: "(Q.dnf_line === 2 || Q.harzburg_front_formed) && Q.hitler_dead && Q.dnf_relation_nsdap >= 70", pick: "Goebbels" },
-        { if: "(Q.dnf_line === 2 || Q.harzburg_front_formed) && Q.hitler_deported", pick: "Goring" },
-        
-        // In Line 3 (Kampffront), they try to run independently unless the NSDAP is overwhelmingly dominant
-        { if: "Q.dnf_line === 3 && Q.nsdap_r >= 33 && !Q.nsdap_banned && !Q.hitler_dead", pick: "Hitler" },
-        
-        // Under Line 1 (Media/Liberty Law), during a ban, or as a general rule: Hugenberg leads the ticket
+    dnf: [
         { default: "Hugenberg" }
     ],
-
 
     dnvp: [
         { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
@@ -262,22 +331,11 @@ var LEADER_PREFERENCE = {
         { if: "!Q.stresemann_dead && Q.year <= 1929", pick: "Stresemann" },
         { if: "Q.dvp_party_leader === 'Scholz' && (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3) && Q.dnvp_line === 1 && Q.dnvp_relation >= 50", pick: "Westarp" },
         { if: "Q.dvp_party_leader === 'Scholz' && (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3)", pick: "Scholz" },
-        { if: "Q.dvp_party_leader === 'Scholz' && Q.dvp_relation >= 50 && Q.in_grand_coalition", pick: null },
         { if: "Q.dvp_party_leader === 'Scholz'", pick: "Gessler" },
-        { if: "Q.dvp_party_leader === 'Dingeldey' && Q.z_relation >= 45 && Q.dvp_relation >= 40", pick: null },
         { if: "Q.dvp_party_leader === 'Dingeldey' && Q.dvp_right_shift >= 1", pick: "Dingeldey" },
         { if: "Q.dvp_party_leader === 'Dingeldey'", pick: "Gessler" },
-        { if: "Q.dvp_party_leader === 'Curtius' && (Q.dvp_relation >= 45 || Q.in_grand_coalition)", pick: null },
         { if: "Q.dvp_party_leader === 'Curtius'", pick: "Curtius" },
         { if: "Q.finance_minister === 'Reinhold' && Q.economic_policy_seen", pick: "Reinhold" },
-        { if: "jointActive() && Q.dvp_right_shift >= 2 && Q.dnvp_relation >= 40", pick: jointCand },
-        { if: "jointActive() && Q.z_relation >= 50 && Q.dnvp_line === 1", pick: jointCand },
-        { if: "jointActive() && Q.in_grand_coalition && Q.dnvp_line === 1 && Q.nsdap_r >= 25", pick: jointCand },
-        { if: "jointActive() && Q.dvp_relation >= 50", pick: null },
-        { if: "jointActive()", pick: "Gessler" },
-        { if: "Q.dvp_right_shift >= 2 && Q.dnvp_line === 1 && Q.dnvp_relation >= 50", pick: "Westarp" },
-        { if: "Q.dvp_right_shift >= 2", pick: "Gessler" },
-        { if: "Q.dvp_relation >= 50", pick: null },
         { default: "Gessler" }
     ],
 
@@ -287,97 +345,44 @@ var LEADER_PREFERENCE = {
     ],
 
     wp: [
-        { if: "!(Q.wp_r > 2)", pick: function () { return Q.dvp_candidate || "Gessler"; } },
-        { if: "Q.capital_strike_progress >= 5 || Q.inflation >= 6 || Q.unemployed >= 15", pick: "Drewitz" },
-        { if: "jointActive() && Q.dnvp_relation >= 45 && Q.z_relation >= 35 && Q.economic_minister_party === 'WP'", pick: jointCand },
-        { if: "jointActive() && Q.dvp_candidate === Q.z_dnvp_joint_candidate && Q.dvp_relation >= 45", pick: jointCand },
-        { if: "jointActive() && Q.nsdap_r >= 30 && (Q.dnvp_line === 1 || Q.dnvp_line === 2)", pick: jointCand },
-        { if: "Q.dvp_candidate && Q.dvp_relation >= 40", pick: function () { return Q.dvp_candidate; } },
         { default: "Drewitz" }
     ],
 
     cnbl: [
-        { if: "!(Q.cnbl_r > 1.5)", pick: function () { return Q.dnvp_candidate || jointCand() || Q.bvp_candidate || "Hamkens"; } },
         { if: "Q.agricultural_finance < 2 || Q.land_reform >= 2", pick: "Hamkens" },
-        { if: "jointActive() && Q.dnvp_relation >= 50 && Q.dnvp_line !== 3", pick: jointCand },
-        { if: "jointActive() && Q.bvp_candidate === Q.z_dnvp_joint_candidate && Q.bvp_relation >= 40", pick: jointCand },
-        { if: "jointActive() && Q.z_relation >= 45 && Q.agricultural_minister_party === 'Z'", pick: jointCand },
-        { if: "jointActive() && Q.nsdap_r >= 25 && Q.rural_nsdap_support < 15", pick: jointCand },
-        { if: "jointActive()", pick: "Hamkens" },
-        { if: "Q.dnvp_candidate && Q.dnvp_line !== 3 && !Q.dnvp_banned && Q.dnvp_relation >= 40", pick: function () { return Q.dnvp_candidate; } },
-        { if: "Q.dnvp_line === 3 && !Q.nsdap_banned && Q.year >= 1932", pick: function () { return Q.nsdap_candidate; } },
         { default: "Hamkens" }
     ],
 
     bb: [
-        { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Hamkens" },
-        { if: "Q.bvp_candidate && Q.bvp_candidate !== 'Hitler' && Q.bvp_candidate !== Q.kpd_candidate", pick: function () { return Q.bvp_candidate; } },
-        { if: "Q.cnbl_candidate && Q.cnbl_candidate !== 'Hitler'", pick: function () { return Q.cnbl_candidate; } },
-        { if: "Q.z_candidate && Q.z_candidate !== Q.kpd_candidate", pick: function () { return Q.z_candidate; } },
         { default: "Hamkens" }
     ],
 
     dhp: [
-        { if: "Q.cnbl_candidate && Q.cnbl_candidate !== 'Hitler' && Q.cnbl_candidate !== 'Hugenberg' && Q.cnbl_candidate !== Q.kpd_candidate", pick: function () { return Q.cnbl_candidate; } },
-        { if: "Q.dnvp_line !== 3 && Q.dnvp_candidate && Q.dnvp_candidate !== 'Hitler' && !Q.dnvp_banned", pick: function () { return Q.dnvp_candidate; } },
-        { if: "Q.csvd_candidate && Q.csvd_candidate !== 'Hitler'", pick: function () { return Q.csvd_candidate; } },
-        { if: "jointActive()", pick: jointCand },
         { default: "Hamkens" }
     ],
 
     csvd: [
-        { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
-        { if: "(Q.dnvp_line === 1 || Q.dnvp_line === 2) && Q.dnvp_candidate && Q.dnvp_candidate !== 'Hitler' && Q.dnvp_candidate !== 'Hugenberg'", pick: function () { return Q.dnvp_candidate; } },
-        { if: "(Q.dnvp_line === 1 || Q.dnvp_line === 2) && Q.z_candidate && Q.z_candidate !== Q.spd_candidate", pick: function () { return Q.z_candidate; } },
-        { if: "(Q.dnvp_line === 1 || Q.dnvp_line === 2) && Q.dvp_candidate && Q.dvp_candidate !== Q.spd_candidate", pick: function () { return Q.dvp_candidate; } },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_r >= 35 && Q.kpd_r >= 15 && Q.z_candidate && Q.z_candidate !== 'Hitler' && Q.z_candidate !== Q.kpd_candidate", pick: function () { return Q.z_candidate; } },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_r >= 35 && Q.kpd_r >= 15 && Q.dvp_candidate && Q.dvp_candidate !== 'Hitler'", pick: function () { return Q.dvp_candidate; } },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_r >= 35 && Q.kpd_r >= 15 && Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate && Q.pro_republic >= 70", pick: function () { return Q.spd_candidate; } },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_r >= 25 && Q.z_candidate && Q.z_candidate !== 'Hitler'", pick: function () { return Q.z_candidate; } },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_r >= 25 && Q.bvp_candidate && Q.bvp_candidate !== 'Hitler'", pick: function () { return Q.bvp_candidate; } },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_r >= 25 && Q.dvp_candidate && Q.dvp_candidate !== 'Hitler'", pick: function () { return Q.dvp_candidate; } },
-        { if: "Q.dnvp_line === 0 && Q.year >= 1930 && Q.nsdap_r >= 15 && Q.z_candidate", pick: function () { return Q.z_candidate; } },
-        { if: "Q.dnvp_line === 0 && Q.year >= 1930 && Q.nsdap_r >= 15 && Q.dvp_candidate", pick: function () { return Q.dvp_candidate; } },
-        { if: "Q.dnvp_line === 0 && Q.year >= 1930 && Q.nsdap_r >= 15 && Q.dnvp_candidate && Q.dnvp_candidate !== 'Hitler'", pick: function () { return Q.dnvp_candidate; } },
-        { if: "Q.dnvp_line === 0 && Q.dnvp_candidate", pick: function () { return Q.dnvp_candidate; } },
         { default: "Lambach2" }
     ],
 
     kvp: [
-        { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
-        { if: "Q.dnvp_candidate && Q.dnvp_candidate !== 'Hitler' && Q.dnvp_candidate !== 'Hugenberg' && Q.dnvp_line !== 3", pick: function () { return Q.dnvp_candidate; } },
-        { if: "Q.csvd_candidate && Q.csvd_candidate !== 'Hitler'", pick: function () { return Q.csvd_candidate; } },
-        { if: "Q.z_candidate", pick: function () { return Q.z_default_candidate; } },
         { default: "Westarp" }
     ],
 
     vrp: [
         { if: "Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3", pick: "Bohm" },
-        { if: "jointActive() && Q.dnvp_line !== 3 && Q.ddp_relation >= 40 && Q.dvp_relation < 35 && Q.ddp_candidate === Q.z_dnvp_joint_candidate", pick: jointCand },
-        { if: "jointActive() && Q.dnvp_line !== 3 && Q.ddp_relation >= 40 && Q.dvp_relation < 35", pick: function () { return Q.ddp_candidate || "Bohm"; } },
-        { if: "jointActive() && Q.dnvp_line === 3", pick: function () { return Q.ddp_candidate || "Bohm"; } },
-        { if: "jointActive() && Q.dvp_candidate === Q.z_dnvp_joint_candidate && Q.ddp_candidate === Q.z_dnvp_joint_candidate", pick: jointCand },
-        { if: "jointActive()", pick: function () { return Q.ddp_candidate || "Bohm"; } },
-        { if: "Q.inflation >= 3 || Q.unemployed >= 12 || Q.economy_growth <= -1", pick: function () { return (Q.ddp_candidate && Q.ddp_relation >= 35) ? Q.ddp_candidate : "Bohm"; } },
-        { if: "Q.ddp_candidate && Q.ddp_relation >= 40", pick: function () { return Q.ddp_candidate; } },
-        { if: "Q.csvd_flee === 1 && Q.csvd_candidate && Q.csvd_relation >= 40", pick: function () { return Q.csvd_candidate; } },
-        { if: "Q.dvp_candidate && Q.dvp_right_shift < 1 && Q.dvp_relation >= 35", pick: function () { return Q.dvp_candidate; } },
         { default: "Bohm" }
     ],
 
     sapd: [
-        { if: "Q.kpd_relation >= 60 && Q.spd_sapd_relation < 40 && !Q.kpd_banned", pick: function () { return Q.kpd_candidate; } },
         { default: "Rosenfeld" }
     ],
 
     srpd: [
-        { if: "Q.srpd_relation >= 60", pick: null },
         { default: "Horsing" }
     ],
 
     dvfp: [
-        { if: "!Q.nsdap_banned && !Q.hitler_dead && Q.nsdap_r >= 15", pick: "Hitler" },
-        { if: "Q.dnvp_line === 3 && !Q.dnvp_banned", pick: "Hugenberg" },
         { if: "Q.hitler_dead && !Q.nsdap_banned", pick: "Ludendorff" },
         { if: "Q.unrest_factor >= 2.0 || Q.nationalism >= 60", pick: "Ludendorff" },
         { default: "Graefe" }
@@ -385,41 +390,22 @@ var LEADER_PREFERENCE = {
 
     dbp: [
         { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Fehr" },
-        { if: "jointActive() && Q.bb_candidate === Q.z_dnvp_joint_candidate && Q.bb_relation >= 40", pick: jointCand },
-        { if: "jointActive() && Q.cnbl_candidate === Q.z_dnvp_joint_candidate && Q.cnbl_relation >= 40", pick: jointCand },
-        { if: "jointActive() && Q.dnvp_line === 3 && Q.bb_candidate && Q.bb_candidate !== Q.z_dnvp_joint_candidate", pick: function () { return Q.bb_candidate; } },
-        { if: "jointActive() && Q.dnvp_line === 3 && Q.ddp_candidate", pick: function () { return Q.ddp_candidate; } },
-        { if: "jointActive() && Q.dnvp_line === 3", pick: "Fehr" },
-        { if: "jointActive() && Q.ddp_candidate === Q.z_dnvp_joint_candidate", pick: jointCand },
-        { if: "jointActive()", pick: "Fehr" },
-        { if: "Q.nsdap_r >= 30 && Q.rural_nsdap_support >= 20 && Q.bb_candidate && Q.bb_candidate !== 'Hitler'", pick: function () { return Q.bb_candidate; } },
-        { if: "Q.nsdap_r >= 30 && Q.rural_nsdap_support >= 20 && Q.ddp_candidate && Q.ddp_candidate !== 'Hitler'", pick: function () { return Q.ddp_candidate; } },
-        { if: "Q.nsdap_r >= 30 && Q.rural_nsdap_support >= 20 && Q.cnbl_candidate && Q.cnbl_candidate !== 'Hitler'", pick: function () { return Q.cnbl_candidate; } },
-        { if: "Q.nsdap_r >= 30 && Q.rural_nsdap_support >= 20", pick: "Fehr" },
-        { if: "Q.bb_candidate && Q.bb_candidate !== 'Hitler' && Q.bb_candidate !== Q.kpd_candidate", pick: function () { return Q.bb_candidate; } },
-        { if: "Q.cnbl_candidate && Q.cnbl_candidate !== 'Hitler'", pick: function () { return Q.cnbl_candidate; } },
-        { if: "Q.ddp_candidate && Q.ddp_relation >= 40", pick: function () { return Q.ddp_candidate; } },
         { default: "Fehr" }
     ],
 
     dsbp: [
         { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Gessler" },
-        { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
-        { if: "Q.dvp_candidate && Q.ddp_candidate && Q.dvp_candidate === Q.ddp_candidate", pick: function () { return Q.dvp_candidate; } },
-        { if: "Q.dvp_candidate && Q.dvp_right_shift >= 1", pick: function () { return Q.ddp_candidate || "Gessler"; } },
-        { if: "Q.ddp_relation >= 45 || Q.dvp_relation >= 45", pick: null },
         { default: "Gessler" }
     ],
 
+    // CSRP has no bench of its own — it always follows Z (kept as a
+    // direct rule rather than scored, since it has never fielded an
+    // independent candidate in the source material).
     csrp: [
         { default: function () { return Q.z_candidate; } }
     ],
 
     ddp: [
-        { if: "Q.ddp_name === 'DStP' && Q.ddp_relation >= 55", pick: null },
-        { if: "Q.ddp_name === 'DStP'", pick: function () { return ddpOwnCandidate(); } },
-        { if: "Q.ddp_name !== 'DStP' && Q.ddp_relation >= 45", pick: null },
-        { if: "Q.ddp_name !== 'DStP' && (Q.dvp_candidate === 'Gessler' || Q.z_relation >= 35)", pick: "Gessler" },
         { default: function () { return ddpOwnCandidate(); } }
     ]
 };
@@ -437,6 +423,24 @@ function ddpOwnCandidate() {
     if (Q.ddp_party_leader === "Heuss") return "Heuss";
     if (Q.rb_strength >= 800 && Q.rb_militancy > 0.30 && Q.year >= 1932) return "Lemmer";
     return "Heuss";
+}
+
+// resolveCandidate walks OWN_BENCH rows top to bottom to find what a
+// party WOULD run alone (unchanged mechanism, narrative rows only now).
+function resolveCandidate(rows) {
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        if (row.default !== undefined) {
+            return (typeof row.default === "function") ? row.default() : row.default;
+        }
+        var ok;
+        try { ok = !!eval(row.if); } catch (e) { ok = false; }
+        if (ok) {
+            var result = (typeof row.pick === "function") ? row.pick() : row.pick;
+            if (result) return result;
+        }
+    }
+    return null;
 }
 
 // =====================================================================
@@ -485,18 +489,32 @@ if (!Q.dnvp_banned && (Q.dnvp_line === 0 || Q.dnvp_line === 1 || Q.dnvp_line ===
 
 // --- Resolve every major party (minor parties wait for finalize step,
 //     same as the original design's "fold into parent" simplification).
+// Each party's own bench candidate comes from OWN_BENCH (narrative,
+// state-driven). It then freely checks that bench candidate against
+// every OTHER major party's candidate resolved earlier in this same
+// order — genuine cross-party backing, decided by ideology/relation
+// score rather than a hardcoded "if relation >= N, back them" rule.
+// SPD itself is the player's own party and isn't in this loop; parties
+// that would want to back SPD get a second, final look at that once
+// SPD's choice is known, in @finalize_candidates.
 var RESOLUTION_ORDER = [
     "nsdap", "kpd", "dnvp", "z", "bvp", "dvp", "ddp", "wp", "cnbl",
     "bb", "dhp", "csvd", "kvp", "vrp", "sapd", "srpd", "dbp", "dsbp",
     "dvfp", "csrp", "dnf"
 ];
 
+var resolvedSoFar = [];
 for (var ri = 0; ri < RESOLUTION_ORDER.length; ri++) {
     var pkey = RESOLUTION_ORDER[ri];
     if (!partyActive(pkey)) { Q[pkey + '_candidate'] = null; Q[pkey + '_default_candidate'] = null; continue; }
-    var picked = resolveCandidate(LEADER_PREFERENCE[pkey]);
+    var ownBench = resolveCandidate(OWN_BENCH[pkey]);
+    Q[pkey + '_default_candidate'] = ownBench;
+    // csrp has no bench of its own (always follows Z) and dnf's own-
+    // bench row already encodes its full narrative branching, so both
+    // skip the generic cross-party scorer and just take their bench pick.
+    var picked = (pkey === "csrp" || pkey === "dnf") ? ownBench : pickFreeCandidate(pkey, ownBench, resolvedSoFar);
     Q[pkey + '_candidate'] = picked;
-    Q[pkey + '_default_candidate'] = picked;
+    resolvedSoFar.push(picked);
 }
 
 // Z and BVP wait for SPD's choice unless a joint ticket already locked
@@ -1019,29 +1037,71 @@ if (Q.hindenburg_dead) {
     }
 }
 
+// ---------------------------------------------------------------------
+// RELATION/IDEOLOGY-DRIVEN FINALIZATION — now that SPD's own choice is
+// known, every other party freely re-checks whether backing SPD (or any
+// other already-resolved party) scores better than running its own
+// bench candidate. Same scorer as @party_candidates and the round-2
+// runoff: ideology gap dominates, relation breaks ties and applies a
+// soft veto below relation 15. This replaces the old per-party
+// is_unity_candidate/relation-threshold cascades.
+// ---------------------------------------------------------------------
+var BLOC_IDEO_FALLBACK_FC = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
+                               center: 5, center_right: 6.5, far_right: 9.5 };
+function candIdeoScoreFC(name) {
+    var key = canon(name);
+    var c = CAND_INFO[key];
+    if (!c) return 5;
+    var partyKey = (c.party || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (Q[partyKey + '_ideo_score'] !== undefined) return Q[partyKey + '_ideo_score'];
+    return (c.bloc && BLOC_IDEO_FALLBACK_FC[c.bloc] !== undefined) ? BLOC_IDEO_FALLBACK_FC[c.bloc] : 5;
+}
+function vetoPenaltyFC(relation) {
+    if (relation >= 15) return 0;
+    return (15 - relation) * 4;
+}
+var HOME_BENCH_BONUS_FC = 6;
+function optionScoreFC(votingPartyKey, candidateName, isOwnBench) {
+    var fKey = canon(candidateName);
+    var c = CAND_INFO[fKey];
+    var candPartyLabel = c ? c.party : "";
+    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
+    var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
+    var ideoGap = Math.abs(myIdeo - candIdeoScoreFC(candidateName));
+    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyFC(relation);
+    if (isOwnBench) score += HOME_BENCH_BONUS_FC;
+    return score;
+}
+// Picks between a party's own bench candidate and a list of already-
+// resolved candidates on offer (SPD's pick plus whichever other
+// parties resolved earlier). Options that are banned/unavailable
+// should simply be omitted from `onOffer` by the caller.
+function pickFreeCandidateFC(votingPartyKey, ownBenchCandidate, onOffer) {
+    var best = ownBenchCandidate || null;
+    var bestScore = ownBenchCandidate ? optionScoreFC(votingPartyKey, ownBenchCandidate, true) : -Infinity;
+    if (onOffer) {
+        var seen = {};
+        for (var i = 0; i < onOffer.length; i++) {
+            var cand = onOffer[i];
+            if (!cand) continue;
+            var ck = canon(cand);
+            if (seen[ck]) continue;
+            seen[ck] = true;
+            if (ownBenchCandidate && ck === canon(ownBenchCandidate)) continue;
+            var s = optionScoreFC(votingPartyKey, cand, false);
+            if (s > bestScore) { bestScore = s; best = cand; }
+        }
+    }
+    return best;
+}
+
 // ========================================
 // Z (CENTER PARTY) — finalize after SPD choice
 // ========================================
 if (Q.spd_candidate === Q.kpd_candidate) {
     Q.z_candidate = Q.z_default_candidate;
-} else if (Q.is_unity_candidate) {
-    if (Q.spd_candidate === Q.z_default_candidate) {
-        Q.z_candidate = Q.spd_candidate;
-    } else if (Q.z_relation >= 50 || (Q.z_relation >= 35 && Q.z_party_leader === "Joos")) {
-        Q.z_candidate = Q.spd_candidate;
-    } else if (Q.z_relation >= 30 && (Q.spd_candidate === "Eckener" || Q.spd_candidate === "Gessler")) {
-        Q.z_candidate = Q.spd_candidate;
-    } else {
-        Q.z_candidate = Q.z_default_candidate;
-    }
-} else if ((Q.spd_candidate === "Braun" || Q.spd_candidate === "Schumacher" || Q.is_cultural_candidate)
-           && (Q.z_relation >= 60 || (Q.z_relation >= 45 && Q.z_party_leader === "Joos"))) {
-    Q.z_candidate = Q.spd_candidate;
-} else if (Q.spd_candidate === "Juchacz"
-           && (Q.z_relation >= 65 || (Q.z_relation >= 50 && Q.z_party_leader === "Joos"))) {
-    Q.z_candidate = Q.spd_candidate;
 } else {
-    Q.z_candidate = Q.z_default_candidate;
+    Q.z_candidate = pickFreeCandidateFC("z", Q.z_default_candidate, [Q.spd_candidate]);
 }
 
 Q.csrp_candidate = Q.z_candidate;
@@ -1049,14 +1109,11 @@ Q.csrp_candidate = Q.z_candidate;
 // ========================================
 // BVP — finalize after SPD/Z choice
 // ========================================
-if (Q.z_candidate === Q.spd_candidate && Q.bvp_relation < 40) {
-    Q.bvp_candidate = (!Q.dnvp_banned && Q.dnvp_candidate) ? Q.dnvp_candidate : Q.bvp_default_candidate;
-} else if (Q.z_candidate === Q.kpd_candidate) {
+if (Q.z_candidate === Q.kpd_candidate) {
     Q.bvp_candidate = Q.bvp_default_candidate;
-} else if (Q.z_candidate) {
-    Q.bvp_candidate = Q.z_candidate;
 } else {
-    Q.bvp_candidate = Q.bvp_default_candidate;
+    Q.bvp_candidate = pickFreeCandidateFC("bvp", Q.bvp_default_candidate,
+        [Q.z_candidate, Q.spd_candidate, (!Q.dnvp_banned ? Q.dnvp_candidate : null)]);
 }
 
 // ========================================
@@ -1066,18 +1123,9 @@ if (Q.vrp_formed) {
     var vrp_desperate = Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3;
     if (vrp_desperate) {
         Q.vrp_candidate = "Bohm";
-    } else if (Q.vrp_default_candidate && Q.vrp_default_candidate !== "Bohm") {
-        if (Q.spd_candidate === Q.kpd_candidate) {
-            Q.vrp_candidate = (Q.ddp_candidate !== Q.spd_candidate) ? (Q.ddp_candidate || "Bohm") : "Bohm";
-        } else if (Q.is_unity_candidate && Q.vrp_relation >= 40 && Q.ddp_candidate === Q.spd_candidate) {
-            Q.vrp_candidate = Q.spd_candidate;
-        } else {
-            Q.vrp_candidate = Q.vrp_default_candidate;
-        }
-    } else if (Q.is_unity_candidate && Q.ddp_candidate === Q.spd_candidate && Q.vrp_relation >= 45) {
-        Q.vrp_candidate = Q.spd_candidate;
     } else {
-        Q.vrp_candidate = "Bohm";
+        Q.vrp_candidate = pickFreeCandidateFC("vrp", Q.vrp_default_candidate || "Bohm",
+            [Q.spd_candidate, Q.ddp_candidate]);
     }
 }
 
@@ -1086,20 +1134,8 @@ if (Q.vrp_formed) {
 // ========================================
 if (Q.dvp_candidate) {
     // already decided at arrival time, keep
-} else if (Q.is_unity_candidate && Q.spd_candidate !== Q.kpd_candidate) {
-    if (Q.dvp_relation >= 45) {
-        Q.dvp_candidate = Q.spd_candidate;
-    } else if (Q.z_candidate && Q.z_candidate !== Q.spd_candidate) {
-        Q.dvp_candidate = Q.z_candidate;
-    } else {
-        Q.dvp_candidate = "Gessler";
-    }
-} else if (Q.dvp_relation >= 55 && Q.spd_candidate !== Q.kpd_candidate) {
-    Q.dvp_candidate = Q.spd_candidate;
-} else if (Q.z_candidate && Q.z_relation >= 35) {
-    Q.dvp_candidate = Q.z_candidate;
 } else {
-    Q.dvp_candidate = "Gessler";
+    Q.dvp_candidate = pickFreeCandidateFC("dvp", "Gessler", [Q.spd_candidate, Q.z_candidate]);
 }
 
 // ========================================
@@ -1107,44 +1143,26 @@ if (Q.dvp_candidate) {
 // ========================================
 if (Q.ddp_candidate) {
     // already decided
-} else if (Q.is_unity_candidate && Q.spd_candidate !== Q.kpd_candidate) {
-    if (Q.ddp_relation >= 35) {
-        Q.ddp_candidate = Q.spd_candidate;
-    } else if (Q.z_candidate) {
-        Q.ddp_candidate = Q.z_candidate;
-    } else {
-        Q.ddp_candidate = "Gessler";
-    }
-} else if (Q.ddp_relation >= 50 && Q.spd_candidate !== Q.kpd_candidate) {
-    Q.ddp_candidate = Q.spd_candidate;
-} else if (Q.z_candidate && Q.z_relation >= 30) {
-    Q.ddp_candidate = Q.z_candidate;
 } else {
-    Q.ddp_candidate = (Q.ddp_name === "DStP") ? "KochWeser" : "Gessler";
+    Q.ddp_candidate = pickFreeCandidateFC("ddp", (Q.ddp_name === "DStP") ? "KochWeser" : "Gessler",
+        [Q.spd_candidate, Q.z_candidate]);
 }
 
 // ========================================
 // WP — finalize
 // ========================================
 if (Q.wp_default_candidate === "Drewitz") {
-    Q.wp_candidate = "Drewitz";
-} else if (Q.dvp_candidate) {
-    Q.wp_candidate = Q.dvp_candidate;
-} else if (Q.is_unity_candidate && Q.wp_relation >= 40) {
-    Q.wp_candidate = Q.spd_candidate;
+    Q.wp_candidate = pickFreeCandidateFC("wp", "Drewitz", [Q.dvp_candidate, Q.spd_candidate]);
 } else {
-    Q.wp_candidate = Q.dvp_candidate || "Gessler";
+    Q.wp_candidate = Q.dvp_candidate || pickFreeCandidateFC("wp", "Drewitz", [Q.spd_candidate]);
 }
 
 // ========================================
 // CNBL — finalize
 // ========================================
 if (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens") {
-    Q.cnbl_candidate = Q.cnbl_default_candidate;
-} else if (Q.cnbl_default_candidate === Q.nsdap_candidate || Q.cnbl_default_candidate === Q.dnvp_candidate) {
-    Q.cnbl_candidate = Q.cnbl_default_candidate;
-} else if (Q.z_candidate && Q.cnbl_relation >= 35) {
-    Q.cnbl_candidate = Q.z_candidate;
+    Q.cnbl_candidate = pickFreeCandidateFC("cnbl", Q.cnbl_default_candidate,
+        [Q.nsdap_candidate, Q.dnvp_candidate, Q.z_candidate]);
 } else {
     Q.cnbl_candidate = Q.cnbl_default_candidate || "Hamkens";
 }
@@ -1155,20 +1173,12 @@ if (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behr
 if (Q.sapd_formed) {
     if (Q.sapd_candidate === Q.kpd_candidate && Q.spd_candidate === Q.kpd_candidate) {
         Q.sapd_candidate = Q.kpd_candidate;
-    } else if (Q.spd_sapd_relation >= 55) {
-        Q.sapd_candidate = Q.spd_candidate;
     } else {
-        Q.sapd_candidate = Q.sapd_candidate || "Rosenfeld";
+        Q.sapd_candidate = pickFreeCandidateFC("sapd", Q.sapd_candidate || "Rosenfeld", [Q.spd_candidate]);
     }
 }
 if (Q.srpd_formed) {
-    if (Q.srpd_relation >= 60) {
-        Q.srpd_candidate = Q.spd_candidate;
-    } else if (Q.is_unity_candidate && Q.srpd_relation >= 45) {
-        Q.srpd_candidate = Q.spd_candidate;
-    } else {
-        Q.srpd_candidate = "Horsing";
-    }
+    Q.srpd_candidate = pickFreeCandidateFC("srpd", "Horsing", [Q.spd_candidate]);
 }
 
 // ========================================
@@ -1176,26 +1186,18 @@ if (Q.srpd_formed) {
 // ========================================
 if (Q.kvp_flee === 1 && !Q.kvp_banned) {
     if (Q.kvp_default_candidate && Q.kvp_default_candidate !== "Hitler" && Q.kvp_default_candidate !== "Hugenberg") {
-        if (Q.spd_candidate === Q.kpd_candidate) {
-            Q.kvp_candidate = Q.kvp_default_candidate;
-        } else if (Q.is_unity_candidate && Q.z_candidate === Q.spd_candidate && Q.dnvp_line !== 3) {
-            Q.kvp_candidate = Q.spd_candidate;
-        } else {
-            Q.kvp_candidate = Q.kvp_default_candidate;
-        }
+        Q.kvp_candidate = (Q.spd_candidate === Q.kpd_candidate)
+            ? Q.kvp_default_candidate
+            : pickFreeCandidateFC("kvp", Q.kvp_default_candidate, [Q.z_candidate, Q.spd_candidate]);
     } else {
         Q.kvp_candidate = Q.z_candidate || "Westarp";
     }
 }
 
 if (!Q.dhp_banned) {
-    if (Q.spd_candidate === Q.kpd_candidate) {
-        Q.dhp_candidate = Q.dhp_default_candidate || "Hamkens";
-    } else if (Q.is_unity_candidate && Q.cnbl_candidate === Q.spd_candidate && Q.dnvp_line !== 3) {
-        Q.dhp_candidate = Q.spd_candidate;
-    } else {
-        Q.dhp_candidate = Q.dhp_default_candidate || "Hamkens";
-    }
+    Q.dhp_candidate = (Q.spd_candidate === Q.kpd_candidate)
+        ? (Q.dhp_default_candidate || "Hamkens")
+        : pickFreeCandidateFC("dhp", Q.dhp_default_candidate || "Hamkens", [Q.cnbl_candidate, Q.spd_candidate]);
 }
 
 if (!Q.bb_banned) {
@@ -1204,10 +1206,9 @@ if (!Q.bb_banned) {
         Q.bb_candidate = "Hamkens";
     } else if (Q.spd_candidate === Q.kpd_candidate) {
         Q.bb_candidate = Q.bvp_candidate || Q.cnbl_candidate || "Hamkens";
-    } else if (Q.bvp_candidate === Q.spd_candidate && Q.z_candidate === Q.spd_candidate) {
-        Q.bb_candidate = Q.spd_candidate;
     } else {
-        Q.bb_candidate = Q.bb_default_candidate || "Hamkens";
+        Q.bb_candidate = pickFreeCandidateFC("bb", Q.bb_default_candidate || "Hamkens",
+            [Q.bvp_candidate, Q.z_candidate, Q.spd_candidate]);
     }
 }
 
@@ -1217,12 +1218,9 @@ if (Q.dbp_r > 0 && !Q.dbp_banned) {
         Q.dbp_candidate = "Fehr";
     } else if (Q.spd_candidate === Q.kpd_candidate) {
         Q.dbp_candidate = (Q.bb_candidate && Q.bb_candidate !== Q.kpd_candidate) ? Q.bb_candidate : (Q.cnbl_candidate || Q.ddp_candidate || "Fehr");
-    } else if (Q.bb_candidate === Q.spd_candidate && Q.cnbl_candidate === Q.spd_candidate) {
-        Q.dbp_candidate = Q.spd_candidate;
-    } else if (Q.is_unity_candidate && (Q.bb_candidate === Q.spd_candidate || Q.ddp_candidate === Q.spd_candidate) && Q.dbp_relation >= 40) {
-        Q.dbp_candidate = Q.spd_candidate;
     } else {
-        Q.dbp_candidate = Q.dbp_default_candidate || "Fehr";
+        Q.dbp_candidate = pickFreeCandidateFC("dbp", Q.dbp_default_candidate || "Fehr",
+            [Q.bb_candidate, Q.ddp_candidate, Q.spd_candidate]);
     }
 }
 
@@ -1233,16 +1231,10 @@ if (Q.dvfp_banned) {
     Q.dvfp_candidate = null;
 } else if (Q.spd_candidate === Q.kpd_candidate) {
     Q.dvfp_candidate = Q.dvfp_default_candidate || "Ludendorff";
-} else if (Q.is_unity_candidate) {
-    if (Q.dnvp_line === 3 && Q.dnvp_candidate === Q.nsdap_candidate) {
-        Q.dvfp_candidate = Q.nsdap_candidate;
-    } else if (Q.dnvp_candidate === Q.spd_candidate && Q.dnvp_line !== 3) {
-        Q.dvfp_candidate = "Ludendorff";
-    } else {
-        Q.dvfp_candidate = Q.dvfp_default_candidate;
-    }
+} else if (Q.dnvp_line === 3 && Q.dnvp_candidate === Q.nsdap_candidate) {
+    Q.dvfp_candidate = Q.nsdap_candidate;
 } else {
-    Q.dvfp_candidate = Q.dvfp_default_candidate;
+    Q.dvfp_candidate = pickFreeCandidateFC("dvfp", Q.dvfp_default_candidate || "Graefe", [Q.dnvp_candidate, Q.nsdap_candidate]);
 }
 
 if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
@@ -1253,10 +1245,9 @@ if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
         Q.dsbp_candidate = (Q.ddp_candidate !== Q.kpd_candidate) ? (Q.ddp_candidate || Q.dvp_candidate || "Gessler") : (Q.dvp_candidate || "Gessler");
     } else if (Q.ddp_candidate && Q.dvp_candidate && Q.ddp_candidate === Q.dvp_candidate) {
         Q.dsbp_candidate = Q.ddp_candidate;
-    } else if (Q.is_unity_candidate && (Q.ddp_candidate === Q.spd_candidate || Q.dvp_candidate === Q.spd_candidate) && Q.dsbp_relation >= 40) {
-        Q.dsbp_candidate = Q.spd_candidate;
     } else {
-        Q.dsbp_candidate = Q.dsbp_default_candidate || "Gessler";
+        Q.dsbp_candidate = pickFreeCandidateFC("dsbp", Q.dsbp_default_candidate || "Gessler",
+            [Q.ddp_candidate, Q.dvp_candidate, Q.spd_candidate]);
     }
 }
 
