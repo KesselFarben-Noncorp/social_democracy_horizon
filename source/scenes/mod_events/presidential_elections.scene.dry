@@ -238,11 +238,7 @@ function vetoPenaltyR1(relation) {
 // HOME_BENCH_BONUS: flat score bonus for a party's own candidate, so a
 // party only defects to backing someone else when that option is
 // clearly better, not on a coin-flip-sized ideology/relation delta.
-// Lowered from 6 -> 3, and the ideology-gap weight from 20 -> 12 below,
-// so relation/pragmatic politics can outweigh small ideological gaps
-// more often, producing more realistic cross-party backing/splits
-// instead of nearly every party defaulting to its own bench candidate.
-var HOME_BENCH_BONUS = 3;
+var HOME_BENCH_BONUS = 6;
 
 function optionScore(votingPartyKey, candidateName, isOwnBench) {
     var fKey = canon(candidateName);
@@ -251,7 +247,7 @@ function optionScore(votingPartyKey, candidateName, isOwnBench) {
     var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
     var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
     var ideoGap = Math.abs(myIdeo - candIdeoScoreR1(candidateName));
-    var score = -(ideoGap * 12) + (relation * 0.5) - vetoPenaltyR1(relation);
+    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyR1(relation);
     if (isOwnBench) score += HOME_BENCH_BONUS;
     return score;
 }
@@ -1049,8 +1045,7 @@ function vetoPenaltyFC(relation) {
     if (relation >= 15) return 0;
     return (15 - relation) * 4;
 }
-// Kept in sync with HOME_BENCH_BONUS / ideology weight in @party_candidates.
-var HOME_BENCH_BONUS_FC = 3;
+var HOME_BENCH_BONUS_FC = 6;
 function optionScoreFC(votingPartyKey, candidateName, isOwnBench) {
     var fKey = canon(candidateName);
     var c = CAND_INFO[fKey];
@@ -1058,7 +1053,7 @@ function optionScoreFC(votingPartyKey, candidateName, isOwnBench) {
     var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
     var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
     var ideoGap = Math.abs(myIdeo - candIdeoScoreFC(candidateName));
-    var score = -(ideoGap * 12) + (relation * 0.5) - vetoPenaltyFC(relation);
+    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyFC(relation);
     if (isOwnBench) score += HOME_BENCH_BONUS_FC;
     return score;
 }
@@ -2047,6 +2042,16 @@ function consolidateRound2() {
     // Z's Kaas-vs-other leader split is already captured by the
     // Q.z_party_leader === "Kaas" term inside the Z->NSDAP relation
     // formula, so no hardcoded branch is needed here anymore.
+    // SPD must also be consolidated: if the player's own candidate was
+    // eliminated in round 1, Q.spd_candidate still points at them going
+    // into round 2. Previously SPD was the only major party never run
+    // through pickBestFinalist(), so an eliminated SPD candidate (e.g.
+    // Braun) leaked into round-2 vote totals as a phantom extra
+    // "third" bucket, which both inflated the denominator used for
+    // Q.winner_votes and desynced it from the chart's own total
+    // (which only sums the true finalist buckets) — the exact mismatch
+    // between the results banner and the closing "elected with X%" line.
+    if (Q.spd_candidate) Q.spd_candidate = pickBestFinalist("spd", Q.spd_candidate);
     if (Q.z_candidate) Q.z_candidate = pickBestFinalist("z", Q.z_candidate);
     if (Q.csrp_candidate) Q.csrp_candidate = pickBestFinalist("csrp", Q.csrp_candidate);
     if (Q.bvp_candidate) Q.bvp_candidate = pickBestFinalist("bvp", Q.bvp_candidate);
