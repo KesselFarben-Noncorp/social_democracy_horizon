@@ -2554,7 +2554,7 @@ var finalist2 = canon2(Q.round1_runner_up);
 var buckets = {};
 buckets[finalist1] = [];
 buckets[finalist2] = [];
-var thirdKey = null;
+var extraKeys = []; // every non-finalist bucket, first-seen order — replaces the overwritten thirdKey
 
 for (var i = 0; i < allParties.length; i++) {
     var p = allParties[i];
@@ -2566,19 +2566,19 @@ for (var i = 0; i < allParties.length; i++) {
     var bucket = candNorm === finalist1 ? finalist1
                : candNorm === finalist2 ? finalist2
                : candNorm;
-    if (!buckets[bucket]) { buckets[bucket] = []; thirdKey = bucket; }
+    if (!buckets[bucket]) {
+        buckets[bucket] = [];
+        if (bucket !== finalist1 && bucket !== finalist2) extraKeys.push(bucket);
+    }
     buckets[bucket].push({ party: p, votes: votes });
 }
 
 function sumBucket(b) { return b.reduce(function(s,x){return s+x.votes;},0); }
 
-var total = sumBucket(buckets[finalist1]) + sumBucket(buckets[finalist2])
-          + (thirdKey ? sumBucket(buckets[thirdKey]) : 0);
-
-var cols = [finalist1, finalist2];
-if (thirdKey) cols.push(thirdKey);
-var colTotals = cols.map(function(k){return sumBucket(buckets[k]);});
-var colPcts   = colTotals.map(function(v){return total>0?v/total*100:0;});
+var cols = [finalist1, finalist2].concat(extraKeys);
+var colTotals = cols.map(function(k){ return sumBucket(buckets[k]); });
+var total = colTotals.reduce(function(s,v){ return s+v; }, 0);
+var colPcts = colTotals.map(function(v){ return total>0 ? v/total*100 : 0; });
 
 var container = document.getElementById('pres_r2_chart');
 if (!container) return;
