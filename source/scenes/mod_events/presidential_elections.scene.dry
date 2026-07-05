@@ -18,545 +18,7 @@ All major parties are preparing their candidates for the race.
 - @party_candidates: Who are the candidates?
 
 @party_candidates
-on-arrival: {!
-
-// =====================================================================
-// REGISTRY-DRIVEN ELECTION ENGINE
-// ---------------------------------------------------------------------
-// Everything about "who can run, for whom, and where they sit
-// ideologically" lives in three tables below: CANDIDATES, PARTIES,
-// and OWN_BENCH. To add a new candidate, party, or leader
-// branch, add ONE row to ONE table here. Then mirror the candidate's
-// name/party/bloc in the small CAND_INFO lookup that appears in
-// @finalize_candidates, @post_r1, @r2_start, and @post_r2 (those blocks
-// only need display info, not resolver logic).
-// =====================================================================
-
-var CANDIDATES = {
-    Hindenburg: { name: "Paul von Hindenburg", party: "I",     bloc: "center" },
-    Eckener:    { name: "Hugo Eckener",        party: "Unity", bloc: "center_left" },
-    Gessler:    { name: "Otto Gessler",        party: "Liberal", bloc: "center_left" },
-    Einstein:   { name: "Albert Einstein",     party: "Independent", bloc: "cultural" },
-    Mann:       { name: "Heinrich Mann",       party: "Independent", bloc: "cultural" },
-    Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent", bloc: "cultural" },
-    Hitler:     { name: "Adolf Hitler",        party: "NSDAP", bloc: "far_right" },
-    Goring:     { name: "Hermann Göring",      party: "NSDAP", bloc: "far_right", aliases: ["Göring"] },
-    Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP", bloc: "far_right" },
-    Westarp:    { name: "Kuno von Westarp",       party: "DNVP", bloc: "center_right" },
-    Treviranus: { name: "Gottfried Treviranus",   party: "DNVP", bloc: "center_right" },
-    Lambach:    { name: "Walter Lambach",         party: "DNVP", bloc: "center_right" },
-    Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP", bloc: "center_right" },
-    Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP", bloc: "far_right" },
-    Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm", bloc: "far_right" },
-    Adenauer:   { name: "Konrad Adenauer",     party: "Z", bloc: "center" },
-    Kaas:       { name: "Ludwig Kaas",         party: "Z", bloc: "center" },
-    Bruning:    { name: "Heinrich Brüning",    party: "Z", bloc: "center", aliases: ["Brüning"] },
-    Schaffer:   { name: "Franz Schäffer",      party: "BVP", bloc: "center_right", aliases: ["Schäffer"] },
-    Stresemann: { name: "Gustav Stresemann",   party: "DVP", bloc: "center_left" },
-    Scholz:     { name: "Ernst Scholz",        party: "DVP", bloc: "center_right" },
-    Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP", bloc: "center_right" },
-    Curtius:    { name: "Julius Curtius",      party: "DVP", bloc: "center" },
-    Reinhold:   { name: "Peter Reinhold",      party: "DVP", bloc: "center_left" },
-    Heuss:      { name: "Theodor Heuss",       party: "DDP",  bloc: "center_left" },
-    Dietrich:   { name: "Hermann Dietrich",    party: "DDP",  bloc: "center_left" },
-    Luders:     { name: "Hermann Lüders",      party: "DDP",  bloc: "center_left", aliases: ["Lüders"] },
-    Lemmer:     { name: "Ernst Lemmer",        party: "DDP",  bloc: "center_left" },
-    Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo", bloc: "center_right" },
-    KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", bloc: "center_left", aliases: ["Koch-Weser"] },
-    Maier:      { name: "Reinhold Maier",      party: "DStP", bloc: "center_left" },
-    Thalmann:   { name: "Ernst Thälmann",      party: "KPD", bloc: "far_left", aliases: ["Thälmann"] },
-    Munzenberg: { name: "Willi Münzenberg",    party: "KPD", bloc: "far_left", aliases: ["Münzenberg"] },
-    Braun:      { name: "Otto Braun",          party: "SPD", bloc: "left" },
-    Schumacher: { name: "Kurt Schumacher",     party: "SPD", bloc: "left" },
-    Schmid:     { name: "Carlo Schmid",        party: "SPD (Reformist)", bloc: "center_left" },
-    Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD (Left)", bloc: "left" },
-    Juchacz:    { name: "Marie Juchacz",       party: "SPD", bloc: "left" },
-    Noske:      { name: "Gustav Noske",        party: "SPD (Right)", bloc: "center" },
-    Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD", bloc: "far_left" },
-    Horsing:    { name: "Otto Hörsing",        party: "SRPD", bloc: "center_left" },
-    Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL", bloc: "center_right" },
-    Behrens:    { name: "Wilhelm Behrens",     party: "CNBL", bloc: "center_right" },
-    Fehr:       { name: "Anton Fehr",          party: "DBP",  bloc: "center" },
-    Drewitz:    { name: "Max Drewitz",         party: "WP", bloc: "center_right" },
-    Lambach2:   { name: "Walther Lambach",     party: "CSVD", bloc: "center_right" },
-    Graefe:     { name: "Albrecht von Graefe", party: "DVFP", bloc: "far_right" },
-    Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
-    Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
-    Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
-    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
-};
-
-var CANDIDATE_ALIAS = {};
-for (var ck in CANDIDATES) {
-    CANDIDATE_ALIAS[ck] = ck;
-    if (CANDIDATES[ck].aliases) {
-        for (var a = 0; a < CANDIDATES[ck].aliases.length; a++) {
-            CANDIDATE_ALIAS[CANDIDATES[ck].aliases[a]] = ck;
-        }
-    }
-}
-
-function canon(name) {
-    if (!name) return name;
-    if (CANDIDATE_ALIAS[name]) return CANDIDATE_ALIAS[name];
-    var stripped = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
-    return CANDIDATE_ALIAS[stripped] || stripped;
-}
-function candDesc(name) {
-    var key = canon(name);
-    var c = CANDIDATES[key];
-    return c ? (c.name + " (" + c.party + ")") : (name || "");
-}
-function candBloc(name) {
-    var key = canon(name);
-    var c = CANDIDATES[key];
-    return c ? c.bloc : "center";
-}
-
-var BLOC_ORDER = ["far_left", "left", "cultural", "center_left", "center", "center_right", "far_right"];
-function blocIndex(blocName) {
-    var i = BLOC_ORDER.indexOf(blocName);
-    return i === -1 ? 4 : i;
-}
-
-// ---------------------------------------------------------------------
-// PARTIES — display info + tier. Every party is independent: each has
-// its own row in OWN_BENCH and resolves its own candidate through the
-// same free-pick/finalist pipeline as every other party. No party
-// inherits its pick from another party's result anymore.
-// ---------------------------------------------------------------------
-var PARTIES = {
-    spd:   { label: "SPD",  tier: "independent", requires: "Q.spd_votes > 0 && !Q.spd_banned" },
-    z:     { label: "Z",    tier: "independent", requires: "Q.z_votes > 0 && !Q.z_banned" },
-    dnvp:  { label: "DNVP", tier: "independent", requires: "Q.dnvp_votes > 0 && !Q.dnvp_banned" },
-    dvp:   { label: "DVP",  tier: "independent", requires: "Q.dvp_votes > 0 && !Q.dvp_banned" },
-    ddp:   { label: "",     tier: "independent", requires: "Q.ddp_votes > 0 && !Q.ddp_banned" },
-    kpd:   { label: "KPD",  tier: "independent", requires: "Q.kpd_votes > 0 && !Q.kpd_banned" },
-    nsdap: { label: "NSDAP",tier: "independent", requires: "Q.nsdap_votes > 0 && !Q.nsdap_banned" },
-    bvp:   { label: "BVP",  tier: "independent", requires: "Q.bvp_votes > 0 && !Q.bvp_banned" },
-    wp:    { label: "WP",   tier: "independent", requires: "Q.wp_votes > 0 && !Q.wp_banned" },
-    cnbl:  { label: "CNBL", tier: "independent", requires: "Q.cnbl_votes > 0 && !Q.cnbl_banned" },
-    bb:    { label: "BB",   tier: "independent", requires: "Q.bb_votes > 0 && !Q.bb_banned" },
-    dhp:   { label: "DHP",  tier: "independent", requires: "Q.dhp_votes > 0 && !Q.dhp_banned" },
-    csvd:  { label: "CSVD", tier: "independent", requires: "Q.csvd_votes > 0 && !Q.csvd_banned" },
-    kvp:   { label: "KVP",  tier: "independent", requires: "Q.kvp_votes > 0 && !Q.kvp_banned " },
-    vrp:   { label: "VRP",  tier: "independent", requires: "Q.vrp_votes > 0 && !Q.vrp_banned" },
-    sapd:  { label: "SAPD", tier: "independent", requires: "Q.sapd_votes > 0 && !Q.sapd_banned" },
-    srpd:  { label: "SRPD", tier: "independent", requires: "Q.srpd_votes > 0 && !Q.srpd_banned" },
-    dbp:   { label: "DBP",  tier: "independent", requires: "Q.dbp_votes > 0 && !Q.dbp_banned" },
-    dsbp:  { label: "DSBP", tier: "independent", requires: "Q.dsbp_votes > 0 && !Q.dsbp_banned" },
-    dvfp:  { label: "DVFP", tier: "independent", requires: "Q.dvfp_votes > 0 && !Q.dvfp_banned" },
-    csrp:  { label: "CSRP", tier: "independent", requires: "Q.csrp_votes > 0 && !Q.csrp_banned" },
-    dnf:   { label: "DNF",  tier: "independent", requires: "Q.dnf_votes > 0 && !Q.dnf_banned" },
-
-    kpo:   { label: "KPO",  tier: "independent", requires: "Q.kpo_votes > 0 && !Q.kpo_banned" },
-    sl:    { label: "SL",   tier: "independent", requires: "Q.sl_votes > 0 && !Q.sl_banned" },
-    aspd:  { label: "ASPD", tier: "independent", requires: "Q.aspd_votes > 0 && !Q.aspd_banned" },
-    vnr:   { label: "VNR",  tier: "independent", requires: "Q.vnr_votes > 0 && !Q.vnr_banned" },
-    hl:    { label: "HL",   tier: "independent", requires: "Q.hl_votes > 0 && !Q.hl_banned" },
-    lb:    { label: "LB",   tier: "independent", requires: "Q.lb_votes > 0 && !Q.lb_banned" },
-    rdp:   { label: "RDP",  tier: "independent", requires: "Q.rdp_votes > 0 && !Q.rdp_banned" },
-    cvp:   { label: "CVP",  tier: "independent", requires: "Q.cvp_votes > 0 && !Q.cvp_banned" },
-    sls:   { label: "SLS",  tier: "independent", requires: "Q.sls_votes > 0 && !Q.sls_banned" },
-    dtsp:  { label: "DtsP", tier: "independent", requires: "Q.dtsp_votes > 0 && !Q.dtsp_banned" }
-};
-
-
-function partyActive(p) {
-    var req = PARTIES[p].requires;
-    if (!req) return true;
-    try { return !!eval(req); } catch (e) { return true; }
-}
-
-// ---------------------------------------------------------------------
-// GENERIC RESOLVER — walks a party's preference rows top to bottom.
-// First row whose "if" is true wins; "pick" may be a literal candidate
-// key or a function returning one (for cases that need to read another
-// party's already-resolved candidate). A "pick" that resolves to a
-// falsy value (e.g. "follow the joint ticket" when none exists) falls
-// through to later rows rather than returning null early.
-// ---------------------------------------------------------------------
-function resolveCandidate(rows) {
-    for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        if (row.default !== undefined) {
-            return (typeof row.default === "function") ? row.default() : row.default;
-        }
-        var ok;
-        try { ok = !!eval(row.if); } catch (e) { ok = false; }
-        if (ok) {
-            var result = (typeof row.pick === "function") ? row.pick() : row.pick;
-            if (result) return result;
-        }
-    }
-    return null;
-}
-
-function jointActive() { return Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate; }
-function jointCand() { return Q.z_dnvp_joint_candidate; }
-function getRelationSafe(a, b) {
-    if (!Q.party_relations || !Q.party_relations[a] || !Q.party_relations[a][b]) return 0;
-    return Q.party_relations[a][b];
-}
-
-// ---------------------------------------------------------------------
-// ROUND 1 — FREE CANDIDATE SELECTION
-// ---------------------------------------------------------------------
-// Each party now genuinely chooses, round to round, between fielding
-// its OWN bench candidate and BACKING another party's already-resolved
-// candidate — decided by the same ideology/relation scorer used in the
-// round-2 runoff, rather than a hand-authored list of "if relation with
-// X >= N, back X" rows per party.
-//
-// OWN_BENCH keeps all the narrative, state-driven logic for who a party
-// WOULD run if running alone (leadership fights, hitler_dead/deported
-// chains, DNVP's line 0/1/2/3, Z's Kaas/Bruning/Adenauer split, DVP's
-// leader-driven positioning, etc.) — that content is specific and
-// earned, not bloc math, so it stays exactly as authored.
-//
-// Cross-party backing is no longer hardcoded per party; instead each
-// party scores its own bench candidate against every other party's
-// candidate resolved so far (RESOLUTION_ORDER defines the dependency
-// chain, same order as before) and pick the highest-scoring option.
-// A "home bench" bonus keeps parties from reflexively defecting from a
-// perfectly good candidate of their own over a marginal score delta.
-// ---------------------------------------------------------------------
-
-var BLOC_IDEO_FALLBACK_R1 = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
-                               center: 5, center_right: 6.5, far_right: 9.5 };
-
-function candIdeoScoreR1(name) {
-    var key = canon(name);
-    var c = CANDIDATES[key];
-    if (!c) return 5;
-    var partyKey = (c.party || "").toLowerCase().replace(/[^a-z]/g, "");
-    if (Q[partyKey + '_ideo_score'] !== undefined) return Q[partyKey + '_ideo_score'];
-    return (c.bloc && BLOC_IDEO_FALLBACK_R1[c.bloc] !== undefined) ? BLOC_IDEO_FALLBACK_R1[c.bloc] : 5;
-}
-function vetoPenaltyR1(relation) {
-    if (relation >= 15) return 0;
-    return (15 - relation) * 4;
-}
-// HOME_BENCH_BONUS: flat score bonus for a party's own candidate, so a
-// party only defects to backing someone else when that option is
-// clearly better, not on a coin-flip-sized ideology/relation delta.
-var HOME_BENCH_BONUS = 6;
-
-function optionScore(votingPartyKey, candidateName, isOwnBench) {
-    var fKey = canon(candidateName);
-    var c = CANDIDATES[fKey];
-    var candPartyLabel = c ? c.party : "";
-    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
-    var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
-    var ideoGap = Math.abs(myIdeo - candIdeoScoreR1(candidateName));
-    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyR1(relation);
-    if (isOwnBench) score += HOME_BENCH_BONUS;
-    return score;
-}
-
-// Picks between a party's own bench candidate and every other already-
-// resolved party's candidate. `resolvedSoFar` is the list of candidate
-// names resolved earlier in RESOLUTION_ORDER (dependency chain intact,
-// same as the original design — e.g. Z/BVP still wait for SPD since
-// SPD resolves outside this loop, before RESOLUTION_ORDER runs).
-function pickFreeCandidate(votingPartyKey, ownBenchCandidate, resolvedSoFar) {
-    if (!ownBenchCandidate && (!resolvedSoFar || resolvedSoFar.length === 0)) return null;
-
-    var best = ownBenchCandidate || null;
-    var bestScore = ownBenchCandidate ? optionScore(votingPartyKey, ownBenchCandidate, true) : -Infinity;
-
-    if (resolvedSoFar) {
-        var seen = {};
-        for (var i = 0; i < resolvedSoFar.length; i++) {
-            var cand = resolvedSoFar[i];
-            if (!cand) continue;
-            var ck = canon(cand);
-            if (seen[ck]) continue; // don't score the same candidate twice
-            seen[ck] = true;
-            if (ownBenchCandidate && ck === canon(ownBenchCandidate)) continue;
-            var s = optionScore(votingPartyKey, cand, false);
-            if (s > bestScore) { bestScore = s; best = cand; }
-        }
-    }
-    return best;
-}
-
-// ---------------------------------------------------------------------
-// OWN_BENCH — one ranked list per party (every party is independent
-// now, so this covers all of them, not just the former "major" set),
-// narrative/state-driven only (who they'd run if running alone). No
-// cross-party fallback rows live here anymore; pickFreeCandidate()
-// handles all cross-party backing generically via the scorer above.
-// ---------------------------------------------------------------------
-var OWN_BENCH = {
-
-    nsdap: [
-        { if: "Q.hitler_dead", pick: "Goebbels" },
-        { if: "Q.hitler_deported", pick: "Goring" },
-        { default: "Hitler" }
-    ],
-
-    dnf: [
-        { default: "Hugenberg" }
-    ],
-
-    dnvp: [
-        { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
-        { if: "Q.dnvp_line === 1", pick: "Westarp" },
-        { if: "Q.dnvp_line === 2", pick: "Westarp" },
-        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Westarp'", pick: "Westarp" },
-        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Treviranus'", pick: "Treviranus" },
-        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Lambach'", pick: "Lambach" },
-        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Lindeiner-Wildau'", pick: "Lindeiner" },
-        { if: "Q.dnvp_line === 0", pick: "Treviranus" },
-        { if: "Q.dnvp_line === 3 && Q.nsdap_banned", pick: "Hugenberg" },
-        { if: "Q.dnvp_line === 3 && Q.hitler_dead && Q.dnvp_relation_nsdap >= 70", pick: "Goebbels" },
-        { if: "Q.dnvp_line === 3 && Q.hitler_dead", pick: "Hugenberg" },
-        { if: "Q.dnvp_line === 3 && Q.hitler_deported", pick: "Goring" },
-        { if: "Q.dnvp_line === 3", pick: "Hitler" },
-        { default: "Seldte" }
-    ],
-
-    z: [
-        { if: "jointActive()", pick: jointCand },
-        { if: "Q.z_party_leader === 'Kaas'", pick: "Kaas" },
-        { if: "Q.z_party_leader === 'Joos'", pick: "Adenauer" },
-        { if: "Q.z_party_leader === 'Bruning'", pick: "Bruning" },
-        { default: "Adenauer" }
-    ],
-
-    bvp: [
-        { if: "jointActive()", pick: jointCand },
-        { default: "Schaffer" }
-    ],
-
-    dvp: [
-        { if: "!Q.stresemann_dead && Q.year <= 1929", pick: "Stresemann" },
-        { if: "Q.dvp_party_leader === 'Scholz' && (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3) && Q.dnvp_line === 1 && Q.dnvp_relation >= 50", pick: "Westarp" },
-        { if: "Q.dvp_party_leader === 'Scholz' && (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3)", pick: "Scholz" },
-        { if: "Q.dvp_party_leader === 'Scholz'", pick: "Gessler" },
-        { if: "Q.dvp_party_leader === 'Dingeldey' && Q.dvp_right_shift >= 1", pick: "Dingeldey" },
-        { if: "Q.dvp_party_leader === 'Dingeldey'", pick: "Gessler" },
-        { if: "Q.dvp_party_leader === 'Curtius'", pick: "Curtius" },
-        { if: "Q.finance_minister === 'Reinhold' && Q.economic_policy_seen", pick: "Reinhold" },
-        { default: "Gessler" }
-    ],
-
-    kpd: [
-        { if: "Q.kpd_party_leader === 'Conciliators'", pick: "Munzenberg" },
-        { default: "Thalmann" }
-    ],
-
-    wp: [
-        { default: "Drewitz" }
-    ],
-
-    cnbl: [
-        { if: "Q.agricultural_finance < 2 || Q.land_reform >= 2", pick: "Hamkens" },
-        { default: "Hamkens" }
-    ],
-
-    bb: [
-        { default: "Hamkens" }
-    ],
-
-    dhp: [
-        { default: "Hamkens" }
-    ],
-
-    csvd: [
-        { default: "Lambach2" }
-    ],
-
-    kvp: [
-        { default: "Westarp" }
-    ],
-
-    vrp: [
-        { if: "Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3", pick: "Bohm" },
-        { default: "Bohm" }
-    ],
-
-    sapd: [
-        { default: "Rosenfeld" }
-    ],
-
-    srpd: [
-        { default: "Horsing" }
-    ],
-
-    dvfp: [
-        { if: "Q.hitler_dead && !Q.nsdap_banned", pick: "Ludendorff" },
-        { if: "Q.unrest_factor >= 2.0 || Q.nationalism >= 60", pick: "Ludendorff" },
-        { default: "Graefe" }
-    ],
-
-    dbp: [
-        { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Fehr" },
-        { default: "Fehr" }
-    ],
-
-    dsbp: [
-        { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Gessler" },
-        { default: "Gessler" }
-    ],
-
-    // CSRP has no bench of its own — it always follows Z (kept as a
-    // direct rule rather than scored, since it has never fielded an
-    // independent candidate in the source material).
-    csrp: [
-        { default: function () { return Q.z_candidate; } }
-    ],
-
-    ddp: [
-        { default: function () { return ddpOwnCandidate(); } }
-    ],
-
-    // ---------------------------------------------------------------------
-    // Formerly-"minor" parties — each is now fully independent and gets
-    // its own bench row like every other party. Their default pick is
-    // the same figure they used to simply mirror from a parent party
-    // (kept as-is so their likely candidate doesn't change), but they
-    // now resolve, get offered/back other parties, and finalize through
-    // the normal generic pipeline rather than a hardcoded inheritance.
-    // ---------------------------------------------------------------------
-    kpo: [
-        { default: function () { return Q.kpd_candidate || Q.kpd_default_candidate || "Thalmann"; } }
-    ],
-
-    sl: [
-        { default: function () { return Q.sapd_candidate || Q.sapd_default_candidate || "Rosenfeld"; } }
-    ],
-
-    aspd: [
-        { default: function () { return Q.dvp_candidate || Q.dvp_default_candidate || "Gessler"; } }
-    ],
-
-    vnr: [
-        { default: function () { return Q.dvp_candidate || Q.dvp_default_candidate || "Gessler"; } }
-    ],
-
-    hl: [
-        { default: function () { return Q.dhp_candidate || Q.dhp_default_candidate || "Hamkens"; } }
-    ],
-
-    lb: [
-        { default: function () { return Q.kpd_candidate || Q.kpd_default_candidate || "Thalmann"; } }
-    ],
-
-    rdp: [
-        { default: "Quidde" }
-    ],
-
-    cvp: [
-        { default: function () { return Q.z_candidate || Q.z_default_candidate || "Adenauer"; } }
-    ],
-
-    sls: [
-        { default: function () { return Q.spd_candidate || "Braun"; } }
-    ],
-
-    dtsp: [
-        { default: "Kunze" }
-    ]
-};
-
-function ddpOwnCandidate() {
-    if (Q.ddp_name === "DStP") {
-        if (Q.jungdo_strength >= 300 && Q.year >= 1930) return "Mahraun";
-        if (Q.ddp_party_leader === "Koch-Weser" || !Q.ddp_party_leader) return "KochWeser";
-        if (Q.ddp_party_leader === "Maier") return "Maier";
-        if (Q.economic_democracy >= 2 || Q.reformist_strength >= 50) return "Luders";
-        return "KochWeser";
-    }
-    if (Q.womens_rights >= 4 && Q.pro_republic > 80 && Q.nationalism < 20) return "Luders";
-    if (Q.ddp_party_leader === "Dietrich" || Q.finance_minister === "Dietrich") return "Dietrich";
-    if (Q.ddp_party_leader === "Heuss") return "Heuss";
-    if (Q.rb_strength >= 800 && Q.rb_militancy > 0.30 && Q.year >= 1932) return "Lemmer";
-    return "Heuss";
-}
-
-// resolveCandidate (defined above) walks OWN_BENCH rows top to bottom
-// to find what a party WOULD run alone (narrative rows only).
-
-// =====================================================================
-// ORCHESTRATION
-// =====================================================================
-Q.is_unity_candidate = 0;
-Q.is_cultural_candidate = 0;
-
-for (var ckk in CANDIDATES) {
-    Q[ckk + '_bonus'] = Q[ckk + '_bonus'] || 0;
-    Q[ckk + '_running'] = 0;
-}
-
-// --- Joint Z-DNVP conservative unity ticket -------------------------
-Q.z_dnvp_joint_possible = 0;
-Q.z_dnvp_joint_candidate = null;
-
-if (!Q.dnvp_banned && (Q.dnvp_line === 0 || Q.dnvp_line === 1 || Q.dnvp_line === 2)) {
-    var z_dnvp_rel = getRelationSafe("Z", "DNVP");
-    var dnvp_z_rel = getRelationSafe("DNVP", "Z");
-    var z_bvp_rel = getRelationSafe("Z", "BVP");
-
-    if (z_dnvp_rel >= 40 && dnvp_z_rel >= 40 && z_bvp_rel >= 70) {
-        if ((Q.nsdap_r >= 20 || Q.kpd_r >= 12) && Q.year >= 1930) {
-            Q.z_dnvp_joint_possible = 1;
-            if (Q.z_party_leader === "Kaas" && Q.dnvp_line === 0) {
-                Q.z_dnvp_joint_candidate = (Q.z_r >= Q.dnvp_r) ? "Kaas" : "Westarp";
-            } else if (Q.z_party_leader === "Bruning") {
-                Q.z_dnvp_joint_candidate = "Bruning";
-            } else if (Q.dnvp_line === 1) {
-                Q.z_dnvp_joint_candidate = "Westarp";
-            } else if (Q.bvp_r >= 3 && Q.z_r >= Q.dnvp_r) {
-                Q.z_dnvp_joint_candidate = "Schaffer";
-            } else {
-                Q.z_dnvp_joint_candidate = "Adenauer";
-            }
-        }
-    }
-
-    Q.conservative_unity_estimate = (Q.z_r || 0) + (Q.dnvp_r || 0) + (Q.bvp_r || 0);
-    if (Q.dvp_candidate === Q.z_dnvp_joint_candidate) Q.conservative_unity_estimate += (Q.dvp_r || 0);
-    if (Q.wp_candidate === Q.z_dnvp_joint_candidate) Q.conservative_unity_estimate += (Q.wp_r || 0);
-    if (Q.cnbl_candidate === Q.z_dnvp_joint_candidate) Q.conservative_unity_estimate += (Q.cnbl_r || 0);
-    Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
-}
-
-// --- Resolve every party, including the formerly-"minor" ones, which
-//     are now fully independent and share this same resolution pass
-//     rather than waiting to mirror a parent at finalize time.
-// Each party's own bench candidate comes from OWN_BENCH (narrative,
-// state-driven). It then freely checks that bench candidate against
-// every OTHER party's candidate resolved earlier in this same
-// order — genuine cross-party backing, decided by ideology/relation
-// score rather than a hardcoded "if relation >= N, back them" rule.
-// SPD itself is the player's own party and isn't in this loop; parties
-// that would want to back SPD get a second, final look at that once
-// SPD's choice is known, in @finalize_candidates.
-var RESOLUTION_ORDER = [
-    "nsdap", "kpd", "dnvp", "z", "bvp", "dvp", "ddp", "wp", "cnbl",
-    "bb", "dhp", "csvd", "kvp", "vrp", "sapd", "srpd", "dbp", "dsbp",
-    "dvfp", "csrp", "dnf",
-    "kpo", "sl", "aspd", "vnr", "hl", "lb", "rdp", "cvp", "sls", "dtsp"
-];
-
-// ---------------------------------------------------------------------
-// NOTE: AI parties do NOT resolve here anymore. SPD goes first (true
-// "first mover"), so this block only precomputes each party's own-bench
-// candidate (narrative logic — leadership fights, splits, etc.) for
-// display/reference. The actual cross-party sincere-pick pass (which
-// needs to see SPD's choice) runs in @resolve_ai_candidates, reached
-// after @spd_candidate_menu.
-// ---------------------------------------------------------------------
-for (var bi = 0; bi < RESOLUTION_ORDER.length; bi++) {
-    var bkey = RESOLUTION_ORDER[bi];
-    if (!partyActive(bkey)) { Q[bkey + '_default_candidate'] = null; continue; }
-    Q[bkey + '_default_candidate'] = resolveCandidate(OWN_BENCH[bkey]);
-}
-
-!}
+on-arrival: {! Q.tactical_summary = ""; !}
 
 The Social Democrats must settle on their own candidate and strategy before anyone else in the Reichstag commits to theirs.
 
@@ -934,6 +396,558 @@ Carl von Ossietzky, the pacifist journalist, will be our candidate.
 on-arrival: {!
 
 // =====================================================================
+// FULL SINCERE RESOLUTION ENGINE (moved here from @party_candidates).
+// ---------------------------------------------------------------------
+// This entire engine must live in THIS block's scope, not
+// @party_candidates's, because ChoiceScript scopes JS per-label and
+// this is the block that actually needs to run RESOLUTION_ORDER — SPD
+// has already picked by the time we get here (Q.spd_candidate is set),
+// so every AI party can genuinely see and react to it from the start,
+// not just the hand-picked subset the old finalize cascade covered.
+// =====================================================================
+
+
+// =====================================================================
+// REGISTRY-DRIVEN ELECTION ENGINE
+// ---------------------------------------------------------------------
+// Everything about "who can run, for whom, and where they sit
+// ideologically" lives in three tables below: CANDIDATES, PARTIES,
+// and OWN_BENCH. To add a new candidate, party, or leader
+// branch, add ONE row to ONE table here. Then mirror the candidate's
+// name/party/bloc in the small CAND_INFO lookup that appears in
+// @finalize_candidates, @post_r1, @r2_start, and @post_r2 (those blocks
+// only need display info, not resolver logic).
+// =====================================================================
+
+var CANDIDATES = {
+    Hindenburg: { name: "Paul von Hindenburg", party: "I",     bloc: "center" },
+    Eckener:    { name: "Hugo Eckener",        party: "Unity", bloc: "center_left" },
+    Gessler:    { name: "Otto Gessler",        party: "Liberal", bloc: "center_left" },
+    Einstein:   { name: "Albert Einstein",     party: "Independent", bloc: "cultural" },
+    Mann:       { name: "Heinrich Mann",       party: "Independent", bloc: "cultural" },
+    Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent", bloc: "cultural" },
+    Hitler:     { name: "Adolf Hitler",        party: "NSDAP", bloc: "far_right" },
+    Goring:     { name: "Hermann Göring",      party: "NSDAP", bloc: "far_right", aliases: ["Göring"] },
+    Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP", bloc: "far_right" },
+    Westarp:    { name: "Kuno von Westarp",       party: "DNVP", bloc: "center_right" },
+    Treviranus: { name: "Gottfried Treviranus",   party: "DNVP", bloc: "center_right" },
+    Lambach:    { name: "Walter Lambach",         party: "DNVP", bloc: "center_right" },
+    Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP", bloc: "center_right" },
+    Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP", bloc: "far_right" },
+    Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm", bloc: "far_right" },
+    Adenauer:   { name: "Konrad Adenauer",     party: "Z", bloc: "center" },
+    Kaas:       { name: "Ludwig Kaas",         party: "Z", bloc: "center" },
+    Bruning:    { name: "Heinrich Brüning",    party: "Z", bloc: "center", aliases: ["Brüning"] },
+    Schaffer:   { name: "Franz Schäffer",      party: "BVP", bloc: "center_right", aliases: ["Schäffer"] },
+    Stresemann: { name: "Gustav Stresemann",   party: "DVP", bloc: "center_left" },
+    Scholz:     { name: "Ernst Scholz",        party: "DVP", bloc: "center_right" },
+    Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP", bloc: "center_right" },
+    Curtius:    { name: "Julius Curtius",      party: "DVP", bloc: "center" },
+    Reinhold:   { name: "Peter Reinhold",      party: "DVP", bloc: "center_left" },
+    Heuss:      { name: "Theodor Heuss",       party: "DDP",  bloc: "center_left" },
+    Dietrich:   { name: "Hermann Dietrich",    party: "DDP",  bloc: "center_left" },
+    Luders:     { name: "Hermann Lüders",      party: "DDP",  bloc: "center_left", aliases: ["Lüders"] },
+    Lemmer:     { name: "Ernst Lemmer",        party: "DDP",  bloc: "center_left" },
+    Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo", bloc: "center_right" },
+    KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", bloc: "center_left", aliases: ["Koch-Weser"] },
+    Maier:      { name: "Reinhold Maier",      party: "DStP", bloc: "center_left" },
+    Thalmann:   { name: "Ernst Thälmann",      party: "KPD", bloc: "far_left", aliases: ["Thälmann"] },
+    Munzenberg: { name: "Willi Münzenberg",    party: "KPD", bloc: "far_left", aliases: ["Münzenberg"] },
+    Braun:      { name: "Otto Braun",          party: "SPD", bloc: "left" },
+    Schumacher: { name: "Kurt Schumacher",     party: "SPD", bloc: "left" },
+    Schmid:     { name: "Carlo Schmid",        party: "SPD (Reformist)", bloc: "center_left" },
+    Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD (Left)", bloc: "left" },
+    Juchacz:    { name: "Marie Juchacz",       party: "SPD", bloc: "left" },
+    Noske:      { name: "Gustav Noske",        party: "SPD (Right)", bloc: "center" },
+    Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD", bloc: "far_left" },
+    Horsing:    { name: "Otto Hörsing",        party: "SRPD", bloc: "center_left" },
+    Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL", bloc: "center_right" },
+    Behrens:    { name: "Wilhelm Behrens",     party: "CNBL", bloc: "center_right" },
+    Fehr:       { name: "Anton Fehr",          party: "DBP",  bloc: "center" },
+    Drewitz:    { name: "Max Drewitz",         party: "WP", bloc: "center_right" },
+    Lambach2:   { name: "Walther Lambach",     party: "CSVD", bloc: "center_right" },
+    Graefe:     { name: "Albrecht von Graefe", party: "DVFP", bloc: "far_right" },
+    Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
+    Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
+    Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
+    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
+    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
+};
+
+var CANDIDATE_ALIAS = {};
+for (var ck in CANDIDATES) {
+    CANDIDATE_ALIAS[ck] = ck;
+    if (CANDIDATES[ck].aliases) {
+        for (var a = 0; a < CANDIDATES[ck].aliases.length; a++) {
+            CANDIDATE_ALIAS[CANDIDATES[ck].aliases[a]] = ck;
+        }
+    }
+}
+
+function canonEngine(name) {
+    if (!name) return name;
+    if (CANDIDATE_ALIAS[name]) return CANDIDATE_ALIAS[name];
+    var stripped = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/_/g, "");
+    return CANDIDATE_ALIAS[stripped] || stripped;
+}
+function candDesc(name) {
+    var key = canonEngine(name);
+    var c = CANDIDATES[key];
+    return c ? (c.name + " (" + c.party + ")") : (name || "");
+}
+function candBloc(name) {
+    var key = canonEngine(name);
+    var c = CANDIDATES[key];
+    return c ? c.bloc : "center";
+}
+
+var BLOC_ORDER = ["far_left", "left", "cultural", "center_left", "center", "center_right", "far_right"];
+function blocIndex(blocName) {
+    var i = BLOC_ORDER.indexOf(blocName);
+    return i === -1 ? 4 : i;
+}
+
+// ---------------------------------------------------------------------
+// PARTIES — display info + tier. Every party is independent: each has
+// its own row in OWN_BENCH and resolves its own candidate through the
+// same free-pick/finalist pipeline as every other party. No party
+// inherits its pick from another party's result anymore.
+// ---------------------------------------------------------------------
+var PARTIES = {
+    spd:   { label: "SPD",  tier: "independent", requires: "Q.spd_votes > 0 && !Q.spd_banned" },
+    z:     { label: "Z",    tier: "independent", requires: "Q.z_votes > 0 && !Q.z_banned" },
+    dnvp:  { label: "DNVP", tier: "independent", requires: "Q.dnvp_votes > 0 && !Q.dnvp_banned" },
+    dvp:   { label: "DVP",  tier: "independent", requires: "Q.dvp_votes > 0 && !Q.dvp_banned" },
+    ddp:   { label: "",     tier: "independent", requires: "Q.ddp_votes > 0 && !Q.ddp_banned" },
+    kpd:   { label: "KPD",  tier: "independent", requires: "Q.kpd_votes > 0 && !Q.kpd_banned" },
+    nsdap: { label: "NSDAP",tier: "independent", requires: "Q.nsdap_votes > 0 && !Q.nsdap_banned" },
+    bvp:   { label: "BVP",  tier: "independent", requires: "Q.bvp_votes > 0 && !Q.bvp_banned" },
+    wp:    { label: "WP",   tier: "independent", requires: "Q.wp_votes > 0 && !Q.wp_banned" },
+    cnbl:  { label: "CNBL", tier: "independent", requires: "Q.cnbl_votes > 0 && !Q.cnbl_banned" },
+    bb:    { label: "BB",   tier: "independent", requires: "Q.bb_votes > 0 && !Q.bb_banned" },
+    dhp:   { label: "DHP",  tier: "independent", requires: "Q.dhp_votes > 0 && !Q.dhp_banned" },
+    csvd:  { label: "CSVD", tier: "independent", requires: "Q.csvd_votes > 0 && !Q.csvd_banned" },
+    kvp:   { label: "KVP",  tier: "independent", requires: "Q.kvp_votes > 0 && !Q.kvp_banned " },
+    vrp:   { label: "VRP",  tier: "independent", requires: "Q.vrp_votes > 0 && !Q.vrp_banned" },
+    sapd:  { label: "SAPD", tier: "independent", requires: "Q.sapd_votes > 0 && !Q.sapd_banned" },
+    srpd:  { label: "SRPD", tier: "independent", requires: "Q.srpd_votes > 0 && !Q.srpd_banned" },
+    dbp:   { label: "DBP",  tier: "independent", requires: "Q.dbp_votes > 0 && !Q.dbp_banned" },
+    dsbp:  { label: "DSBP", tier: "independent", requires: "Q.dsbp_votes > 0 && !Q.dsbp_banned" },
+    dvfp:  { label: "DVFP", tier: "independent", requires: "Q.dvfp_votes > 0 && !Q.dvfp_banned" },
+    csrp:  { label: "CSRP", tier: "independent", requires: "Q.csrp_votes > 0 && !Q.csrp_banned" },
+    dnf:   { label: "DNF",  tier: "independent", requires: "Q.dnf_votes > 0 && !Q.dnf_banned" },
+
+    kpo:   { label: "KPO",  tier: "independent", requires: "Q.kpo_votes > 0 && !Q.kpo_banned" },
+    sl:    { label: "SL",   tier: "independent", requires: "Q.sl_votes > 0 && !Q.sl_banned" },
+    aspd:  { label: "ASPD", tier: "independent", requires: "Q.aspd_votes > 0 && !Q.aspd_banned" },
+    vnr:   { label: "VNR",  tier: "independent", requires: "Q.vnr_votes > 0 && !Q.vnr_banned" },
+    hl:    { label: "HL",   tier: "independent", requires: "Q.hl_votes > 0 && !Q.hl_banned" },
+    lb:    { label: "LB",   tier: "independent", requires: "Q.lb_votes > 0 && !Q.lb_banned" },
+    rdp:   { label: "RDP",  tier: "independent", requires: "Q.rdp_votes > 0 && !Q.rdp_banned" },
+    cvp:   { label: "CVP",  tier: "independent", requires: "Q.cvp_votes > 0 && !Q.cvp_banned" },
+    sls:   { label: "SLS",  tier: "independent", requires: "Q.sls_votes > 0 && !Q.sls_banned" },
+    dtsp:  { label: "DtsP", tier: "independent", requires: "Q.dtsp_votes > 0 && !Q.dtsp_banned" }
+};
+
+
+function partyActive(p) {
+    var req = PARTIES[p].requires;
+    if (!req) return true;
+    try { return !!eval(req); } catch (e) { return true; }
+}
+
+// ---------------------------------------------------------------------
+// GENERIC RESOLVER — walks a party's preference rows top to bottom.
+// First row whose "if" is true wins; "pick" may be a literal candidate
+// key or a function returning one (for cases that need to read another
+// party's already-resolved candidate). A "pick" that resolves to a
+// falsy value (e.g. "follow the joint ticket" when none exists) falls
+// through to later rows rather than returning null early.
+// ---------------------------------------------------------------------
+function resolveCandidate(rows) {
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        if (row.default !== undefined) {
+            return (typeof row.default === "function") ? row.default() : row.default;
+        }
+        var ok;
+        try { ok = !!eval(row.if); } catch (e) { ok = false; }
+        if (ok) {
+            var result = (typeof row.pick === "function") ? row.pick() : row.pick;
+            if (result) return result;
+        }
+    }
+    return null;
+}
+
+function jointActive() { return Q.z_dnvp_joint_possible && Q.z_dnvp_joint_candidate; }
+function jointCand() { return Q.z_dnvp_joint_candidate; }
+function getRelationSafe(a, b) {
+    if (!Q.party_relations || !Q.party_relations[a] || !Q.party_relations[a][b]) return 0;
+    return Q.party_relations[a][b];
+}
+
+// ---------------------------------------------------------------------
+// ROUND 1 — FREE CANDIDATE SELECTION
+// ---------------------------------------------------------------------
+// Each party now genuinely chooses, round to round, between fielding
+// its OWN bench candidate and BACKING another party's already-resolved
+// candidate — decided by the same ideology/relation scorer used in the
+// round-2 runoff, rather than a hand-authored list of "if relation with
+// X >= N, back X" rows per party.
+//
+// OWN_BENCH keeps all the narrative, state-driven logic for who a party
+// WOULD run if running alone (leadership fights, hitler_dead/deported
+// chains, DNVP's line 0/1/2/3, Z's Kaas/Bruning/Adenauer split, DVP's
+// leader-driven positioning, etc.) — that content is specific and
+// earned, not bloc math, so it stays exactly as authored.
+//
+// Cross-party backing is no longer hardcoded per party; instead each
+// party scores its own bench candidate against every other party's
+// candidate resolved so far (RESOLUTION_ORDER defines the dependency
+// chain, same order as before) and pick the highest-scoring option.
+// A "home bench" bonus keeps parties from reflexively defecting from a
+// perfectly good candidate of their own over a marginal score delta.
+// ---------------------------------------------------------------------
+
+var BLOC_IDEO_FALLBACK_R1 = { far_left: 1, left: 2.5, cultural: 5, center_left: 4,
+                               center: 5, center_right: 6.5, far_right: 9.5 };
+
+function candIdeoScoreR1(name) {
+    var key = canonEngine(name);
+    var c = CANDIDATES[key];
+    if (!c) return 5;
+    var partyKey = (c.party || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (Q[partyKey + '_ideo_score'] !== undefined) return Q[partyKey + '_ideo_score'];
+    return (c.bloc && BLOC_IDEO_FALLBACK_R1[c.bloc] !== undefined) ? BLOC_IDEO_FALLBACK_R1[c.bloc] : 5;
+}
+function vetoPenaltyR1(relation) {
+    if (relation >= 15) return 0;
+    return (15 - relation) * 4;
+}
+// HOME_BENCH_BONUS: flat score bonus for a party's own candidate, so a
+// party only defects to backing someone else when that option is
+// clearly better, not on a coin-flip-sized ideology/relation delta.
+var HOME_BENCH_BONUS = 6;
+
+function optionScore(votingPartyKey, candidateName, isOwnBench) {
+    var fKey = canonEngine(candidateName);
+    var c = CANDIDATES[fKey];
+    var candPartyLabel = c ? c.party : "";
+    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
+    var myIdeo = (Q[votingPartyKey + '_ideo_score'] !== undefined) ? Q[votingPartyKey + '_ideo_score'] : 5;
+    var ideoGap = Math.abs(myIdeo - candIdeoScoreR1(candidateName));
+    var score = -(ideoGap * 20) + (relation * 0.5) - vetoPenaltyR1(relation);
+    if (isOwnBench) score += HOME_BENCH_BONUS;
+    return score;
+}
+
+// Picks between a party's own bench candidate and every other already-
+// resolved party's candidate. `resolvedSoFar` is the list of candidate
+// names resolved earlier in RESOLUTION_ORDER (dependency chain intact,
+// same as the original design — e.g. Z/BVP still wait for SPD since
+// SPD resolves outside this loop, before RESOLUTION_ORDER runs).
+function pickFreeCandidate(votingPartyKey, ownBenchCandidate, resolvedSoFar) {
+    if (!ownBenchCandidate && (!resolvedSoFar || resolvedSoFar.length === 0)) return null;
+
+    var best = ownBenchCandidate || null;
+    var bestScore = ownBenchCandidate ? optionScore(votingPartyKey, ownBenchCandidate, true) : -Infinity;
+
+    if (resolvedSoFar) {
+        var seen = {};
+        for (var i = 0; i < resolvedSoFar.length; i++) {
+            var cand = resolvedSoFar[i];
+            if (!cand) continue;
+            var ck = canonEngine(cand);
+            if (seen[ck]) continue; // don't score the same candidate twice
+            seen[ck] = true;
+            if (ownBenchCandidate && ck === canonEngine(ownBenchCandidate)) continue;
+            var s = optionScore(votingPartyKey, cand, false);
+            if (s > bestScore) { bestScore = s; best = cand; }
+        }
+    }
+    return best;
+}
+
+// ---------------------------------------------------------------------
+// OWN_BENCH — one ranked list per party (every party is independent
+// now, so this covers all of them, not just the former "major" set),
+// narrative/state-driven only (who they'd run if running alone). No
+// cross-party fallback rows live here anymore; pickFreeCandidate()
+// handles all cross-party backing generically via the scorer above.
+// ---------------------------------------------------------------------
+var OWN_BENCH = {
+
+    nsdap: [
+        { if: "Q.hitler_dead", pick: "Goebbels" },
+        { if: "Q.hitler_deported", pick: "Goring" },
+        { default: "Hitler" }
+    ],
+
+    dnf: [
+        { default: "Hugenberg" }
+    ],
+
+    dnvp: [
+        { if: "jointActive() && Q.dnvp_line !== 3", pick: jointCand },
+        { if: "Q.dnvp_line === 1", pick: "Westarp" },
+        { if: "Q.dnvp_line === 2", pick: "Westarp" },
+        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Westarp'", pick: "Westarp" },
+        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Treviranus'", pick: "Treviranus" },
+        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Lambach'", pick: "Lambach" },
+        { if: "Q.dnvp_line === 0 && Q.dnvp_party_leader === 'Lindeiner-Wildau'", pick: "Lindeiner" },
+        { if: "Q.dnvp_line === 0", pick: "Treviranus" },
+        { if: "Q.dnvp_line === 3 && Q.nsdap_banned", pick: "Hugenberg" },
+        { if: "Q.dnvp_line === 3 && Q.hitler_dead && Q.dnvp_relation_nsdap >= 70", pick: "Goebbels" },
+        { if: "Q.dnvp_line === 3 && Q.hitler_dead", pick: "Hugenberg" },
+        { if: "Q.dnvp_line === 3 && Q.hitler_deported", pick: "Goring" },
+        { if: "Q.dnvp_line === 3", pick: "Hitler" },
+        { default: "Seldte" }
+    ],
+
+    z: [
+        { if: "jointActive()", pick: jointCand },
+        { if: "Q.z_party_leader === 'Kaas'", pick: "Kaas" },
+        { if: "Q.z_party_leader === 'Joos'", pick: "Adenauer" },
+        { if: "Q.z_party_leader === 'Bruning'", pick: "Bruning" },
+        { default: "Adenauer" }
+    ],
+
+    bvp: [
+        { if: "jointActive()", pick: jointCand },
+        { default: "Schaffer" }
+    ],
+
+    dvp: [
+        { if: "!Q.stresemann_dead && Q.year <= 1929", pick: "Stresemann" },
+        { if: "Q.dvp_party_leader === 'Scholz' && (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3) && Q.dnvp_line === 1 && Q.dnvp_relation >= 50", pick: "Westarp" },
+        { if: "Q.dvp_party_leader === 'Scholz' && (Q.dvp_right_shift >= 2 || Q.capital_strike_progress >= 3)", pick: "Scholz" },
+        { if: "Q.dvp_party_leader === 'Scholz'", pick: "Gessler" },
+        { if: "Q.dvp_party_leader === 'Dingeldey' && Q.dvp_right_shift >= 1", pick: "Dingeldey" },
+        { if: "Q.dvp_party_leader === 'Dingeldey'", pick: "Gessler" },
+        { if: "Q.dvp_party_leader === 'Curtius'", pick: "Curtius" },
+        { if: "Q.finance_minister === 'Reinhold' && Q.economic_policy_seen", pick: "Reinhold" },
+        { default: "Gessler" }
+    ],
+
+    kpd: [
+        { if: "Q.kpd_party_leader === 'Conciliators'", pick: "Munzenberg" },
+        { default: "Thalmann" }
+    ],
+
+    wp: [
+        { default: "Drewitz" }
+    ],
+
+    cnbl: [
+        { if: "Q.agricultural_finance < 2 || Q.land_reform >= 2", pick: "Hamkens" },
+        { default: "Hamkens" }
+    ],
+
+    bb: [
+        { default: "Hamkens" }
+    ],
+
+    dhp: [
+        { default: "Hamkens" }
+    ],
+
+    csvd: [
+        { default: "Lambach2" }
+    ],
+
+    kvp: [
+        { default: "Westarp" }
+    ],
+
+    vrp: [
+        { if: "Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3", pick: "Bohm" },
+        { default: "Bohm" }
+    ],
+
+    sapd: [
+        { default: "Rosenfeld" }
+    ],
+
+    srpd: [
+        { default: "Horsing" }
+    ],
+
+    dvfp: [
+        { if: "Q.hitler_dead && !Q.nsdap_banned", pick: "Ludendorff" },
+        { if: "Q.unrest_factor >= 2.0 || Q.nationalism >= 60", pick: "Ludendorff" },
+        { default: "Graefe" }
+    ],
+
+    dbp: [
+        { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Fehr" },
+        { default: "Fehr" }
+    ],
+
+    dsbp: [
+        { if: "Q.inflation < 0 || Q.unemployed >= 15", pick: "Gessler" },
+        { default: "Gessler" }
+    ],
+
+    // CSRP has no bench of its own — it always follows Z (kept as a
+    // direct rule rather than scored, since it has never fielded an
+    // independent candidate in the source material).
+    csrp: [
+        { default: function () { return Q.z_candidate; } }
+    ],
+
+    ddp: [
+        { default: function () { return ddpOwnCandidate(); } }
+    ],
+
+    // ---------------------------------------------------------------------
+    // Formerly-"minor" parties — each is now fully independent and gets
+    // its own bench row like every other party. Their default pick is
+    // the same figure they used to simply mirror from a parent party
+    // (kept as-is so their likely candidate doesn't change), but they
+    // now resolve, get offered/back other parties, and finalize through
+    // the normal generic pipeline rather than a hardcoded inheritance.
+    // ---------------------------------------------------------------------
+    kpo: [
+        { default: function () { return Q.kpd_candidate || Q.kpd_default_candidate || "Thalmann"; } }
+    ],
+
+    sl: [
+        { default: function () { return Q.sapd_candidate || Q.sapd_default_candidate || "Rosenfeld"; } }
+    ],
+
+    aspd: [
+        { default: function () { return Q.dvp_candidate || Q.dvp_default_candidate || "Gessler"; } }
+    ],
+
+    vnr: [
+        { default: function () { return Q.dvp_candidate || Q.dvp_default_candidate || "Gessler"; } }
+    ],
+
+    hl: [
+        { default: function () { return Q.dhp_candidate || Q.dhp_default_candidate || "Hamkens"; } }
+    ],
+
+    lb: [
+        { default: function () { return Q.kpd_candidate || Q.kpd_default_candidate || "Thalmann"; } }
+    ],
+
+    rdp: [
+        { default: "Quidde" }
+    ],
+
+    cvp: [
+        { default: function () { return Q.z_candidate || Q.z_default_candidate || "Adenauer"; } }
+    ],
+
+    sls: [
+        { default: function () { return Q.spd_candidate || "Braun"; } }
+    ],
+
+    dtsp: [
+        { default: "Kunze" }
+    ]
+};
+
+function ddpOwnCandidate() {
+    if (Q.ddp_name === "DStP") {
+        if (Q.jungdo_strength >= 300 && Q.year >= 1930) return "Mahraun";
+        if (Q.ddp_party_leader === "Koch-Weser" || !Q.ddp_party_leader) return "KochWeser";
+        if (Q.ddp_party_leader === "Maier") return "Maier";
+        if (Q.economic_democracy >= 2 || Q.reformist_strength >= 50) return "Luders";
+        return "KochWeser";
+    }
+    if (Q.womens_rights >= 4 && Q.pro_republic > 80 && Q.nationalism < 20) return "Luders";
+    if (Q.ddp_party_leader === "Dietrich" || Q.finance_minister === "Dietrich") return "Dietrich";
+    if (Q.ddp_party_leader === "Heuss") return "Heuss";
+    if (Q.rb_strength >= 800 && Q.rb_militancy > 0.30 && Q.year >= 1932) return "Lemmer";
+    return "Heuss";
+}
+
+// resolveCandidate (defined above) walks OWN_BENCH rows top to bottom
+// to find what a party WOULD run alone (narrative rows only).
+
+// =====================================================================
+// ORCHESTRATION
+// =====================================================================
+Q.is_unity_candidate = 0;
+Q.is_cultural_candidate = 0;
+
+for (var ckk in CANDIDATES) {
+    Q[ckk + '_bonus'] = Q[ckk + '_bonus'] || 0;
+    Q[ckk + '_running'] = 0;
+}
+
+// --- Joint Z-DNVP conservative unity ticket -------------------------
+Q.z_dnvp_joint_possible = 0;
+Q.z_dnvp_joint_candidate = null;
+
+if (!Q.dnvp_banned && (Q.dnvp_line === 0 || Q.dnvp_line === 1 || Q.dnvp_line === 2)) {
+    var z_dnvp_rel = getRelationSafe("Z", "DNVP");
+    var dnvp_z_rel = getRelationSafe("DNVP", "Z");
+    var z_bvp_rel = getRelationSafe("Z", "BVP");
+
+    if (z_dnvp_rel >= 40 && dnvp_z_rel >= 40 && z_bvp_rel >= 70) {
+        if ((Q.nsdap_r >= 20 || Q.kpd_r >= 12) && Q.year >= 1930) {
+            Q.z_dnvp_joint_possible = 1;
+            if (Q.z_party_leader === "Kaas" && Q.dnvp_line === 0) {
+                Q.z_dnvp_joint_candidate = (Q.z_r >= Q.dnvp_r) ? "Kaas" : "Westarp";
+            } else if (Q.z_party_leader === "Bruning") {
+                Q.z_dnvp_joint_candidate = "Bruning";
+            } else if (Q.dnvp_line === 1) {
+                Q.z_dnvp_joint_candidate = "Westarp";
+            } else if (Q.bvp_r >= 3 && Q.z_r >= Q.dnvp_r) {
+                Q.z_dnvp_joint_candidate = "Schaffer";
+            } else {
+                Q.z_dnvp_joint_candidate = "Adenauer";
+            }
+        }
+    }
+
+    Q.conservative_unity_estimate = (Q.z_r || 0) + (Q.dnvp_r || 0) + (Q.bvp_r || 0);
+    if (Q.dvp_candidate === Q.z_dnvp_joint_candidate) Q.conservative_unity_estimate += (Q.dvp_r || 0);
+    if (Q.wp_candidate === Q.z_dnvp_joint_candidate) Q.conservative_unity_estimate += (Q.wp_r || 0);
+    if (Q.cnbl_candidate === Q.z_dnvp_joint_candidate) Q.conservative_unity_estimate += (Q.cnbl_r || 0);
+    Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
+}
+
+// --- Resolve every party, including the formerly-"minor" ones, which
+//     are now fully independent and share this same resolution pass
+//     rather than waiting to mirror a parent at finalize time.
+// Each party's own bench candidate comes from OWN_BENCH (narrative,
+// state-driven). It then freely checks that bench candidate against
+// every OTHER party's candidate resolved earlier in this same
+// order — genuine cross-party backing, decided by ideology/relation
+// score rather than a hardcoded "if relation >= N, back them" rule.
+// SPD itself is the player's own party and isn't in this loop; parties
+// that would want to back SPD get a second, final look at that once
+// SPD's choice is known, in @finalize_candidates.
+var RESOLUTION_ORDER = [
+    "nsdap", "kpd", "dnvp", "z", "bvp", "dvp", "ddp", "wp", "cnbl",
+    "bb", "dhp", "csvd", "kvp", "vrp", "sapd", "srpd", "dbp", "dsbp",
+    "dvfp", "csrp", "dnf",
+    "kpo", "sl", "aspd", "vnr", "hl", "lb", "rdp", "cvp", "sls", "dtsp"
+];
+
+// ---------------------------------------------------------------------
+// SINCERE RESOLUTION PASS — every party (including nsdap, kpd, dnvp,
+// and every other party skipped by earlier versions of this file)
+// resolves its own bench vs. every already-resolved candidate,
+// seeded with SPD's pick so the very first party in RESOLUTION_ORDER
+// already has SPD to react to.
+// ---------------------------------------------------------------------
+var resolvedSoFar = [Q.spd_candidate];
+for (var ri = 0; ri < RESOLUTION_ORDER.length; ri++) {
+    var pkey = RESOLUTION_ORDER[ri];
+    if (!partyActive(pkey)) { Q[pkey + '_candidate'] = null; Q[pkey + '_default_candidate'] = null; continue; }
+    var ownBench = resolveCandidate(OWN_BENCH[pkey]);
+    Q[pkey + '_default_candidate'] = ownBench;
+    var picked = (pkey === "csrp" || pkey === "dnf") ? ownBench : pickFreeCandidate(pkey, ownBench, resolvedSoFar);
+    Q[pkey + '_candidate'] = picked;
+    resolvedSoFar.push(picked);
+}
+
+// =====================================================================
 // PHASE 1 OF 2 — SINCERE CANDIDATE RESOLUTION.
 // ---------------------------------------------------------------------
 // SPD has already chosen (Q.spd_candidate is set — this block never
@@ -1084,6 +1098,26 @@ function pickFreeCandidateFC(votingPartyKey, ownBenchCandidate, onOffer) {
     }
     return best;
 }
+
+// ========================================
+// NSDAP / KPD / DNVP — these three are read by name further down
+// (JOINT_LEFT, DVFP, CSVD, BB, DNF all branch on Q.nsdap_candidate,
+// Q.kpd_candidate, or Q.dnvp_candidate) but have no dedicated
+// hand-authored block of their own, so they must resolve FIRST, right
+// here, straight off their own bench + the generic scorer (same
+// pickFreeCandidate used in the pre-SPD bench precompute — SPD is
+// already known by this point, so it's included in the offer list
+// like every other party gets below).
+// ========================================
+Q.nsdap_candidate = partyActive("nsdap")
+    ? pickFreeCandidate("nsdap", Q.nsdap_default_candidate, [Q.spd_candidate])
+    : null;
+Q.kpd_candidate = partyActive("kpd")
+    ? pickFreeCandidate("kpd", Q.kpd_default_candidate, [Q.spd_candidate])
+    : null;
+Q.dnvp_candidate = partyActive("dnvp")
+    ? pickFreeCandidate("dnvp", Q.dnvp_default_candidate, [Q.spd_candidate, Q.nsdap_candidate])
+    : null;
 
 // ========================================
 // FINALIZE RESOLUTION ORDER — every party below is re-scored fresh
@@ -1722,7 +1756,6 @@ if (Q.tactical_switches.length) {
 go-to: post_r1
 
 [? if tactical_summary : *Behind the scenes: [+ tactical_summary +]* ?]
-
 
 
 @post_r1
