@@ -1409,7 +1409,150 @@ if (!Q.hindenburg_dead && Q.year >= 1932) {
     // having flipped to Hindenburg and being offered to them).
 }
 
+// =====================================================================
+// TACTICAL CONSOLIDATION — "stop the candidate I hate most" voting.
+// ---------------------------------------------------------------------
+// Every party above has now settled on a SINCERE pick (own bench, or a
+// genuine ideological ally backed via the scorer). That sincere pick is
+// sometimes hopeless — e.g. a small centrist party's own candidate is
+// never going to place in the top two — while a front-runner the party
+// finds acceptable is within reach and a front-runner it finds hostile
+// is not. Real electorates in that spot often abandon their sincere
+// pick and consolidate behind the nearer, less-hostile front-runner
+// purely to deny the win to the one they can't stand.
+//
+// This is symmetric by construction (same function call for every
+// party, left or right) and reuses the exact scorer already used for
+// free-pick/backing decisions — "hostile" is not a new concept, it's
+// just vetoPenaltyR1's existing relation<15 cliff read against whoever
+// is CURRENTLY LEADING rather than against a fixed resolution order.
+//
+// Because one party's defection changes the projected standings, this
+// runs several passes so a switch can trigger further switches
+// (KPD -> Z can shrink NSDAP's lead, which can pull DNVP off Hitler and
+// onto Hindenburg/Z next pass, etc.), capped and damped so it settles
+// instead of oscillating forever.
+// ---------------------------------------------------------------------
+function tactical_projectStandings() {
+    var votes = {};
+    var ap = Q.parties;
+    for (var i = 0; i < ap.length; i++) {
+        var p = ap[i];
+        var cand = Q[p + '_candidate'];
+        if (!cand) continue;
+        var key = canon(cand);
+        var pv = (Q[p + '_votes'] !== undefined && Q[p + '_votes'] !== null) ? Q[p + '_votes'] : (Q[p + '_r'] || 0);
+        votes[key] = (votes[key] || 0) + pv;
+    }
+    var arr = [];
+    for (var k in votes) arr.push({ name: k, votes: votes[k] });
+    arr.sort(function (a, b) { return b.votes - a.votes; });
+    return arr;
+}
+
+// A candidate counts as "in contention" if they're in the projected top
+// three, or within TACTICAL_REACH of third place — close enough that
+// this party's own vote share could plausibly matter to the outcome.
+var TACTICAL_REACH = 3; // percentage points
+function tactical_inContention(standings, candKey) {
+    for (var i = 0; i < Math.min(3, standings.length); i++) {
+        if (standings[i].name === candKey) return true;
+    }
+    var thirdVotes = standings.length > 2 ? standings[2].votes : 0;
+    for (var i2 = 0; i2 < standings.length; i2++) {
+        if (standings[i2].name === candKey) return (thirdVotes - standings[i2].votes) <= TACTICAL_REACH;
+    }
+    return false;
+}
+
+// A leader counts as "hostile" to a party if the relation/ideology
+// scorer would apply the same hard veto penalty it already uses
+// elsewhere (relation < 15). This is not a new threshold — it's the
+// existing vetoPenaltyFC cliff, just checked directly here so we can
+// gate the switch decision on it rather than only feed it into a score.
+function tactical_isHostile(votingPartyKey, candidateName) {
+    var fKey = canon(candidateName);
+    var c = CAND_INFO[fKey];
+    var candPartyLabel = c ? c.party : "";
+    var relation = getRelationSafe(votingPartyKey.toUpperCase(), (candPartyLabel || "").toUpperCase());
+    return relation < 15;
+}
+
+var TACTICAL_MAX_PASSES = 4;
+var tactical_locked = {}; // parties that already defected once stay put (no flip-flopping pass to pass)
+Q.tactical_switches = []; // for display/debugging: {party, from, to}
+
+for (var pass = 0; pass < TACTICAL_MAX_PASSES; pass++) {
+    var standings = tactical_projectStandings();
+    if (!standings.length) break;
+    var changedThisPass = false;
+
+    for (var pi = 0; pi < Q.parties.length; pi++) {
+        var party = Q.parties[pi];
+        if (tactical_locked[party]) continue;
+        var current = Q[party + '_candidate'];
+        if (!current) continue;
+        var currentKey = canon(current);
+
+        // Already backing a contender — nothing to reconsider.
+        if (tactical_inContention(standings, currentKey)) continue;
+
+        // Find the most hostile in-contention leader (worst score wins,
+        // i.e. lowest optionScoreFC — reusing the exact same ideology/
+        // relation math as every other decision in this file), and the
+        // best in-contention alternative to consolidate behind.
+        var worst = null, worstScore = Infinity;
+        var best = null, bestScore = -Infinity;
+        for (var si = 0; si < Math.min(3, standings.length); si++) {
+            var contenderKey = standings[si].name;
+            if (contenderKey === currentKey) continue;
+            var s = optionScoreFC(party, contenderKey, false);
+            if (s < worstScore) { worstScore = s; worst = contenderKey; }
+            if (s > bestScore) { bestScore = s; best = contenderKey; }
+        }
+        if (!worst || !best || worst === best) continue;
+
+        // Defect only if: the leading contender we'd be blocking is a
+        // genuine veto-tier hostile match (relation < 15, same cliff
+        // vetoPenaltyFC already uses everywhere else), AND the
+        // alternative we'd consolidate behind is NOT itself hostile (no
+        // point trading one enemy for another). Deliberately NOT
+        // compared against our own home-bench score: HOME_BENCH_BONUS_FC
+        // exists to stop frivolous defection when a party's own
+        // candidate is still viable, but once a party is confirmed OUT
+        // of contention (checked above) that bonus is just noise — a
+        // hopeless sincere vote has no value to protect, so the only
+        // question left is whether staying home helps elect the
+        // hostile front-runner by default.
+        if (tactical_isHostile(party, worst) && !tactical_isHostile(party, best)) {
+            Q.tactical_switches.push({ party: party, from: current, to: best });
+            Q[party + '_candidate'] = best;
+            tactical_locked[party] = true; // one defection per party per election; prevents oscillation
+            changedThisPass = true;
+        }
+    }
+
+    if (!changedThisPass) break;
+}
+
+// Human-readable summary for playtesting/tuning — shows which parties
+// tactically abandoned their sincere pick and why, without cluttering
+// the main declaration list for normal play.
+if (Q.tactical_switches.length) {
+    var tsLines = [];
+    for (var tsi = 0; tsi < Q.tactical_switches.length; tsi++) {
+        var ts = Q.tactical_switches[tsi];
+        var partyLabel = (PARTIES[ts.party] && PARTIES[ts.party].label) ? PARTIES[ts.party].label : ts.party.toUpperCase();
+        tsLines.push(partyLabel + " abandons " + candDesc(ts.from) + " to stop a hostile front-runner, backing " + candDesc(ts.to) + " instead");
+    }
+    Q.tactical_summary = tsLines.join("; ") + ".";
+} else {
+    Q.tactical_summary = "";
+}
+
 !}
+
+[? if tactical_summary : *Behind the scenes: [+ tactical_summary +]* ?]
 
 *The Electoral Commission has closed nominations. The candidates are confirmed:*
 
