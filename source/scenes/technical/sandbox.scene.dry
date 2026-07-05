@@ -805,7 +805,46 @@ Pick your demise.
 - @rngizer: RNG ALL VARIABLES. Breaks game, so save it, but have fun.
 - @math_broken_mode: Prepare thyself.
 - @roll_dice: Roll dice for the game!
+- @rng_relat
 - @secretmode: Secret Mode
+
+@rng_relat
+title: Randomize relationships and ideologies.
+on-arrival: {!
+
+
+    // ===== PARTY RELATIONS MATRIX =====
+    var all_parties_inv = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','VRP',
+                           'CSVD','DVP','WP','CNBL','KVP','BB','DHP','DNVP','NSDAP',
+                           'DVFP','DHD','ASPD','HL','VNR','LB','RDP','CVP','SLS','DTSP','DBP', 'DSBP', 'DNF'];
+
+    Q.party_relations = {};
+    for (var i_inv = 0; i_inv < all_parties_inv.length; i_inv++) {
+        Q.party_relations[all_parties_inv[i_inv]] = {};
+    }
+
+    for (var pi_inv = 0; pi_inv < all_parties_inv.length; pi_inv++) {
+        for (var pj_inv = 0; pj_inv < all_parties_inv.length; pj_inv++) {
+            if (all_parties_inv[pi_inv] !== all_parties_inv[pj_inv]) {
+                Q.party_relations[all_parties_inv[pi_inv]][all_parties_inv[pj_inv]] = Math.floor(Math.random() * 101);
+            }
+        }
+    }
+
+    for (var ip_inv = 0; ip_inv < all_parties_inv.length; ip_inv++) {
+    var p_inv = all_parties_inv[ip_inv].toLowerCase();
+    
+    // Generates a completely random integer from 1 to 10 inclusive
+    Q[p_inv + '_ideo_score'] = Math.floor(Math.random() * 10) + 1;
+    Q.string_info = Q[p_inv + '_ideo_score']
+
+    }
+
+!}
+
+Have fun.
+
+- @wacky: Back
 
 
 
