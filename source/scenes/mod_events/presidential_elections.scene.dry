@@ -121,47 +121,45 @@ function blocIndex(blocName) {
 }
 
 // ---------------------------------------------------------------------
-// PARTIES — display info + tier. "minor" tier parties have no rows in
-// OWN_BENCH at all; they always just inherit their parent's pick.
-// ---------------------------------------------------------------------
-// ---------------------------------------------------------------------
-// PARTIES — display info + tier. "minor" tier parties have no rows in
-// OWN_BENCH at all; they always just inherit their parent's pick.
+// PARTIES — display info + tier. Every party is independent: each has
+// its own row in OWN_BENCH and resolves its own candidate through the
+// same free-pick/finalist pipeline as every other party. No party
+// inherits its pick from another party's result anymore.
 // ---------------------------------------------------------------------
 var PARTIES = {
-    spd:   { label: "SPD",  tier: "major", requires: "Q.spd_votes > 0 && !Q.spd_banned" },
-    z:     { label: "Z",    tier: "major", requires: "Q.z_votes > 0 && !Q.z_banned" },
-    dnvp:  { label: "DNVP", tier: "major", requires: "Q.dnvp_votes > 0 && !Q.dnvp_banned" },
-    dvp:   { label: "DVP",  tier: "major", requires: "Q.dvp_votes > 0 && !Q.dvp_banned" },
-    ddp:   { label: "",     tier: "major", requires: "Q.ddp_votes > 0 && !Q.ddp_banned" },
-    kpd:   { label: "KPD",  tier: "major", requires: "Q.kpd_votes > 0 && !Q.kpd_banned" },
-    nsdap: { label: "NSDAP",tier: "major", requires: "Q.nsdap_votes > 0 && !Q.nsdap_banned" },
-    bvp:   { label: "BVP",  tier: "major", requires: "Q.bvp_votes > 0 && !Q.bvp_banned" },
-    wp:    { label: "WP",   tier: "major", requires: "Q.wp_votes > 0 && !Q.wp_banned" },
-    cnbl:  { label: "CNBL", tier: "major", requires: "Q.cnbl_votes > 0 && !Q.cnbl_banned" },
-    bb:    { label: "BB",   tier: "major", requires: "Q.bb_votes > 0 && !Q.bb_banned" },
-    dhp:   { label: "DHP",  tier: "major", requires: "Q.dhp_votes > 0 && !Q.dhp_banned" },
-    csvd:  { label: "CSVD", tier: "major", requires: "Q.csvd_votes > 0 && !Q.csvd_banned" },
-    kvp:   { label: "KVP",  tier: "major", requires: "Q.kvp_votes > 0 && !Q.kvp_banned " },
-    vrp:   { label: "VRP",  tier: "major", requires: "Q.vrp_votes > 0 && !Q.vrp_banned" },
-    sapd:  { label: "SAPD", tier: "major", requires: "Q.sapd_votes > 0 && !Q.sapd_banned" },
-    srpd:  { label: "SRPD", tier: "major", requires: "Q.srpd_votes > 0 && !Q.srpd_banned" },
-    dbp:   { label: "DBP",  tier: "major", requires: "Q.dbp_votes > 0 && !Q.dbp_banned" },
-    dsbp:  { label: "DSBP", tier: "major", requires: "Q.dsbp_votes > 0 && !Q.dsbp_banned" },
-    dvfp:  { label: "DVFP", tier: "major", requires: "Q.dvfp_votes > 0 && !Q.dvfp_banned" },
-    csrp:  { label: "CSRP", tier: "major", requires: "Q.csrp_votes > 0 && !Q.csrp_banned" },
-    dnf:   { label: "DNF",  tier: "major", requires: "Q.dnf_votes > 0 && !Q.dnf_banned" },
+    spd:   { label: "SPD",  tier: "independent", requires: "Q.spd_votes > 0 && !Q.spd_banned" },
+    z:     { label: "Z",    tier: "independent", requires: "Q.z_votes > 0 && !Q.z_banned" },
+    dnvp:  { label: "DNVP", tier: "independent", requires: "Q.dnvp_votes > 0 && !Q.dnvp_banned" },
+    dvp:   { label: "DVP",  tier: "independent", requires: "Q.dvp_votes > 0 && !Q.dvp_banned" },
+    ddp:   { label: "",     tier: "independent", requires: "Q.ddp_votes > 0 && !Q.ddp_banned" },
+    kpd:   { label: "KPD",  tier: "independent", requires: "Q.kpd_votes > 0 && !Q.kpd_banned" },
+    nsdap: { label: "NSDAP",tier: "independent", requires: "Q.nsdap_votes > 0 && !Q.nsdap_banned" },
+    bvp:   { label: "BVP",  tier: "independent", requires: "Q.bvp_votes > 0 && !Q.bvp_banned" },
+    wp:    { label: "WP",   tier: "independent", requires: "Q.wp_votes > 0 && !Q.wp_banned" },
+    cnbl:  { label: "CNBL", tier: "independent", requires: "Q.cnbl_votes > 0 && !Q.cnbl_banned" },
+    bb:    { label: "BB",   tier: "independent", requires: "Q.bb_votes > 0 && !Q.bb_banned" },
+    dhp:   { label: "DHP",  tier: "independent", requires: "Q.dhp_votes > 0 && !Q.dhp_banned" },
+    csvd:  { label: "CSVD", tier: "independent", requires: "Q.csvd_votes > 0 && !Q.csvd_banned" },
+    kvp:   { label: "KVP",  tier: "independent", requires: "Q.kvp_votes > 0 && !Q.kvp_banned " },
+    vrp:   { label: "VRP",  tier: "independent", requires: "Q.vrp_votes > 0 && !Q.vrp_banned" },
+    sapd:  { label: "SAPD", tier: "independent", requires: "Q.sapd_votes > 0 && !Q.sapd_banned" },
+    srpd:  { label: "SRPD", tier: "independent", requires: "Q.srpd_votes > 0 && !Q.srpd_banned" },
+    dbp:   { label: "DBP",  tier: "independent", requires: "Q.dbp_votes > 0 && !Q.dbp_banned" },
+    dsbp:  { label: "DSBP", tier: "independent", requires: "Q.dsbp_votes > 0 && !Q.dsbp_banned" },
+    dvfp:  { label: "DVFP", tier: "independent", requires: "Q.dvfp_votes > 0 && !Q.dvfp_banned" },
+    csrp:  { label: "CSRP", tier: "independent", requires: "Q.csrp_votes > 0 && !Q.csrp_banned" },
+    dnf:   { label: "DNF",  tier: "independent", requires: "Q.dnf_votes > 0 && !Q.dnf_banned" },
 
-    kpo:   { label: "KPO",  tier: "minor", parent: "kpd",  requires: "Q.kpo_votes > 0 && !Q.kpo_banned" },
-    sl:    { label: "SL",   tier: "minor", parent: "sapd", requires: "Q.sl_votes > 0 && !Q.sl_banned" },
-    aspd:  { label: "ASPD", tier: "minor", parent: "dvp",  requires: "Q.aspd_votes > 0 && !Q.aspd_banned" },
-    vnr:   { label: "VNR",  tier: "minor", parent: "dvp",  requires: "Q.vnr_votes > 0 && !Q.vnr_banned" },
-    hl:    { label: "HL",   tier: "minor", parent: "dhp",  requires: "Q.hl_votes > 0 && !Q.hl_banned" },
-    lb:    { label: "LB",   tier: "minor", parent: "kpd",  requires: "Q.lb_votes > 0 && !Q.lb_banned" },
-    rdp:   { label: "RDP",  tier: "minor", parent: "ddp",  requires: "Q.rdp_votes > 0 && !Q.rdp_banned" },
-    cvp:   { label: "CVP",  tier: "minor", parent: "z",    requires: "Q.cvp_votes > 0 && !Q.cvp_banned" },
-    sls:   { label: "SLS",  tier: "minor", parent: "spd",  requires: "Q.sls_votes > 0 && !Q.sls_banned" },
-    dtsp:  { label: "DtsP", tier: "minor", parent: "nsdap",requires: "Q.dtsp_votes > 0 && !Q.dtsp_banned" }
+    kpo:   { label: "KPO",  tier: "independent", requires: "Q.kpo_votes > 0 && !Q.kpo_banned" },
+    sl:    { label: "SL",   tier: "independent", requires: "Q.sl_votes > 0 && !Q.sl_banned" },
+    aspd:  { label: "ASPD", tier: "independent", requires: "Q.aspd_votes > 0 && !Q.aspd_banned" },
+    vnr:   { label: "VNR",  tier: "independent", requires: "Q.vnr_votes > 0 && !Q.vnr_banned" },
+    hl:    { label: "HL",   tier: "independent", requires: "Q.hl_votes > 0 && !Q.hl_banned" },
+    lb:    { label: "LB",   tier: "independent", requires: "Q.lb_votes > 0 && !Q.lb_banned" },
+    rdp:   { label: "RDP",  tier: "independent", requires: "Q.rdp_votes > 0 && !Q.rdp_banned" },
+    cvp:   { label: "CVP",  tier: "independent", requires: "Q.cvp_votes > 0 && !Q.cvp_banned" },
+    sls:   { label: "SLS",  tier: "independent", requires: "Q.sls_votes > 0 && !Q.sls_banned" },
+    dtsp:  { label: "DtsP", tier: "independent", requires: "Q.dtsp_votes > 0 && !Q.dtsp_banned" }
 };
 
 
@@ -285,10 +283,11 @@ function pickFreeCandidate(votingPartyKey, ownBenchCandidate, resolvedSoFar) {
 }
 
 // ---------------------------------------------------------------------
-// OWN_BENCH — one ranked list per major party, narrative/state-driven
-// only (who they'd run if running alone). No cross-party fallback rows
-// live here anymore; pickFreeCandidate() handles all cross-party
-// backing generically via the scorer above.
+// OWN_BENCH — one ranked list per party (every party is independent
+// now, so this covers all of them, not just the former "major" set),
+// narrative/state-driven only (who they'd run if running alone). No
+// cross-party fallback rows live here anymore; pickFreeCandidate()
+// handles all cross-party backing generically via the scorer above.
 // ---------------------------------------------------------------------
 var OWN_BENCH = {
 
@@ -412,6 +411,54 @@ var OWN_BENCH = {
 
     ddp: [
         { default: function () { return ddpOwnCandidate(); } }
+    ],
+
+    // ---------------------------------------------------------------------
+    // Formerly-"minor" parties — each is now fully independent and gets
+    // its own bench row like every other party. Their default pick is
+    // the same figure they used to simply mirror from a parent party
+    // (kept as-is so their likely candidate doesn't change), but they
+    // now resolve, get offered/back other parties, and finalize through
+    // the normal generic pipeline rather than a hardcoded inheritance.
+    // ---------------------------------------------------------------------
+    kpo: [
+        { default: function () { return Q.kpd_candidate || Q.kpd_default_candidate || "Thalmann"; } }
+    ],
+
+    sl: [
+        { default: function () { return Q.sapd_candidate || Q.sapd_default_candidate || "Rosenfeld"; } }
+    ],
+
+    aspd: [
+        { default: function () { return Q.dvp_candidate || Q.dvp_default_candidate || "Gessler"; } }
+    ],
+
+    vnr: [
+        { default: function () { return Q.dvp_candidate || Q.dvp_default_candidate || "Gessler"; } }
+    ],
+
+    hl: [
+        { default: function () { return Q.dhp_candidate || Q.dhp_default_candidate || "Hamkens"; } }
+    ],
+
+    lb: [
+        { default: function () { return Q.kpd_candidate || Q.kpd_default_candidate || "Thalmann"; } }
+    ],
+
+    rdp: [
+        { default: "Quidde" }
+    ],
+
+    cvp: [
+        { default: function () { return Q.z_candidate || Q.z_default_candidate || "Adenauer"; } }
+    ],
+
+    sls: [
+        { default: function () { return Q.spd_candidate || "Braun"; } }
+    ],
+
+    dtsp: [
+        { default: "Kunze" }
     ]
 };
 
@@ -477,11 +524,12 @@ if (!Q.dnvp_banned && (Q.dnvp_line === 0 || Q.dnvp_line === 1 || Q.dnvp_line ===
     Q.conservative_unity_estimate = Math.round(Q.conservative_unity_estimate * 10) / 10;
 }
 
-// --- Resolve every major party (minor parties wait for finalize step,
-//     same as the original design's "fold into parent" simplification).
+// --- Resolve every party, including the formerly-"minor" ones, which
+//     are now fully independent and share this same resolution pass
+//     rather than waiting to mirror a parent at finalize time.
 // Each party's own bench candidate comes from OWN_BENCH (narrative,
 // state-driven). It then freely checks that bench candidate against
-// every OTHER major party's candidate resolved earlier in this same
+// every OTHER party's candidate resolved earlier in this same
 // order — genuine cross-party backing, decided by ideology/relation
 // score rather than a hardcoded "if relation >= N, back them" rule.
 // SPD itself is the player's own party and isn't in this loop; parties
@@ -490,7 +538,8 @@ if (!Q.dnvp_banned && (Q.dnvp_line === 0 || Q.dnvp_line === 1 || Q.dnvp_line ===
 var RESOLUTION_ORDER = [
     "nsdap", "kpd", "dnvp", "z", "bvp", "dvp", "ddp", "wp", "cnbl",
     "bb", "dhp", "csvd", "kvp", "vrp", "sapd", "srpd", "dbp", "dsbp",
-    "dvfp", "csrp", "dnf"
+    "dvfp", "csrp", "dnf",
+    "kpo", "sl", "aspd", "vnr", "hl", "lb", "rdp", "cvp", "sls", "dtsp"
 ];
 
 var resolvedSoFar = [];
@@ -505,16 +554,6 @@ for (var ri = 0; ri < RESOLUTION_ORDER.length; ri++) {
     var picked = (pkey === "csrp" || pkey === "dnf") ? ownBench : pickFreeCandidate(pkey, ownBench, resolvedSoFar);
     Q[pkey + '_candidate'] = picked;
     resolvedSoFar.push(picked);
-}
-
-// --- Minor parties: always mirror their parent's CURRENT pick so the
-//     declaration screen shows something sensible even before SPD acts.
-//     They get re-synced again in @finalize_candidates once SPD and
-//     every major party has settled.
-var MINOR_PARENTS = { kpo:"kpd", sl:"sapd", aspd:"dvp", vnr:"dvp", hl:"dhp", lb:"kpd", rdp:"ddp", cvp:"z", sls:"spd", dtsp:"nsdap" };
-for (var mp in MINOR_PARENTS) {
-    if (!partyActive(mp)) { Q[mp + '_candidate'] = null; continue; }
-    Q[mp + '_candidate'] = Q[MINOR_PARENTS[mp] + '_candidate'] || null;
 }
 
 !}
@@ -1251,51 +1290,61 @@ if (Q.csvd_votes > 0 && !Q.csvd_banned) {
 
 
 // ========================================
-// MINOR PARTIES — re-sync to parent's now-final candidate. This single
-// loop replaces the original's ~10 separate near-identical KPO/SL/ASPD/
-// VNR/HL/LB/RDP/CVP/SLS/DTSP finalize blocks. To change a minor party's
-// allegiance, edit MINOR_PARENTS, not a bespoke if/else cascade.
+// FORMERLY-MINOR PARTIES — now fully independent. Each is re-scored
+// against its OWN bench default plus an offer list of already-finalized
+// parties it would plausibly consider backing, exactly like every other
+// independent party above. Gated by its own vote/ban check rather than
+// a shared MINOR_GATES lookup.
 // ========================================
-var MINOR_PARENTS = { kpo:"kpd", sl:"sapd", aspd:"dvp", vnr:"dvp", hl:"dhp", lb:"kpd", rdp:"ddp", cvp:"z", sls:"spd", dtsp:"nsdap" };
-var MINOR_GATES = { kpo:"Q.kpo_votes > 0", sl:"Q.sl_votes > 0", aspd:"Q.aspd_votes > 0", vnr:"Q.vnr_votes > 0", hl:"Q.hl_votes > 0", lb:"Q.lb_votes > 0", rdp:"Q.rdp_votes > 0", cvp:"Q.cvp_votes >  0", sls:"Q.sls_votes > 0", dtsp:"Q.dtsp_votes > 0" };
-for (var mp in MINOR_PARENTS) {
-    var active;
-    try { active = !!eval(MINOR_GATES[mp]); } catch (e) { active = false; }
-    if (!active) { Q[mp + '_candidate'] = null; continue; }
-    Q[mp + '_candidate'] = Q[MINOR_PARENTS[mp] + '_candidate'] || null;
+if (Q.kpo_votes > 0 && !Q.kpo_banned) {
+    Q.kpo_candidate = JOINT_LEFT
+        ? Q.kpo_default_candidate
+        : pickFreeCandidateFC("kpo", Q.kpo_default_candidate, [Q.kpd_candidate, Q.sapd_candidate]);
 }
-// A couple of minor parties have one extra original-design wrinkle worth
-// preserving: KPO defers to SAPD if SAPD followed SPD; LB defers to SAPD/
-// SPD once KPD is banned or running Thälmann; DTSP falls back through
-// DVFP before NSDAP. These three keep their small special-case on top of
-// the generic parent-inheritance above.
-if (Q.kpo_votes > 0) {
-    if (Q.spd_candidate === Q.kpd_candidate && !Q.kpd_banned) Q.kpo_candidate = Q.kpd_candidate;
-    else if (Q.sapd_candidate === Q.spd_candidate) Q.kpo_candidate = Q.kpd_candidate || "Munzenberg";
+if (Q.sl_votes > 0 && !Q.sl_banned) {
+    Q.sl_candidate = JOINT_LEFT
+        ? Q.sl_default_candidate
+        : pickFreeCandidateFC("sl", Q.sl_default_candidate, [Q.sapd_candidate, Q.spd_candidate]);
 }
-if (Q.lb_votes > 0) {
-    Q.lb_candidate = (Q.kpd_banned || Q.kpd_candidate === "Thalmann") ? (Q.sapd_candidate || Q.spd_candidate || null) : Q.kpd_candidate;
+if (Q.aspd_votes > 0 && !Q.aspd_banned) {
+    Q.aspd_candidate = JOINT_LEFT
+        ? Q.aspd_default_candidate
+        : pickFreeCandidateFC("aspd", Q.aspd_default_candidate, [Q.dvp_candidate, Q.spd_candidate]);
 }
-if (Q.dtsp_votes > 0) {
-    Q.dtsp_candidate = Q.nsdap_banned ? (Q.dvfp_candidate || "Kunze")
-        : (Q.dvfp_formed && Q.dvfp_candidate && Q.dvfp_candidate !== "Hindenburg") ? Q.dvfp_candidate
-        : Q.nsdap_candidate;
+if (Q.vnr_votes > 0 && !Q.vnr_banned) {
+    Q.vnr_candidate = JOINT_LEFT
+        ? Q.vnr_default_candidate
+        : pickFreeCandidateFC("vnr", Q.vnr_default_candidate, [Q.dvp_candidate, Q.nsdap_candidate]);
 }
-if (Q.rdp_votes > 0) {
-    if (Q.spd_candidate === Q.kpd_candidate) Q.rdp_candidate = (Q.ddp_candidate !== Q.kpd_candidate) ? (Q.ddp_candidate || "Quidde") : "Quidde";
-    else if (Q.ddp_relation >= 45) Q.rdp_candidate = Q.ddp_candidate || "Quidde";
-    else if (Q.spd_relation >= 50) Q.rdp_candidate = Q.spd_candidate;
-    else Q.rdp_candidate = "Quidde";
+if (Q.hl_votes > 0 && !Q.hl_banned) {
+    Q.hl_candidate = JOINT_LEFT
+        ? Q.hl_default_candidate
+        : pickFreeCandidateFC("hl", Q.hl_default_candidate, [Q.dhp_candidate, Q.cnbl_candidate]);
 }
-if (Q.cvp_votes > 0) {
-    if (Q.z_in_government && Q.spd_in_government) Q.cvp_candidate = (Q.bvp_candidate !== Q.spd_candidate) ? (Q.bvp_candidate || "Schaffer") : "Schaffer";
-    else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) Q.cvp_candidate = Q.z_candidate;
-    else Q.cvp_candidate = Q.bvp_default_candidate || "Schaffer";
+if (Q.lb_votes > 0 && !Q.lb_banned) {
+    Q.lb_candidate = JOINT_LEFT
+        ? Q.lb_default_candidate
+        : pickFreeCandidateFC("lb", Q.lb_default_candidate, [Q.kpd_candidate, Q.sapd_candidate, Q.spd_candidate]);
 }
-if (Q.sls_votes > 0) {
-    if (Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate) Q.sls_candidate = Q.spd_candidate;
-    else if (Q.ddp_candidate && Q.ddp_candidate !== Q.kpd_candidate) Q.sls_candidate = Q.ddp_candidate;
-    else Q.sls_candidate = Q.z_candidate || null;
+if (Q.rdp_votes > 0 && !Q.rdp_banned) {
+    Q.rdp_candidate = JOINT_LEFT
+        ? Q.rdp_default_candidate
+        : pickFreeCandidateFC("rdp", Q.rdp_default_candidate || "Quidde", [Q.ddp_candidate, Q.spd_candidate]);
+}
+if (Q.cvp_votes > 0 && !Q.cvp_banned) {
+    Q.cvp_candidate = JOINT_LEFT
+        ? Q.cvp_default_candidate
+        : pickFreeCandidateFC("cvp", Q.cvp_default_candidate, [Q.z_candidate, Q.bvp_candidate, Q.spd_candidate]);
+}
+if (Q.sls_votes > 0 && !Q.sls_banned) {
+    Q.sls_candidate = JOINT_LEFT
+        ? Q.sls_default_candidate
+        : pickFreeCandidateFC("sls", Q.sls_default_candidate, [Q.spd_candidate, Q.ddp_candidate, Q.z_candidate]);
+}
+if (Q.dtsp_votes > 0 && !Q.dtsp_banned) {
+    Q.dtsp_candidate = Q.nsdap_banned
+        ? (Q.dvfp_candidate || Q.dtsp_default_candidate || "Kunze")
+        : pickFreeCandidateFC("dtsp", Q.dtsp_default_candidate || "Kunze", [Q.nsdap_candidate, Q.dvfp_candidate]);
 }
 
 // ========================================
@@ -1352,14 +1401,12 @@ if (!Q.hindenburg_dead && Q.year >= 1932) {
         if (Q.dnvp_line === 3 && Q.rural_nsdap_support >= 25) { Q.dbp_candidate = "Fehr"; Q.dbp_default_candidate = "Fehr"; }
         else { Q.dbp_candidate = "Hindenburg"; Q.dbp_default_candidate = "Hindenburg"; }
     }
-
-    // re-sync minor parties one more time in case Hindenburg just
-    // overwrote their parent above.
-    for (var mp2 in MINOR_PARENTS) {
-        var active2;
-        try { active2 = !!eval(MINOR_GATES[mp2]); } catch (e) { active2 = false; }
-        if (active2) Q[mp2 + '_candidate'] = Q[MINOR_PARENTS[mp2] + '_candidate'] || Q[mp2 + '_candidate'];
-    }
+    // KPO/SL/ASPD/VNR/HL/LB are independent parties now: they are not
+    // swept into the Hindenburg consensus automatically here. Each
+    // already made its own free/finalist choice above via
+    // pickFreeCandidateFC, backing Hindenburg only if its own scorer
+    // judged that the best option (e.g. via KPD/SAPD/DVP/DHP already
+    // having flipped to Hindenburg and being offered to them).
 }
 
 !}
@@ -2086,8 +2133,15 @@ function consolidateRound2() {
     if (Q.dsbp_r > 0 && Q.dsbp_candidate) Q.dsbp_candidate = pickBestFinalist("dsbp", Q.dsbp_candidate);
     if (Q.dnf_votes > 0 && Q.dnf_candidate) Q.dnf_candidate = pickBestFinalist("dnf", Q.dnf_candidate);
 
-    // Minor parties — inherit their parent's voting party key for the
-    // relation lookup, since Q.party_relations is keyed by major party.
+    // Formerly-minor parties are independent now (own resolution/finalist
+    // logic throughout), but Q.party_relations and *_ideo_score are still
+    // only populated for the major party labels they historically split
+    // from (KPD, SAPD, DVP, DHP, DDP, Z, SPD, NSDAP) — there is no
+    // separate "KPO"/"SL"/etc. row in that external data. So the
+    // relation/ideology lookup below still keys off that closest label,
+    // purely so the round-2 scorer has real ideology data to compare
+    // against instead of falling back to a flat neutral score; the
+    // party's candidate selection itself is fully independent.
     if (Q.kpo_r > 0 && Q.kpo_candidate) Q.kpo_candidate = pickBestFinalist("kpd", Q.kpo_candidate);
     if (Q.sl_r > 0 && Q.sl_candidate) Q.sl_candidate = pickBestFinalist("sapd", Q.sl_candidate);
     if (Q.aspd_r > 0 && Q.aspd_candidate) Q.aspd_candidate = pickBestFinalist("dvp", Q.aspd_candidate);
