@@ -1079,97 +1079,97 @@ function pickFreeCandidateFC(votingPartyKey, ownBenchCandidate, onOffer) {
 }
 
 // ========================================
-// Z (CENTER PARTY) — finalize after SPD choice
+// FINALIZE RESOLUTION ORDER — every party below is re-scored fresh
+// against its OWN true bench default (never gated by "already set",
+// since the first pass always sets *something*, which was the root
+// bug for DVP/DDP). Each party's offer list includes SPD plus every
+// OTHER party already finalized earlier in this exact sequence, so
+// nobody compares against stale/pre-SPD values. Far-right/far-left
+// anchors (DVFP) still don't get SPD in their offer — ideology gap
+// makes it a non-starter and offering it risks a nonsensical result —
+// but every centrist/agrarian/liberal party now gets a genuine, live
+// look at SPD's pick.
+//
+// Joint-left short-circuit: if SPD picked the KPD candidate (unity
+// left slate), every party below just keeps its own bench pick rather
+// than running the scorer, matching original design intent.
 // ========================================
-if (Q.spd_candidate === Q.kpd_candidate) {
-    Q.z_candidate = Q.z_default_candidate;
-} else {
-    Q.z_candidate = pickFreeCandidateFC("z", Q.z_default_candidate, [Q.spd_candidate]);
-}
+var JOINT_LEFT = (Q.spd_candidate === Q.kpd_candidate);
 
+// --- Z (CENTER PARTY) ---------------------------------------------
+Q.z_candidate = JOINT_LEFT
+    ? Q.z_default_candidate
+    : pickFreeCandidateFC("z", Q.z_default_candidate, [Q.spd_candidate]);
 Q.csrp_candidate = Q.z_candidate;
 
-// ========================================
-// BVP — finalize after SPD/Z choice
-// ========================================
-if (Q.z_candidate === Q.kpd_candidate) {
-    Q.bvp_candidate = Q.bvp_default_candidate;
-} else {
-    Q.bvp_candidate = pickFreeCandidateFC("bvp", Q.bvp_default_candidate,
+// --- DVP ---------------------------------------------------------------
+Q.dvp_candidate = JOINT_LEFT
+    ? Q.dvp_default_candidate
+    : pickFreeCandidateFC("dvp", Q.dvp_default_candidate, [Q.spd_candidate, Q.z_candidate]);
+
+// --- DDP/DStP ------------------------------------------------------------
+Q.ddp_candidate = JOINT_LEFT
+    ? Q.ddp_default_candidate
+    : pickFreeCandidateFC("ddp", Q.ddp_default_candidate, [Q.spd_candidate, Q.z_candidate, Q.dvp_candidate]);
+
+// --- BVP — after Z is final ---------------------------------------------
+Q.bvp_candidate = JOINT_LEFT
+    ? Q.bvp_default_candidate
+    : pickFreeCandidateFC("bvp", Q.bvp_default_candidate,
         [Q.z_candidate, Q.spd_candidate, (!Q.dnvp_banned ? Q.dnvp_candidate : null)]);
+
+// --- CNBL — after Z is final. Now genuinely offered SPD: CNBL is
+//     agrarian center-right, not far-right, so under high relation it
+//     should be able to rally behind SPD like any other centrist bloc.
+if (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens") {
+    Q.cnbl_candidate = JOINT_LEFT
+        ? Q.cnbl_default_candidate
+        : pickFreeCandidateFC("cnbl", Q.cnbl_default_candidate,
+            [Q.nsdap_candidate, Q.dnvp_candidate, Q.z_candidate, Q.spd_candidate]);
+} else {
+    Q.cnbl_candidate = Q.cnbl_default_candidate || "Hamkens";
 }
 
-// ========================================
-// VRP — finalize after SPD choice
-// ========================================
-if (Q.vrp_formed) {
+// --- WP — after DVP is final --------------------------------------------
+if (Q.wp_default_candidate === "Drewitz") {
+    Q.wp_candidate = JOINT_LEFT
+        ? Q.wp_default_candidate
+        : pickFreeCandidateFC("wp", Q.wp_default_candidate, [Q.dvp_candidate, Q.spd_candidate, Q.z_candidate]);
+} else {
+    Q.wp_candidate = JOINT_LEFT
+        ? Q.wp_default_candidate
+        : pickFreeCandidateFC("wp", Q.wp_default_candidate || Q.dvp_candidate, [Q.dvp_candidate, Q.spd_candidate]);
+}
+
+// --- VRP — after DDP is final --------------------------------------------
+if (Q.vrp_votes > 0) {
     var vrp_desperate = Q.inflation >= 5 || Q.unemployed >= 20 || Q.economy_growth <= -3;
     if (vrp_desperate) {
         Q.vrp_candidate = "Bohm";
+    } else if (JOINT_LEFT) {
+        Q.vrp_candidate = Q.vrp_default_candidate || "Bohm";
     } else {
         Q.vrp_candidate = pickFreeCandidateFC("vrp", Q.vrp_default_candidate || "Bohm",
             [Q.spd_candidate, Q.ddp_candidate]);
     }
 }
 
-// ========================================
-// DVP — finalize after SPD choice
-// ========================================
-if (Q.dvp_candidate) {
-    // already decided at arrival time, keep
-} else {
-    Q.dvp_candidate = pickFreeCandidateFC("dvp", "Gessler", [Q.spd_candidate, Q.z_candidate]);
+// --- SAPD / SRPD -----------------------------------------------------------
+if (Q.sapd_votes > 0) {
+    Q.sapd_candidate = (Q.sapd_candidate === Q.kpd_candidate && JOINT_LEFT)
+        ? Q.kpd_candidate
+        : pickFreeCandidateFC("sapd", Q.sapd_candidate || "Rosenfeld", [Q.spd_candidate]);
+}
+if (Q.srpd_votes > 0) {
+    Q.srpd_candidate = JOINT_LEFT
+        ? (Q.srpd_default_candidate || "Horsing")
+        : pickFreeCandidateFC("srpd", Q.srpd_default_candidate || "Horsing", [Q.spd_candidate]);
 }
 
-// ========================================
-// DDP/DStP — finalize after SPD choice
-// ========================================
-if (Q.ddp_candidate) {
-    // already decided
-} else {
-    Q.ddp_candidate = pickFreeCandidateFC("ddp", (Q.ddp_name === "DStP") ? "KochWeser" : "Gessler",
-        [Q.spd_candidate, Q.z_candidate]);
-}
-
-// ========================================
-// WP — finalize
-// ========================================
-if (Q.wp_default_candidate === "Drewitz") {
-    Q.wp_candidate = pickFreeCandidateFC("wp", "Drewitz", [Q.dvp_candidate, Q.spd_candidate]);
-} else {
-    Q.wp_candidate = Q.dvp_candidate || pickFreeCandidateFC("wp", "Drewitz", [Q.spd_candidate]);
-}
-
-// ========================================
-// CNBL — finalize
-// ========================================
-if (Q.cnbl_default_candidate === "Hamkens" || Q.cnbl_default_candidate === "Behrens") {
-    Q.cnbl_candidate = pickFreeCandidateFC("cnbl", Q.cnbl_default_candidate,
-        [Q.nsdap_candidate, Q.dnvp_candidate, Q.z_candidate]);
-} else {
-    Q.cnbl_candidate = Q.cnbl_default_candidate || "Hamkens";
-}
-
-// ========================================
-// SAPD / SRPD — finalize
-// ========================================
-if (Q.sapd_formed) {
-    if (Q.sapd_candidate === Q.kpd_candidate && Q.spd_candidate === Q.kpd_candidate) {
-        Q.sapd_candidate = Q.kpd_candidate;
-    } else {
-        Q.sapd_candidate = pickFreeCandidateFC("sapd", Q.sapd_candidate || "Rosenfeld", [Q.spd_candidate]);
-    }
-}
-if (Q.srpd_formed) {
-    Q.srpd_candidate = pickFreeCandidateFC("srpd", "Horsing", [Q.spd_candidate]);
-}
-
-// ========================================
-// KVP / DHP / BB / DBP — finalize after SPD choice
-// ========================================
+// --- KVP / DHP / BB / DBP — after Z, CNBL, BVP are final --------------------
 if (Q.kvp_flee === 1 && !Q.kvp_banned) {
     if (Q.kvp_default_candidate && Q.kvp_default_candidate !== "Hitler" && Q.kvp_default_candidate !== "Hugenberg") {
-        Q.kvp_candidate = (Q.spd_candidate === Q.kpd_candidate)
+        Q.kvp_candidate = JOINT_LEFT
             ? Q.kvp_default_candidate
             : pickFreeCandidateFC("kvp", Q.kvp_default_candidate, [Q.z_candidate, Q.spd_candidate]);
     } else {
@@ -1178,7 +1178,7 @@ if (Q.kvp_flee === 1 && !Q.kvp_banned) {
 }
 
 if (!Q.dhp_banned) {
-    Q.dhp_candidate = (Q.spd_candidate === Q.kpd_candidate)
+    Q.dhp_candidate = JOINT_LEFT
         ? (Q.dhp_default_candidate || "Hamkens")
         : pickFreeCandidateFC("dhp", Q.dhp_default_candidate || "Hamkens", [Q.cnbl_candidate, Q.spd_candidate]);
 }
@@ -1187,7 +1187,7 @@ if (!Q.bb_banned) {
     var bb_crisis = Q.inflation < 0 || Q.unemployed >= 15;
     if (bb_crisis) {
         Q.bb_candidate = "Hamkens";
-    } else if (Q.spd_candidate === Q.kpd_candidate) {
+    } else if (JOINT_LEFT) {
         Q.bb_candidate = Q.bvp_candidate || Q.cnbl_candidate || "Hamkens";
     } else {
         Q.bb_candidate = pickFreeCandidateFC("bb", Q.bb_default_candidate || "Hamkens",
@@ -1195,11 +1195,11 @@ if (!Q.bb_banned) {
     }
 }
 
-if (Q.dbp_r > 0 && !Q.dbp_banned) {
+if (Q.dbp_votes > 0 && !Q.dbp_banned) {
     var dbp_crisis = Q.inflation < 0 || Q.unemployed >= 15;
     if (dbp_crisis) {
         Q.dbp_candidate = "Fehr";
-    } else if (Q.spd_candidate === Q.kpd_candidate) {
+    } else if (JOINT_LEFT) {
         Q.dbp_candidate = (Q.bb_candidate && Q.bb_candidate !== Q.kpd_candidate) ? Q.bb_candidate : (Q.cnbl_candidate || Q.ddp_candidate || "Fehr");
     } else {
         Q.dbp_candidate = pickFreeCandidateFC("dbp", Q.dbp_default_candidate || "Fehr",
@@ -1207,12 +1207,13 @@ if (Q.dbp_r > 0 && !Q.dbp_banned) {
     }
 }
 
-// ========================================
-// DVFP / DSBP / CSVD — finalize
-// ========================================
+// --- DVFP — far-right anchor. Deliberately NOT offered SPD: the
+//     ideology gap makes it a non-starter, and offering it would let a
+//     scoring edge case produce an absurd DVFP-backs-SPD result. Kept
+//     exactly as original design intended.
 if (Q.dvfp_banned) {
     Q.dvfp_candidate = null;
-} else if (Q.spd_candidate === Q.kpd_candidate) {
+} else if (JOINT_LEFT) {
     Q.dvfp_candidate = Q.dvfp_default_candidate || "Ludendorff";
 } else if (Q.dnvp_line === 3 && Q.dnvp_candidate === Q.nsdap_candidate) {
     Q.dvfp_candidate = Q.nsdap_candidate;
@@ -1220,11 +1221,12 @@ if (Q.dvfp_banned) {
     Q.dvfp_candidate = pickFreeCandidateFC("dvfp", Q.dvfp_default_candidate || "Graefe", [Q.dnvp_candidate, Q.nsdap_candidate]);
 }
 
-if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
+// --- DSBP — after DDP, DVP are final ----------------------------------------
+if (Q.dsbp_votes > 0 && !Q.dsbp_banned) {
     var dsbp_crisis = Q.inflation < 0 || Q.unemployed >= 15;
     if (dsbp_crisis) {
         Q.dsbp_candidate = "Gessler";
-    } else if (Q.spd_candidate === Q.kpd_candidate) {
+    } else if (JOINT_LEFT) {
         Q.dsbp_candidate = (Q.ddp_candidate !== Q.kpd_candidate) ? (Q.ddp_candidate || Q.dvp_candidate || "Gessler") : (Q.dvp_candidate || "Gessler");
     } else if (Q.ddp_candidate && Q.dvp_candidate && Q.ddp_candidate === Q.dvp_candidate) {
         Q.dsbp_candidate = Q.ddp_candidate;
@@ -1234,6 +1236,20 @@ if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
     }
 }
 
+// --- CSVD — previously never re-evaluated after SPD's choice at all.
+//     Now gets the same live look every other centrist/agrarian party
+//     gets, gated the same way the 1932+ override already gates it
+//     (csvd_flee), so it only matters once CSVD is actually active.
+if (Q.csvd_votes > 0 && !Q.csvd_banned) {
+    Q.csvd_candidate = JOINT_LEFT
+        ? (Q.csvd_default_candidate || "Lambach2")
+        : pickFreeCandidateFC("csvd", Q.csvd_default_candidate || "Lambach2",
+            [Q.z_candidate, Q.dnvp_candidate, Q.spd_candidate]);
+}
+
+
+
+
 // ========================================
 // MINOR PARTIES — re-sync to parent's now-final candidate. This single
 // loop replaces the original's ~10 separate near-identical KPO/SL/ASPD/
@@ -1241,7 +1257,7 @@ if (Q.dsbp_r > 0 && !Q.dsbp_banned) {
 // allegiance, edit MINOR_PARENTS, not a bespoke if/else cascade.
 // ========================================
 var MINOR_PARENTS = { kpo:"kpd", sl:"sapd", aspd:"dvp", vnr:"dvp", hl:"dhp", lb:"kpd", rdp:"ddp", cvp:"z", sls:"spd", dtsp:"nsdap" };
-var MINOR_GATES = { kpo:"Q.kpo_r > 0", sl:"Q.sl_r > 0", aspd:"Q.aspd_r > 0", vnr:"Q.vnr_r > 0", hl:"Q.hl_r > 0", lb:"Q.lb_r > 0", rdp:"Q.rdp_r > 0", cvp:"Q.cvp_r > 0", sls:"Q.sls_r > 0", dtsp:"Q.dtsp_r > 0" };
+var MINOR_GATES = { kpo:"Q.kpo_votes > 0", sl:"Q.sl_votes > 0", aspd:"Q.aspd_votes > 0", vnr:"Q.vnr_votes > 0", hl:"Q.hl_votes > 0", lb:"Q.lb_votes > 0", rdp:"Q.rdp_votes > 0", cvp:"Q.cvp_votes >  0", sls:"Q.sls_votes > 0", dtsp:"Q.dtsp_votes > 0" };
 for (var mp in MINOR_PARENTS) {
     var active;
     try { active = !!eval(MINOR_GATES[mp]); } catch (e) { active = false; }
@@ -1253,30 +1269,30 @@ for (var mp in MINOR_PARENTS) {
 // SPD once KPD is banned or running Thälmann; DTSP falls back through
 // DVFP before NSDAP. These three keep their small special-case on top of
 // the generic parent-inheritance above.
-if (Q.kpo_r > 0) {
+if (Q.kpo_votes > 0) {
     if (Q.spd_candidate === Q.kpd_candidate && !Q.kpd_banned) Q.kpo_candidate = Q.kpd_candidate;
     else if (Q.sapd_candidate === Q.spd_candidate) Q.kpo_candidate = Q.kpd_candidate || "Munzenberg";
 }
-if (Q.lb_r > 0) {
+if (Q.lb_votes > 0) {
     Q.lb_candidate = (Q.kpd_banned || Q.kpd_candidate === "Thalmann") ? (Q.sapd_candidate || Q.spd_candidate || null) : Q.kpd_candidate;
 }
-if (Q.dtsp_r > 0) {
+if (Q.dtsp_votes > 0) {
     Q.dtsp_candidate = Q.nsdap_banned ? (Q.dvfp_candidate || "Kunze")
         : (Q.dvfp_formed && Q.dvfp_candidate && Q.dvfp_candidate !== "Hindenburg") ? Q.dvfp_candidate
         : Q.nsdap_candidate;
 }
-if (Q.rdp_r > 0) {
+if (Q.rdp_votes > 0) {
     if (Q.spd_candidate === Q.kpd_candidate) Q.rdp_candidate = (Q.ddp_candidate !== Q.kpd_candidate) ? (Q.ddp_candidate || "Quidde") : "Quidde";
     else if (Q.ddp_relation >= 45) Q.rdp_candidate = Q.ddp_candidate || "Quidde";
     else if (Q.spd_relation >= 50) Q.rdp_candidate = Q.spd_candidate;
     else Q.rdp_candidate = "Quidde";
 }
-if (Q.cvp_r > 0) {
+if (Q.cvp_votes > 0) {
     if (Q.z_in_government && Q.spd_in_government) Q.cvp_candidate = (Q.bvp_candidate !== Q.spd_candidate) ? (Q.bvp_candidate || "Schaffer") : "Schaffer";
     else if (Q.z_candidate && Q.z_candidate !== Q.kpd_candidate) Q.cvp_candidate = Q.z_candidate;
     else Q.cvp_candidate = Q.bvp_default_candidate || "Schaffer";
 }
-if (Q.sls_r > 0) {
+if (Q.sls_votes > 0) {
     if (Q.spd_candidate && Q.spd_candidate !== Q.kpd_candidate) Q.sls_candidate = Q.spd_candidate;
     else if (Q.ddp_candidate && Q.ddp_candidate !== Q.kpd_candidate) Q.sls_candidate = Q.ddp_candidate;
     else Q.sls_candidate = Q.z_candidate || null;
