@@ -669,6 +669,164 @@ if (Q.dnvp_votes_display < 13) {
     Q.delegate_power_christsoc += 2.0;
 }
 
+// 7. Global regulation: cap combined total of all 6 tracked vars at 1000
+{
+    const _dnvp_total_cap = 1000;
+    const _dnvp_tracked = [
+        'hugenberg_momentum',
+        'delegate_power_a',
+        'delegate_power_b',
+        'delegate_power_yocon',
+        'delegate_power_christsoc'
+    ];
+
+    const _dnvp_sum = _dnvp_tracked.reduce((sum, key) => sum + Q[key], 0);
+
+    if (_dnvp_sum > _dnvp_total_cap) {
+        const _dnvp_scale = _dnvp_total_cap / _dnvp_sum;
+        _dnvp_tracked.forEach(key => {
+            Q[key] *= _dnvp_scale;
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
+// DVP GAMEPLAY NOW
+
+
+Q.dvp_left = Q.dvp_left || 0;
+Q.dvp_right = Q.dvp_right || 0;
+
+// 1. SPD ELECTORAL PERFORMANCE (nerfed ~65%)
+if (Q.spd_r >= 30) {
+    Q.dvp_left -= 0.7;
+    Q.dvp_right += 0.7;
+} else if (Q.spd_r >= 27.5) {
+    Q.dvp_left += 0.35;
+    Q.dvp_right += 0.35;
+} else if (Q.spd_r <= 27.5 && Q.spd_r > 25) {
+    Q.dvp_left += 0.7;
+    Q.dvp_right -= 0.7;
+} else { 
+    Q.dvp_left += 1.28;   // nerfed ~68%
+    Q.dvp_right -= 1.28;
+}
+
+// 2. Stresemann cabinet position. (nerfed ~78% / ~65%)
+if (Q.foreign_minister_party == "DVP" || Q.kellogg_briand_signed_dvp == 1) {
+    Q.dvp_right += 2.64;
+    Q.dvp_left -= 0.7;
+}
+
+// 3. LAMBACH VICTORY OR DNVP SITUATION (nerfed ~65-72%)
+if (Q.congress_path != "capitulation") {
+    Q.dvp_left += 0.7;
+}
+
+if (Q.congress_path == "capitulation") {
+    Q.dvp_right += 2.8;   // nerfed ~72%
+}
+
+if (Q.congress_path == "social_nationalists" || Q.congress_path == "coalitionists") {
+    Q.dvp_left += 1.8;     // nerfed ~70%
+    if (Q.congress_path == "social_nationalists") Q.dvp_left += 0.7;
+}
+
+// 4. FINANCIAL TAX situation (multiplier-scaled: nerfed harder, ~70-80%)
+if (Q.upper_tax_rates > 0) {
+    Q.dvp_right += 0.88 * Q.upper_tax_rates;   // nerfed ~78%
+}
+
+if (Q.welfare > 1) {
+    Q.dvp_right += 0.6 * Q.welfare;           // nerfed ~70%
+}
+
+if (Q.working_hours > 0) {
+    Q.dvp_right += 0.6 * Q.working_hours;     // nerfed ~70%
+}
+
+if (Q.ruhr_labor > 0) Q.dvp_right += 1.28;      // nerfed ~68%
+
+if (Q.works_councils > 0) {
+    Q.dvp_right += 1.12 * Q.works_councils;    // nerfed ~72%
+}
+
+if (Q.socialization > 0) {
+    Q.dvp_right += 2.4 * Q.socialization;    // nerfed ~80%
+}
+
+if (Q.cooperatives > 0) {
+    Q.dvp_right += 1.28 * Q.cooperatives;      // nerfed ~68%
+}
+
+if (Q.major_curriculum == "vocational") Q.dvp_left += 1.8;   // nerfed ~70%
+if (Q.minor_curriculum == "vocational") Q.dvp_left += 0.7;    // nerfed ~65%
+if (Q.secularized == 1) Q.dvp_left += 2.5;                    // nerfed ~75%
+
+// Patched Naked Math Operations (nerfed ~65-75%)
+Q.dvp_right += (Q.capital_strike_progress || 0) * 0.35;
+Q.dvp_right += (Q.workers_safety || 0) * 0.35;
+Q.dvp_left += (Q.judicial_reform || 0) * 1.28;      // nerfed ~68%
+Q.dvp_left += (Q.reparations_negotiation || 0) * 2.0;  // nerfed ~75%
+
+if (Q.enemies == "bourgeois parties" || Q.enemies == "DVP") Q.dvp_right += 2.64; // nerfed ~78%
+
+Q.dvp_left += (Q.radio || 0) * 1.8;             // nerfed ~70%
+Q.dvp_left += (Q.commercialized_media || 0) * 1.28; // nerfed ~68%
+
+if (Q.unions_independent) Q.dvp_left += 4.0;   // nerfed ~80% (largest flat add)
+
+if (Q.ideology == "reformist") Q.dvp_left += 1.8;   // nerfed ~70%
+if (Q.ideology == "labor") {
+    Q.dvp_left -= 1.28;
+    Q.dvp_right += 1.28;
+}
+if (Q.ideology == "left") {
+    Q.dvp_right += 2.24;    // nerfed ~72%
+    Q.dvp_left -= 1.8;
+}
+
+Q.dvp_right += (Q.peoples_party_support || 0) * 0.35;
+Q.dvp_left += (Q.peoples_party_support || 0) * 0.66;
+
+Q.dvp_left += ((Q.dvp_relation || 0) / 8) * 0.35;
+Q.dvp_right += ((100 - (Q.dvp_relation || 0)) * 0.5) * 0.28;  // nerfed ~72%
+
+if (Q.dvp_relation < 40) Q.dvp_right += 0.7;
+
+Q.dvp_left += ((Q.pro_republic || 0) / 12) * 0.35;
+Q.dvp_right += (Q.nationalism || 0) * 0.6;   // nerfed ~70%
+Q.dvp_left += (((Q.new_middle_dvp || 0) + (Q.workers_dvp || 0) + (Q.unemployedc_dvp || 0)) / 5) * 0.35;
+Q.dvp_right += ((Q.old_middle || 0) * 0.8 + (Q.rural_dvp || 0) * 0.6) * 0.32;
+
+// 5. SPD/ZENTRUM DEMOGRAPHIC WEAKNESS OVERTURE (nerfed ~70%)
+Q.dvp_left += (32 - (Q.new_middle_spd_display || 0)) * 0.06;
+Q.dvp_left += (20 - (Q.new_middle_z_display || 0)) * 0.06;
+Q.dvp_left += (38 - (Q.workers_spd_display || 0)) * 0.06;
+Q.dvp_left += (15 - (Q.workers_z_display || 0)) * 0.06;
+
+// 6. Global regulation: cap combined total of dvp_left + dvp_right at 500
+{
+    const _dvp_total_cap = 500;
+    const _dvp_tracked = ['dvp_left', 'dvp_right'];
+
+    const _dvp_sum = _dvp_tracked.reduce((sum, key) => sum + Q[key], 0);
+
+    if (_dvp_sum > _dvp_total_cap) {
+        const _dvp_scale = _dvp_total_cap / _dvp_sum;
+        _dvp_tracked.forEach(key => {
+            Q[key] *= _dvp_scale;
+        });
+    }
+}
+
 
 
 
