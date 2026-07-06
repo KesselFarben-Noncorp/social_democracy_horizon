@@ -2,7 +2,7 @@ title: The Young Plan
 new-page: true
 subtitle: A new agreement on reparations and brewing opposition to the plan...
 tags: event
-view-if: (year = 1929 and month >= 7 and young_plan_seen = 0 and young_delayed = 0 and (dnvp_party_leader != "Alfred Hugenberg" or congress_path = "traditionalists")) or (year = 1929 and month >= 9 and young_plan_seen = 0 and young_delayed = 1 and dnvp_party_leader != "Alfred Hugenberg" or congress_path = "traditionalists"))
+view-if: (year = 1929 and month >= 7 and young_plan_seen = 0 and young_delayed = 0 and (dnvp_party_leader == "Alfred Hugenberg" or congress_path == "traditionalists")) or (year = 1929 and month >= 9 and young_plan_seen = 0 and young_delayed = 1 and (dnvp_party_leader == "Alfred Hugenberg" or congress_path == "traditionalists"))
 max-visits: 1
 on-arrival: young_opposition = (((dnvp_votes / ((yocon_final_votes + christsoc_final_votes) * 0.15)) + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes + other_votes + dnf_votes) * 0.6) + (nationalism / 3) + (stahlhelm_strength * 0.06); young_opposition -= 1 if dnvp_party_leader != "Alfred Hugenberg"; young_opposition -= 3 if yocon_final_votes + christsoc_final_votes > 30
 
