@@ -1,0 +1,37 @@
+title: The ratification of Young Plan
+new-page: true
+subtitle: Definitive answer...
+tags: event
+view-if: year = 1929 and month >= 9 and young_plan_seen_2
+
+= Ratification
+
+Following our reparation attempts..
+
+- @normal: Done!
+- @collapse: The Plan collapses due to internal instability or diplomatic failure.
+- @resist: Mobilize the Reichswehr to resist the inevitable French re-occupation.
+
+@normal
+view-if: ruhr_labor >= 2 and young_plan_collapse = 0
+on-arrival: pro_republic += 5
+
+Done! Now wait for ratification...
+
+@collapse
+view-if: ((west_relation < 0 and nationalism > 30) or (ruhr_labor > 1 or young_plan_collapse = 1))
+on-arrival: west_relation -= 3; nationalism += 5; socialism += 8; workers_spd -= 3; workers_z -= 3; workers_ddp -= 3; workers_dvp -= 3; workers_other -= 3; pacifism -= 1; pro_republic -= 1; labor_dissent -= 10; left_dissent -= 10; reformist_dissent += 10; young_plan_catastrophy = 1
+achievement: ruhrland
+
+Negotiations have shattered and the Young Plan is dead. France, citing German bad faith, has frozen the evacuation and reinforced the Rhineland garrisons. Our international standing has evaporated overnight.
+
+[? if president = "Hindenburg": Hindenburg is livid at this failure to provide the stability he was promised, and the air in the Reichskanzlei is thick with the scent of an impending dismissal. ?]
+
+@resist
+view-if: (reichswehr_strength >= 100 and reichswehr_loyalty > 0.35 and reichswehr_militancy >= 5) and secret_mode and (ruhr_labor >= 2 or young_plan_catastrophy = 1)
+on-arrival: nationalism += 15; west_relation -= 20; young_plan_catastrophy = 1; pro_republic -= 5; reichswehr_strength *= 0.9; reichswehr_loyalty *= 1.2; italy_relation += 5; soviet_relation += 3; resources += 5; budget += 2; inflation += 1.34; new_middle_spd *= 0.98; old_middle_spd *= 1.07
+achievement: reichswehr_ruhrland
+
+We have done the unthinkable: met French force with German steel. By refusing re-occupation, we have severed our ties with the West. The Young Plan is all but not signed; our odds are against us, as the future turns dark grim...
+
+[? if president = "Hindenburg": Hindenburg is shocked by the audacity, but his soldier’s heart is quietly impressed. ?]
