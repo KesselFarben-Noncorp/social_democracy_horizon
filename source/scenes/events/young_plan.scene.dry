@@ -22,7 +22,6 @@ on-arrival: resources -= 3
 subtitle: - 3 resources
 choose-if: resources >= 3
 unavailable-subtitle: Not enough resources to combat the Hugenberg press machine!
-view-if: ruhr_labor = 0 and young_plan_collapse = 0 and nationalism <= 60
 
 How should we campaign in favor of the Plan?
 
@@ -42,7 +41,6 @@ go-to: young_2_national if young_opposition >= 17
 We present the Plan as a cold, rational necessity. The referendum fails, with only [+ young_opposition +]% of voters supporting it. It seems that the German people have a sense of rationality, after all, and the moderate parties are able to find common ground in this pragmatic victory.
 
 @no_plan
-view-if: ruhr_labor = 0 and young_plan_collapse = 0
 on-arrival: young_plan_seen = 1; nationalism += 5; workers_spd -= 3; old_middle_spd -= 3; new_middle_spd -= 3; pacifism -= 1; workers_nsdap += 5; rural_nsdap += 5; rural_dnvp -= 5; catholics_spd -= 5; rural_dvp -= 5; camarilla_strength += 8; young_opposition = ((dnvp_votes + kvp_votes + csvd_votes + dvfp_votes + nsdap_votes + dtsp_votes + cnbl_votes + other_votes) * 0.6) + (nationalism / 5) + (stahlhelm_strength * 0.06)
 go-to: young_1_national if young_opposition < 17; young_2_national if young_opposition >= 17
 
