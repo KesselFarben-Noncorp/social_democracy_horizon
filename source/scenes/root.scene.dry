@@ -252,6 +252,9 @@ Q.nsdap_ideology = "National Socialism";
 Q.dvfp_ideology = "Völkisch Nationalism";
 Q.dbp_ideology = "Liberal Agrarianism";
 Q.dnf_ideology = "National Conservatism";
+Q.rlb_ideology = "Agrarian Conservatism";
+Q.kapd_ideology = "Council Communism";
+Q.faud_ideology = "Anarcho - Syndicalism";
 
 Q.dsbp_name = "DSBP";
 
@@ -277,6 +280,7 @@ Q.dhp_relation = 35;
 Q.dbp_relation = 35;
 Q.dvfp_relation = 5;
 Q.dsbp_relation = 38;
+Q.rlb_relation = 20;
 
 Q.party_relations = {
 
@@ -1666,7 +1670,7 @@ for (const _c of _CLASSES_QOL) {
 
 
 Q.classes = ['workers', 'old_middle', 'new_middle', 'rural', 'unemployedc'];
-Q.parties = ['spd', 'kpd', 'z', 'bvp', 'bb', 'ddp', 'dvp', 'dhp', 'aspd', 'wp', 'vrp', 'dnvp', 'nsdap', 'other'];
+Q.parties = ['spd', 'kpd', 'z', 'bvp', 'bb', 'ddp', 'dvp', 'dhp', 'aspd', 'wp', 'vrp', 'dnvp', 'nsdap', 'rlb', 'other'];
 Q.classesI = ['protestants', 'catholics', 'seculars', 'youth']
 
 // Identity population shares — overlap, do NOT sum to 100
@@ -2185,7 +2189,7 @@ for (const p of Q.parties) {
 const EXTRA_IDEO_PARTIES = [
     'kpo', 'sl', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 'csrp', 'dvp', 'wp',
     'cnbl', 'csvd', 'dnvp', 'vrp', 'kvp', 'dhp', 'bb', 'dvfp',
-    'aspd', 'vnr', 'hl', 'lb', 'rdp', 'cvp', 'sls', 'dtsp', 'dbp', 'dsbp', 'dnf'
+    'aspd', 'vnr', 'hl', 'lb', 'rdp', 'cvp', 'sls', 'dtsp', 'dbp', 'dsbp', 'dnf', 'rlb', 'faud', 'kapd'
 ];
 for (const p of EXTRA_IDEO_PARTIES) {
     const key = p + '_ideology';
@@ -2298,6 +2302,10 @@ Choose which optional parties will appear in your game. Core parties (SPD, KPD, 
 > *DBP: [? if custom_party_dbp = 1: ON ?][? if custom_party_dbp != 1: OFF ?]*
 > *DSBP: [? if custom_party_dsbp = 1: ON ?][? if custom_party_dsbp != 1: OFF ?]*
 > *DNF: [? if custom_party_dnf = 1: ON ?][? if custom_party_dnf != 1: OFF ?]*
+> *FAUD: [? if custom_party_faud = 1: ON ?][? if custom_party_faud != 1: OFF ?]*
+> *KAPD: [? if custom_party_kapd = 1: ON ?][? if custom_party_kapd != 1: OFF ?]*
+> *RLB: [? if custom_party_rlb = 1: ON ?][? if custom_party_rlb != 1: OFF ?]*
+
 
 Vanilla: <br>
 > *WP: [? if custom_party_wp = 1: ON ?][? if custom_party_wp != 1: OFF ?]*
@@ -2371,7 +2379,43 @@ Vanilla: <br>
 - @pp_dsbp_off: DSBP
 - @pp_dnf_on: DNF
 - @pp_dnf_off: DNF
+- @pp_rlb_off: RLB
+- @pp_rlb_on: RLB
+- @pp_kapd_on: KAPD
+- @pp_kapd_off: KAPD
+- @pp_faud_on: FAUD
+- @pp_faud_off: FAUD
 - @challenge: Back
+
+@pp_rlb_on
+view-if: custom_party_rlb = 0
+on-arrival: custom_party_rlb = 1; rlb_banned = 0
+go-to: party_picker
+
+@pp_rlb_off
+view-if: custom_party_rlb = 1
+on-arrival: custom_party_rlb = 0; rlb_banned = 1
+go-to: party_picker
+
+@pp_kapd_on
+view-if: custom_party_kapd = 0
+on-arrival: custom_party_kapd = 1; kapd_banned = 0
+go-to: party_picker
+
+@pp_kapd_off
+view-if: custom_party_kapd = 1
+on-arrival: custom_party_kapd = 0; kapd_banned = 1
+go-to: party_picker
+
+@pp_faud_on
+view-if: custom_party_faud = 0
+on-arrival: custom_party_faud = 1; faud_banned = 0
+go-to: party_picker
+
+@pp_faud_off
+view-if: custom_party_faud = 1
+on-arrival: custom_party_faud = 0; faud_banned = 1
+go-to: party_picker
 
 @pp_dnf_on
 view-if: custom_party_dnf = 0
@@ -3190,6 +3234,8 @@ if (Q.spartac_challenge === 1) {
     Q.parties.push('csrp');
     Q.parties.push('rdp');
     Q.parties.push('aspd');
+    Q.parties.push('kapd');
+    Q.parties.push('faud');
     Q.srpd_formed = 1;
     Q.sapd_formed = 1;
 }
@@ -3341,6 +3387,10 @@ Q.parties.push('dtsp');
 Q.parties.push('lb');
 Q.parties.push('dbp');
 Q.parties.push('dsbp');
+Q.parties.push('rlb');
+Q.parties.push('dnf');
+Q.parties.push('faud');
+Q.parties.push('kapd');
 }
 if (Q.peasant_revolution === 1) {
     Q.rural = 60; // Massively inflated rural population
@@ -3391,6 +3441,10 @@ if (Q.inverted_challenge === 1) {
     Q.sl_relation = Math.random() * 100;
     Q.dbp_relation = Math.random() * 100;
     Q.dsbp_relation = Math.random() * 100;
+    Q.dnf_relation = Math.random() * 100;
+    Q.rlb_relation = Math.random() * 100;
+    Q.faud_relation = Math.random() * 100;
+    Q.kapd_relation = Math.random() * 100;
     Q.hindenburg_relation = Math.random() * 100;
     Q.schacht_relation = Math.random() * 100;
     Q.president_relation = Math.random() * 100;
@@ -3398,7 +3452,7 @@ if (Q.inverted_challenge === 1) {
     // ===== PARTY RELATIONS MATRIX =====
     var all_parties_inv = ['KPD','SAPD','SPD','SRPD','DDP','Z','BVP','CSRP','VRP',
                            'CSVD','DVP','WP','CNBL','KVP','BB','DHP','DNVP','NSDAP',
-                           'DVFP','DHD','ASPD','HL','VNR','LB','RDP','CVP','SLS','DTSP','DBP', 'DSBP', 'DNF'];
+                           'DVFP','DHD','ASPD','HL','VNR','LB','RDP','CVP','SLS','DTSP','DBP', 'DSBP', 'DNF', 'RLB', 'FAUD', 'KAPD'];
 
     Q.party_relations = {};
     for (var i_inv = 0; i_inv < all_parties_inv.length; i_inv++) {
@@ -3519,6 +3573,9 @@ if (Q.custom_party_dtsp === 1 && !Q.parties.includes('dtsp')) { Q.parties.push('
 if (Q.custom_party_dbp === 1 && !Q.parties.includes('dbp')) { Q.parties.push('dbp'); }
 if (Q.custom_party_dsbp === 1 && !Q.parties.includes('dsbp')) { Q.parties.push('dsbp'); }
 if (Q.custom_party_dnf === 1 && !Q.parties.includes('dnf')) { Q.parties.push('dnf'); }
+if (Q.custom_party_rlb === 1 && !Q.parties.includes('rlb')) { Q.parties.push('rlb'); }
+if (Q.custom_party_faud === 1 && !Q.parties.includes('faud')) { Q.parties.push('faud'); }
+if (Q.custom_party_kapd === 1 && !Q.parties.includes('kapd')) { Q.parties.push('kapd'); }
 
 !}
 go-to: apberg if april_challenge = 1; starum if april_challenge = 0
