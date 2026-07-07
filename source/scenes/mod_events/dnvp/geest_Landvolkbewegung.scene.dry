@@ -37,7 +37,7 @@ console.log("fury after subtract:", Q.landvolk_fury);
 
 The quiet currents of the countryside have turned into a violent squall. Decades of deep-seated friction against the centralized, bureaucratic administration in Berlin, originally intensified by the hated Prussian regulations of the old war economy - have finally boiled over. In the regional hub of Neumünster, the traditional agrarian leadership has completely lost control of the rural population.
 
-Over 14,000 rural protesters have filled the streets. They march under the black flags of historical peasant rebellions. This is the birth of the *Landvolkbewegung* (Rural People's Movement). Driven by an aggressive defense of their regional identity, the crowd openly chants for a "Green Democracy" rooted in the ethnic community, fiercely rejecting the cosmopolitan "Golden Democracy" of the capital.
+Over 14,000 rural protesters have filled the streets. They march under the black flags of historical peasant rebellions. This is the birth of the *Landvolkbewegung* (Rural People's Movement). Driven by an aggressive defense of their regional identity, the crowd openly chants for a "Green Democracy" rooted in the ethnic community, fiercely rejecting the cosmopolitan "Golden Democracy" of the capital, lead by their leaders Claus Heim and Wilhelm Hamkens.
 
 The geographical cleavage of the movement is immediately clear: <br>
 * **The Central Geest:** In these egalitarian peasant villages of poor, sandy soil, the crisis is absolute. Devoid of large estates to anchor them, these independent family smallholders are utterly exposed to the collapsing cattle market. They form the radical, uncompromising heart of the tax strikes. <br>
@@ -50,8 +50,11 @@ The geographical cleavage of the movement is immediately clear: <br>
 go-to: geest_ignited if landvolk_fury >= 6; geest_simmers if landvolk_fury < 6
 
 @geest_ignited
-face-image: img/geest_protest.png
+on-departure: {!
+window.disableFocusMode()
+!}
 on-arrival: {!
+window.enableFocusMode()
   Q.geest_wildfire = 1;
   Q.nationalism += 3;
   Q.pro_republic -= 4;
@@ -65,6 +68,27 @@ on-arrival: {!
   Q.rural_kpd += 1;
   Q.rural_nsdap += 2;  // The NSDAP begins its fatal breakthrough on the Geest plains
   
+!}
+
+{!
+
+<div id="geest-slider" style="width:100%;">
+  <img id="geest-slider-img" src="img/dnvp/geest_protest.png" alt="Landvolkbewegung" style="width:100%; display:block;">
+</div>
+
+<script>
+(function() {
+  var images = ["img/dnvp/geest_protest.png", "img/dnvp/geest_protest_2.png"];
+  var index = 0;
+  var imgEl = document.getElementById("geest-slider-img");
+
+  setInterval(function() {
+    index = (index + 1) % images.length;
+    imgEl.src = images[index];
+  }, 4000); // switches every 4000ms (4 seconds)
+})();
+</script>
+
 !}
 
 = The Geest Radicalizes Completely
