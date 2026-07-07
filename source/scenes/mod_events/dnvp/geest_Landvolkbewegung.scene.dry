@@ -51,45 +51,41 @@ go-to: geest_ignited if landvolk_fury >= 6; geest_simmers if landvolk_fury < 6
 
 @geest_ignited
 on-departure: {!
-window.disableFocusMode()
+  window.disableFocusMode()
+  clearInterval(window._geestSliderInterval)
 !}
 on-arrival: {!
-window.enableFocusMode()
+  window.enableFocusMode()
   Q.geest_wildfire = 1;
   Q.nationalism += 3;
   Q.pro_republic -= 4;
 
-  // The radicalization explicitly fractures the traditional right-wing base:
   Q.rural_dnvp -= 5;
   Q.rural_dvp -= 3;
   Q.rural_ddp -= 2;
   Q.rural_z -= 4;
   Q.rural_spd -= 3;
   Q.rural_kpd += 1;
-  Q.rural_nsdap += 2;  // The NSDAP begins its fatal breakthrough on the Geest plains
-  
-!}
+  Q.rural_nsdap += 2;
 
-{!
+  var geestImages = ["img/dnvp/geest_protest.png", "img/dnvp/geest_protest_2.png"];
+  var geestIndex = 0;
+
+  setTimeout(function() {
+    var imgEl = document.getElementById("geest-slider-img");
+    if (!imgEl) return;
+
+    clearInterval(window._geestSliderInterval);
+    window._geestSliderInterval = setInterval(function() {
+      geestIndex = (geestIndex + 1) % geestImages.length;
+      imgEl.src = geestImages[geestIndex];
+    }, 4000);
+  }, 0);
+!}
 
 <div id="geest-slider" style="width:100%;">
   <img id="geest-slider-img" src="img/dnvp/geest_protest.png" alt="Landvolkbewegung" style="width:100%; display:block;">
 </div>
-
-<script>
-(function() {
-  var images = ["img/dnvp/geest_protest.png", "img/dnvp/geest_protest_2.png"];
-  var index = 0;
-  var imgEl = document.getElementById("geest-slider-img");
-
-  setInterval(function() {
-    index = (index + 1) % images.length;
-    imgEl.src = images[index];
-  }, 4000); // switches every 4000ms (4 seconds)
-})();
-</script>
-
-!}
 
 = The Geest Radicalizes Completely
 
