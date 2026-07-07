@@ -39,7 +39,7 @@ subtitle: +1 budget. Accept economic pain to restore fiscal soundness.
 unavailable-subtitle: [? if unemployed < 8 : The crisis is not severe enough to justify harsh austerity. ?] [? if austerity_adopted != 1 : We have not adopted an austerity plan. ?]
 view-if: centrist_adopted = 1 and austerity_progress < 3
 choose-if: unemployed >= 8
-on-arrival: budget += 1; austerity_progress += 1; unemployed += 1.5; inflation -= 0.3; workers_spd -= 4; unemployed_spd -= 6; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); rural_spd += 1*(1-dissent); z_relation += 4; ddp_relation += 5; dvp_relation += 4; dnvp_relation += 3 if dnvp_line == 1; center_strength += 5; labor_dissent += 8; left_dissent += 8; coalition_dissent -= 1; capital_strike_progress -= 1 if capital_strike_progress > 0; workers_nsdap += 3; unemployed_nsdap += 4; workers_kpd += 2; economic_growth -= 0.08; fiscal_stance += 0.08; demand_impulse -= 0.08; tax_drag += 0.15; investment_chill += 0.10; coup_progress += 1 if (sa_strength + sh_strength) > 1500
+on-arrival: budget += 1; austerity_progress += 1; unemployed += 1.5; inflation -= 0.3; workers_spd -= 4; unemployed_spd -= 6; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); rural_spd += 1*(1-dissent); z_relation += 4; ddp_relation += 5; dvp_relation += 4; dnvp_relation += 3 if dnvp_line == 1; center_strength += 5; labor_dissent += 8; left_dissent += 8; coalition_dissent -= 1; capital_strike_progress -= 1 if capital_strike_progress > 0; workers_nsdap += 3; unemployed_nsdap += 4; workers_kpd += 2; economic_growth -= 0.08; demand_impulse -= 0.08; coup_progress += 1 if (sa_strength + sh_strength) > 1500
 
 [? if austerity_progress == 1 : We have begun implementing austerity measures. Government spending is cut, welfare programs are reduced, and fiscal discipline is restored. The Finance Ministry proudly announces a balanced budget. ?]
 
@@ -59,7 +59,7 @@ subtitle: +2 budget. Severe cuts to restore fiscal balance quickly.
 unavailable-subtitle: [? if unemployed < 12 : The crisis must be more severe to justify such harsh measures. ?] [? if austerity_adopted != 1 : We have not adopted an austerity plan. ?] [? if center_strength < 40 : The Center faction is not strong enough to impose this. ?]
 view-if: centrist_adopted = 1 and center_strength >= 40
 choose-if: unemployed >= 12
-on-arrival: budget += 2; austerity_progress += 2; unemployed += 3; inflation -= 0.5; workers_spd -= 8; unemployed_spd -= 10; old_middle_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); z_relation += 6; ddp_relation += 7; dvp_relation += 6; center_strength += 8; labor_dissent += 15; left_dissent += 15; reformist_dissent += 8; coalition_dissent -= 2; capital_strike_progress -= 2 if capital_strike_progress > 0; workers_nsdap += 5; unemployed_nsdap += 6; workers_kpd += 4; economic_growth -= 0.15; pro_republic -= 2; fiscal_stance += 0.15; demand_impulse -= 0.15; tax_drag += 0.25; investment_chill += 0.18; coup_progress += 2 if (sa_strength + sh_strength) > 1500
+on-arrival: budget += 2; austerity_progress += 2; unemployed += 3; inflation -= 0.5; workers_spd -= 8; unemployed_spd -= 10; old_middle_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); z_relation += 6; ddp_relation += 7; dvp_relation += 6; center_strength += 8; labor_dissent += 15; left_dissent += 15; reformist_dissent += 8; coalition_dissent -= 2; capital_strike_progress -= 2 if capital_strike_progress > 0; workers_nsdap += 5; unemployed_nsdap += 6; workers_kpd += 4; economic_growth -= 0.15; pro_republic -= 2; demand_impulse -= 0.15; coup_progress += 2 if (sa_strength + sh_strength) > 1500
 achievement: wirtschaftspolitik
 
 We implement draconian austerity: massive welfare cuts, civil service layoffs, suspension of unemployment benefits. The Finance Ministry declares Germany "fiscally sound" once more.
@@ -78,7 +78,7 @@ subtitle: Balanced budget without severe cuts.
 unavailable-subtitle: [? if unemployed < 6 : There is no crisis requiring austerity. ?] [? if austerity_adopted != 1 : We have not adopted an austerity plan. ?]
 view-if: centrist_adopted = 1 and budget <= 0
 choose-if: unemployed >= 6
-on-arrival: budget += 0.5; austerity_progress += 1; unemployed += 0.5; inflation -= 0.15; workers_spd -= 2; unemployed_spd -= 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 1*(1-dissent); z_relation += 2; ddp_relation += 3; center_strength += 3; labor_dissent += 4; left_dissent += 4; coalition_dissent -= 1 if coalition_dissent > 0; workers_nsdap += 1; workers_kpd += 1; economic_growth -= 0.04; fiscal_stance += 0.04; demand_impulse -= 0.04; tax_drag += 0.08; coup_progress += 1 if (sa_strength + sh_strength) > 1500
+on-arrival: budget += 0.5; austerity_progress += 1; unemployed += 0.5; inflation -= 0.15; workers_spd -= 2; unemployed_spd -= 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 1*(1-dissent); z_relation += 2; ddp_relation += 3; center_strength += 3; labor_dissent += 4; left_dissent += 4; coalition_dissent -= 1 if coalition_dissent > 0; workers_nsdap += 1; workers_kpd += 1; economic_growth -= 0.04; demand_impulse -= 0.04; coup_progress += 1 if (sa_strength + sh_strength) > 1500
 
 We implement modest spending cuts and revenue increases, working toward a balanced budget without draconian measures. The approach is gradualist, avoiding the most severe cuts.
 
@@ -96,7 +96,7 @@ subtitle: -2 budget. [? if schacht_plan_adopted = 1 : Continue industrial credit
 unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 2 : We lack the necessary budget. ?]
 view-if: schacht_plan_adopted = 1 and schacht_plan > 0
 choose-if: unemployed >= 6 and budget >= 2
-on-arrival: budget -= 2; unemployed -= 4; works_program += 1; economic_growth += 0.42; schacht_relation += 3; dvp_relation += 4; dnvp_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 3; labor_dissent += 2; nationalism += 1; fiscal_stance -= 0.12; demand_impulse += 0.36; supply_impulse += 0.66; capital_pressure -= 0.36;
+on-arrival: budget -= 2; unemployed -= 4; works_program += 1; economic_growth += 0.42; schacht_relation += 3; dvp_relation += 4; dnvp_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 3; labor_dissent += 2; nationalism += 1; demand_impulse += 0.36; supply_impulse += 0.66;
 
 [? if schacht_plan_adopted = 1 : The Schacht Plan continues: the Reichsbank extends emergency credit to strategic industries—steel, chemicals, machinery. Export industries receive subsidized financing. Employment rises primarily in heavy industry. ?]
 
@@ -110,7 +110,7 @@ subtitle: -1 budget. Reduced industrial support with lower impact.
 unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 1 : We lack the necessary budget. ?]
 view-if: schacht_plan_adopted = 1 and schacht_plan > 0
 choose-if: unemployed >= 6 and budget >= 1
-on-arrival: budget -= 1; unemployed -= 6; works_program += 1; economic_growth += 0.24; schacht_relation += 1; dvp_relation += 2; old_middle_spd += 1*(1-dissent); left_dissent += 2; fiscal_stance -= 0.06; demand_impulse += 0.24; supply_impulse += 0.42; capital_pressure -= 0.24;
+on-arrival: budget -= 1; unemployed -= 6; works_program += 1; economic_growth += 0.24; schacht_relation += 1; dvp_relation += 2; old_middle_spd += 1*(1-dissent); left_dissent += 2; demand_impulse += 0.24; supply_impulse += 0.42;
 
 We continue the Schacht Plan at reduced scale. Credit flows to fewer industries, employment gains are modest. Schacht expresses disappointment at our "half-measures," but the program proceeds.
 
@@ -120,7 +120,7 @@ subtitle: -1 budget. Risk increased nationalist economics and Schacht's influenc
 unavailable-subtitle: [? if unemployed < 8 : The crisis isn't severe enough to justify expansion. ?] [? if budget < 1 : We lack the necessary budget. ?]
 view-if: schacht_plan_adopted = 1 and unemployed >= 8 and schacht_plan < 1 and schacht_plan >= 0
 choose-if: budget >= 1
-on-arrival: budget -= 1; unemployed -= 8.5; works_program += 1; economic_growth += 0.60; schacht_relation += 8; dvp_relation += 6; dnvp_relation += 6; reichsbank_independent = 1; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 8; labor_dissent += 6; nationalism += 3; fiscal_stance -= 0.16; demand_impulse += 0.48; supply_impulse += 0.84; capital_pressure -= 0.54; schacht_plan += 1
+on-arrival: budget -= 1; unemployed -= 8.5; works_program += 1; economic_growth += 0.60; schacht_relation += 8; dvp_relation += 6; dnvp_relation += 6; reichsbank_independent = 1; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 8; labor_dissent += 6; nationalism += 3; demand_impulse += 0.48; supply_impulse += 0.84; schacht_plan += 1
 achievement: wirtschaftspolitik
 
 We dramatically expand the Schacht Plan: massive credit injections to heavy industry, aggressive export subsidies, virtual abandonment of social spending priorities in favor of productive investment.
@@ -143,7 +143,7 @@ title: Third phase of the WTB-Plan...
 subtitle: -2 budget
 unavailable-subtitle: Unemployment is low enough that the time for the WTB-Plan has passed.
 view-if: wtb_implemented > 5 and budget >= 2 
-on-arrival: works_program += 1; budget -= 2; workers_spd += 10*(1-dissent); workers += 2 if works_program <= 4; unemployed -= 10 if unemployed > 8; unemployed_spd += 10*(1-dissent); wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.70; fiscal_stance -= 0.06; demand_impulse += 0.20; supply_impulse += 0.44; price_pressure += 0.10;
+on-arrival: works_program += 1; budget -= 2; workers_spd += 10*(1-dissent); workers += 2 if works_program <= 4; unemployed -= 10 if unemployed > 8; unemployed_spd += 10*(1-dissent); wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.70; demand_impulse += 0.20; supply_impulse += 0.44; price_pressure += 0.10;
 
     We are entering the world of danger, but perhaps, it's worth it. Perhaps, Keynes didn't mention anything about austerity in his works, did he?...
 
@@ -153,7 +153,7 @@ subtitle: -3 budget
 unavailable-subtitle: Unemployment is low enough that the time for the WTB-Plan has passed.
 view-if: wtb_implemented > 3 and budget >= 3 and wtb_implemented <= 5
 choose-if: unemployed > 0
-on-arrival: works_program += 1; budget -= 3; workers_spd += 7*(1-dissent); workers += 1 if works_program <= 4; unemployed -= 6 if unemployed > 8; unemployed_spd += 7*(1-dissent); workers_kpd -= 3; workers_nsdap -= 3; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.32; economic_growth -= 0.06 if economic_growth > 6; fiscal_stance -= 0.08; demand_impulse += 0.40; supply_impulse += 0.50; price_pressure += 0.30;
+on-arrival: works_program += 1; budget -= 3; workers_spd += 7*(1-dissent); workers += 1 if works_program <= 4; unemployed -= 6 if unemployed > 8; unemployed_spd += 7*(1-dissent); workers_kpd -= 3; workers_nsdap -= 3; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.32; economic_growth -= 0.06 if economic_growth > 6; demand_impulse += 0.40; supply_impulse += 0.50; price_pressure += 0.30;
 
     [? if works_program == 4 : We have commenced Phase 2 of the WTB-Plan. ?][? if works_program > 4 :  We have continued our implementation of the WTB-Plan. ?] In addition to public works, we are now focusing on rebuilding our industries.
 
@@ -164,7 +164,7 @@ subtitle: -3 budget - we will enter a deficit.
 unavailable-subtitle: Unemployment is low enough that we should not do deficit spending.
 view-if: wtb_implemented > 3 and budget < 3 and budget >= -3 and wtb_implemented <= 5
 choose-if: unemployed > 3
-on-arrival: works_program += 1; budget -= 3; workers_spd += 6*(1-dissent); workers += 1 if works_program <= 4; unemployed -= 6 if unemployed > 8; unemployed_spd += 6*(1-dissent); workers_kpd -= 2; workers_nsdap -= 2; coalition_dissent += 1; capital_strike_progress += 1; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.3; economic_growth += 0.32; economic_growth -= 0.06 if economic_growth > 5; fiscal_stance -= 0.06; demand_impulse += 0.76; supply_impulse += 0.30; price_pressure += 0.14; capital_pressure += 0.020;
+on-arrival: works_program += 1; budget -= 3; workers_spd += 6*(1-dissent); workers += 1 if works_program <= 4; unemployed -= 6 if unemployed > 8; unemployed_spd += 6*(1-dissent); workers_kpd -= 2; workers_nsdap -= 2; coalition_dissent += 1; capital_strike_progress += 1; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.3; economic_growth += 0.32; economic_growth -= 0.06 if economic_growth > 5; demand_impulse += 0.76; supply_impulse += 0.30; price_pressure += 0.14;
 
     We have continued our implementation of the WTB-Plan, despite the continued deficit spending. In addition to public works, we are now focusing on rebuilding our industries.
 
@@ -172,7 +172,7 @@ on-arrival: works_program += 1; budget -= 3; workers_spd += 6*(1-dissent); worke
 @wtb_continuation
 title: Look back on our results, and continue our implementation...
 view-if: (wtb_implemented >= 1 and wtb_implemented <= 3) or ((unemployed > 15 or inflation < -5) and wtb_implemented >= 1)
-on-arrival: budget += 1 if works_program <= 2; unemployed *= 0.78 if (works_program <= 2 and unemployed > 15) else unemployed -= 6; unemployed += 3 if unemployed < 5; unemployed += 3 if unemployed < 0; workers += 2 if works_program <= 2 else workers += 1; workers_spd += 8*(1-dissent); unemployed_spd += 8*(1-dissent); workers_kpd -= 3; workers_nsdap -= 5; works_program += 1; z_relation += 3; dvp_relation += 3; coalition_dissent -= 1 if coalition_dissent >= 1; wtb_implemented += 1; capital_strike_progress -= 1 if capital_strike_progress >= 3; inflation += 0.15; inflation += 0.1 if unemployed < 10; economic_growth += 0.20; economic_growth -= 0.05 if economic_growth > 5; fiscal_stance -= 0.03; demand_impulse += 0.76; supply_impulse += 0.40; price_pressure += 0.10; capital_pressure -= 0.08; wtb_timer += 24
+on-arrival: budget += 1 if works_program <= 2; unemployed *= 0.78 if (works_program <= 2 and unemployed > 15) else unemployed -= 6; unemployed += 3 if unemployed < 5; unemployed += 3 if unemployed < 0; workers += 2 if works_program <= 2 else workers += 1; workers_spd += 8*(1-dissent); unemployed_spd += 8*(1-dissent); workers_kpd -= 3; workers_nsdap -= 5; works_program += 1; z_relation += 3; dvp_relation += 3; coalition_dissent -= 1 if coalition_dissent >= 1; wtb_implemented += 1; capital_strike_progress -= 1 if capital_strike_progress >= 3; inflation += 0.15; inflation += 0.1 if unemployed < 10; economic_growth += 0.20; economic_growth -= 0.05 if economic_growth > 5; demand_impulse += 0.76; supply_impulse += 0.40; price_pressure += 0.10; wtb_timer += 24
 
     Our spending on public works has resulted in a lower need for unemployment insurance and welfare, and increased tax receipts through the multiplier effect as the new money courses through the economy, recuperating some of our spending. We continue to invest most of the new revenue into the program.
 
@@ -186,7 +186,7 @@ subtitle: -[+ wtb_budget +] budget. [? if wtb_budget == 3 : Our pro-labor polici
 unavailable-subtitle: Unemployment is low enough that the time for the WTB-Plan has passed.
 view-if: budget >= wtb_budget and wtb_implemented == 0 and wtb_adopted == 1
 choose-if: unemployed > 8
-on-arrival: budget -= wtb_budget; works_program += 1; unemployed -= 6.0; workers_spd += 7*(1-dissent); unemployed_spd += 5*(1-dissent); wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.44; pro_republic += 3*(1-dissent); fiscal_stance -= 0.07; demand_impulse += 0.70; supply_impulse += 0.40; price_pressure += 0.06; wtb_timer = 48
+on-arrival: budget -= wtb_budget; works_program += 1; unemployed -= 6.0; workers_spd += 7*(1-dissent); unemployed_spd += 5*(1-dissent); wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.44; pro_republic += 3*(1-dissent); demand_impulse += 0.70; supply_impulse += 0.40; price_pressure += 0.06; wtb_timer = 48
 achievement: wirtschaftspolitik
 
     We have started to enact the WTB plan. Money is beginning to flow through the economy via investments in large-scale public works.
@@ -199,7 +199,7 @@ subtitle: -[+ wtb_budget +] budget - we will enter deficit spending. [? if wtb_b
 unavailable-subtitle: Unemployment is low enough that the time for the WTB-Plan has passed.
 view-if: budget < wtb_budget and wtb_implemented == 0 and wtb_adopted == 1
 choose-if: unemployed > 8
-on-arrival: coalition_dissent += 1; coalition_dissent += 1 if historical_mode; coalition_dissent += 1 if chancellor == "Brüning"; works_program += 1; budget -= wtb_budget; unemployed -= 6.0; workers += 1; workers_spd += 6*(1-dissent); unemployed_spd += 4*(1-dissent); capital_strike_progress += 1; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.33; economic_growth += 0.46; pro_republic += 3*(1-dissent); fiscal_stance -= 0.08; demand_impulse += 0.60; supply_impulse += 0.40; price_pressure += 0.10; capital_pressure += 0.02; wtb_timer = 48
+on-arrival: coalition_dissent += 1; coalition_dissent += 1 if historical_mode; coalition_dissent += 1 if chancellor == "Brüning"; works_program += 1; budget -= wtb_budget; unemployed -= 6.0; workers += 1; workers_spd += 6*(1-dissent); unemployed_spd += 4*(1-dissent); capital_strike_progress += 1; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.33; economic_growth += 0.46; pro_republic += 3*(1-dissent); demand_impulse += 0.60; supply_impulse += 0.40; price_pressure += 0.10; wtb_timer = 48
 achievement: wirtschaftspolitik
 
     We have entered the realm of deficit spending. Our coalition partners are disgusted, but the works plan is enacted anyway. Money is beginning to flow through the economy via investments in large-scale public works.
@@ -217,7 +217,7 @@ go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_defici
 
 
 @nationalize_no_deficit
-on-arrival: nationalization_progress += 1; capital_strike_progress += 2; unemployed -= 5.5 if unemployed >= 6; unemployed -= 3.6 if works_councils >= 3; workers += 2 if nationalization_progress < 2; budget -= nationalize_budget; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 5*(1-dissent); coalition_dissent += 1; dvp_relation -= 4; left_dissent -= 5; new_middle_spd -= 2; old_middle_spd -= 3; economy_goal_completed += 1; inflation += 0.2; economic_growth += 0.51 if economic_growth < 5; fiscal_stance -= 0.06; demand_impulse += 0.21; supply_impulse += 0.12; distribution_shift += 0.15; capital_pressure += 0.04; price_pressure += 0.09;
+on-arrival: nationalization_progress += 1; capital_strike_progress += 2; unemployed -= 5.5 if unemployed >= 6; unemployed -= 3.6 if works_councils >= 3; workers += 2 if nationalization_progress < 2; budget -= nationalize_budget; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 5*(1-dissent); coalition_dissent += 1; dvp_relation -= 4; left_dissent -= 5; new_middle_spd -= 2; old_middle_spd -= 3; economy_goal_completed += 1; inflation += 0.2; economic_growth += 0.51 if economic_growth < 5; demand_impulse += 0.21; supply_impulse += 0.12; price_pressure += 0.09;
 achievement: wirtschaftspolitik
 
     [? if nationalization_progress == 1 : We have begun purchasing idling enterprises from the capitalists[? if works_councils >= 1: , and running them in coordination with empowered works councils ?]. By keeping production going, we can stave off the rising unemployment. ?]
@@ -241,7 +241,7 @@ title: Take a budget deficit to fund the nationalization program.
 choose-if: left_strength > reformist_strength + center_strength or woytinsky_advisor == 1
 subtitle: [? if woytinsky_advisor: Woytinsky can bring us around to supporting a budget deficit. ?]
 unavailable-subtitle: [? if left_strength <= reformist_strength + center_strength: The party does not yet support budget deficits for this purpose. ?] [? if not woytinsky_advisor : Perhaps bringing on an advisor might help make this action palatable? ?]
-on-arrival: nationalization_progress += 1; capital_strike_progress += 3; unemployed -= 9 if unemployed >= 6; unemployed -= 3.6 if works_councils >= 3; budget -= nationalize_budget; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 5*(1-dissent); coalition_dissent += 2; dvp_relation -= 6; z_relation -= 4; new_middle_spd -= 3; old_middle_spd -= 3; economy_goal_completed += 1; inflation += 0.3; economic_growth += 0.60 if economic_growth < 5; fiscal_stance -= 0.07; demand_impulse += 0.21; supply_impulse += 0.12; distribution_shift += 0.15; capital_pressure += 0.06; price_pressure += 0.15;
+on-arrival: nationalization_progress += 1; capital_strike_progress += 3; unemployed -= 9 if unemployed >= 6; unemployed -= 3.6 if works_councils >= 3; budget -= nationalize_budget; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 5*(1-dissent); coalition_dissent += 2; dvp_relation -= 6; z_relation -= 4; new_middle_spd -= 3; old_middle_spd -= 3; economy_goal_completed += 1; inflation += 0.3; economic_growth += 0.60 if economic_growth < 5; demand_impulse += 0.21; supply_impulse += 0.12; price_pressure += 0.15;
 achievement: wirtschaftspolitik
 
     [? if woytinsky_advisor: Most of the party, even on the left, are opposed to budget deficits for any purpose, with the exception of Wladimir Woytinsky. While he did not originally support the left's "transformational" plan, he has come around, and has persuaded the party and the Finance Ministry to support budget deficits in limited cases, for the purpose of exiting from the depression. ?]
@@ -257,7 +257,7 @@ title: Nationalize without compensation.
 subtitle: There is no reason why we should not simply take over idle factories. This is likely to provoke a confrontation with the capitalists.
 unavailable-subtitle: [? if left_strength <= reformist_strength + center_strength: The bulk of the party does not support this quasi-legal action. ?] [? if judicial_reform < 3 : The judiciary would oppose this action. ?]
 choose-if: left_strength > reformist_strength + center_strength and judicial_reform >= 3
-on-arrival: nationalization_progress += 1; capital_strike_progress += 7; coup_progress += 3; unemployed -= 2.5 if unemployed >= 6; unemployed -= 1.2 if works_councils >= 3 and unemployed >= 3; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 6*(1-dissent); coalition_dissent += 2; dvp_relation -= 10; z_relation -= 8; ddp_relation -= 8; left_strength += 15; reformist_dissent += 10; left_dissent -= 10; new_middle_spd -= 5; old_middle_spd -= 8; economy_goal_completed += 1; kpd_relation += 5*(1-dissent); inflation += 0.4; economic_growth += 0.10 if economic_growth < 4; fiscal_stance -= 0.02; demand_impulse += 0.06; supply_impulse += 0.03; distribution_shift += 0.08; capital_pressure += 0.12; price_pressure += 0.06;
+on-arrival: nationalization_progress += 1; capital_strike_progress += 7; coup_progress += 3; unemployed -= 2.5 if unemployed >= 6; unemployed -= 1.2 if works_councils >= 3 and unemployed >= 3; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 6*(1-dissent); coalition_dissent += 2; dvp_relation -= 10; z_relation -= 8; ddp_relation -= 8; left_strength += 15; reformist_dissent += 10; left_dissent -= 10; new_middle_spd -= 5; old_middle_spd -= 8; economy_goal_completed += 1; kpd_relation += 5*(1-dissent); inflation += 0.4; economic_growth += 0.10 if economic_growth < 4; demand_impulse += 0.06; supply_impulse += 0.03; price_pressure += 0.06;
 achievement: wirtschaftspolitik
 
     The capitalists are, predictably, up in arms about our policy of nationalization without compensation. They call it illegal expropriation, and it is. Nevertheless, it is clear that they have failed by keeping their factories idle, and we must take radical action.
@@ -271,7 +271,7 @@ title: Empower workers to take over factories.
 subtitle: We can promise to legalize factory occupations, giving the factories over to worker unions. This is highly confrontational, and would likely provoke a reaction from right-wing militants as well as capitalists.
 unavailable-subtitle: [? if left_strength <= reformist_strength + neorevisionist_strength : The bulk of the party does not support this radical action. ?] [? if judicial_reform < 3 : The judiciary would oppose this action. ?] [? if rb_militancy < 0.25 : If we increased the strength of our paramilitary forces, perhaps we could do this. ?] [? if works_councils < 1 : We need the support of the works councils first. ?]
 choose-if: left_strength > reformist_strength + neorevisionist_strength and (judicial_reform >= 3 or rb_militancy >= 0.25) and works_councils >= 1
-on-arrival: nationalization_progress += 1; capital_strike_progress += 6; coup_progress += 5; unemployed -= 3 if unemployed >= 6; unemployed -= 1.5 if works_councils >= 3 and unemployed > 4; works_program += 1; workers_spd += 10*(1-dissent); unemployed_spd += 10*(1-dissent); coalition_dissent += 2; dvp_relation -= 10; z_relation -= 8; ddp_relation -= 8; workers_nsdap -= 5*(1-dissent); unemployed_nsdap -= 5*(1-dissent); left_strength += 15; reformist_dissent += 10; left_dissent -= 10; new_middle_spd -= 5; old_middle_spd -= 10; factory_takeovers += 1; economy_goal_completed += 1; kpd_relation += 5*(1-dissent); inflation += 0.3; economic_growth += 0.10 if economic_growth < 3; fiscal_stance -= 0.01; demand_impulse += 0.07; supply_impulse += 0.03; distribution_shift += 0.09; capital_pressure += 0.10; price_pressure += 0.05;
+on-arrival: nationalization_progress += 1; capital_strike_progress += 6; coup_progress += 5; unemployed -= 3 if unemployed >= 6; unemployed -= 1.5 if works_councils >= 3 and unemployed > 4; works_program += 1; workers_spd += 10*(1-dissent); unemployed_spd += 10*(1-dissent); coalition_dissent += 2; dvp_relation -= 10; z_relation -= 8; ddp_relation -= 8; workers_nsdap -= 5*(1-dissent); unemployed_nsdap -= 5*(1-dissent); left_strength += 15; reformist_dissent += 10; left_dissent -= 10; new_middle_spd -= 5; old_middle_spd -= 10; factory_takeovers += 1; economy_goal_completed += 1; kpd_relation += 5*(1-dissent); inflation += 0.3; economic_growth += 0.10 if economic_growth < 3; demand_impulse += 0.07; supply_impulse += 0.03; price_pressure += 0.05;
 achievement: wirtschaftspolitik
 
     The capitalists are, predictably, up in arms about our policy of legalizing factory occupations. They call it illegal expropriation, and it is. Nevertheless, it is clear that they have failed, and we must take radical action.
@@ -294,7 +294,7 @@ subtitle: -2 budget.
 unavailable-subtitle: -2 budget. [? if budget < 2 : We do not have the necessary budget. ?] [? if unemployed < 8 : Unemployment is low enough that job creation is not necessary. ?]
 view-if: moderate_plan_adopted == 1
 choose-if: budget >= 2 and unemployed >= 8
-on-arrival: budget -= 2; works_program += 1; unemployed -= 4 if unemployed >= 8; inflation += 0.35; workers_spd += 6*(1-dissent); unemployed_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); rural_spd += 2*(1-dissent); moderate_plan_progress += 1; kpd_coalition_dissent += 1; inflation += 0.1 if unemployed < 10; kpd_relation -= 5 if in_popular_front or in_left_front; economic_growth += 0.48; pro_republic += 3*(1-dissent); fiscal_stance -= 0.04; demand_impulse += 0.18; supply_impulse += 0.09; price_pressure += 0.075;
+on-arrival: budget -= 2; works_program += 1; unemployed -= 4 if unemployed >= 8; inflation += 0.35; workers_spd += 6*(1-dissent); unemployed_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); rural_spd += 2*(1-dissent); moderate_plan_progress += 1; kpd_coalition_dissent += 1; inflation += 0.1 if unemployed < 10; kpd_relation -= 5 if in_popular_front or in_left_front; economic_growth += 0.48; pro_republic += 3*(1-dissent); demand_impulse += 0.18; supply_impulse += 0.09; price_pressure += 0.075;
 achievement: wirtschaftspolitik
 
     [? if moderate_plan_progress == 1 : We have started to implement the job-creation plan! Funds are sent to build public works projects across Germany, reducing unemployment. ?]
@@ -313,7 +313,7 @@ subtitle: -1 budget.
 unavailable-subtitle: -1 budget. [? if budget < 1 : We do not have the necessary budget. ?] [? if unemployed < 8 : Unemployment is low enough that job creation is not necessary. ?]
 view-if: moderate_plan_adopted == 1
 choose-if: budget >= 1 and unemployed >= 8
-on-arrival: budget -= 1; works_program += 1; unemployed -= 3 if unemployed >= 8; inflation += 0.3; workers_spd += 4*(1-dissent); unemployed_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); old_middle_spd += 1*(1-dissent); rural_spd += 1*(1-dissent); moderate_plan_progress += 1; kpd_coalition_dissent += 1; inflation += 0.1 if unemployed < 10; kpd_relation -= 5 if in_popular_front or in_left_front; economic_growth += 0.21; pro_republic += 3*(1-dissent); fiscal_stance -= 0.02; demand_impulse += 0.12; supply_impulse += 0.06; price_pressure += 0.045;
+on-arrival: budget -= 1; works_program += 1; unemployed -= 3 if unemployed >= 8; inflation += 0.3; workers_spd += 4*(1-dissent); unemployed_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); old_middle_spd += 1*(1-dissent); rural_spd += 1*(1-dissent); moderate_plan_progress += 1; kpd_coalition_dissent += 1; inflation += 0.1 if unemployed < 10; kpd_relation -= 5 if in_popular_front or in_left_front; economic_growth += 0.21; pro_republic += 3*(1-dissent); demand_impulse += 0.12; supply_impulse += 0.06; price_pressure += 0.045;
 achievement: wirtschaftspolitik
 
     [? if moderate_plan_progress == 1 : We have started to implement the job-creation plan! Funds are sent to build public works projects across Germany, reducing unemployment. ?]
