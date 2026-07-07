@@ -300,6 +300,8 @@ Q.election_records.push(election_result);
 !}
 on-display: {!
 var partyData = [
+{ id: "kapd", name: "KAPD",       color: "#5C0000", seats: Q.kapd_seats, show: !!(Q.kapd_r > 0) },
+{ id: "faud", name: "FAUD",       color: "#1C1C1C", seats: Q.faud_seats, show: !!(Q.faud_r > 0) },
 { id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: !!(Q.kpd_r  && Q.kpd_r  > 0) },
 { id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
 { id: "lb",   name: "LB",         color: "#6B0000", seats: Q.lb_seats,   show: !!(Q.lb_r   && Q.lb_r   > 0) },
@@ -309,12 +311,12 @@ var partyData = [
 { id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
 { id: "rdp",  name: "RDP",        color: "#B8B000", seats: Q.rdp_seats,  show: !!(Q.rdp_r  && Q.rdp_r  > 0) },
 { id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: !!(Q.ddp_r  && Q.ddp_r  > 0) },
+{ id: "dbp",  name: "DBP",        color: "#03A331",  seats: Q.dbp_seats,  show: !!(Q.dbp_r  && Q.dbp_r  > 0) },
 { id: "cvp",  name: "CVP",        color: "#1A1A1A", seats: Q.cvp_seats,  show: !!(Q.cvp_r  && Q.cvp_r  > 0) },
 { id: "z",    name: "Center",     color: "#000000", seats: Q.z_seats,    show: !!(Q.z_r    && Q.z_r    > 0) },
 { id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: !!(Q.bb_r   && Q.bb_r   > 0) },
 { id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: !!(Q.bvp_r  && Q.bvp_r  > 0) },
 { id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: !!(Q.csrp_r && Q.csrp_r > 0) },
-{ id: "dbp",  name: "DBP",        color: "#03A331",  seats: Q.dbp_seats,  show: !!(Q.dbp_r  && Q.dbp_r  > 0) },
 { id: "sls",  name: "SLS",        color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) },
 { id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
 { id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r  && Q.dhp_r  > 0) },
@@ -325,8 +327,9 @@ var partyData = [
 { id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r   && Q.hl_r   > 0) },
 { id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r  && Q.vnr_r  > 0) },
 { id: "cnbl", name: "CNBL",       color: "#5D4E37", seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
-{ id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!(Q.csvd_flee && Q.csvd_r > 0) },
-{ id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!(Q.kvp_flee  && Q.kvp_r  > 0) },
+{ id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!(Q.csvd_r > 0) },
+{ id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!(Q.kvp_r  > 0) },
+{ id: "rlb",  name: "RLB",        color: "#4A5D23", seats: Q.rlb_seats,  show: !!(Q.rlb_r && Q.rlb_r > 0) },
 { id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: !!(Q.dnvp_r && Q.dnvp_r > 0) },
 { id: "dnf", name: "DNF",         color:  "#000F70", seats: Q.dnf_seats, show: !!(Q.dnf_r && Q.dnf_r > 0) },
 { id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: !!(Q.other_r && Q.other_r > 0) },
@@ -418,6 +421,24 @@ go-to: coalition_formation_start
     <td style="padding: 8px; font-weight: bold; text-align: right;">Seats</td>
     <td style="padding: 8px; font-weight: bold; text-align: right;">Δ Seats</td>
 </tr>!}
+[? if kapd_votes > 0 :
+<tr class="row-far-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#5C0000; display:inline-block; margin-right:8px;'> </div>KAPD</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ kapd_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_kapd_r > 0 : color: green; ?][? if change_kapd_r < 0 : color: red; ?]">[+ str_change_kapd +]</td>
+    <td style="padding: 8px; text-align: right;">[+ kapd_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_kapd_seats_num > 0 : color: green; ?][? if change_kapd_seats_num < 0 : color: red; ?]">[+ str_change_kapd_seats_num +]</td>
+</tr>
+?]
+[? if faud_votes > 0 :
+<tr class="row-far-left">
+    <td style="padding: 8px;"><div class="box" style='background-color:#1C1C1C; display:inline-block; margin-right:8px;'> </div>FAUD</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ faud_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_faud_r > 0 : color: green; ?][? if change_faud_r < 0 : color: red; ?]">[+ str_change_faud +]</td>
+    <td style="padding: 8px; text-align: right;">[+ faud_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_faud_seats_num > 0 : color: green; ?][? if change_faud_seats_num < 0 : color: red; ?]">[+ str_change_faud_seats_num +]</td>
+</tr>
+?]
 [? if kpd_votes > 0 :
 <tr class="row-left">
     <td style="padding: 8px;"><div class="box" style='background-color:#8B0000; display:inline-block; margin-right:8px;'> </div>KPD</td>
@@ -660,6 +681,15 @@ go-to: coalition_formation_start
     <td style="padding: 8px; text-align: right;">[+ kvp_seats +]</td>
     <td style="padding: 8px; text-align: right; [? if change_kvp_seats_num > 0 : color: green; ?][? if change_kvp_seats_num < 0 : color: red; ?]">[+ str_change_kvp_seats_num +]</td>
 </tr>
+[? if rlb_votes > 0 :
+<tr class="row-right">
+    <td style="padding: 8px;"><div class="box" style='background-color:#4A5D23; display:inline-block; margin-right:8px;'> </div>RLB</td>
+    <td style="padding: 8px; text-align: right; font-weight: bold;">[+ rlb_r_disp +]%</td>
+    <td style="padding: 8px; text-align: right; [? if change_rlb_r > 0 : color: green; ?][? if change_rlb_r < 0 : color: red; ?]">[+ str_change_rlb +]</td>
+    <td style="padding: 8px; text-align: right;">[+ rlb_seats +]</td>
+    <td style="padding: 8px; text-align: right; [? if change_rlb_seats_num > 0 : color: green; ?][? if change_rlb_seats_num < 0 : color: red; ?]">[+ str_change_rlb_seats_num +]</td>
+</tr>
+?]
 ?]
 [? if dnvp_votes > 0 :
 <tr class="row-right">
