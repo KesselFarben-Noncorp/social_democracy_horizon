@@ -1770,12 +1770,12 @@ window.MusicPlayer = (function () {
     function loadFromUrl(url, name, opts) {
   opts = opts || {};
   var autoplay = opts.autoplay === true;
+  var force    = opts.force === true; // NEW: force playback even if something else is playing
 
-  // Dedupe check — bail out if a track with this name is already in the playlist
   var existingIdx = _playlist.findIndex(function (t) { return t.name === name; });
   if (existingIdx !== -1) {
-    console.warn('MusicPlayer: "' + name + '" is already in the playlist — skipping.');
-    if (autoplay) _playIdx(existingIdx);
+    console.warn('MusicPlayer: "' + name + '" is already in the playlist.');
+    if (autoplay) _playIdx(existingIdx); // force = play it regardless of current state
     return;
   }
 
@@ -1793,7 +1793,8 @@ window.MusicPlayer = (function () {
           _saveMeta();
           _renderPlaylist();
           URL.revokeObjectURL(objUrl);
-          if (autoplay && !_playing) {
+
+          if (autoplay && (force || !_playing)) {
             _playIdx(_playlist.length - 1);
           } else {
             _refreshUI();
