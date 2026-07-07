@@ -1768,36 +1768,42 @@ window.MusicPlayer = (function () {
   // FUNCTION LOAD FROM URL
 
     function loadFromUrl(url, name, opts) {
-    opts = opts || {};
-    var autoplay = opts.autoplay === true; // default false
+  opts = opts || {};
+  var autoplay = opts.autoplay === true;
 
-    fetch(url)
-      .then(function (r) { return r.blob(); })
-      .then(function (blob) {
-        var id = _trackId(name);
-        var objUrl = URL.createObjectURL(blob);
-        var tmpAudio = new Audio(objUrl);
-        tmpAudio.addEventListener('loadedmetadata', function () {
-          var dur = tmpAudio.duration;
-          _playlist.push({ id: id, name: name, duration: dur });
-          _userControlled = true;
-          _dbPut(id, blob, function () {
-            _saveMeta();
-            _renderPlaylist();
-            URL.revokeObjectURL(objUrl);
+  // Dedupe check — bail out if a track with this name is already in the playlist
+  var existingIdx = _playlist.findIndex(function (t) { return t.name === name; });
+  if (existingIdx !== -1) {
+    console.warn('MusicPlayer: "' + name + '" is already in the playlist — skipping.');
+    if (autoplay) _playIdx(existingIdx);
+    return;
+  }
 
-            // Only auto-play if explicitly requested
-            if (autoplay && !_playing) {
-              _playIdx(_playlist.length - 1);
-            } else {
-              _refreshUI();
-            }
-          });
+  fetch(url)
+    .then(function (r) { return r.blob(); })
+    .then(function (blob) {
+      var id = _trackId(name);
+      var objUrl = URL.createObjectURL(blob);
+      var tmpAudio = new Audio(objUrl);
+      tmpAudio.addEventListener('loadedmetadata', function () {
+        var dur = tmpAudio.duration;
+        _playlist.push({ id: id, name: name, duration: dur });
+        _userControlled = true;
+        _dbPut(id, blob, function () {
+          _saveMeta();
+          _renderPlaylist();
+          URL.revokeObjectURL(objUrl);
+          if (autoplay && !_playing) {
+            _playIdx(_playlist.length - 1);
+          } else {
+            _refreshUI();
+          }
         });
-      })
-      .catch(function (err) {
-        console.error('MusicPlayer: loadFromUrl failed', err);
       });
+    })
+    .catch(function (err) {
+      console.error('MusicPlayer: loadFromUrl failed', err);
+    });
     }
 
   function clearPlaylist() {
