@@ -14,7 +14,8 @@ Prussia, by far the largest and most important state in Germany, is governed by 
 We can enact policies in Prussia.
 
 Current police loyalty: [+ prussian_police_loyalty : loyalty +]. <br>
-Current police strength: [+ prussian_police_strength : strength +].
+Current police strength: [+ prussian_police_strength +]. <br>
+Prussian Concordat Progress: [+ prussian_concordat_progress +] / 2
 
 - @police_loyalty: Bolster the loyalty of the police.
 - @police_strength: Recruit additional police.
@@ -27,6 +28,7 @@ Current police strength: [+ prussian_police_strength : strength +].
 - @unban_sh: Reverse the Stahlhelm ban.
 - @negotiate_concordat: Negotiate a concordat with the Vatican.
 - @sign_concordat: Sign a concordat with the Vatican.
+- @landvolkbewegung
 - @root: No new policies are needed.
 - @easy_discard
 - @cancel_advisor_action
@@ -38,15 +40,13 @@ on-arrival: prussian_police_loyalty += 0.1; hindenburg_patience -= 1 if presiden
 # increase police loyalty
 The police have historically been overrun with reactionaries, and we are trying to change this, little by little. We have improved the training and recruitment process to select for a broader demographic than the traditional conservatives, and to put a tighter leash on their political activity. In addition, we set up committees to investigate the ranks of the police and remove those with far-right sympathies. It is a slow and arduous work.
 
-Current police loyalty: [+ prussian_police_loyalty : loyalty +].
-
 @police_strength
-on-arrival: prussian_police_strength += 20 if prussian_police_loyalty < 0.75; prussian_police_strength += 40 if prussian_police_loyalty >= 0.75
+on-arrival: prussian_police_strength += 20 if prussian_police_loyalty < 0.75; prussian_police_strength += 40 if prussian_police_loyalty >= 0.75; prussian_police_loyalty += 0.04
 
 We have increased the size of the Prussian police. [? if prussian_police_loyalty >= 0.75: Loyalty of our Prussian Police allows us to recruit even more units compared to our previous crippled state! ?]
 
 @bureaucracy
-on-arrival: prussian_police_loyalty += 0.05; nationalism -= 5; pacifism += 1; democratization += 1; pro_republic += 3*(1-dissent); new_middle_spd += 2*(1-dissent) if democratization >= 3; new_middle_spd += 2*(1-dissent) if democratization >= 4; coup_progress += 0.5; prussian_police_strength *= 0.91; hindenburg_patience -= 3 if president = "Hindenburg";
+on-arrival: prussian_police_loyalty += 0.05; nationalism -= 5; pacifism += 1; democratization += 1; pro_republic += 3*(1-dissent); new_middle_spd += 2*(1-dissent) if democratization >= 3; new_middle_spd += 2*(1-dissent) if democratization >= 4; coup_progress += 0.5; prussian_police_strength *= 0.91
 
 The bureaucracy is deeply reactionary, and many abuse their power to favor the political right. By removing the pro-monarchy and pro-dictatorship elements, we can democratize it. Some of our opponents claim that we are infringing on individual freedoms, but perhaps the security of the republic requires it.
 
@@ -98,3 +98,92 @@ view-if: prussian_concordat_progress >= 2 and prussian_concordat = 0
 on-arrival: prussian_concordat = 1; z_relation += 5; workers_spd += 3*(1-dissent)
 
 We have signed a Concordat between the Free State of Prussia and the Roman Catholic Church, guaranteeing religious freedom for Catholics in Prussia. This sets the stage for the negotiation of a national Concordat covering all of Germany.
+
+
+
+
+
+
+
+
+
+@landvolkbewegung
+title: THE AGRARIAN REBELLION IN THE NORTH
+subtitle: January 1928. The Landvolkbewegung has erupted.
+view-if: landvolk_fury >= 3 and year = 1928 and month <= 3 and weeks < 2
+choose-if: prussian_police_loyalty >= 0.40
+unavailable-subtitle: Prussian police is disobeying.
+
+= The Rural Storm Breaks
+
+The dramatic tax strikes and direct-action blockades of the newly erupted *Landvolkbewegung* have paralyzed the local courts and administrative offices across the central Geest plains. For our party, this crisis is an intricate political trap. While we sit in opposition to the center-right Fourth Marx Cabinet at the Reich level, we retain direct executive responsibility for local stability via the Prussian State Government under Minister-President Otto Braun.
+
+The sudden collapse of hog and beef prices, paired with heavy debt maturities, has pushed the independent smallholders into open, syndicalistic rebellion against the Republic's fiscal authority. Because our electoral base among independent farmers is virtually non-existent, treating the countryside as a uniform reactionary monolith will only push them faster into the arms of the radical right. We must choose a targeted, localized strategy to manage this provincial emergency.
+
+- @agrar_1: Protect smallholder homesteads from foreclosure via Prussian judicial directives.
+- @agrar_2: Quietly fund the "Kleinbauern- und Kleinbesitzer-Verband der Westküste" to fracture the rural front.
+- @agrar_3: Mobilize and arm rural Reichsbanner defense cadres within the Eastern Hill Zone estates.
+- @partyaff: Back
+
+@agrar_1
+max-visits: 1
+title: Protect Smallholder Homesteads from Foreclosure via Prussian Judicial Directives
+subtitle: Order local magistrates to temporarily defer forced auctions for family smallholders.
+on-arrival: {!
+  Q.rural_qol += 2;                // Defers immediate economic evictions of family farms            // De-escalates violent blockades around rural homesteads
+  Q.rural_spd += 2;                // Peels moderate elements away from underground bomb cells
+  Q.rural_dnvp -= 3;               // Traditional Landbund elites lose their monopoly on rural distress
+  Q.capital_strike_progress += 1;  // Banking interests and urban liberals protest the delay of debt collections
+  Q.landvolk_suppress += 1;
+  Q.month_actions += 1;
+!}
+
+The *Landvolkbewegung* gains its moral fury from the sight of Prussian court bailiffs seizing ancestral family farms on the central Geest for tax arrears. While we must uphold the fiscal sovereignty of the state, sending armed police to beat smallholders who are defending their neighbors' homes only feeds far-right martyrdom. 
+
+By order of the Prussian Ministry of Justice, a directive is sent to regional magistrates in Schleswig-Holstein: temporarily defer forced foreclosure auctions (*Zwangsversteigerungen*) on agricultural properties under 20 hectares, provided the owner can prove insolvency is due strictly to the current livestock price crash.
+
+**Downstream Consequences:**
+By removing the immediate threat of eviction, the physical friction between the smallholders and the state police dissipates. In the upcoming election events, the radical wing of the *Landvolk* loses its most potent emotional rallying cry, noticeably slowing down the explosive velocity at which the independent *Geest* peasantry defects directly to the NSDAP.
+
+@agrar_2
+max-visits: 1
+title: Split the Marsh Population via the Small Cottagers Association
+subtitle: Funnel party resources to the independent coastal laborers to combat the wealthy cattle barons.
+choose-if: socialism >= 15 and welfare >= 0
+unavailable-subtitle: Our party's internal focus on urban industrial trade unions makes us too rigid to exploit rural class differences.
+on-arrival: {!
+  Q.resources -= 1;                   // Funded via local provincial party organization budgets
+  Q.rural_spd += 3;                // Direct electoral gains among the poorest coastal cottagers
+  Q.rural_dnvp -= 4;               // The conservative Landbund's attempt to absorb smallholders fails
+  Q.rural_nsdap -= 2;              // Prevents a unified right-wing rural front from solidifying on the coast
+  Q.landvolk_suppress += 1;
+  Q.month_actions += 1;
+!}
+
+Right-wing agrarian agitators are attempting to fuse all rural classes into an absolute, pan-German front—uniting impoverished coastal cottagers and wealthy, aristocratic estate owners under the same anti-urban banner. We must expose the deep class cleavages that Rudolf Heberle documented within the West Coast Marshes. 
+
+Local Social Democratic organizers are instructed to quietly funnel logistical aid, printing presses, and meeting spaces to the *Kleinbauern- und Kleinbesitzer-Verband der Westküste* (the Small Farmers and Cottagers Association). By aggressively championing their specific grievances against the exploitation of the wealthy, commercialized cattle-fattening barons, we preserve a class barrier against the right.
+
+**Downstream Consequences:**
+This subverts the conservative strategy of cultivating absolute "provincial solidarity." When the *Landvolk* protests reach their peak during the spring campaign, the smallholders and laborers of the Marshes will refuse to participate in the blockades organized by the larger *Geest* proprietors, fracturing the radical movement.
+
+@agrar_3
+max-visits: 1
+title: Secure the Eastern Hill Zone Bastion via the Reichsbanner
+subtitle: Establish armed rural defense units to protect socialist farmhands from Stahlhelm intimidation.
+choose-if: rb_strength >= 1200 and rb_militancy >= 0.08
+unavailable-subtitle: The Reichsbanner lacks the strength or tactical edge required to safely deploy armed patrols in the provinces.
+on-arrival: {!
+  Q.rb_militancy += 0.01;          // Reichsbanner structures become highly combat-ready in the field
+  Q.rural_spd += 5;                // Deepens turnout and security for the landless proletariat
+  Q.rural_dnvp += 2;               // Alarmed noble estate owners fiercely consolidate their defenses
+  Q.landvolk_suppress += 1;
+  Q.month_actions += 1;
+!}
+
+We must accept the sociological reality that the independent smallholders of the central plains are temporarily lost to us. Instead, we will aggressively fortify our existing stronghold in the Baltic Hill Zone. In these eastern districts, the landless agricultural wage laborers (*Landarbeiter*) on the massive noble estates (*Güter*) remain unshakeable in their loyalty to the socialist ballot, but they are facing intense intimidation from landowner-backed *Stahlhelm* squads.
+
+We authorize the regional leadership of the *Reichsbanner Schwarz-Rot-Gold* to establish dedicated, armed rural defense squads (*Schutzformationen*) specifically within the Eastern Hill Zone villages. These disciplined squads will secure union halls and safeguard farmhand residential quarters from reactionary night raids.
+
+**Downstream Consequences:**
+This creates an ironclad, anti-fascist bulwark in the eastern half of the province. While it surrenders the independent *Geest* to the right, it ensures that the massive pool of rural wage-earners remains completely insulated from intimidation, anchoring our regional turnout throughout the turbulent 1928 elections.
