@@ -30,7 +30,7 @@ if ((Q.spd_votes_display + Q.ddp_votes_display + g) > (Q.dnvp_votes_display + Q.
     Q.marx_collapse_points += 1;
 }
 !}
-Go-to: marx_fall if marx_collapse_points > 3; marx_survival if marx_collapse_points <= 3
+Go-to: marx_fall if marx_collapse_points > 2; marx_survival if marx_collapse_points <= 2
 
 @marx_fall
 on-arrival: {!
@@ -39,11 +39,13 @@ Q.next_election_month = Q.month + 3;
 if (Q.next_election_month > 12) {
     Q.next_election_month -= 12;
     Q.next_election_year += 1;
+}
+
 Q.z_in_government = 0;
 Q.dvp_in_government = 0;
 Q.dnvp_in_government = 0;
 Q.bvp_in_government = 0;
-}
+
 Q.marx_cabinet_collapsed_1 = 1;
 !}
 new-page: true
