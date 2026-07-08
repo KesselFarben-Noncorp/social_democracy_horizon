@@ -18,7 +18,83 @@ All major parties are preparing their candidates for the race.
 - @party_candidates: Who are the candidates?
 
 @party_candidates
-on-arrival: {! Q.tactical_summary = ""; !}
+on-arrival: {!
+Q.tactical_summary = "";
+
+// Seed the canonical candidate registry onto Q once, here, at the very
+// start of the scene. Dendry compiles each scene's {! !} block as an
+// independent JS snippet — a plain `var` here would NOT be visible in
+// @resolve_ai_candidates, @post_r1, @r2_start, etc. Only Q survives
+// across scenes, so this is the one and only place CANDIDATES is
+// defined; every other block reads it back via Q.CANDIDATES.
+if (!Q.CANDIDATES) {
+    Q.CANDIDATES = {
+        Hindenburg: { name: "Paul von Hindenburg", party: "I",     bloc: "center" },
+        Eckener:    { name: "Hugo Eckener",        party: "Unity", bloc: "center_left" },
+        Gessler:    { name: "Otto Gessler",        party: "Liberal", bloc: "center_left" },
+        Einstein:   { name: "Albert Einstein",     party: "Independent", bloc: "cultural" },
+        Mann:       { name: "Heinrich Mann",       party: "Independent", bloc: "cultural" },
+        Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent", bloc: "cultural" },
+        Hitler:     { name: "Adolf Hitler",        party: "NSDAP", bloc: "far_right" },
+        Goring:     { name: "Hermann Göring",      party: "NSDAP", bloc: "far_right", aliases: ["Göring"] },
+        Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP", bloc: "far_right" },
+        Westarp:    { name: "Kuno von Westarp",       party: "DNVP", bloc: "center_right" },
+        Treviranus: { name: "Gottfried Treviranus",   party: "DNVP", bloc: "center_right" },
+        Lambach:    { name: "Walter Lambach",         party: "DNVP", bloc: "center_right" },
+        Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP", bloc: "center_right" },
+        Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP", bloc: "far_right" },
+        Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm", bloc: "far_right" },
+        Adenauer:   { name: "Konrad Adenauer",     party: "Z", bloc: "center" },
+        Kaas:       { name: "Ludwig Kaas",         party: "Z", bloc: "center" },
+        Bruning:    { name: "Heinrich Brüning",    party: "Z", bloc: "center", aliases: ["Brüning"] },
+        Schaffer:   { name: "Franz Schäffer",      party: "BVP", bloc: "center_right", aliases: ["Schäffer"] },
+        Stresemann: { name: "Gustav Stresemann",   party: "DVP", bloc: "center_left" },
+        Scholz:     { name: "Ernst Scholz",        party: "DVP", bloc: "center_right" },
+        Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP", bloc: "center_right" },
+        Curtius:    { name: "Julius Curtius",      party: "DVP", bloc: "center" },
+        Reinhold:   { name: "Peter Reinhold",      party: "DVP", bloc: "center_left" },
+        Heuss:      { name: "Theodor Heuss",       party: "DDP",  bloc: "center_left" },
+        Dietrich:   { name: "Hermann Dietrich",    party: "DDP",  bloc: "center_left" },
+        Luders:     { name: "Hermann Lüders",      party: "DDP",  bloc: "center_left", aliases: ["Lüders"] },
+        Lemmer:     { name: "Ernst Lemmer",        party: "DDP",  bloc: "center_left" },
+        Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo", bloc: "center_right" },
+        KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", bloc: "center_left", aliases: ["Koch-Weser"] },
+        Maier:      { name: "Reinhold Maier",      party: "DStP", bloc: "center_left" },
+        Thalmann:   { name: "Ernst Thälmann",      party: "KPD", bloc: "far_left", aliases: ["Thälmann"] },
+        Munzenberg: { name: "Willi Münzenberg",    party: "KPD", bloc: "far_left", aliases: ["Münzenberg"] },
+        Braun:      { name: "Otto Braun",          party: "SPD", bloc: "left" },
+        Schumacher: { name: "Kurt Schumacher",     party: "SPD", bloc: "left" },
+        Schmid:     { name: "Carlo Schmid",        party: "SPD (Reformist)", bloc: "center_left" },
+        Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD (Left)", bloc: "left" },
+        Juchacz:    { name: "Marie Juchacz",       party: "SPD", bloc: "left" },
+        Noske:      { name: "Gustav Noske",        party: "SPD (Right)", bloc: "center" },
+        Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD", bloc: "far_left" },
+        Horsing:    { name: "Otto Hörsing",        party: "SRPD", bloc: "center_left" },
+        Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL", bloc: "center_right" },
+        Behrens:    { name: "Wilhelm Behrens",     party: "CNBL", bloc: "center_right" },
+        Fehr:       { name: "Anton Fehr",          party: "DBP",  bloc: "center" },
+        Drewitz:    { name: "Max Drewitz",         party: "WP", bloc: "center_right" },
+        Lambach2:   { name: "Walther Lambach",     party: "CSVD", bloc: "center_right" },
+        Graefe:     { name: "Albrecht von Graefe", party: "DVFP", bloc: "far_right" },
+        Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
+        Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
+        Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
+        Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
+        HugenbergDNF: { name: "Alfred Hugenberg",  party: "DNF", bloc: "far_right" }
+    };
+}
+if (!Q.CANDIDATE_ALIAS) {
+    Q.CANDIDATE_ALIAS = {};
+    for (var _seedKey in Q.CANDIDATES) {
+        Q.CANDIDATE_ALIAS[_seedKey] = _seedKey;
+        if (Q.CANDIDATES[_seedKey].aliases) {
+            for (var _seedA = 0; _seedA < Q.CANDIDATES[_seedKey].aliases.length; _seedA++) {
+                Q.CANDIDATE_ALIAS[Q.CANDIDATES[_seedKey].aliases[_seedA]] = _seedKey;
+            }
+        }
+    }
+}
+!}
 
 The Social Democrats must settle on their own candidate and strategy before anyone else in the Reichstag commits to theirs.
 
@@ -419,60 +495,11 @@ on-arrival: {!
 // only need display info, not resolver logic).
 // =====================================================================
 
-var CANDIDATES = {
-    Hindenburg: { name: "Paul von Hindenburg", party: "I",     bloc: "center" },
-    Eckener:    { name: "Hugo Eckener",        party: "Unity", bloc: "center_left" },
-    Gessler:    { name: "Otto Gessler",        party: "Liberal", bloc: "center_left" },
-    Einstein:   { name: "Albert Einstein",     party: "Independent", bloc: "cultural" },
-    Mann:       { name: "Heinrich Mann",       party: "Independent", bloc: "cultural" },
-    Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent", bloc: "cultural" },
-    Hitler:     { name: "Adolf Hitler",        party: "NSDAP", bloc: "far_right" },
-    Goring:     { name: "Hermann Göring",      party: "NSDAP", bloc: "far_right", aliases: ["Göring"] },
-    Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP", bloc: "far_right" },
-    Westarp:    { name: "Kuno von Westarp",       party: "DNVP", bloc: "center_right" },
-    Treviranus: { name: "Gottfried Treviranus",   party: "DNVP", bloc: "center_right" },
-    Lambach:    { name: "Walter Lambach",         party: "DNVP", bloc: "center_right" },
-    Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP", bloc: "center_right" },
-    Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP", bloc: "far_right" },
-    Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm", bloc: "far_right" },
-    Adenauer:   { name: "Konrad Adenauer",     party: "Z", bloc: "center" },
-    Kaas:       { name: "Ludwig Kaas",         party: "Z", bloc: "center" },
-    Bruning:    { name: "Heinrich Brüning",    party: "Z", bloc: "center", aliases: ["Brüning"] },
-    Schaffer:   { name: "Franz Schäffer",      party: "BVP", bloc: "center_right", aliases: ["Schäffer"] },
-    Stresemann: { name: "Gustav Stresemann",   party: "DVP", bloc: "center_left" },
-    Scholz:     { name: "Ernst Scholz",        party: "DVP", bloc: "center_right" },
-    Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP", bloc: "center_right" },
-    Curtius:    { name: "Julius Curtius",      party: "DVP", bloc: "center" },
-    Reinhold:   { name: "Peter Reinhold",      party: "DVP", bloc: "center_left" },
-    Heuss:      { name: "Theodor Heuss",       party: "DDP",  bloc: "center_left" },
-    Dietrich:   { name: "Hermann Dietrich",    party: "DDP",  bloc: "center_left" },
-    Luders:     { name: "Hermann Lüders",      party: "DDP",  bloc: "center_left", aliases: ["Lüders"] },
-    Lemmer:     { name: "Ernst Lemmer",        party: "DDP",  bloc: "center_left" },
-    Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo", bloc: "center_right" },
-    KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", bloc: "center_left", aliases: ["Koch-Weser"] },
-    Maier:      { name: "Reinhold Maier",      party: "DStP", bloc: "center_left" },
-    Thalmann:   { name: "Ernst Thälmann",      party: "KPD", bloc: "far_left", aliases: ["Thälmann"] },
-    Munzenberg: { name: "Willi Münzenberg",    party: "KPD", bloc: "far_left", aliases: ["Münzenberg"] },
-    Braun:      { name: "Otto Braun",          party: "SPD", bloc: "left" },
-    Schumacher: { name: "Kurt Schumacher",     party: "SPD", bloc: "left" },
-    Schmid:     { name: "Carlo Schmid",        party: "SPD (Reformist)", bloc: "center_left" },
-    Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD (Left)", bloc: "left" },
-    Juchacz:    { name: "Marie Juchacz",       party: "SPD", bloc: "left" },
-    Noske:      { name: "Gustav Noske",        party: "SPD (Right)", bloc: "center" },
-    Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD", bloc: "far_left" },
-    Horsing:    { name: "Otto Hörsing",        party: "SRPD", bloc: "center_left" },
-    Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL", bloc: "center_right" },
-    Behrens:    { name: "Wilhelm Behrens",     party: "CNBL", bloc: "center_right" },
-    Fehr:       { name: "Anton Fehr",          party: "DBP",  bloc: "center" },
-    Drewitz:    { name: "Max Drewitz",         party: "WP", bloc: "center_right" },
-    Lambach2:   { name: "Walther Lambach",     party: "CSVD", bloc: "center_right" },
-    Graefe:     { name: "Albrecht von Graefe", party: "DVFP", bloc: "far_right" },
-    Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
-    Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
-    Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
-    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
-};
+// CANDIDATES now lives once on Q (seeded in @party_candidates). Every
+// scene that needs it reads it back here instead of hardcoding its own
+// copy — this is what actually fixes the drift bug (party labels and
+// blocs silently diverging between @post_r1 / @r2_start / here).
+var CANDIDATES = Q.CANDIDATES;
 
 var CANDIDATE_ALIAS = {};
 for (var ck in CANDIDATES) {
@@ -500,6 +527,7 @@ function candBloc(name) {
     var c = CANDIDATES[key];
     return c ? c.bloc : "center";
 }
+
 
 var BLOC_ORDER = ["far_left", "left", "cultural", "center_left", "center", "center_right", "far_right"];
 function blocIndex(blocName) {
@@ -536,6 +564,9 @@ var PARTIES = {
     dvfp:  { label: "DVFP", tier: "independent", requires: "Q.dvfp_votes > 0 && !Q.dvfp_banned" },
     csrp:  { label: "CSRP", tier: "independent", requires: "Q.csrp_votes > 0 && !Q.csrp_banned" },
     dnf:   { label: "DNF",  tier: "independent", requires: "Q.dnf_votes > 0 && !Q.dnf_banned" },
+    kapd:  { label: "KAPD", tier: "independent", requires: "Q.kapd_votes > 0 && !Q.kapd_banned" },
+    faud:  { label: "FAUD", tier: "independent", requires: "Q.faud_votes > 0 && !Q.faud_banned" },
+    rlb:   { label: "RLB",  tier: "independent", requires: "Q.rlb_votes > 0 && !Q.rlb_banned" },
 
     kpo:   { label: "KPO",  tier: "independent", requires: "Q.kpo_votes > 0 && !Q.kpo_banned" },
     sl:    { label: "SL",   tier: "independent", requires: "Q.sl_votes > 0 && !Q.sl_banned" },
@@ -846,7 +877,19 @@ var OWN_BENCH = {
 
     dtsp: [
         { default: "Kunze" }
-    ]
+    ],
+
+    kapd: [
+    { default: "Ruhle" }
+    ],
+
+    faud: [
+    { default: "Rocker" }
+    ],
+
+    rlb: [
+    { default: function () { return Q.dnvp_candidate || Q.dnvp_default_candidate || "Hugenberg"; } }
+    ],
 };
 
 function ddpOwnCandidate() {
@@ -926,7 +969,7 @@ var RESOLUTION_ORDER = [
     "nsdap", "kpd", "dnvp", "z", "bvp", "dvp", "ddp", "wp", "cnbl",
     "bb", "dhp", "csvd", "kvp", "vrp", "sapd", "srpd", "dbp", "dsbp",
     "dvfp", "csrp", "dnf",
-    "kpo", "sl", "aspd", "vnr", "hl", "lb", "rdp", "cvp", "sls", "dtsp"
+    "kpo", "sl", "aspd", "vnr", "hl", "lb", "rdp", "cvp", "sls", "dtsp", "rlb", "kapd", "faud"
 ];
 
 // ---------------------------------------------------------------------
@@ -965,60 +1008,8 @@ for (var ri = 0; ri < RESOLUTION_ORDER.length; ri++) {
 // SHARED CANDIDATE LOOKUP (mirror of CANDIDATES in @party_candidates —
 // display info only, no resolver logic needed here).
 // ---------------------------------------------------------------------
-var CAND_INFO = {
-    Hindenburg: { name: "Paul von Hindenburg", party: "I",     bloc: "center" },
-    Eckener:    { name: "Hugo Eckener",        party: "Unity", bloc: "center_left" },
-    Gessler:    { name: "Otto Gessler",        party: "Liberal", bloc: "center_left" },
-    Einstein:   { name: "Albert Einstein",     party: "Independent", bloc: "cultural" },
-    Mann:       { name: "Heinrich Mann",       party: "Independent", bloc: "cultural" },
-    Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent", bloc: "cultural" },
-    Hitler:     { name: "Adolf Hitler",        party: "NSDAP", bloc: "far_right" },
-    Goring:     { name: "Hermann Göring",      party: "NSDAP", bloc: "far_right", aliases: ["Göring"] },
-    Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP", bloc: "far_right" },
-    Westarp:    { name: "Kuno von Westarp",       party: "DNVP", bloc: "center_right" },
-    Treviranus: { name: "Gottfried Treviranus",   party: "DNVP", bloc: "center_right" },
-    Lambach:    { name: "Walter Lambach",         party: "DNVP", bloc: "center_right" },
-    Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP", bloc: "center_right" },
-    Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP", bloc: "far_right" },
-    Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm", bloc: "far_right" },
-    Adenauer:   { name: "Konrad Adenauer",     party: "Z", bloc: "center" },
-    Kaas:       { name: "Ludwig Kaas",         party: "Z", bloc: "center" },
-    Bruning:    { name: "Heinrich Brüning",    party: "Z", bloc: "center", aliases: ["Brüning"] },
-    Schaffer:   { name: "Franz Schäffer",      party: "BVP", bloc: "center_right", aliases: ["Schäffer"] },
-    Stresemann: { name: "Gustav Stresemann",   party: "DVP", bloc: "center_left" },
-    Scholz:     { name: "Ernst Scholz",        party: "DVP", bloc: "center_right" },
-    Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP", bloc: "center_right" },
-    Curtius:    { name: "Julius Curtius",      party: "DVP", bloc: "center" },
-    Reinhold:   { name: "Peter Reinhold",      party: "DVP", bloc: "center_left" },
-    Heuss:      { name: "Theodor Heuss",       party: "DDP",  bloc: "center_left" },
-    Dietrich:   { name: "Hermann Dietrich",    party: "DDP",  bloc: "center_left" },
-    Luders:     { name: "Hermann Lüders",      party: "DDP",  bloc: "center_left", aliases: ["Lüders"] },
-    Lemmer:     { name: "Ernst Lemmer",        party: "DDP",  bloc: "center_left" },
-    Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo", bloc: "center_right" },
-    KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", bloc: "center_left", aliases: ["Koch-Weser"] },
-    Maier:      { name: "Reinhold Maier",      party: "DStP", bloc: "center_left" },
-    Thalmann:   { name: "Ernst Thälmann",      party: "KPD", bloc: "far_left", aliases: ["Thälmann"] },
-    Munzenberg: { name: "Willi Münzenberg",    party: "KPD", bloc: "far_left", aliases: ["Münzenberg"] },
-    Braun:      { name: "Otto Braun",          party: "SPD", bloc: "left" },
-    Schumacher: { name: "Kurt Schumacher",     party: "SPD", bloc: "left" },
-    Schmid:     { name: "Carlo Schmid",        party: "SPD (Reformist)", bloc: "center_left" },
-    Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD (Left)", bloc: "left" },
-    Juchacz:    { name: "Marie Juchacz",       party: "SPD", bloc: "left" },
-    Noske:      { name: "Gustav Noske",        party: "SPD (Right)", bloc: "center" },
-    Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD", bloc: "far_left" },
-    Horsing:    { name: "Otto Hörsing",        party: "SRPD", bloc: "center_left" },
-    Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL", bloc: "center_right" },
-    Behrens:    { name: "Wilhelm Behrens",     party: "CNBL", bloc: "center_right" },
-    Fehr:       { name: "Anton Fehr",          party: "DBP",  bloc: "center" },
-    Drewitz:    { name: "Max Drewitz",         party: "WP", bloc: "center_right" },
-    Lambach2:   { name: "Walther Lambach",     party: "CSVD", bloc: "center_right" },
-    Graefe:     { name: "Albrecht von Graefe", party: "DVFP", bloc: "far_right" },
-    Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch", bloc: "far_right" },
-    Quidde:     { name: "Ludwig Quidde",       party: "RDP",  bloc: "center_left" },
-    Bohm:       { name: "Johannes Böhm",       party: "VRP",  bloc: "center_right", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP", bloc: "far_right" },
-    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
-};
+var CAND_INFO = Q.CANDIDATES;
+
 var CAND_ALIAS = {};
 for (var ck0 in CAND_INFO) {
     CAND_ALIAS[ck0] = ck0;
@@ -1034,7 +1025,7 @@ function canon(name) {
 // Hard kill: if Hindenburg is dead, zero out any stale candidate assignments
 if (Q.hindenburg_dead) {
     Q.hindenburg_running = 0;
-    var ALL_PARTY_KEYS = ['spd','z','dnvp','dvp','ddp','kpd','nsdap','bvp','wp','cnbl','bb','dhp','csvd','kvp','vrp','sapd','srpd','dbp','dsbp','dvfp','csrp','kpo','sl','aspd','vnr','hl','lb','rdp','cvp','sls','dtsp', 'dnf'];
+    var ALL_PARTY_KEYS = Q.parties;
     for (var i = 0; i < ALL_PARTY_KEYS.length; i++) {
         if (canon(Q[ALL_PARTY_KEYS[i] + '_candidate']) === 'Hindenburg') Q[ALL_PARTY_KEYS[i] + '_candidate'] = null;
         if (canon(Q[ALL_PARTY_KEYS[i] + '_default_candidate']) === 'Hindenburg') Q[ALL_PARTY_KEYS[i] + '_default_candidate'] = null;
@@ -1349,6 +1340,38 @@ if (Q.dtsp_votes > 0 && !Q.dtsp_banned) {
         : pickFreeCandidateFC("dtsp", Q.dtsp_default_candidate || "Kunze", [Q.nsdap_candidate, Q.dvfp_candidate]);
 }
 
+// --- KAPD — far-left anchor, same treatment as DVFP on the far right.
+//     Deliberately NOT offered SPD: KAPD's entire raison d'être is
+//     hostility to SPD ("social fascists" in KAPD's own rhetoric), so
+//     offering it would be a non-starter and risks a nonsensical result.
+if (Q.kapd_banned) {
+    Q.kapd_candidate = null;
+} else if (JOINT_LEFT) {
+    Q.kapd_candidate = Q.kapd_default_candidate || "Ruhle";
+} else {
+    Q.kapd_candidate = pickFreeCandidateFC("kapd", Q.kapd_default_candidate || "Ruhle", [Q.kpd_candidate]);
+}
+
+// --- FAUD — anarcho-syndicalist, not really an electoral-coalition
+//     actor historically. Kept isolated (no offers) like KAPD/DVFP;
+//     if FAUD shouldn't participate in candidate politics at all in
+//     your model, this block may not belong here — flag if so.
+if (Q.faud_banned) {
+    Q.faud_candidate = null;
+} else if (JOINT_LEFT) {
+    Q.faud_candidate = Q.faud_default_candidate || "Rocker";
+} else {
+    Q.faud_candidate = pickFreeCandidateFC("faud", Q.faud_default_candidate || "Rocker", [Q.kpd_candidate]);
+}
+
+// --- RLB — agrarian right, mirrors DNVP's bloc; after DNVP is final.
+if (!Q.rlb_banned) {
+    Q.rlb_candidate = JOINT_LEFT
+        ? (Q.rlb_default_candidate || Q.dnvp_candidate || "Hugenberg")
+        : pickFreeCandidateFC("rlb", Q.rlb_default_candidate || Q.dnvp_candidate || "Hugenberg",
+            [Q.dnvp_candidate, Q.cnbl_candidate]);
+}
+
 // ========================================
 // DNF — finalize
 // ========================================
@@ -1450,6 +1473,8 @@ Q.tactical_summary = ""; // cleared here; @tactical_consolidation sets it later 
 • BB — *[+ bb_candidate +]* <br>
 [? if dhp_r > 0 and dhp_candidate != cnbl_candidate and dhp_candidate != z_dnvp_joint_candidate : • DHP — *[+ dhp_candidate +]* <br> ?]
 [? if hl_r > 0 and hl_candidate != dhp_candidate and hl_candidate != cnbl_candidate : • HL — *[+ hl_candidate +]* <br> ?]
+[? if rlb_r > 0 and rlb_candidate != dnvp_candidate and rlb_candidate != z_dnvp_joint_candidate : • RLB — *[+ rlb_candidate +]* <br> ?]
+[? if rlb_r > 0 and rlb_candidate == dnvp_candidate : • RLB — *Supporting [+ dnvp_candidate +]* <br> ?]
 
 🗳️ **CENTER & LIBERALS**
 [? if ddp_votes > 0 and ddp_candidate and ddp_candidate != spd_candidate and ddp_candidate != z_candidate : • [+ ddp_name +] — *[+ ddp_candidate +]* <br> ?]
@@ -1486,7 +1511,13 @@ Q.tactical_summary = ""; // cleared here; @tactical_consolidation sets it later 
 [? if sl_r > 0 and sl_candidate == spd_candidate : • SL — *Supporting [+ spd_candidate +]* <br> ?]
 [? if lb_r > 0 and lb_candidate != kpd_candidate : • LB — *[+ lb_candidate +]* <br> ?]
 [? if lb_r > 0 and lb_candidate == kpd_candidate : • LB — *Supporting [+ kpd_candidate +]* <br> ?]
+
+☭ **FAR LEFT**
 [? if kpd_candidate : • KPD — *[+ kpd_candidate +]* <br> ?]
+[? if kapd_r > 0 and kapd_candidate != kpd_candidate : • KAPD — *[+ kapd_candidate +]* <br> ?]
+[? if kapd_r > 0 and kapd_candidate == kpd_candidate : • KAPD — *Supporting [+ kpd_candidate +]* <br> ?]
+[? if faud_r > 0 and faud_candidate != kpd_candidate : • FAUD — *[+ faud_candidate +]* <br> ?]
+[? if faud_r > 0 and faud_candidate == kpd_candidate : • FAUD — *Supporting [+ kpd_candidate +]* <br> ?]
 
 - @r1_menu: *Proceed to the first round of voting.*
 
@@ -1764,65 +1795,14 @@ on-arrival: {!
 // ---------------------------------------------------------------------
 // SHARED CANDIDATE LOOKUP — mirror of CANDIDATES (display info only).
 // ---------------------------------------------------------------------
-var CAND_INFO = {
-    Hindenburg: { name: "Paul von Hindenburg", party: "I" },
-    Eckener:    { name: "Hugo Eckener",        party: "Unity" },
-    Gessler:    { name: "Otto Gessler",        party: "Liberal" },
-    Einstein:   { name: "Albert Einstein",     party: "Independent" },
-    Mann:       { name: "Heinrich Mann",       party: "Independent" },
-    Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent" },
-    Hitler:     { name: "Adolf Hitler",        party: "NSDAP" },
-    Goring:     { name: "Hermann Göring",      party: "NSDAP", aliases: ["Göring"] },
-    Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP" },
-    Westarp:    { name: "Kuno von Westarp",       party: "DNVP" },
-    Treviranus: { name: "Gottfried Treviranus",   party: "DNVP" },
-    Lambach:    { name: "Walter Lambach",         party: "DNVP" },
-    Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP" },
-    Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP" },
-    Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm" },
-    Adenauer:   { name: "Konrad Adenauer",     party: "Z" },
-    Kaas:       { name: "Ludwig Kaas",         party: "Z" },
-    Bruning:    { name: "Heinrich Brüning",    party: "Z", aliases: ["Brüning"] },
-    Schaffer:   { name: "Franz Schäffer",      party: "BVP", aliases: ["Schäffer"] },
-    Stresemann: { name: "Gustav Stresemann",   party: "DVP" },
-    Scholz:     { name: "Ernst Scholz",        party: "DVP" },
-    Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP" },
-    Curtius:    { name: "Julius Curtius",      party: "DVP" },
-    Reinhold:   { name: "Peter Reinhold",      party: "DVP" },
-    Heuss:      { name: "Theodor Heuss",       party: "DDP" },
-    Dietrich:   { name: "Hermann Dietrich",    party: "DDP" },
-    Luders:     { name: "Hermann Lüders",      party: "DDP", aliases: ["Lüders"] },
-    Lemmer:     { name: "Ernst Lemmer",        party: "DDP" },
-    Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo" },
-    KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", aliases: ["Koch-Weser"] },
-    Maier:      { name: "Reinhold Maier",      party: "DStP" },
-    Thalmann:   { name: "Ernst Thälmann",      party: "KPD", aliases: ["Thälmann"] },
-    Munzenberg: { name: "Willi Münzenberg",    party: "KPD", aliases: ["Münzenberg"] },
-    Braun:      { name: "Otto Braun",          party: "SPD" },
-    Schumacher: { name: "Kurt Schumacher",     party: "SPD" },
-    Schmid:     { name: "Carlo Schmid",        party: "SPD - R" },
-    Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD - L" },
-    Juchacz:    { name: "Marie Juchacz",       party: "SPD" },
-    Noske:      { name: "Gustav Noske",        party: "SPD - SC" },
-    Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD" },
-    Horsing:    { name: "Otto Hörsing",        party: "SRPD" },
-    Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL" },
-    Behrens:    { name: "Wilhelm Behrens",     party: "CNBL" },
-    Fehr:       { name: "Anton Fehr",          party: "DBP" },
-    Drewitz:    { name: "Max Drewitz",         party: "WP" },
-    Lambach2:   { name: "Walther Lambach",     party: "CSVD" },
-    Graefe:     { name: "Albrecht von Graefe", party: "DVFP" },
-    Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch" },
-    Quidde:     { name: "Ludwig Quidde",       party: "RDP" },
-    Bohm:       { name: "Johannes Böhm",       party: "VRP", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" },
-    HugenbergDNF: { name: "Alfred Hugenberg",       party: "DNF", bloc: "far_right" }
-};
-var CAND_ALIAS = {};
-for (var ck0 in CAND_INFO) {
-    CAND_ALIAS[ck0] = ck0;
-    if (CAND_INFO[ck0].aliases) for (var a0 = 0; a0 < CAND_INFO[ck0].aliases.length; a0++) CAND_ALIAS[CAND_INFO[ck0].aliases[a0]] = ck0;
-}
+// CAND_INFO now reads the single canonical registry off Q (seeded in
+// @party_candidates) instead of hardcoding its own copy. The old local
+// copy here had drifted: it used "SPD - R" / "SPD - L" / "SPD - SC"
+// instead of the canonical "SPD (Reformist)" / "SPD (Left)" /
+// "SPD (Right)" labels, and it was missing bloc data entirely — so
+// candBloc() calls in this scene would have silently misbehaved.
+var CAND_INFO = Q.CANDIDATES;
+var CAND_ALIAS = Q.CANDIDATE_ALIAS;
 function canon(name) {
     if (!name) return name;
     if (CAND_ALIAS[name]) return CAND_ALIAS[name];
@@ -1946,7 +1926,9 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5", dnf: "#000F70"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00",
+    dbp:"#03A331", dsbp:"#7A9DB5", dnf:"#000F70",
+    kapd:"#5C0000", faud:"#1C1C1C", rlb:"#4A5D23"
 };
 
 var partyLabels = {
@@ -1955,7 +1937,9 @@ var partyLabels = {
     cnbl:"CNBL", csvd:"CSVD", dnvp:"DNVP", nsdap:"NSDAP", kvp:"KVP",
     dhp:"DHP", bb:"BB", vrp:"VRP", dvfp:"DVFP", other:"Other",
     aspd:"ASPD", hl:"HL", sl:"SL", kpo:"KPO", vnr:"VNR",
-    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP", dbp:"DBP", dsbp: "DSBP", dnf: "DNF"
+    lb:"LB", rdp:"RDP", cvp:"CVP", sls:"SLS", dtsp:"DtsP",
+    dbp:"DBP", dsbp:"DSBP", dnf:"DNF",
+    kapd:"KAPD", faud:"FAUD", rlb:"RLB"
 };
 
 var allParties = Q.parties;
@@ -2346,6 +2330,9 @@ function consolidateRound2() {
     if (Q.cvp_r > 0 && Q.cvp_candidate) Q.cvp_candidate = pickBestFinalist("z", Q.cvp_candidate);
     if (Q.sls_r > 0 && Q.sls_candidate) Q.sls_candidate = pickBestFinalist("spd", Q.sls_candidate);
     if (Q.dtsp_r > 0 && Q.dtsp_candidate) Q.dtsp_candidate = pickBestFinalist("nsdap", Q.dtsp_candidate);
+    if (Q.kapd_r > 0 && Q.kapd_candidate) Q.kapd_candidate = pickBestFinalist("kpd", Q.kapd_candidate);
+if (Q.faud_r > 0 && Q.faud_candidate) Q.faud_candidate = pickBestFinalist("kpd", Q.faud_candidate);
+if (Q.rlb_r > 0 && Q.rlb_candidate) Q.rlb_candidate = pickBestFinalist("dnvp", Q.rlb_candidate);
 
     // If third place was pushed out (round2_has_third just turned off),
     // anyone still pointing at them gets re-homed onto a real finalist.
@@ -2795,65 +2782,9 @@ on-arrival: {!
 // ---------------------------------------------------------------------
 // SHARED CANDIDATE LOOKUP — mirror of CANDIDATES (display info only).
 // ---------------------------------------------------------------------
-var CAND_INFO = {
-    Hindenburg: { name: "Paul von Hindenburg", party: "I" },
-    Eckener:    { name: "Hugo Eckener",        party: "Unity" },
-    Gessler:    { name: "Otto Gessler",        party: "Liberal" },
-    Einstein:   { name: "Albert Einstein",     party: "Independent" },
-    Mann:       { name: "Heinrich Mann",       party: "Independent" },
-    Ossietzky:  { name: "Carl von Ossietzky",  party: "Independent" },
-    Hitler:     { name: "Adolf Hitler",        party: "NSDAP" },
-    Goring:     { name: "Hermann Göring",      party: "NSDAP", aliases: ["Göring"] },
-    Goebbels:   { name: "Joseph Goebbels",     party: "NSDAP" },
-    Westarp:    { name: "Kuno von Westarp",       party: "DNVP" },
-    Treviranus: { name: "Gottfried Treviranus",   party: "DNVP" },
-    Lambach:    { name: "Walter Lambach",         party: "DNVP" },
-    Lindeiner:  { name: "Hans von Lindeiner-Wildau", party: "DNVP" },
-    Hugenberg:  { name: "Alfred Hugenberg",       party: "DNVP" },
-    Seldte:     { name: "Franz Seldte",           party: "DNVP/Stahlhelm" },
-    Adenauer:   { name: "Konrad Adenauer",     party: "Z" },
-    Kaas:       { name: "Ludwig Kaas",         party: "Z" },
-    Bruning:    { name: "Heinrich Brüning",    party: "Z", aliases: ["Brüning"] },
-    Schaffer:   { name: "Franz Schäffer",      party: "BVP", aliases: ["Schäffer"] },
-    Stresemann: { name: "Gustav Stresemann",   party: "DVP" },
-    Scholz:     { name: "Ernst Scholz",        party: "DVP" },
-    Dingeldey:  { name: "Eduard Dingeldey",    party: "DVP" },
-    Curtius:    { name: "Julius Curtius",      party: "DVP" },
-    Reinhold:   { name: "Peter Reinhold",      party: "DVP" },
-    Heuss:      { name: "Theodor Heuss",       party: "DDP" },
-    Dietrich:   { name: "Hermann Dietrich",    party: "DDP" },
-    Luders:     { name: "Hermann Lüders",      party: "DDP", aliases: ["Lüders"] },
-    Lemmer:     { name: "Ernst Lemmer",        party: "DDP" },
-    Mahraun:    { name: "Arthur Mahraun",      party: "DStP/Jungdo" },
-    KochWeser:  { name: "Erich Koch-Weser",    party: "DStP", aliases: ["Koch-Weser"] },
-    Maier:      { name: "Reinhold Maier",      party: "DStP" },
-    Thalmann:   { name: "Ernst Thälmann",      party: "KPD", aliases: ["Thälmann"] },
-    Munzenberg: { name: "Willi Münzenberg",    party: "KPD", aliases: ["Münzenberg"] },
-    Braun:      { name: "Otto Braun",          party: "SPD" },
-    Schumacher: { name: "Kurt Schumacher",     party: "SPD" },
-    Schmid:     { name: "Carlo Schmid",        party: "SPD - R" },
-    Ollenhauer: { name: "Erich Ollenhauer",    party: "SPD - L" },
-    Juchacz:    { name: "Marie Juchacz",       party: "SPD" },
-    Noske:      { name: "Gustav Noske",        party: "SPD - SC" },
-    Rosenfeld:  { name: "Kurt Rosenfeld",      party: "SAPD" },
-    Horsing:    { name: "Otto Hörsing",        party: "SRPD" },
-    Hamkens:    { name: "Wilhelm Hamkens",     party: "CNBL" },
-    Behrens:    { name: "Wilhelm Behrens",     party: "CNBL" },
-    Fehr:       { name: "Anton Fehr",          party: "DBP" },
-    Drewitz:    { name: "Max Drewitz",         party: "WP" },
-    Lambach2:   { name: "Walther Lambach",     party: "CSVD" },
-    Graefe:     { name: "Albrecht von Graefe", party: "DVFP" },
-    Ludendorff: { name: "Erich Ludendorff",    party: "DVFP/Völkisch" },
-    Quidde:     { name: "Ludwig Quidde",       party: "RDP" },
-    Bohm:       { name: "Johannes Böhm",       party: "VRP", aliases: ["Böhm"] },
-    Kunze:      { name: "Wilhelm Kunze",       party: "DTSP" },
-    HugenbergDNF: { name: "Alfred Hugenberg",  party: "DNF" }
-};
-var CAND_ALIAS = {};
-for (var ck0 in CAND_INFO) {
-    CAND_ALIAS[ck0] = ck0;
-    if (CAND_INFO[ck0].aliases) for (var a0 = 0; a0 < CAND_INFO[ck0].aliases.length; a0++) CAND_ALIAS[CAND_INFO[ck0].aliases[a0]] = ck0;
-}
+var CAND_INFO = Q.CANDIDATES;
+var CAND_ALIAS = Q.CANDIDATE_ALIAS;
+
 function canon(name) {
     if (!name) return name;
     if (CAND_ALIAS[name]) return CAND_ALIAS[name];
@@ -2865,7 +2796,6 @@ function candDesc(name) {
     var c = CAND_INFO[key];
     return c ? (c.name + " (" + c.party + ")") : (name || "");
 }
-
 // ---------------------------------------------------------------------
 // FINAL VOTE TALLY — same canon()-normalized aggregation and
 // deterministic tie-break as @post_r1.
@@ -2924,7 +2854,9 @@ var partyColors = {
     dnvp:"#3f7bc1",nsdap:"#954B00",kvp:"#3f7bc1", dhp:"#5D4E37",
     bb:"#69A2BE",  vrp:"#8B7355", dvfp:"#7A5C12", other:"#a0a0a0",
     aspd:"#B22222", hl:"#2E8B57", sl:"#005B96", kpo:"#990000", vnr:"#4B5320",
-    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00", dbp: "#03A331", dsbp: "#7A9DB5"
+    lb:"#6B0000", rdp:"#B8B000", cvp:"#1A1A1A", sls:"#4A7C59", dtsp:"#3B1A00",
+    dbp:"#03A331", dsbp:"#7A9DB5", dnf:"#000F70",
+    kapd:"#5C0000", faud:"#1C1C1C", rlb:"#4A5D23"
 };
 
 var partyLabels = {};
