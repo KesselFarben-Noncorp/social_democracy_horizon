@@ -21,12 +21,6 @@ All major parties are preparing their candidates for the race.
 on-arrival: {!
 Q.tactical_summary = "";
 
-// Seed the canonical candidate registry onto Q once, here, at the very
-// start of the scene. Dendry compiles each scene's {! !} block as an
-// independent JS snippet — a plain `var` here would NOT be visible in
-// @resolve_ai_candidates, @post_r1, @r2_start, etc. Only Q survives
-// across scenes, so this is the one and only place CANDIDATES is
-// defined; every other block reads it back via Q.CANDIDATES.
 if (!Q.CANDIDATES) {
     Q.CANDIDATES = {
         Hindenburg: { name: "Paul von Hindenburg", party: "I",     bloc: "center" },
