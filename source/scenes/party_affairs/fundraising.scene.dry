@@ -1,6 +1,6 @@
 title: Fundraising
 new-page: true
-view-if: (collect_timer <= 0 or austerity_timer <= 0 or donors_timer <= 0) and (not historical_mode)
+view-if: (collect_timer <= 0 or austerity_timer <= 0) and (not historical_mode)
 on-arrival: {!
     // Initialize dues rates if not set
     if (!Q.dues_workers) { Q.dues_workers = 1; }
@@ -35,7 +35,6 @@ on-arrival: {!
     if (!Q.collect_timer) { Q.collect_timer = 0; }
     if (!Q.drive_timer) { Q.drive_timer = 0; }
     if (!Q.austerity_timer) { Q.austerity_timer = 0; }
-    if (!Q.donors_timer) { Q.donors_timer = 0; }
     
 !}
 frequency: 300
@@ -73,7 +72,6 @@ What is our fundraising strategy?
 - @collect_standard: Collect current dues ([+ total_projected +] resources). [? if collect_timer > 0 : (Available in [+ collect_timer +] turns) ?]
 - @adjust_dues: Adjust dues rates by demographic.
 - @austerity: Party austerity measures (reduce operating costs). [? if austerity_timer > 0 : (Available in [+ austerity_timer +] turns) ?]
-- @wealthy_donors: Seek donations from wealthy sympathizers. [? if donors_timer > 0 : (Available in [+ donors_timer +] turns) ?]
 - @root: Defer decision.
 - @easy_discard
 
@@ -250,24 +248,6 @@ choose-if: austerity_timer <= 0
 unavailable-subtitle: [? if austerity_timer > 0 : Cannot implement austerity again yet. Available in [+ austerity_timer +] turns. ?]
 on-arrival: resources += 5; reformist_dissent += 8; center_dissent += 8; austerity_timer = 24 + austerity_fortimers; austerity_fortimers += 1
 
-The party leadership implements austerity:
-- Reduce headquarters staff
-- Cut publication budgets
-- Limit travel expenses
-- Defer facility maintenance
-
 We have saved 5 resources, however face criticism in the face of weakened apparatus of party.
-
-- @root: Continue.
-
-@wealthy_donors
-subtitle: Seek large donations from sympathetic wealthy individuals
-choose-if: donors_timer <= 0
-unavailable-subtitle: [? if donors_timer > 0 : Cannot approach wealthy donors again yet. Available in [+ donors_timer +] turns. ?]
-on-arrival: resources += 3; left_dissent += 10; labor_dissent += 8; reformist_dissent -= 2; donors_timer = 24; left_strength -= 7
-
-We discreetly approach wealthy industrialists, intellectuals, and professionals sympathetic to social democracy. They contribute 3 resources to us.
-
-The Left wing denounces this as selling out to capitalist interests, with workers questioning our commitment to class struggle.
 
 - @root: Continue.
