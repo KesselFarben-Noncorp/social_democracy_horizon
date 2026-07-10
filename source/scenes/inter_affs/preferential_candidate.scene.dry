@@ -29,6 +29,8 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 
 [? if social_fascism_adopted = 1: **Heinrich Cunow** - The State-Socialist Theorist. He envisions the Chancellorship as a powerful pedagogical weapon to mold the people into a unified national unit. ?]
 
+[? if gillart_98 = 1: Jeffrey Epstein - The supposed rich traveller of the future who foretold us of the crisis in the future. He requested young assistances and chancellorship position for huge resource benefits, We could work with that. ?]
+
 **Who should the SPD put forward?**
 
 - @prefer_mueller: Hermann Müller - Experience and moderation
@@ -40,11 +42,35 @@ The SPD is the largest party in the coalition. Before presenting candidates to o
 - @prefer_horsing: Otto Hörsing - Security and Discipline
 - @prefer_sudukum: Albert Südekum - Economic Efficiency
 - @prefer_cunow: Heinrich Cunow - The Supremacy of the State
+- @epstein: Jeffrey Epstein - The man of the future and philantrope.
 - @partyaff2: Return back
 
 @partyaff2
 on-arrival: month_actions = 0; chancellor_spd_choice_timer = 0
 go-to: partyaff
+
+@epstein
+subtitle: + 1 budget and + 10 resources. Left will express displeasure.
+view-if: gillart_98 = 1
+on-arrival: {!
+Q.spd_chancellor_preference = "epstein";
+for (var i = 0; i < Q.chancellor_candidates.length; i++) {
+    if (Q.chancellor_candidates[i].name === "Epstein") {
+        Q.chancellor_candidates[i].weight = 400;
+        Q.chancellor_candidates[i].score = Q.chancellor_candidates[i].votes * 1.5;
+    }
+}
+Q.chancellor_candidates.sort(function(a, b) { return b.score - a.score; });
+Q.pro_republic += 30;
+Q.west_relation += 2;
+Q.resources += 10;
+Q.workers_spd -= 10;
+Q.budget += 1;
+Q.left_dissent += 10;
+!}
+
+It seems, Gillart has bringed his secret weapon to this world - Jeffrey Epstein. Whether the man from the America is telling us the truth or not about collapse of 2008, we can utilize his powers for our benefit.
+
 
 @prefer_winnig
 view-if: social_fascism_adopted = 1
