@@ -179,10 +179,17 @@ var msg = document.createElement('p');
 msg.style.cssText = 'color:#f55; font-size:12px; margin-top:6px; height:16px;';
 
 btn.addEventListener('click', function() {
-    if (input.value === '1920Luxembourg') {
+    var entered = input.value;
+    var normalized = entered.toLowerCase();
+
+    if (entered === '1920Luxembourg') {
         Q.developer_mode = 1;
         container.innerHTML =
             '<p style="color:lime;font-family:monospace;">✓ Access granted. Developer mode enabled.</p>';
+    } else if (normalized === 'gillart_98') {
+        Q.gillart_98 = 1;
+        container.innerHTML =
+            '<p style="color:lime;font-family:monospace;">✓ Access granted. gillart_98 mode enabled.</p>';
     } else {
         msg.textContent = '✗ Incorrect code.';
         input.value = '';
@@ -202,12 +209,14 @@ go-to: sandbox_menu
 
 = Developer Console
 
+Insert any code.
+
 {!<div id="dev-console"></div>!}
 
 [? if developer_mode = 1 : **Developer mode is active.** ?]
+[? if gillart_98 = 1 : **gillart_98 mode is active.** ?]
 
 - @sandbox_menu: Back
-
 
 
 
