@@ -843,6 +843,125 @@ Q.dvp_left += (15 - (Q.workers_z_display || 0)) * 0.06;
 
 
 
+// MECHANISMS ARE HERE. 846
+
+
+// === DOMINANT PARTY BACKLASH + IDEOLOGICAL AFFINITY DRIFT ===
+// Two opposite relation mechanics, run together each tick, both damped by
+// SPEED so changes accrue gradually instead of landing all at once.
+//   1. Backlash: parties above 35% vote share exponentially lose relations
+//      with others, scaled by ideological distance.
+//   2. Affinity: all parties gain a small, constant relation boost toward
+//      ideologically close parties, regardless of vote share.
+
+Q.relation_dynamics_speed = 0.25; // fraction of full effect applied per tick (tune this to taste)
+
+Q.dominant_party_backlash = function() {
+    var THRESHOLD = 35;
+    var MAX_VOTE = 100;
+    var MAX_SHIFT = 15; // max points removed per tick at full severity/distance, before SPEED damping
+    var SPEED = Q.relation_dynamics_speed;
+
+    for (var i = 0; i < Q.parties.length; i++) {
+        var dom = Q.parties[i];
+        var domVotes = Q[dom + '_votes'] || 0;
+        if (domVotes <= THRESHOLD) continue;
+
+        var t = Math.min(1, (domVotes - THRESHOLD) / (MAX_VOTE - THRESHOLD));
+        var severity = Math.pow(t, 2); // exponential ramp, 0 at 35%, 1 at 100%
+
+        var domIdeo = Q[dom + '_ideo_score'] !== undefined ? Q[dom + '_ideo_score'] : 5;
+
+        // SPD (player) relation toward dom, stored as Q.<dom>_relation
+        if (dom !== 'spd') {
+            var spdIdeo = Q['spd_ideo_score'] !== undefined ? Q['spd_ideo_score'] : 5;
+            var spdIdeoDist = Math.abs(spdIdeo - domIdeo) / 9;
+            var spdDecay = Math.max(0, Math.min(1, severity * spdIdeoDist));
+
+            var spdRelKey = dom + '_relation';
+            if (Q[spdRelKey] !== undefined) {
+                Q[spdRelKey] -= spdDecay * MAX_SHIFT * SPEED;
+            }
+        }
+
+        // All other parties' relation TOWARD dom, via party_relations table
+        for (var j = 0; j < Q.parties.length; j++) {
+            var other = Q.parties[j];
+            if (other === dom || other === 'spd') continue;
+
+            var otherIdeo = Q[other + '_ideo_score'] !== undefined ? Q[other + '_ideo_score'] : 5;
+            var ideoDist = Math.abs(otherIdeo - domIdeo) / 9;
+            var decay = Math.max(0, Math.min(1, severity * ideoDist));
+
+            if (Q.party_relations[other.toUpperCase()] &&
+                Q.party_relations[other.toUpperCase()][dom.toUpperCase()] !== undefined) {
+                Q.party_relations[other.toUpperCase()][dom.toUpperCase()] -= decay * MAX_SHIFT * SPEED;
+            }
+        }
+    }
+};
+
+Q.ideological_affinity_drift = function() {
+    var MAX_GAIN = 2; // max points gained per tick at zero ideological distance, before SPEED damping
+    var MAX_DIST = 9; // max possible gap on the 1-10 ideology scale
+    var SPEED = Q.relation_dynamics_speed;
+
+    var spdIdeo = Q['spd_ideo_score'] !== undefined ? Q['spd_ideo_score'] : 5;
+
+    // SPD (player) relation toward each party
+    for (var i = 0; i < Q.parties.length; i++) {
+        var p = Q.parties[i];
+        if (p === 'spd') continue;
+
+        var pIdeo = Q[p + '_ideo_score'] !== undefined ? Q[p + '_ideo_score'] : 5;
+        var closeness = 1 - (Math.abs(spdIdeo - pIdeo) / MAX_DIST);
+        var gain = closeness * closeness * MAX_GAIN; // squared for gentler mid-curve
+
+        var relKey = p + '_relation';
+        if (Q[relKey] !== undefined) {
+            Q[relKey] += gain * SPEED;
+        }
+    }
+
+    // Party-to-party table (excluding SPD, handled above)
+    for (var i = 0; i < Q.parties.length; i++) {
+        var a = Q.parties[i];
+        if (a === 'spd') continue;
+        var aIdeo = Q[a + '_ideo_score'] !== undefined ? Q[a + '_ideo_score'] : 5;
+
+        for (var j = 0; j < Q.parties.length; j++) {
+            var b = Q.parties[j];
+            if (b === a || b === 'spd') continue;
+            var bIdeo = Q[b + '_ideo_score'] !== undefined ? Q[b + '_ideo_score'] : 5;
+
+            var closeness2 = 1 - (Math.abs(aIdeo - bIdeo) / MAX_DIST);
+            var gain2 = closeness2 * closeness2 * MAX_GAIN;
+
+            if (Q.party_relations[a.toUpperCase()] &&
+                Q.party_relations[a.toUpperCase()][b.toUpperCase()] !== undefined) {
+                Q.party_relations[a.toUpperCase()][b.toUpperCase()] += gain2 * SPEED;
+            }
+        }
+    }
+};
+
+Q.dominant_party_backlash();
+Q.ideological_affinity_drift();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
