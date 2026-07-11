@@ -5254,6 +5254,22 @@ if (!Q.math_broken) {
     Q.labor_strength = 100*Q.labor_strength/total_strength;
     Q.reformist_strength = 100*Q.reformist_strength/total_strength;
     Q.neorevisionist_strength = 100*Q.neorevisionist_strength/total_strength;
+
+    if (Q.left_split) {
+    Q.left_strength = Math.min(Q.left_strength, 10);
+    }
+    if (Q.centrists_resign) {
+    Q.center_strength = Math.min(Q.center_strength, 10);
+    }
+    if (Q.unions_independent) {
+    Q.labor_strength = Math.min(Q.labor_strength, 10);
+    }
+    if (Q.reformists_resign) {
+    Q.reformist_strength = Math.min(Q.reformist_strength, 10);
+    }
+    if (Q.neorev_split) {
+    Q.neorevisionist_strength = Math.min(Q.neorevisionist_strength, 10);
+    }
 } else {
     // MATH BROKEN: Faction strength doesn't normalize
     var total_strength = Q.impossible_add(Q.left_strength, Q.center_strength);
