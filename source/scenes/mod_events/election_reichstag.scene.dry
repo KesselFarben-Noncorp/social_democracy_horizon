@@ -3687,25 +3687,35 @@ Q.reichswehr_minister = 'Groener';
 
 if (Q.president === "Hindenburg") {
 
-    var pool = [
-        { name: "Brüning",     party: "Z",     type: "presidential_technocrat", weight: 40 },
-        { name: "Papen",       party: "I",     type: "aristocrat",              weight: 12 },
-        { name: "Schleicher",  party: "I",     type: "military",                weight: 10 },
-        { name: "Marx",        party: "Z",     type: "parliamentary",           weight: 8  },
-        { name: "Westarp",     party: "DNVP",  type: "parliamentary",           weight: 7  },
-        { name: "Stresemann",  party: "DVP",   type: "parliamentary",           weight: 7  },
-        { name: "Hitler",      party: "NSDAP", type: "nazi",                    weight: 6  },
-        { name: "Groener",     party: "I",     type: "military",                weight: 5  },
-        { name: "Luther",      party: "I",     type: "presidential_technocrat", weight: 3  },
-        { name: "Curtius",     party: "DVP",   type: "parliamentary",           weight: 2  },
-    ];
+    var selected;
 
-    var total = pool.reduce(function(s, c) { return s + c.weight; }, 0);
-    var roll = Math.random() * total;
-    var selected = pool[pool.length - 1];
-    for (var i = 0; i < pool.length; i++) {
-        roll -= pool[i].weight;
-        if (roll <= 0) { selected = pool[i]; break; }
+    if (Q.no_majority_elections === 2) {
+        selected = { name: "Brüning", party: "Z", type: "presidential_technocrat" };
+    } else if (Q.no_majority_elections === 3) {
+        selected = { name: "Goerdeler", party: "I", type: "presidential_technocrat" };
+    } else if (Q.no_majority_elections === 4) {
+        selected = { name: "Papen", party: "I", type: "aristocrat" };
+    } else if (Q.no_majority_elections === 5) {
+        selected = { name: "Schleicher", party: "I", type: "military" };
+    } else {
+        // Fixed sequence exhausted — fall back to weighted randomizer
+        var pool = [
+            { name: "Marx",        party: "Z",     type: "parliamentary",           weight: 8  },
+            { name: "Westarp",     party: "DNVP",  type: "parliamentary",           weight: 7  },
+            { name: "Stresemann",  party: "DVP",   type: "parliamentary",           weight: 7  },
+            { name: "Hitler",      party: "NSDAP", type: "nazi",                    weight: 6  },
+            { name: "Groener",     party: "I",     type: "military",                weight: 5  },
+            { name: "Luther",      party: "I",     type: "presidential_technocrat", weight: 3  },
+            { name: "Curtius",     party: "DVP",   type: "parliamentary",           weight: 2  },
+        ];
+
+        var total = pool.reduce(function(s, c) { return s + c.weight; }, 0);
+        var roll = Math.random() * total;
+        selected = pool[pool.length - 1];
+        for (var i = 0; i < pool.length; i++) {
+            roll -= pool[i].weight;
+            if (roll <= 0) { selected = pool[i]; break; }
+        }
     }
 
     Q.chancellor       = selected.name;
@@ -3715,15 +3725,30 @@ if (Q.president === "Hindenburg") {
         Q.presidential_cabinet       = 1;
         Q.presidential_cabinet_count = (Q.presidential_cabinet_count || 0) + 1;
     }
-    if (selected.name === "Papen")     { Q.papen_cabinet = 1; Q.cabinet_of_barons = 1; }
-    if (selected.name === "Schleicher")  Q.schleicher_cabinet = 1;
-    if (selected.name === "Brüning")     Q.bruning_cabinet = 1;
+    if (selected.name === "Papen")      { Q.papen_cabinet = 1; Q.cabinet_of_barons = 1; }
+    if (selected.name === "Schleicher")   Q.schleicher_cabinet = 1;
+    if (selected.name === "Brüning")      Q.bruning_cabinet = 1;
+    if (selected.name === "Goerdeler")    Q.goerdeler_cabinet = 1;
     if (selected.type === "military" && selected.name !== "Schleicher") Q.military_emergency_government = 1;
     if (selected.type === "nazi") {
         Q.nazi_takeover_begins  = 1;
         Q.vice_chancellor       = "Papen";
         Q.vice_chancellor_party = "I";
         Q.cabinet_of_barons     = 1;
+    }
+
+    // Scripted presidential cabinets get a fixed 6-month term
+    if (selected.name === "Brüning" || selected.name === "Goerdeler" ||
+        selected.name === "Papen"   || selected.name === "Schleicher") {
+
+        Q.new_elections_imminent = 1;
+        Q.next_election_month = Q.month + 6;
+        Q.next_election_year = Q.year;
+        if (Q.next_election_month > 12) {
+            Q.next_election_month -= 12;
+            Q.next_election_year += 1;
+        }
+        Q.next_election_time = Q.time + 16;
     }
 } else if (Q.president === "Braun") {
     // Braun forms SPD presidential cabinet
