@@ -3631,9 +3631,12 @@ function computeTarget(party, c) {
 
         case 'aspd': {
             if (Q.aspd_banned) return 0;
-            base = (rep * 3 + nat * 5 + soc * 10) * im.bb;
+            base = (rep * 8 + nat * 7 + soc * 5) * im.bb;
             const class_mods = { workers: 0.50, old_middle: 0.50, new_middle: 0.20, rural: 0.55, unemployedc: 0.25 };
-            return _applyQOL(base * (class_mods[c] || 1.0), party, c);
+            let result = base * (class_mods[c] || 1.0);
+            if (Q.reformists_resign) result *= 1.50;
+            if (Q.neorev_split) result *= 2.50;
+            return _applyQOL(result, party, c);
         }
 
         case 'hl': {
