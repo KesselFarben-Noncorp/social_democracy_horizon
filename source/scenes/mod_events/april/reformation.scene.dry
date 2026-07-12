@@ -4,16 +4,15 @@ new-page: true
 view-if: april_challenge = 1 and social_fascism_adopted and trigger_reformation = 0
 on-arrival: {!
 Q.left_dissent = 100;
-Q.center_dissent = 100;
+Q.center_dissent += 30;
 Q.left_strength -= 100;
-Q.center_strength -= 100;
 Q.trigger_reformation = 1;
 Q.peoples_party_support += 10;
 Q.peoples_party = 1;
 
 if (Q.historical_mode) {
-Q.labor_dissent += 100
-Q.labor_strength -= 100
+Q.center_dissent = 100;
+Q.center_strength -= 100;
 }
 
 !}
@@ -21,3 +20,5 @@ Q.labor_strength -= 100
 = Social Democratic Party of Germany's Reformation
 
 The ideological pivot toward a state-centric "Social Fascism" has finally lanced the boil of internal dissent, forcing a total schism as the Left and Center factions abandon the party in a storm of betrayal and bitterness. By purging these "internationalist" remnants, we have shed the skin of a mere trade-unionist faction to become a truly national *Volkspartei*. Our base is no longer confined to the factory floor; we have successfully reached into the heart of the loyalist middle class and the nationalist labor blocks, creating a new, ironclad coalition that prioritizes the survival of the State over the squabbles of the parlor.
+
+[? if center_dissent >= 60: Our primary base - Center Marxists, have protested this but being unable to influence this decision, have left our party. Perhaps, forever. ?] 
