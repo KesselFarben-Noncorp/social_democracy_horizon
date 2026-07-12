@@ -11,40 +11,40 @@ Q.reichsbanner_unban_points = Q.reichsbanner_unban_points || 0;
 // ==========================================
 
 // --- THE ANTI-BAN BLOCK (Democratic Left, Socialists, & Minorities) ---
-Q.reichsbanner_unban_points += Q.spd_votes + Q.csrp_votes + Q.rdp_votes;
-Q.reichsbanner_unban_points += Q.sapd_votes + Q.kpo_votes + Q.lb_votes;
-Q.reichsbanner_unban_points += Q.sl_votes;   
-Q.reichsbanner_unban_points += Q.srpd_votes; 
-Q.reichsbanner_unban_points += Q.sls_votes + Q.dhp_votes;  
-Q.reichsbanner_unban_points += Q.kpd_votes;
+Q.reichsbanner_unban_points += (Q.spd_votes || 0) + (Q.csrp_votes || 0) + (Q.rdp_votes || 0);
+Q.reichsbanner_unban_points += (Q.sapd_votes || 0) + (Q.kpo_votes || 0) + (Q.lb_votes || 0);
+Q.reichsbanner_unban_points += (Q.sl_votes || 0);   
+Q.reichsbanner_unban_points += (Q.srpd_votes || 0); 
+Q.reichsbanner_unban_points += (Q.sls_votes || 0) + (Q.dhp_votes || 0);  
+Q.reichsbanner_unban_points += (Q.kpd_votes || 0);
 
 // --- THE PRO-BAN BLOCK (Nationalists, Conservatives, & Reactionaries) ---
-Q.reichsbanner_ban_points += Q.dvfp_votes + Q.dnvp_votes + Q.aspd_votes;
-Q.reichsbanner_ban_points += Q.nsdap_votes + Q.dvp_votes + Q.wp_votes + Q.bvp_votes;
-Q.reichsbanner_ban_points += Q.csvd_votes + Q.kvp_votes + Q.cnbl_votes + Q.bb_votes;
-Q.reichsbanner_ban_points += Q.dtsp_votes;
-Q.reichsbanner_ban_points += Q.hl_votes;   
-Q.reichsbanner_ban_points += Q.vrp_votes;
+Q.reichsbanner_ban_points += (Q.dvfp_votes || 0) + (Q.dnvp_votes || 0) + (Q.aspd_votes || 0);
+Q.reichsbanner_ban_points += (Q.nsdap_votes || 0) + (Q.dvp_votes || 0) + (Q.wp_votes || 0) + (Q.bvp_votes || 0);
+Q.reichsbanner_ban_points += (Q.csvd_votes || 0) + (Q.kvp_votes || 0) + (Q.cnbl_votes || 0) + (Q.bb_votes || 0);
+Q.reichsbanner_ban_points += (Q.dtsp_votes || 0);
+Q.reichsbanner_ban_points += (Q.hl_votes || 0);   
+Q.reichsbanner_ban_points += (Q.vrp_votes || 0);
 
 // --- THE SWING BLOCK (Centrists & Liberals) ---
 if (Q.weimar_coalition_collapse == 1) { 
-    Q.reichsbanner_ban_points += Q.z_votes + Q.ddp_votes + Q.cvp_votes + Q.vnr_votes; 
+    Q.reichsbanner_ban_points += (Q.z_votes || 0) + (Q.ddp_votes || 0) + (Q.cvp_votes || 0) + (Q.vnr_votes || 0); 
 } else { 
-    Q.reichsbanner_unban_points += Q.z_votes + Q.ddp_votes + Q.cvp_votes + Q.vnr_votes; 
+    Q.reichsbanner_unban_points += (Q.z_votes || 0) + (Q.ddp_votes || 0) + (Q.cvp_votes || 0) + (Q.vnr_votes || 0); 
 }
 
-Q.reichsbanner_unban_points += (Q.z_relation + Q.ddp_relation) * 0.01;
+Q.reichsbanner_unban_points += ((Q.z_relation || 0) + (Q.ddp_relation || 0)) * 0.01;
 
 
 // ==========================================
 // 2. PARAMILITARY STRENGTH & DETERRENCE
 // ==========================================
 if (Q.rpb_formed) {
-    Q.reichsbanner_ban_points += (Q.rpb_strength * Q.rpb_militancy) * 0.5;
+    Q.reichsbanner_ban_points += ((Q.rpb_strength || 0) * (Q.rpb_militancy || 0)) * 0.5;
 }
 
-Q.reichsbanner_unban_points += (Q.rb_strength * Q.rb_militancy) * 0.05;
-Q.reichsbanner_ban_points += (Q.sh_strength * Q.sh_militancy) * 0.05;
+Q.reichsbanner_unban_points += ((Q.rb_strength || 0) * (Q.rb_militancy || 0)) * 0.05;
+Q.reichsbanner_ban_points += ((Q.sh_strength || 0) * (Q.sh_militancy || 0)) * 0.05;
 
 
 // ==========================================
@@ -70,21 +70,21 @@ if (Q.chancellor_party == "SPD") {
 // ==========================================
 // 4. REICHSWEHR LOYALTY
 // ==========================================
-if (Q.reichswehr_loyalty > 0.49999) {
-    Q.reichsbanner_unban_points += Q.reichswehr_loyalty * 15; 
+if ((Q.reichswehr_loyalty || 0) > 0.49999) {
+    Q.reichsbanner_unban_points += (Q.reichswehr_loyalty || 0) * 15; 
 } else {
-    Q.reichsbanner_ban_points += (1 - Q.reichswehr_loyalty) * 25; 
+    Q.reichsbanner_ban_points += (1 - (Q.reichswehr_loyalty || 0)) * 25; 
 }
 
 
 // ==========================================
 // 5. INSTITUTIONAL CONTROL
 // ==========================================
-if (Q.judicial_reform <= 2) {
+if ((Q.judicial_reform || 0) <= 2) {
     // Less reform = more ban points. If 0 reform, adds 15 points.
-    Q.reichsbanner_ban_points += (3 - Q.judicial_reform) * 5;
+    Q.reichsbanner_ban_points += (3 - (Q.judicial_reform || 0)) * 5;
 } else {
-    Q.reichsbanner_unban_points += Q.judicial_reform * 4;
+    Q.reichsbanner_unban_points += (Q.judicial_reform || 0) * 4;
 }
 
 if (Q.prussia_spd == 0 || Q.prussian_government != "SPD") {
