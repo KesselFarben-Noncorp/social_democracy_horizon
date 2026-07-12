@@ -29,12 +29,13 @@ tags: gillart
 
 @kpd
 subtitle: -1 resources
-choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
+choose-if: resources >= 1 and (reformist_strength + labor_strength + neorevisionist_strength) < 50 
+unavailable-subtitle: [? if (reformist_strength + labor_strength + neorevisionist_strength) >= 50: Reformist factions are blocking this ordeal. ?] [? if resources < 1: Not enough resources. ?]
 on-arrival: resources -= 1; kpd_inter_party_seen += 1
 go-to: kpd_blutmai if blutmai = 1; kpd_1 if blutmai = 0 and kpd_coalition_success = 0 and (kpd_relation < 40 or kpd_rectified_history = 1); kpd_rectification_of_history if kpd_relation >= 40 and kpd_rectified_history = 0; kpd_2 if kpd_coalition_success = 1 and kpd_rectified_history = 1
 
 @kpd_1
+choose-if:
 on-arrival: kpd_relation += 6*(1 - dissent); communist_coalition += 1 if kpd_inter_party_seen <= 1; reformist_dissent += 2; z_relation -= 2; dvp_relation -= 3
 
 The communists are suspicious of our overtures, especially the Stalinist leadership, who persist in calling us "social fascists". However, connections are made at the grassroots and local levels.
@@ -76,10 +77,15 @@ subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
 on-arrival: resources -= 1; z_relation += 2 if z_party_leader == "Joos"
-go-to: center_op if z_in_government = 1 and spd_in_government = 0 and chancellor != "Brüning"; center_coalition if spd_in_government = 1 and z_in_government = 1; center_bruning if chancellor = "Brüning"
+go-to: center_op if z_in_government = 1 and spd_in_government = 0 and chancellor != "Brüning"; center_coalition if spd_in_government = 1 and z_in_government = 1; center_bruning if chancellor = "Brüning"; base_z if z_in_government = 0; base_z
+
+@base_z
+on-arrival: z_relation += 7*(1 - dissent)
+
+We both are currently in opposition, so improving relations comes naturally.
 
 @center_op
-on-arrival: z_relation += 5*(1 - dissent)
+on-arrival: z_relation += 4*(1 - dissent)
 
 We are currently in opposition to the Center-led government, but that does not preclude the general building of feelings of good will.
 
@@ -89,14 +95,14 @@ on-arrival: z_relation += 8*(1 - dissent)
 We are currently coalition partners with them, so improving relations comes naturally.
 
 @center_bruning
-on-arrival: z_relation += 5*(1 - dissent)
+on-arrival: z_relation += 4*(1 - dissent)
 
 The Brüning semi-autocratic regime makes building friendly relations difficult, but not impossible.
 
 @liberals
 subtitle: -1 resources
-choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
+choose-if: resources >= 1 and (left_strength + center_strength < 50)
+unavailable-subtitle: [? if resources < 1: Not enough resources. ?] [? if left_strength + center_strength >= 50: Left and Center Marxist factions are blocking this ordeal. ?]
 on-arrival: resources -= 1; ddp_relation += 5*(1 - dissent)
 go-to: dvp_stresemann if stresemann_dead = 0; dvp_loss if stresemann_dead = 1 and year <= 1930; dvp_moribund if year > 1930
 
