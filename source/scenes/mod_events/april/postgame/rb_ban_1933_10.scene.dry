@@ -3,8 +3,8 @@ subtitle: Our demise is coming close in...
 view-if: year = 1933 and month >= 10 and month < 12 and april_challenge = 1 and civil_war_socfac = 1 and spd_in_government != 1
 tags: event
 on-arrival: {!
-Q.reichsbanner_ban_points = 0;
-Q.reichsbanner_unban_points = 0;
+Q.reichsbanner_ban_points = Q.reichsbanner_ban_points || 0;
+Q.reichsbanner_unban_points = Q.reichsbanner_unban_points || 0;
 
 // ==========================================
 // 1. VOTING BLOCK: REICHSBANNER BAN ACT
@@ -108,6 +108,8 @@ if (Q.reichsbanner_ban_points > Q.reichsbanner_unban_points) {
 
 WIP.
 
+[+ rb_ban_passed +] - Banned?
+
 [+ reichsbanner_unban_points +] Anti Ban
 
 [+ reichsbanner_ban_points +] For Ban
@@ -120,12 +122,12 @@ go-to: banned_rb if rb_ban_passed = 1; unbanned_rb if rb_ban_passed = 0
 @banned_rb
 on-arrival: rb_banned = 1
 
-= Text
+= Banned
 
 text
 
 @unbanned_rb
 
-= Text
+= Not banned
 
 text
