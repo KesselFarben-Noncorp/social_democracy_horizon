@@ -15,11 +15,23 @@ var tolDisplay = (Q.tolerating_parties && Q.tolerating_parties.length > 0)
   : "None";
 Q.tolerating_parties_display = tolDisplay;
 
-var portrait = document.createElement('img');
-portrait.src = 'img/portraits/' + Q.president + '.png';
-portrait.className = 'face-img';
 var el = document.querySelector('.content');
-if (el) el.appendChild(portrait);
+if (el) {
+  // Remove any portrait already inserted on a previous visit to this scene
+  var old = el.querySelector('.status-portrait');
+  if (old) old.remove();
+
+  if (Q.president) {
+    var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
+    var portrait = document.createElement('img');
+    portrait.className = 'status-portrait';
+    portrait.onerror = function() {
+      portrait.src = 'img/portraits/default.png';
+    };
+    portrait.src = 'img/portraits/' + slug + '.png';
+    el.appendChild(portrait);
+  }
+}
 !}
 
 = Status
