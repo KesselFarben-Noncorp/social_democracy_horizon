@@ -488,12 +488,25 @@ Object.keys(wordPhrases).forEach(function(phrase) {
 
   // Updates the main sidebar (#qualities) from the current statusTab scene.
   window.updateSidebar = function() {
-      $('#qualities').empty();
-      var scene = dendryUI.game.scenes[window.statusTab];
-      dendryUI.dendryEngine._runActions(scene.onArrival);
-      var displayContent = dendryUI.dendryEngine._makeDisplayContent(scene.content, true);
-      $('#qualities').append(dendryUI.contentToHTML.convert(displayContent));
-  };
+    $('#qualities').empty();
+    var scene = dendryUI.game.scenes[window.statusTab];
+    dendryUI.dendryEngine._runActions(scene.onArrival);
+    var displayContent = dendryUI.dendryEngine._makeDisplayContent(scene.content, true);
+    $('#qualities').append(dendryUI.contentToHTML.convert(displayContent));
+
+    // Portrait, only on the main status tab
+    if (window.statusTab === 'status') {
+        var Q = dendryUI.dendryEngine.state.qualities;
+        if (Q.president) {
+            var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
+            var portrait = document.createElement('img');
+            portrait.className = 'status-portrait';
+            portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
+            portrait.src = 'img/portraits/' + slug + '.png';
+            document.getElementById('qualities').appendChild(portrait);
+        }
+    }
+};
 
   // -----------------------------------------------------------------------
   // BOTTOM PANEL — linked to the 'news' scene (news.scene.dry)
@@ -549,28 +562,8 @@ Object.keys(wordPhrases).forEach(function(phrase) {
   window.onDisplayContent = function() {
     window.updateSidebar();
     window.updateBottomPanel();
-    window.updateStatusPortrait();
 };
 
-window.updateStatusPortrait = function() {
-  var el = document.getElementById('content');
-  if (!el) return;
-  var old = el.querySelector('.status-portrait');
-  if (old) old.remove();
-
-  var sceneId = window.dendryUI.dendryEngine.state.sceneId;
-  if (!sceneId || !sceneId.startsWith('status')) return;
-
-  var Q = window.dendryUI.dendryEngine.state.qualities;
-  if (!Q.president) return;
-
-  var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
-  var portrait = document.createElement('img');
-  portrait.className = 'status-portrait';
-  portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
-  portrait.src = 'img/portraits/' + slug + '.png';
-  el.appendChild(portrait);
-};
   window.generateBar = function(quality, qualityName, max, min, colors) {
       var bar = document.createElement('div');
       bar.className = 'bar';
