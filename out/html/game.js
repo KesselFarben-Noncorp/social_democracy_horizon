@@ -494,16 +494,26 @@ Object.keys(wordPhrases).forEach(function(phrase) {
     var displayContent = dendryUI.dendryEngine._makeDisplayContent(scene.content, true);
     $('#qualities').append(dendryUI.contentToHTML.convert(displayContent));
 
-    // Portrait, only on the main status tab
     if (window.statusTab === 'status') {
         var Q = dendryUI.dendryEngine.state.qualities;
         if (Q.president) {
-            var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
-            var portrait = document.createElement('img');
-            portrait.className = 'status-portrait';
-            portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
-            portrait.src = 'img/portraits/' + slug + '.png';
-            document.getElementById('qualities').appendChild(portrait);
+            var qualitiesEl = document.getElementById('qualities');
+            var paragraphs = qualitiesEl.querySelectorAll('p');
+            var presidentPara = Array.prototype.find.call(paragraphs, function(p) {
+                return p.textContent.trim().indexOf('President:') === 0;
+            });
+
+            if (presidentPara) {
+                presidentPara.classList.add('president-row');
+
+                var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
+                var portrait = document.createElement('img');
+                portrait.className = 'status-portrait';
+                portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
+                portrait.src = 'img/portraits/' + slug + '.png';
+
+                presidentPara.appendChild(portrait);
+            }
         }
     }
 };
