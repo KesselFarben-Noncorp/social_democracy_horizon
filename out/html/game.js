@@ -547,10 +547,30 @@ Object.keys(wordPhrases).forEach(function(phrase) {
 
   // Runs whenever content is displayed.
   window.onDisplayContent = function() {
-      window.updateSidebar();
-      window.updateBottomPanel();
-  };
+    window.updateSidebar();
+    window.updateBottomPanel();
+    window.updateStatusPortrait();
+};
 
+window.updateStatusPortrait = function() {
+  var el = document.getElementById('content');
+  if (!el) return;
+  var old = el.querySelector('.status-portrait');
+  if (old) old.remove();
+
+  var sceneId = window.dendryUI.dendryEngine.state.sceneId;
+  if (!sceneId || !sceneId.startsWith('status')) return;
+
+  var Q = window.dendryUI.dendryEngine.state.qualities;
+  if (!Q.president) return;
+
+  var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
+  var portrait = document.createElement('img');
+  portrait.className = 'status-portrait';
+  portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
+  portrait.src = 'img/portraits/' + slug + '.png';
+  el.appendChild(portrait);
+};
   window.generateBar = function(quality, qualityName, max, min, colors) {
       var bar = document.createElement('div');
       bar.className = 'bar';
