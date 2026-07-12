@@ -1070,7 +1070,7 @@ if (!Q.math_broken) {
 }
 
 if (Q.year >= 1932 && Q.communist_revolution_timer > 10 && Q.april_challenge == 1) {
-    Q.communist_revolution_timer -= 2;
+    Q.communist_revolution_timer -= 1;
     Q.rfb_strength += 20;
 }
 
@@ -1086,6 +1086,16 @@ if (Q.peoples_party == 1) {
     if (Q.reformist_strength < 30) Q.reformist_strength += 1;
     if (Q.neorevisionist_strength < 20) Q.neorevisionist_strength += 1;
 }
+
+const strengthMap = {
+    left: "left_strength",
+    centrist: "center_strength",
+    labor: "labor_strength",
+    reformist: "reformist_strength",
+    neorev: "neorevisionist_strength"
+};
+const key = strengthMap[Q.ideology];
+if (key && Q[key] < 30) { Q[key] += 1; }
 
 
 
@@ -3321,15 +3331,15 @@ function computeTarget(party, c) {
 
         case 'srpd': {
             if (Q.srpd_banned || !Q.srpd_formed) return 0;
-            let rb = Q.rb_strength * 0.00004;
-            base = (soc * 6 * 1.95 + rep * 49 * 1.76 + rb) * im.srpd;
+            let rb = Q.rb_strength * 0.0004;
+            base = (soc * 10 * 1.95 + rep * 25 * 1.76 + rb) * im.srpd;
 
             const class_mods = {
-                workers:     1.21 * (Q.peoples_party === 1 ? 1.06 : 1),
-                old_middle:  0.83 * (Q.peoples_party === 1 ? 0.94 : 1),
+                workers:     1.15 * (Q.peoples_party === 1 ? 1.06 : 1),
+                old_middle:  0.85 * (Q.peoples_party === 1 ? 0.94 : 1),
                 new_middle:  0.97 * (Q.peoples_party === 1 ? 0.94 : 1),
-                rural:       0.73 * (Q.peoples_party === 1 ? 0.94 : 1),
-                unemployedc: 1.02 * (Q.peoples_party === 1 ? 1.06 : 1),
+                rural:       0.56 * (Q.peoples_party === 1 ? 0.94 : 1),
+                unemployedc: 0.89 * (Q.peoples_party === 1 ? 1.06 : 1),
             };
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
