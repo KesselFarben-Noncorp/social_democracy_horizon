@@ -496,25 +496,27 @@ Object.keys(wordPhrases).forEach(function(phrase) {
 
     if (window.statusTab === 'status') {
         var Q = dendryUI.dendryEngine.state.qualities;
-        if (Q.president) {
-            var qualitiesEl = document.getElementById('qualities');
-            var paragraphs = qualitiesEl.querySelectorAll('p');
-            var presidentPara = Array.prototype.find.call(paragraphs, function(p) {
-                return p.textContent.trim().indexOf('President:') === 0;
+        var qualitiesEl = document.getElementById('qualities');
+        var paragraphs = qualitiesEl.querySelectorAll('p');
+
+        function attachPortrait(name, textPrefix, rowClass, imgClass) {
+            if (!name) return;
+            var para = Array.prototype.find.call(paragraphs, function(p) {
+                return p.textContent.trim().indexOf(textPrefix) === 0;
             });
+            if (!para) return;
 
-            if (presidentPara) {
-                presidentPara.classList.add('president-row');
-
-                var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
-                var portrait = document.createElement('img');
-                portrait.className = 'status-portrait';
-                portrait.onerror = function() { portrait.src = 'img/portraits/profile/default.png'; };
-                portrait.src = 'img/portraits/profile/' + slug + '.png';
-
-                presidentPara.appendChild(portrait);
-            }
+            para.classList.add(rowClass);
+            var slug = name.toString().toLowerCase().replace(/\s+/g, '_');
+            var portrait = document.createElement('img');
+            portrait.className = imgClass;
+            portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
+            portrait.src = 'img/portraits/' + slug + '.png';
+            para.appendChild(portrait);
         }
+
+        attachPortrait(Q.president, 'President:', 'president-row', 'status-portrait');
+        attachPortrait(Q.chancellor, 'Chancellor:', 'chancellor-row', 'chancellor-portrait');
     }
 };
 
