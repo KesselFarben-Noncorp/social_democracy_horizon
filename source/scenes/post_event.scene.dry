@@ -23,6 +23,87 @@ Q.random_factor = function(f, variance = 0.65) {
 };
 
 
+if (Q.inverted_ideos != 1) {
+
+// ============================================================
+// AUTO IDEOLOGY SCORER — derives 1 (far-left) to 10 (far-right)
+
+const IDEO_KEYWORDS = [
+    // 1 — revolutionary / Leninist left
+    [/marxism-leninism/i,                 1],
+    [/council communism/i,                1],
+
+    // 2 — revolutionary but non-Leninist / left socialist
+    [/revolutionary socialism/i,          2],
+    [/left-wing socialism/i,              2],
+
+    // 3 — mainstream social democracy
+    [/social democracy/i,                 3],
+    [/social republicanism/i,             3],
+
+    // 4 — right social democracy / soft-left liberal
+    [/right-wing social democracy/i,      4],
+
+    // 5 — center / centrist liberal / cross-class Christian
+    [/social liberalism/i,                5],
+    [/christian socialism/i,              5],
+    [/catholic tent/i,                    5],
+    [/middle-class interest/i,            5],
+
+    // 6 — moderate conservative / regional Catholic conservative
+    [/bavarian conservatism/i,            6],
+    [/protestant social conservatism/i,   6],
+    [/moderate conservatism/i,            6],
+    [/liberal agrarianism/i,              6],
+
+    // 7 — national liberal / agrarian-liberal right-center
+    [/national liberalism/i,              7],
+    [/hanoverian agrarianism/i,           7],
+    [/hanseatic agrarian conservatism/i,  7],
+
+    // 8 — hard agrarian conservative
+    [/agrarian conservatism/i,            8],
+
+    // 9 — national conservative
+    [/national conservatism/i,            9],
+
+    // 10 — far-right nationalist / völkisch / Nazi
+    [/national socialism/i,               10],
+    [/völkisch nationalism/i,             10],
+    [/völkisch liberalism/i,              7], // liberal-flavored völkisch
+];
+
+function ideoScore(ideologyString) {
+    if (!ideologyString) return 5;
+    for (const [pattern, score] of IDEO_KEYWORDS) {
+        if (pattern.test(ideologyString)) return score;
+    }
+    return 5; // unrecognized ideology string -> treat as centrist/unknown
+}
+
+// Apply to every active party, reading straight from Q.[party]_ideology
+// (falls back to 5 if a party has no ideology string defined yet)
+for (const p of Q.parties) {
+    const key = p + '_ideology';
+    Q[p + '_ideo_score'] = ideoScore(Q[key]);
+}
+
+// Also cover parties tracked outside Q.parties but referenced in
+// party_relations / coalition_blocks (splinters, KPO, LB, etc.)
+const EXTRA_IDEO_PARTIES = [
+    'kpo', 'sl', 'sapd', 'srpd', 'ddp', 'z', 'bvp', 'csrp', 'dvp', 'wp',
+    'cnbl', 'csvd', 'dnvp', 'vrp', 'kvp', 'dhp', 'bb', 'dvfp',
+    'aspd', 'vnr', 'hl', 'lb', 'rdp', 'cvp', 'sls', 'dtsp', 'dbp', 'dsbp', 'dnf', 'rlb', 'faud', 'kapd'
+];
+for (const p of EXTRA_IDEO_PARTIES) {
+    const key = p + '_ideology';
+    if (Q[key] !== undefined) {
+        Q[p + '_ideo_score'] = ideoScore(Q[key]);
+    }
+}
+
+}
+
 
 
 // REMOVE DUPLICATES 
