@@ -29,60 +29,59 @@ if (Q.inverted_ideos != 1) {
 // AUTO IDEOLOGY SCORER — derives 1 (far-left) to 10 (far-right)
 
 const IDEO_KEYWORDS = [
-    // 1 — revolutionary / Leninist left
+    // 0 — revolutionary / Leninist left
     [/marxism-leninism/i,                 1],
-    [/council communism/i,                1],
+    [/council communism/i,                0],
 
     // 2 — revolutionary but non-Leninist / left socialist
     [/revolutionary socialism/i,          2],
-    [/left-wing socialism/i,              2],
+    [/left-wing socialism/i,              3],
 
-    // 3 — mainstream social democracy
-    [/social democracy/i,                 3],
-    [/social republicanism/i,             3],
+    // 5 — mainstream social democracy
+    [/social democracy/i,                 6],
+    [/social republicanism/i,             7],
 
-    // 4 — right social democracy / soft-left liberal
-    [/right-wing social democracy/i,      4],
+    // 7 — right social democracy / soft-left liberal
+    [/right-wing social democracy/i,      7],
 
-    // 5 — center / centrist liberal / cross-class Christian
-    [/social liberalism/i,                5],
-    [/christian socialism/i,              5],
-    [/catholic tent/i,                    5],
-    [/middle-class interest/i,            5],
+    // 10 — center / centrist liberal / cross-class Christian
+    [/social liberalism/i,                10],
+    [/christian socialism/i,              6],  // Moved "a bit left" from center (10)
+    [/catholic tent/i,                    12],
+    [/middle-class interest/i,            13],
 
-    // 6 — moderate conservative / regional Catholic conservative
-    [/bavarian conservatism/i,            6],
-    [/protestant social conservatism/i,   6],
-    [/moderate conservatism/i,            6],
-    [/liberal agrarianism/i,              6],
+    // 13 — moderate conservative / regional Catholic conservative
+    [/bavarian conservatism/i,            13],
+    [/protestant social conservatism/i,   13],
+    [/moderate conservatism/i,            14],
+    [/liberal agrarianism/i,              12],
 
-    // 7 — national liberal / agrarian-liberal right-center
-    [/national liberalism/i,              7],
-    [/hanoverian agrarianism/i,           7],
-    [/hanseatic agrarian conservatism/i,  7],
+    // 15 — national liberal / agrarian-liberal right-center
+    [/national liberalism/i,              15],
+    [/hanoverian agrarianism/i,           15],
+    [/hanseatic agrarian conservatism/i,  15],
 
-    // 8 — hard agrarian conservative
-    [/agrarian conservatism/i,            8],
+    // 17 — hard agrarian conservative
+    [/agrarian conservatism/i,            17],
 
-    // 9 — national conservative
-    [/national conservatism/i,            9],
+    // 18 — national conservative
+    [/national conservatism/i,            18],
 
-    // 10 — far-right nationalist / völkisch / Nazi
-    [/national socialism/i,               10],
-    [/völkisch nationalism/i,             10],
-    [/völkisch liberalism/i,              7], // liberal-flavored völkisch
+    // 20 — far-right nationalist / völkisch / Nazi
+    [/national socialism/i,               20],
+    [/völkisch nationalism/i,             20],
+    [/völkisch liberalism/i,              16],  // Moved "a lot left" from its old right-wing spot
 ];
 
 function ideoScore(ideologyString) {
-    if (!ideologyString) return 5;
+    if (!ideologyString) return 10; // Fallback to absolute center (10)
     for (const [pattern, score] of IDEO_KEYWORDS) {
         if (pattern.test(ideologyString)) return score;
     }
-    return 5; // unrecognized ideology string -> treat as centrist/unknown
+    return 10; // Unrecognized ideology string -> treat as centrist/unknown
 }
 
 // Apply to every active party, reading straight from Q.[party]_ideology
-// (falls back to 5 if a party has no ideology string defined yet)
 for (const p of Q.parties) {
     const key = p + '_ideology';
     Q[p + '_ideo_score'] = ideoScore(Q[key]);
