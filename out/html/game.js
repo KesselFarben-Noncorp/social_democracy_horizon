@@ -509,8 +509,8 @@ Object.keys(wordPhrases).forEach(function(phrase) {
                 var slug = Q.president.toString().toLowerCase().replace(/\s+/g, '_');
                 var portrait = document.createElement('img');
                 portrait.className = 'status-portrait';
-                portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
-                portrait.src = 'img/portraits/' + slug + '.png';
+                portrait.onerror = function() { portrait.src = 'img/portraits/profile/default.png'; };
+                portrait.src = 'img/portraits/profile/' + slug + '.png';
 
                 presidentPara.appendChild(portrait);
             }
