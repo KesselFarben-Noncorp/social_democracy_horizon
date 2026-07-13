@@ -26,7 +26,7 @@ We must do something to protect the workers against these predations.
 @attack_rfb
 subtitle: Only use when you are actually prepared for this.
 view-if: social_fascism_adopted and april_challenge = 1 and (rfb_strength * rfb_militancy) > 100 and (rb_strength * rb_militancy) > 100
-on-arrival: rb_power = rb_strength * rb_militancy; rfb_power = rfb_strength * rfb_militancy; rb_power += (sh_strength * sh_militancy) if rb_sh_front == 1; rb_loss = rb_strength * (0.5 - rb_militancy); rfb_loss = rfb_strength * (0.6 - rfb_militancy); rb_loss = rb_loss * 0.6 if rb_sh_front == 1; rfb_loss = rfb_loss * 1.4 if rb_sh_front == 1; rb_strength -= rb_loss; rfb_strength -= rfb_loss; rfb_strength -= 120 if rb_power > rfb_power; rb_strength -= 100 if rb_power <= rfb_power; sh_strength -= 50 if rb_sh_front == 1; kpd_relation -= 15; kpd_relation -= 15 if rb_sh_front == 1; workers_spd -= 3; workers_spd -= 2 if rb_sh_front == 1; left_dissent += 10; left_dissent += 15 if rb_sh_front == 1; sh_relation += 5 if rb_sh_front == 1
+on-arrival: rb_power = rb_strength * rb_militancy; rfb_power = rfb_strength * rfb_militancy; rb_power += (sh_strength * sh_militancy) if rb_sh_front == 1; rb_loss = rb_strength * (0.5 - rb_militancy); rfb_loss = rfb_strength * (0.6 - rfb_militancy); rb_loss = rb_loss * 0.6 if rb_sh_front == 1; rfb_loss = rfb_loss * 1.4 if rb_sh_front == 1; rb_strength -= rb_loss; rfb_strength -= rfb_loss; rfb_strength -= 120 if rb_power > rfb_power; rb_strength -= 100 if rb_power <= rfb_power; sh_strength -= 50 if rb_sh_front == 1; kpd_relation -= 15; kpd_relation -= 15 if rb_sh_front == 1; workers_spd -= 3; workers_spd -= 2 if rb_sh_front == 1; left_dissent += 10; left_dissent += 15 if rb_sh_front == 1; sh_relation += 5 if rb_sh_front == 1; pacifism -= 3
 
 We have ordered the Reichsbanner to directly assault the Red Front Fighters.
 
@@ -39,8 +39,8 @@ The open violence severely alienates our left wing. [? if rb_sh_front == 1 : The
 
 @arm_rb
 subtitle: -[+ rb_militarization_cost +] resource
-choose-if: resources >= rb_militarization_cost
-unavailable-subtitle: Not enough resources ([+ rb_militarization_cost +] needed).
+choose-if: resources >= rb_militarization_cost and pacifism <= 7
+unavailable-subtitle: [? if resources < rb_militarization_cost: Not enough resources ([+ rb_militarization_cost +] needed). ?] [? if pacifism > 7: Our pacifist tendency is strong enough, perhaps we could go other way around? ?]
 on-arrival: resources -= rb_militarization_cost; rb_militancy += 0.06; rb_strength += 50; sa_strength += 50; z_relation -= 5 if historical_mode; iron_front_progress += rb_militarization_cost
 
 We have increased training and purchased more armaments for the Reichsbanner.
@@ -51,25 +51,28 @@ We have increased training and purchased more armaments for the Reichsbanner.
 @if_training
 view-if: iron_front_formed == 1
 on-arrival: rb_militancy += 0.03; rb_strength += 200; sa_strength += 50; iron_front_progress += 1
-max-visits: 2
+max-visits: 5
 
 As part of the Iron Front, we are increasing coordination between the Reichsbanner and the unions, and many union members want to become more involved.
 
 @prussian_police_training
-view-if: spd_prussia == 1 and prussian_police_loyalty > 0.5
+view-if: spd_prussia == 1 and prussian_police_loyalty > 0.7
 on-arrival: rb_militancy += 0.05; sa_strength += 50; prussian_police_training += 1
 
 The loyal sections of the Prussian police can help train the Reichsbanner.
 
 @peace
-on-arrival: rb_militancy -= 0.02; rb_strength -= 50; pacifism += 1; neorevisionist_dissent += 5
+subtitle: +2 resources
+choose-if: neorevisionist_strength < 30 and (rb_militancy > 0 and rb_strength > 0)
+unavailable-subtitle: [? if neorevisionist_strength > 30: Neorevisionists are blocking this from happening! ?] [? if rb_militancy <= 0 or rb_strength <= 0: We are already demilitarized! ?]
+on-arrival: rb_militancy -= 0.02; rb_strength -= 70; pacifism += 1; neorevisionist_dissent += 15; reformist_dissent -= 10; center_dissent -= 5; left_dissent -= 5; labor_dissent -= 5; resources += 2
 
-By not fighting, the strength of the Reichsbanner atrophies. Pacifists in the party are gaining the upper hand.
+By not fighting and disarming ourselves, the strength of the Reichsbanner atrophies. Pacifists in the party are gaining the upper hand [? if neorevisionism == 1:, as neorevisionists are furious at us for letting this happen ?].
 
 @truce_rfb
-choose-if: kpd_relation >= 45 or not social_fascism_adopted
-view-if: kpd_truce == 0
-unavailable-subtitle: The KPD is not interested.
+choose-if: kpd_relation >= 45 and (reformist_strength + labor_strength + neorevisionist_strength < 50)
+view-if: kpd_truce == 0 or not social_fascism_adopted
+unavailable-subtitle: [? if kpd_relation < 45: The KPD is not interested. ?] [? if reformist_strength + labor_strength + neorevisionist_strength >= 50: Reformists are unwilling to make truce with communist paramilitary! ?]
 on-arrival: kpd_truce = 1; kpd_relation += 5; rfb_strength += 50; rb_strength += 50; sa_strength += 50; neorevisionist_dissent += 8
 
 We have made at least a temporary truce with the KPD, so that our respective paramilitaries will stop fighting.
