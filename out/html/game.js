@@ -510,7 +510,7 @@ Object.keys(wordPhrases).forEach(function(phrase) {
             var slug = name.toString().toLowerCase().replace(/\s+/g, '_');
             var portrait = document.createElement('img');
             portrait.className = imgClass;
-            portrait.onerror = function() { portrait.src = 'img/portraits/default.png'; };
+            portrait.onerror = function() { portrait.src = 'img/portraits/profile/default.png'; };
             portrait.src = 'img/portraits/' + slug + '.png';
             para.appendChild(portrait);
         }
