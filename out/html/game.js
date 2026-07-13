@@ -511,7 +511,7 @@ Object.keys(wordPhrases).forEach(function(phrase) {
             var portrait = document.createElement('img');
             portrait.className = imgClass;
             portrait.onerror = function() { portrait.src = 'img/portraits/profile/default.png'; };
-            portrait.src = 'img/portraits/' + slug + '.png';
+            portrait.src = 'img/portraits/profile/' + slug + '.png';
             para.appendChild(portrait);
         }
 
