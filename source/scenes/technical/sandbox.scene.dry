@@ -258,6 +258,99 @@ Insert any code.
 - @goto: Go to any scene
 - @setvar: Set variable
 - @getvar: Get variable
+- @checkcond: Check condition
+
+@checkcond
+on-display: {!
+if (!window.dendryUI.injectCondChecker) {
+    window.dendryUI.injectCondChecker = function() {
+        var container = document.getElementById('cond-checker');
+        if (!container) return;
+        container.innerHTML = '';
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'e.g. spd_r > 20 && party_relations.SPD.KPD < 50';
+        input.style.cssText =
+            'background:#111; color:#0f0; border:1px solid #0f0;' +
+            'padding:6px 10px; font-family:monospace; font-size:13px;' +
+            'width:70%; outline:none; border-radius:2px;';
+
+        var btn = document.createElement('button');
+        btn.textContent = 'Eval';
+        btn.style.cssText =
+            'margin-left:8px; background:#0f0; color:#000; border:none;' +
+            'padding:6px 12px; font-family:monospace; font-size:13px;' +
+            'cursor:pointer; border-radius:2px;';
+
+        var status = document.createElement('p');
+        status.style.cssText = 'font-size:12px; margin-top:6px; min-height:16px; word-break:break-all;';
+
+        var history = document.createElement('div');
+        history.style.cssText = 'font-size:11px; margin-top:10px; color:#888; max-height:150px; overflow-y:auto;';
+
+        function applyEval() {
+            var raw = input.value.trim();
+            if (!raw) return;
+
+            var engine = window.dendryUI.dendryEngine;
+            var Q = engine.state.qualities;
+            var state = engine.state;
+            var result;
+            var isError = false;
+
+            try {
+                /*jshint -W054 */
+                var fn = new Function('state', 'Q', 'return (' + raw + ');');
+                /*jshint +W054 */
+                result = fn.call(engine, state, Q);
+            } catch (err) {
+                isError = true;
+                result = err.message;
+            }
+
+            if (isError) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Error: ' + result;
+            } else {
+                var truthy = !!result;
+                status.style.color = truthy ? '#5f5' : '#fa5';
+                var displayVal;
+                try {
+                    displayVal = JSON.stringify(result);
+                } catch (e) {
+                    displayVal = String(result);
+                }
+                status.textContent = (truthy ? '✓ TRUE' : '✗ FALSE') + '  →  ' + displayVal;
+            }
+
+            var entry = document.createElement('div');
+            entry.textContent = raw + '  =  ' + (isError ? 'ERROR: ' + result : JSON.stringify(result));
+            history.insertBefore(entry, history.firstChild);
+        }
+
+        btn.addEventListener('click', applyEval);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') applyEval();
+        });
+
+        container.appendChild(input);
+        container.appendChild(btn);
+        container.appendChild(status);
+        container.appendChild(history);
+    };
+}
+
+window.dendryUI.injectCondChecker();
+!}
+
+= Evaluate any boolean/JS expression against live game state (same context as chooseIf/viewIf predicates).
+
+{!<div id="cond-checker"></div>!}
+
+*Supports full JS expressions: `&&`, `||`, comparisons, nested paths, even calling functions on Q. Read-only — does not modify state.*
+
+- @technical: Back
 
 @getvar
 on-display: {!
