@@ -1,11 +1,10 @@
 title: Agricultural Policy
 new-page: true
 is-card: true
-on-arrival: agricultural_policy_timer += 6; month_actions += 1
 view-if: spd_in_government = 1 and (agriculture_minister_party = "SPD") and agricultural_policy_timer == 0
 card-image: img/portraits/BaadeFritz.jpg
 tags: govt_affairs, cabinet
-on-arrival: {!
+on-arrival: agricultural_policy_timer += 10; month_actions += 1; {!
 // 1. Calculate the dynamic threshold based on budget
 Q.dismantle_required_strength = Q.budget >= -1 ? 50 : 50 * Math.pow(0.6, -1 - Q.budget);
 
