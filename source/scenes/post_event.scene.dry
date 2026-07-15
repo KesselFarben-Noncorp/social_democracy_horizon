@@ -2,7 +2,7 @@ title: Post Event
 new-page: true
 on-arrival: {!
 
-// === ACHIEVEMENT CHECKS (tick scene, on-arrival) ===
+// RNG
 
 function _mkrng(seed) {
     let s = seed >>> 0;
@@ -262,6 +262,69 @@ for (var i = 0; i < Q.parties.length; i++) {
         lowest_relation = Q[p + '_relation'];
     }
 }
+
+
+
+
+// === VARIABLE RANGE CAPPING ===
+// Clamps each listed Q.<var> to its defined [min, max] range after any
+// mechanic that might push it out of bounds (e.g. relation dynamics,
+// event effects, etc). Missing/undefined vars are skipped safely.
+
+Q.capped_var_ranges = {
+    // 0 to 10
+    pro_consumer:              [0, 10],
+    agricultural_finance:      [0, 10],
+    land_reform:               [0, 10],
+    socialization:             [0, 10],
+    commonwealth_cooperation:  [0, 10],
+    cooperatives:              [0, 10],
+    economic_democracy:        [0, 10],
+    welfare:                   [0, 10],
+    workers_safety:            [0, 10],
+    working_hours:             [0, 10],
+    judicial_reform:           [0, 10],
+    womens_rights:             [0, 10],
+
+    // -10 to 10
+    pacifism:                  [-10, 10],
+    radicalization:            [-10, 10],
+    democratization:           [-10, 10],
+
+    // -1 to 2
+    confronting_antisemitism:  [-1, 2],
+
+    // 0 to 15
+    workers_aid:               [0, 15],
+    campaign_media:            [0, 15],
+    commercialized_media:      [0, 15],
+    cultural_organizations:    [0, 15],
+    wtb_support:               [0, 15],
+    local_rally:               [0, 15],
+    peoples_party_support:     [0, 15]
+};
+
+Q.apply_var_caps = function() {
+    for (var varName in Q.capped_var_ranges) {
+        if (!Q.capped_var_ranges.hasOwnProperty(varName)) continue;
+        if (Q[varName] === undefined) continue; // skip vars not in use
+
+        var range = Q.capped_var_ranges[varName];
+        var min = range[0];
+        var max = range[1];
+
+        if (Q[varName] < min) {
+            Q[varName] = min;
+        } else if (Q[varName] > max) {
+            Q[varName] = max;
+        }
+    }
+};
+
+Q.apply_var_caps();
+
+
+
 
 
 
