@@ -397,6 +397,16 @@ for (var i = 0; i < portfolios.length; i++) {
 
 
 
+// CALCULATIONS ARE HERE:
+
+
+// 1. Calculate the dynamic threshold based on budget
+Q.dismantle_required_strength = Q.budget >= -1 ? 50 : 50 * Math.pow(0.6, -1 - Q.budget);
+
+// 2. Calculate your current combined reformist strength
+Q.current_reform_strength = Q.reformist_strength + (Q.labor_strength / 3) + Q.neorevisionist_strength;
+
+
 
 
 
