@@ -279,14 +279,14 @@ Q.capped_var_ranges = {
     socialization:             [0, 10],
     commonwealth_cooperation:  [0, 10],
     cooperatives:              [0, 10],
-    economic_democracy:        [0, 10],
-    welfare:                   [0, 10],
+    economic_democracy:        [0, 20],
     workers_safety:            [0, 10],
     working_hours:             [0, 10],
-    judicial_reform:           [0, 10],
     womens_rights:             [0, 10],
 
     // -10 to 10
+    welfare:                   [-10, 10],
+    judicial_reform:           [-10, 10],
     pacifism:                  [-10, 10],
     radicalization:            [-10, 10],
     democratization:           [-10, 10],
@@ -1089,6 +1089,100 @@ Q.relation_dynamics_speed = 0.25;
 
 
 
+// ============================================================
+// PASSIVE BUDGET — ongoing revenue from tax/tariff rates,
+// ongoing upkeep cost from enacted welfare/economic programs
+// ============================================================
+
+Q.upper_tax_rates = Q.upper_tax_rates || 0;
+Q.lower_tax_rates = Q.lower_tax_rates || 0;
+Q.tariffs         = Q.tariffs || 0;
+
+const TAX_YIELD_SCALE = 0.15;
+
+// --- REVENUE SIDE ---
+
+// Upper-bracket revenue: diminishing returns + capital strike sabotage
+let upper_yield = Q.upper_tax_rates * TAX_YIELD_SCALE;
+if (Q.upper_tax_rates > 3) {
+    upper_yield *= Math.max(0.4, 1 - (Q.upper_tax_rates - 3) * 0.12);
+}
+if (Q.capital_strike_progress > 0) {
+    upper_yield *= Math.max(0.3, 1 - Q.capital_strike_progress * 0.08);
+}
+
+// Lower-bracket revenue: broad base, reliable
+let lower_yield = Q.lower_tax_rates * TAX_YIELD_SCALE * 1.2;
+
+if (Q.general_strike_progress > 0) {
+    lower_yield *= Math.max(0.3, 1 - Q.general_strike_progress * 0.08);
+}
+
+// Tariff revenue: shrinks with contraction and retaliation at high levels
+let tariff_yield = Q.tariffs * TAX_YIELD_SCALE * 0.8;
+if (Q.economic_growth < 0) {
+    tariff_yield *= Math.max(0.5, 1 + Q.economic_growth * 0.05);
+}
+if (Q.tariffs > 3) {
+    tariff_yield *= Math.max(0.5, 1 - (Q.tariffs - 3) * 0.1);
+}
+
+Q.fiscal_revenue = upper_yield + lower_yield + tariff_yield;
+
+
+// --- UPKEEP SIDE ---
+// Every enacted program from Agricultural Policy, Economic Democracy,
+// and Social Welfare costs ongoing budget to maintain, scaled down
+// since it fires every tick (vs. the one-time enactment cost).
+
+const UPKEEP_SCALE = 0.12;
+
+let welfare_upkeep       = Math.max(0, Q.welfare || 0)          * UPKEEP_SCALE * 1.3;
+let land_upkeep          = (Q.land_reform || 0)                  * UPKEEP_SCALE * 0.6;
+let agri_fin_upkeep      = (Q.agricultural_finance || 0)         * UPKEEP_SCALE * 0.9;
+let pro_consumer_upkeep  = (Q.pro_consumer || 0)                 * UPKEEP_SCALE * 0.8;
+let state_buyer_upkeep   = (Q.state_buyer ? 1 : 0)                * UPKEEP_SCALE * 2.0;
+let socialization_upkeep = (Q.socialization || 0)                 * UPKEEP_SCALE * 1.5;
+let coop_upkeep          = (Q.cooperatives || 0)                  * UPKEEP_SCALE * 0.5;
+let commonwealth_upkeep  = (Q.commonwealth_cooperation || 0)      * UPKEEP_SCALE * 0.7;
+let econ_dem_upkeep      = (Q.economic_democracy || 0)            * UPKEEP_SCALE * 0.4;
+let safety_upkeep        = (Q.workers_safety || 0)                * UPKEEP_SCALE * 0.3;
+
+Q.fiscal_upkeep = welfare_upkeep + land_upkeep + agri_fin_upkeep + pro_consumer_upkeep
+                + state_buyer_upkeep + socialization_upkeep + coop_upkeep
+                + commonwealth_upkeep + econ_dem_upkeep + safety_upkeep;
+
+// --- NET APPLICATION ---
+
+Q.budget += Q.fiscal_revenue - Q.fiscal_upkeep;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1618,7 +1712,7 @@ Q.inflation              = Math.max(-15, Math.min(1000, Q.inflation));
 Q.unemployed             = Math.max(0,   Math.min(50,   Q.unemployed));
 Q.economic_growth        = Math.max(-20, Math.min(20,   Q.economic_growth));
 Q.inflation_expectations = Math.max(-15, Math.min(1000, Q.inflation_expectations));
-
+Q.budget = Math.max(-50, Math.min(50, Q.budget));
 
 
 
