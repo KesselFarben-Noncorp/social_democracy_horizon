@@ -4,13 +4,7 @@ is-card: true
 view-if: spd_in_government = 1 and (agriculture_minister_party = "SPD") and agricultural_policy_timer == 0
 card-image: img/portraits/BaadeFritz.jpg
 tags: govt_affairs, cabinet
-on-arrival: agricultural_policy_timer += 10; month_actions += 1; {!
-// 1. Calculate the dynamic threshold based on budget
-Q.dismantle_required_strength = Q.budget >= -1 ? 50 : 50 * Math.pow(0.6, -1 - Q.budget);
-
-// 2. Calculate your current combined reformist strength
-Q.current_reform_strength = Q.reformist_strength + (Q.labor_strength / 3) + Q.neorevisionist_strength;
-!}
+on-arrival: agricultural_policy_timer += 10; month_actions += 1
 
 = Agricultural Policy
 
