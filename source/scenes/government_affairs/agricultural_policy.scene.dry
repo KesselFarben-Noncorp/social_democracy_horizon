@@ -5,7 +5,13 @@ on-arrival: agricultural_policy_timer += 6; month_actions += 1
 view-if: spd_in_government = 1 and (agriculture_minister_party = "SPD") and agricultural_policy_timer == 0
 card-image: img/portraits/BaadeFritz.jpg
 tags: govt_affairs, cabinet
-#subtitle: Issues of farmer financing, grain purchasing, and land reform.
+on-arrival: {!
+// 1. Calculate the dynamic threshold based on budget
+Q.dismantle_required_strength = Q.budget >= -1 ? 50 : 50 * Math.pow(0.6, -1 - Q.budget);
+
+// 2. Calculate your current combined reformist strength
+Q.current_reform_strength = Q.reformist_strength + (Q.labor_strength / 3) + Q.neorevisionist_strength;
+!}
 
 = Agricultural Policy
 
@@ -15,6 +21,7 @@ While agricultural policy has historically not been the domain of the SPD, there
 - @agricultural_finance
 - @pro_consumer
 - @state_buyer
+- @state_buyer_2
 - @root: Do not enact any policies for now.
 - @easy_discard
 - @cancel_advisor_action
@@ -52,6 +59,16 @@ title: State Buyer
 subtitle: -2 budget - Create a state monopoly for grain purchases, guaranteeing prices for farmers and stable prices for consumers. [? if judicial_reform < 2 : The judiciary would never allow this. ?]
 choose-if: budget >= 2 and judicial_reform >= 2
 view-if: state_buyer = 0
-on-arrival: budget -= 2; state_buyer = 1; rural_spd += 5*(1-dissent); rural_nsdap -= 3*(1-dissent); workers_spd += 4*(1-dissent); unemployedc_spd += 5*(1-dissent); coalition_dissent += 1 if (in_grand_coalition or in_weimar_coalition); dvp_relation -= 5; z_relation -= 3; peoples_party_support += 1; rural_policy += 2; capital_strike_progress += 1; economic_growth += 0.4; general_strike_progress -= 2; z_dissent += 2; dvp_dissent += 2; ddp_dissent += 1; wp_dissent += 1; dnvp_dissent += 3; cnbl_dissent += 5; bb_dissent -= 1; kpd_dissent += 1
+on-arrival: budget -= 2; state_buyer = 1; rural_spd += 5*(1-dissent); rural_nsdap -= 3*(1-dissent); workers_spd += 4*(1-dissent); unemployedc_spd += 5*(1-dissent); coalition_dissent += 1 if (in_grand_coalition or in_weimar_coalition); dvp_relation -= 5; z_relation -= 3; peoples_party_support += 1; rural_policy += 2; capital_strike_progress += 1; economic_growth += 0.4; general_strike_progress -= 2
 
 Our new purchasing agency guarantees fair prices for farmers, while also providing lower food prices for workers and the urban poor. This policy necessitates heavy spending and an unprecedented level of state intervention in the economy, raising the ire of conservative economists.
+
+@state_buyer_2
+title: Dismantle State Monopoly
+subtitle: +2 budget - Eliminate state monopoly on agricultural sector.
+view-if: state_buyer = 1
+choose-if: current_reform_strength >= dismantle_required_strength
+unavailable-subtitle: Reformist factions are weak in order to push such controversial move!
+on-arrival: rural_spd -= 6*(1-dissent); state_buyer = 0; dnvp_relation += 5; budget += 2; resources += 1; left_dissent += 15; labor_dissent += 10; center_dissent += 5; rural_dnvp += 2; rural_nsdap += 3 if nsdap_banned == 0; z_relation += 3; dvp_relation += 2; rlb_relation += 5
+
+Despite all our good will, heavy costs have justified the dismantlement of government agency for keeping agricultural sector from exploitation and capitalist robbery. Our left wing members are protesting this decision, but ultimately, this is a necessary sacrifice.
