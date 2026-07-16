@@ -397,20 +397,6 @@ for (var i = 0; i < portfolios.length; i++) {
 
 
 
-// CALCULATIONS ARE HERE:
-
-
-// 1. Calculate the dynamic threshold based on budget
-Q.dismantle_required_strength = Q.budget >= -1 ? 50 : 50 * Math.pow(0.6, -1 - Q.budget);
-
-// 2. Calculate your current combined reformist strength
-Q.current_reform_strength = Q.reformist_strength + (Q.labor_strength / 3) + Q.neorevisionist_strength;
-
-
-
-
-
-
 // UPDATE PARTY RELATIONSHIPS EACH TIME.
 
 function updatePartyRelations() {
@@ -5652,6 +5638,118 @@ Q.coup_progress           = Math.max(0, Math.min(15, Q.coup_progress           |
 Q.general_strike_progress = Math.max(0, Math.min(15, Q.general_strike_progress || 0));
 
 //               HOME TO ALL CONSTRAINTS OF THE VALUES HERE, OKAY.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// CALCULATIONS ARE HERE:
+
+
+// 1. Calculate the dynamic threshold based on budget
+Q.dismantle_required_strength = Q.budget >= -1 ? 50 : 50 * Math.pow(0.6, -1 - Q.budget);
+
+Q.strength_groups = {
+    current_reform_strength: [
+        ['reformist_strength', 1],
+        ['labor_strength', 1/3],
+        ['neorevisionist_strength', 1]
+    ],
+    true_reform_strength: [
+        ['reformist_strength', 1],
+        ['labor_strength', 1],
+        ['neorevisionist_strength', 1]
+    ],
+    false_reform_strength: [
+        ['reformist_strength', 2],
+        ['neorevisionist_strength', 1]
+    ],
+    republican_strength: [
+        ['reformist_strength', 1],
+        ['neorevisionist_strength', 2],
+        ['labor_strength', 1/4]
+    ],
+    umbrella_reform_strength: [
+        ['reformist_strength', 1],
+        ['labor_strength', 1],
+        ['center_strength', 1],
+        ['neorevisionist_strength', 1]
+    ],
+    left_bloc_strength: [
+        ['left_strength', 1],
+        ['center_strength', 0.5]
+    ],
+    // add new combos here, one line each
+};
+
+Q.recalc_strengths = function() {
+    for (var key in Q.strength_groups) {
+        var total = 0;
+        var terms = Q.strength_groups[key];
+        for (var i = 0; i < terms.length; i++) {
+            var varName = terms[i][0];
+            var weight = terms[i][1];
+            total += (Q[varName] || 0) * weight;
+        }
+        Q[key] = total;
+    }
+};
+
+Q.recalc_strengths();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
