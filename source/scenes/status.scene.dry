@@ -63,218 +63,143 @@ Q.pro_republic_disp = Q.pro_republic;
 Q.nationalism_disp = Q.nationalism;
 Q.socialism_disp = Q.socialism;
 Q.pacifism_disp = Q.pacifism;
+
+// Display-name overrides for the "Parties" (ideology/leadership) section.
+// Original used a hardcoded literal "DDP/DStP" there (not ddp_name).
+var partyNameOverrideIdeology = {
+    ddp: 'DDP/DStP'
+};
+
+// Display-name overrides for the "Inter-party Relations" section.
+// Original dynamically used ddp_name (falling back to literal "DDP")
+// and dsbp_name (no fallback shown, printed as-is) there instead.
+var partyNameOverrideRelations = {
+    ddp: Q.ddp_name || 'DDP',
+    dsbp: Q.dsbp_name
+};
+
+// Tooltip text for each party, used in Inter-party Relations.
+// Parties not listed here just get a plain (non-tooltip) label.
+var partyTooltips = {
+    z: "Center Party",
+    kpo: "Communist Party in Opposition",
+    sapd: "SAPD",
+    srpd: "SRPD",
+    sl: "Socialist League",
+    bvp: "Bavarian People's Party",
+    bb: "Bavarian Peasants' Party",
+    csrp: "Christian Social German Party",
+    hl: "Hanseatic League",
+    ddp: "German Democratic Party",
+    dhp: "German Hannover Party",
+    dvp: "German People's Party",
+    vnr: "People's National Reich Association",
+    wp: "Economic Party",
+    cnbl: "Chrisliche National Bauern League",
+    kvp: "Konservative Volkspartei",
+    aspd: "Old Social Democratic Party of Germany / Social Fascist Party",
+    kpd: "KPD",
+    csvd: "CSVD",
+    dnvp: "German National People's Party",
+    nsdap: "National-Socialist German Worker's Party (Nazis)",
+    dvfp: "German National Freedom Party",
+    lb: "Leninbund",
+    rdp: "Radical Democratic Party",
+    cvp: "Christian People's Party",
+    sls: "Sorbian People's Party",
+    dtsp: "German-Social Party"
+};
+
+// Parties whose relation line is gated behind an extra condition beyond
+// "party is in Q.parties" (mirrors the original hand-written [? if ?] guards).
+var partyRelationGate = {
+    kpo:  function() { return Q.kpo_votes > 0; },
+    sapd: function() { return Q.sapd_formed == 1; },
+    srpd: function() { return Q.srpd_formed == 1; },
+    sl:   function() { return Q.sl_votes > 0; },
+    hl:   function() { return Q.hl_votes > 0; },
+    dsbp: function() { return Q.dsbp_votes > 0; },
+    vnr:  function() { return Q.vnr_votes > 0; },
+    kvp:  function() { return Q.kvp_flee == 1; },
+    aspd: function() { return Q.aspd_votes > 0; },
+    csvd: function() { return Q.csvd_flee == 1; },
+    dvfp: function() { return Q.dvfp_votes > 0; },
+    lb:   function() { return Q.lb_votes > 0; },
+    rdp:  function() { return Q.rdp_votes > 0; },
+    cvp:  function() { return Q.cvp_votes > 0; },
+    sls:  function() { return Q.sls_votes > 0; },
+    dtsp: function() { return Q.dtsp_votes > 0; }
+};
+
+function partyLabelIdeology(p) {
+    if (partyNameOverrideIdeology.hasOwnProperty(p)) return partyNameOverrideIdeology[p];
+    return p.toUpperCase();
+}
+
+function partyLabelRelations(p) {
+    if (partyNameOverrideRelations.hasOwnProperty(p)) return partyNameOverrideRelations[p];
+    return p.toUpperCase();
+}
+
+// --- Build "Parties" ideology/leadership block ---
+var ideologyHtml = "";
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    var votes = Q[p + '_votes'];
+    if (votes !== undefined && votes > 1) {
+        var ideology = Q[p + '_ideology'];
+        var leader = Q[p + '_party_leader'];
+        var label = partyLabelIdeology(p);
+        ideologyHtml += label + " Ideology: " + ideology + "<br>" +
+                         label + " Leadership: " + leader + "<br><br>";
+    }
+}
+Q.party_ideology_leadership_html = ideologyHtml;
+
+// --- "relationships" qdisplay formatter, ported from relationships.qdisplay.dry ---
+// (..5) hostile | (5..14.9) frigid | (14.9..29.9) cold | (29.9..39.9) cool
+// (39.9..54.9) neutral | (54.9..64.9) warm | (64.9..74.9) friendly | (74.9..) very friendly
+function formatRelationship(val) {
+    if (val < 5) return "hostile";
+    if (val < 14.9) return "frigid";
+    if (val < 29.9) return "cold";
+    if (val < 39.9) return "cool";
+    if (val < 54.9) return "neutral";
+    if (val < 64.9) return "warm";
+    if (val < 74.9) return "friendly";
+    return "very friendly";
+}
+
+// --- Build "Inter-party Relations" block ---
+var relationsHtml = "";
+for (var i = 0; i < Q.parties.length; i++) {
+    var p = Q.parties[i];
+    var gate = partyRelationGate[p];
+    if (gate && !gate()) continue;
+
+    var label = partyLabelRelations(p);
+    var tooltip = partyTooltips[p];
+    var displayLabel = tooltip
+        ? '<span class="tooltip-text" title="' + tooltip + '">' + label + '</span>'
+        : label;
+
+    var rawVal = Q[p + '_relation'];
+    var formatted = formatRelationship(rawVal);
+
+    relationsHtml += displayLabel + ": " + formatted +
+                      (Q.deterministic_mode == 1 ? " " + rawVal : "") +
+                      "<br>";
+}
+Q.party_relations_html = relationsHtml;
 !}
 
 = Parties
 
-[? if kpd_votes > 1 :
-KPD Ideology: [+ kpd_ideology +] <br>
-KPD Leadership: [+ kpd_party_leader +]
-?]
-
-[? if kpo_votes > 1 :
-KPO Ideology: [+ kpo_ideology +] <br>
-KPO Leadership: [+ kpo_party_leader +]
-?]
-
-[? if lb_votes > 1 :
-LB Ideology: [+ lb_ideology +] <br>
-LB Leadership: [+ lb_party_leader +]
-?]
-
-[? if sl_votes > 1 :
-SL Ideology: [+ sl_ideology +] <br>
-SL Leadership: [+ sl_party_leader +]
-?]
-
-[? if sapd_votes > 1 :
-SAPD Ideology: [+ sapd_ideology +] <br>
-SAPD Leadership: [+ sapd_party_leader +]
-?]
-
-[? if spd_votes > 1 :
-SPD Ideology: [+ spd_ideology +]<br>
-SPD Leadership: [+ spd_party_leader +]
-?]
-
-[? if srpd_votes > 1 :
-SRPD Ideology: [+ srpd_ideology +]<br>
-SRPD Leadership: [+ srpd_party_leader +]
-?]
-
-[? if aspd_votes > 1 :
-ASPD Ideology: [+ aspd_ideology +] <br>
-ASPD Leadership: [+ aspd_party_leader +]
-?]
-
-[? if rdp_votes > 1 :
-RDP Ideology: [+ rdp_ideology +] <br>
-RDP Leadership: [+ rdp_party_leader +]
-?]
-
-[? if ddp_votes > 1 :
-DDP/DStP Ideology: [+ ddp_ideology +]<br>
-DDP/DStP Leadership: [+ ddp_party_leader +]
-?]
-
-[? if dsbp_votes > 1 :
-[+ dsbp_name +] Ideology: [+ dsbp_ideology +] <br>
-[+ dsbp_name +] Leadership: [+ dsbp_party_leader +]
-?]
-
-[? if sls_votes > 1 :
-SLS Ideology: [+ sls_ideology +] <br>
-SLS Leadership: [+ sls_party_leader +]
-?]
-
-[? if z_votes > 1 :
-Z Ideology: [+ z_ideology +]<br>
-Z Leadership: [+ z_party_leader +]
-?]
-
-[? if cvp_votes > 1 :
-CVP Ideology: [+ cvp_ideology +] <br>
-CVP Leadership: [+ cvp_party_leader +]
-?]
-
-[? if bvp_votes > 1 :
-BVP Ideology: [+ bvp_ideology +]<br>
-BVP Leadership: [+ bvp_party_leader +]
-?]
-
-[? if csrp_votes > 1 :
-CSRP Ideology: [+ csrp_ideology +]<br>
-CSRP Leadership: [+ csrp_party_leader +]
-?]
-
-[? if hl_votes > 1 :
-HL Ideology: [+ hl_ideology +] <br>
-HL Leadership: [+ hl_party_leader +]
-?]
-
-[? if dvp_votes > 1 :
-DVP Ideology: [+ dvp_ideology +]<br>
-DVP Leadership: [+ dvp_party_leader +]
-?]
-
-[? if vnr_votes > 1 :
-VNR Ideology: [+ vnr_ideology +] <br>
-VNR Leadership: [+ vnr_party_leader +]
-?]
-
-[? if vrp_votes > 1 :
-VRP Ideology: [+ vrp_ideology +]<br>
-VRP Leadership: [+ vrp_party_leader +]
-?]
-
-[? if wp_votes > 1 :
-WP Ideology: [+ wp_ideology +]<br>
-WP Leadership: [+ wp_party_leader +]
-?]
-
-[? if cnbl_votes > 1 :
-CNBL Ideology: [+ cnbl_ideology +]<br>
-CNBL Leadership: [+ cnbl_party_leader +]
-?]
-
-[? if csvd_votes > 1 :
-CSVD Ideology: [+ csvd_ideology +]<br>
-CSVD Leadership: [+ csvd_party_leader +]
-?]
-
-[? if kvp_votes > 1 :
-KVP Ideology: [+ kvp_ideology +]<br>
-KVP Leadership: [+ kvp_party_leader +]
-?]
-
-[? if dhp_votes > 1 :
-DHP Ideology: [+ dhp_ideology +]<br>
-DHP Leadership: [+ dhp_party_leader +]
-?]
-
-[? if bb_votes > 1 :
-BB Ideology: [+ bb_ideology +]<br>
-BB Leadership: [+ bb_party_leader +]
-?]
-
-[? if dnvp_votes > 1 :
-DNVP Ideology: [+ dnvp_ideology +]<br>
-DNVP Leadership: [+ dnvp_party_leader +]
-?]
-
-[? if dtsp_votes > 1 :
-DTSP Ideology: [+ dtsp_ideology +] <br>
-DTSP Leadership: [+ dtsp_party_leader +]
-?]
-
-[? if nsdap_votes > 1 :
-NSDAP Ideology: [+ nsdap_ideology +]<br>
-NSDAP Leadership: [+ nsdap_party_leader +]
-?]
-
-[? if dvfp_votes > 1 :
-DVFP Ideology: [+ dvfp_ideology +]<br>
-DVFP Leadership: [+ dvfp_party_leader +]
-?]
-
+[+ party_ideology_leadership_html +]
 
 = Inter-party Relations
 
-{!<span class="tooltip-text" title="Center Party">Z</span>!}: [+ z_relation : relationships +] [? if deterministic_mode == 1: [+ z_relation +] ?]
-
-[? if kpo_votes > 0: {!<span class="tooltip-text" title="Communist Party in Opposition">KPO</span>!}: [+ kpo_relation : relationships +] [? if deterministic_mode == 1: [+ kpo_relation +] ?] ?]
-
-[? if sapd_formed = 1: {!<span class="tooltip-text" title="SAPD">SAPD</span>!}: [+ sapd_relation : relationships +] [? if deterministic_mode == 1: [+ sapd_relation +] ?] ?]
-
-[? if srpd_formed = 1: {!<span class="tooltip-text" title="SRPD">SRPD</span>!}: [+ srpd_relation : relationships +] [? if deterministic_mode == 1: [+ srpd_relation +] ?] ?]
-
-[? if sl_votes > 0: {!<span class="tooltip-text" title="Socialist League">SL</span>!}: [+ sl_relation : relationships +] [? if deterministic_mode == 1: [+ sl_relation +] ?] ?]
-
-{!<span class="tooltip-text" title="Bavarian People's Party">BVP</span>!}: [+ bvp_relation : relationships +] [? if deterministic_mode == 1: [+ bvp_relation +] ?]
-
-{!<span class="tooltip-text" title="Bavarian Peasants' Party">BB</span>!}: [+ bb_relation : relationships +] [? if deterministic_mode == 1: [+ bb_relation +] ?]
-
-{!<span class="tooltip-text" title="Christian Social German Party">CSRP</span>!}: [+ csrp_relation : relationships +] [? if deterministic_mode == 1: [+ csrp_relation +] ?]
-
-[? if hl_votes > 0: {!<span class="tooltip-text" title="Hanseatic League">HL</span>!}: [+ hl_relation : relationships +] [? if deterministic_mode == 1: [+ hl_relation +] ?] ?]
-
-{!<span class="tooltip-text" title="German Democratic Party">!}[? if not ddp_name: DDP?][? if ddp_name != 0 : [+ ddp_name +]?]{!</span>!}: [+ ddp_relation : relationships +] [? if deterministic_mode == 1: [+ ddp_relation +] ?]
-
-[? if dsbp_votes > 0: [+ dsbp_name +] [+ dsbp_relation : relationships +] [? if deterministic_mode == 1: [+ dsbp_relation +] ?] ?]
-
-{!<span class="tooltip-text" title="German Hannover Party">DHP</span>!}: [+ dhp_relation : relationships +] [? if deterministic_mode == 1: [+ dhp_relation +] ?]
-
-{!<span class="tooltip-text" title="German People's Party">DVP</span>!}: [+ dvp_relation : relationships +] [? if deterministic_mode == 1: [+ dvp_relation +] ?]
-
-[? if vnr_votes > 0: {!<span class="tooltip-text" title="People's National Reich Association">VNR</span>!}: [+ vnr_relation : relationships +] [? if deterministic_mode == 1: [+ vnr_relation +] ?] ?]
-
-{!<span class="tooltip-text" title="Economic Party"> WP </span>!}: [+ wp_relation : relationships +] [? if deterministic_mode == 1: [+ wp_relation +] ?]
-
-{!<span class="tooltip-text" title="Chrisliche National Bauern League">CNBL </span>!}: [+ cnbl_relation : relationships +] [? if deterministic_mode == 1: [+ cnbl_relation +] ?]
-
-[? if kvp_flee = 1: {!<span class="tooltip-text" title="Konservative Volkspartei"> KVP </span>!}: [+ kvp_relation : relationships +] [? if deterministic_mode == 1: [+ kvp_relation +] ?] ?]
-
-[? if aspd_votes > 0: {!<span class="tooltip-text" title="Old Social Democratic Party of Germany / Social Fascist Party">ASPD</span>!}: [+ aspd_relation : relationships +] [? if deterministic_mode == 1: [+ aspd_relation +] ?] ?]
-
-{!<span class="tooltip-text" title="KPD">KPD</span>!}: [+ kpd_relation : relationships +] [? if deterministic_mode == 1: [+ kpd_relation +] ?]
-
-[? if csvd_flee = 1: {!<span class="tooltip-text" title="CSVD">CSVD</span>!}: [+ csvd_relation : relationships +] [? if deterministic_mode == 1: [+ csvd_relation +] ?] ?]
-
-{!<span class="tooltip-text" title="German National People's Party">DNVP</span>!}: [+ dnvp_relation : relationships +] [? if deterministic_mode == 1: [+ dnvp_relation +] ?]
-
-{!<span class="tooltip-text" title="National-Socialist German Worker's Party (Nazis)">NSDAP</span>!}: [+ nsdap_relation : relationships +] [? if deterministic_mode == 1: [+ nsdap_relation +] ?]
-
-[? if dvfp_votes > 0: {!<span class="tooltip-text" title="German National Freedom Party">DVFP</span>!}: [+ dvfp_relation : relationships +] [? if deterministic_mode == 1: [+ dvfp_relation +] ?] ?]
-
-[? if lb_votes > 0: {!<span class="tooltip-text" title="Leninbund">LB</span>!}: [+ lb_relation : relationships +] [? if deterministic_mode == 1: [+ lb_relation +] ?] ?]
-
-[? if rdp_votes > 0: {!<span class="tooltip-text" title="Radical Democratic Party">RDP</span>!}: [+ rdp_relation : relationships +] [? if deterministic_mode == 1: [+ rdp_relation +] ?] ?]
-
-[? if cvp_votes > 0: {!<span class="tooltip-text" title="Christian People's Party">CVP</span>!}: [+ cvp_relation : relationships +] [? if deterministic_mode == 1: [+ cvp_relation +] ?] ?]
-
-[? if sls_votes > 0: {!<span class="tooltip-text" title="Sorbian People's Party">SLS</span>!}: [+ sls_relation : relationships +] [? if deterministic_mode == 1: [+ sls_relation +] ?] ?]
-
-[? if dtsp_votes > 0: {!<span class="tooltip-text" title="German-Social Party">DTSP</span>!}: [+ dtsp_relation : relationships +] [? if deterministic_mode == 1: [+ dtsp_relation +] ?] ?]
+[+ party_relations_html +]
 
 = Internal Factions of the SPD
 
