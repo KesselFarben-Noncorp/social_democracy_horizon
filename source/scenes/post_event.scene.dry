@@ -3602,6 +3602,18 @@ function computeTarget(party, c) {
 
             const isLambach    = Q.dnvp_party_leader === "Walther Lambach";
             const lambachEarly = Q.year < 1929;
+            const dnvpgovernment = Q.dnvp_in_government == 1;
+
+            // Government bonus: starts at +20% (1.20), decays by 33% (relative) per crisis trigger
+            let govBonus_m = 1.0;
+            if (dnvpgovernment) {
+                const crisisTriggers = [Q.cnbl_crisis, Q.vnr_momentum, Q.geest_wildfire]
+                    .filter(Boolean).length;
+                // Each trigger cuts the *bonus portion* (the 0.20 above baseline) by 33%
+                const bonusPortion = 0.20 * Math.pow(0.67, crisisTriggers);
+                govBonus_m = 1.0 + bonusPortion;
+            }
+            base *= govBonus_m;
 
             let workers_m     = 0.69
                 * (Q.peoples_party                      === 1 ? 1.10 : 1)
