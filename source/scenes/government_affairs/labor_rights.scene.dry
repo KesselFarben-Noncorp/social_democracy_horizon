@@ -21,6 +21,8 @@ With control of the Labor Ministry, we can set national standards for labor. Our
 - @working_hours: Enforce the 40-hour work week.
 - @shorten_hours: Shorten work hours less than 40 hours.
 - @safety: Develop and enforce safety regulations.
+- @cut_hours: Loosen enforcement of the 40-hour work week.
+- @cut_safety: Scale back workplace safety regulations.
 - @unemployment_insurance: Fund the unemployment insurance program.
 - @root: Do not enact any policies.
 - @easy_discard
@@ -46,6 +48,24 @@ Some in the labor movement argue that by reducing the maximum number of hours wo
 on-arrival: workers_safety += 1; labor_dissent -= 5; labor_strength += 2; workers_spd += 5*(1-dissent); capital_strike_progress += 1 if workers_safety >= 3; general_strike_progress -= 1
 
 The Labor Ministry works on developing and enforcing safety regulations, in order to ensure healty working conditions for the proletariat. [? if workers_safety >= 3 : Businesses have begun to argue that our focus on safety is overbearing and unnecessary, interfering with the economy. ?]
+
+@cut_hours
+view-if: working_hours >= 1
+unavailable-subtitle: We are unable to push this move forward.
+choose-if: false_reform_strength >= (dismantle_required_strength * 0.9)
+subtitle: The reformists are willing to trade this concession for stability.
+on-arrival: working_hours -= 1; reformist_dissent -= 3; neorevisionist_dissent -= 3; labor_dissent += 10; left_dissent += 12; center_dissent += 6; workers_spd -= 0.08*workers_spd; workers_kpd += 5; workers_nsdap += 4; labor_strength -= 3; dvp_relation += 4; coalition_dissent -= 1 if in_grand_coalition; capital_strike_progress -= 1; general_strike_progress += 1; economic_growth += 0.1; pro_republic -= 2
+
+The pragmatists and social republicans argue that flexibility on hours will ease the burden on employers and budget. Labor and the party's left are outraged at what they see as a needless capitulation.
+
+@cut_safety
+view-if: workers_safety >= 1
+unavailable-subtitle: We are unable to push this move forward.
+choose-if: false_reform_strength >= (dismantle_required_strength * 0.8)
+subtitle: Businesses have long complained that safety enforcement is excessive.
+on-arrival: workers_safety -= 1; reformist_dissent -= 2; neorevisionist_dissent -= 2; labor_dissent += 8; left_dissent += 6; workers_spd -= 0.05*workers_spd; workers_kpd += 3; labor_strength -= 2; dvp_relation += 3; capital_strike_progress -= 1; general_strike_progress += 1; economic_growth += 0.05; pro_republic -= 1
+
+To placate business interests, the ministry quietly scales back enforcement of safety regulations. Labor and radicals deem this move traitorous and demand rollback.
 
 @unemployment_insurance
 view-if: unemployed >= unemployment_insurance_threshold + 4
