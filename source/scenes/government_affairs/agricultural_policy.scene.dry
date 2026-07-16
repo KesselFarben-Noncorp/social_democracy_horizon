@@ -13,6 +13,9 @@ While agricultural policy has historically not been the domain of the SPD, there
 - @land_reform
 - @agricultural_finance
 - @pro_consumer
+- land_reform_2
+- agricultural_finance_2
+- @pro_consumer_2
 - @state_buyer
 - @state_buyer_2
 - @root: Do not enact any policies for now.
@@ -25,7 +28,6 @@ subtitle: -1 budget - Break up the large aristocratic estates and give land to l
 unavailable-subtitle: [? if budget <= 0 : Requires 1 budget. ?] [? if judicial_reform < 2 : The judiciary would never allow this. ?]
 choose-if: judicial_reform >= 2 and budget > 0
 on-arrival: budget -= 1; land_reform += 1; coalition_dissent += 1; rural_spd += 5*(1-dissent); rural_nsdap -= 4*(1-dissent); unemployed -= 1 if unemployed >= 5; dvp_relation -= 5; z_relation -= 4; left_strength += 8; left_dissent -= 5; rural_sol += 3; rural_policy += 1; coup_progress += 1; agriculture_goal_completed += 1; cnbl_dissent += 3; dnvp_dissent += 4; bb_dissent += 1; dvp_dissent += 1
-max-visits: 4
 
 With our policy of land reform, we are acquiring farmland from large estates, and giving the land to farmworkers' associations and small peasants. In essence, this brings class struggle to the countryside, breaking the semi-feudal property relations present in East Prussia and other areas with large estates. The bourgeois parties and large farmers despise our intrusion into the sacredness of private property, while leftists are cautiously optimistic.
 
@@ -46,6 +48,37 @@ choose-if: budget >= 1
 on-arrival: budget -= 1; pro_consumer += 1; workers_spd += 4*(1-dissent); unemployedc_spd += 4*(1-dissent); workers_sol += 4; coalition_dissent += 1 if black_thursday_seen; economic_growth += 0.2; general_strike_progress -= 2; bb_dissent += 2; dnvp_dissent += 1; cnbl_dissent += 1; ddp_dissent -= 1; sapd_dissent -= 1; kpd_dissent -= 1
 
 We have increased state purchasing of food staples to provide to urban workers and the poor. This benefits workers more than it benefits farmers, as we are negotiating for lower purchase prices. [? if black_thursday_seen and (in_weimar_coalition or in_grand_coalition) : Our coalition partners consider this policy to be a wasteful handout. ?]
+
+@land_reform_2
+title: Suspend Land Redistribution
+subtitle: +1 budget - Bring an end to the redistribution of aristocratic estates, placating conservative landed interests.
+unavailable-subtitle: [? if false_reform_strength < dismantle_required_strength: Our reformist factions lack the political muscle to force through such a controversial retreat. ?]
+choose-if: false_reform_strength >= dismantle_required_strength
+view-if: land_reform >= 1
+on-arrival: budget += 1; land_reform -= 1; reformist_dissent += 3; neorevisionist_dissent += 3; left_dissent += 15; rural_spd -= 5*(1-dissent); rural_nsdap += 3*(1-dissent); dvp_relation += 5; z_relation += 3; left_strength -= 5; coalition_dissent -= 1 if in_grand_coalition; cnbl_dissent -= 2; dnvp_dissent -= 3; bb_dissent -= 1
+
+Under intense pressure from agrarian lobbies and our coalition partners, we have chosen to freeze the redistribution of aristocratic estates. The party's left wing condemns it as a betrayal that abandons the poorest rural laborers to the whims of the old semi-feudal elite. Even party's reformists are unable to provide justifications for such action...
+
+@agricultural_finance_2
+title: Scale Back Agricultural Subsidies
+subtitle: +1 budget - Roll back state credit lines and insurance protections for smallholders.
+unavailable-subtitle: [? if current_reform_strength < dismantle_required_strength : The reformist wings are currently too weak to risk such a politically dangerous rollback. ?]
+choose-if: current_reform_strength >= dismantle_required_strength
+view-if: agricultural_finance >= 1
+on-arrival: budget += 1; agricultural_finance -= 1; reformist_dissent -= 2; neorevisionist_dissent -= 2; rural_spd -= 4*(1-dissent); rural_nsdap += 3*(1-dissent); peoples_party_support -= 1; rural_sol -= 3; rural_policy -= 1; economic_growth -= 0.1; cnbl_dissent -= 1; dnvp_dissent -= 1; bb_dissent += 1
+
+In the name of fiscal discipline, we have begun dismantling state financial support for small-scale farmers. However, rural voters who had grown dependent on government credit and crop insurance feel deeply betrayed by our retreat.
+
+@pro_consumer_2
+title: Terminate Emergency Food Subsidies
+subtitle: +1 budget - Abolish the state procurement and distribution of food staples for the urban working class.
+unavailable-subtitle: [? if false_reform_strength < dismantle_required_strength: The reformist faction is not strong enough to enforce such an unpopular decision. ?]
+choose-if: false_reform_strength >= dismantle_required_strength
+view-if: pro_consumer >= 1
+on-arrival: budget += 1; pro_consumer -= 1; reformist_dissent -= 3; neorevisionist_dissent -= 3; labor_dissent += 10; left_dissent += 10; workers_spd -= 0.06*workers_spd; unemployedc_spd -= 0.06*unemployedc_spd; workers_sol -= 4; economic_growth -= 0.1; general_strike_progress += 2; bb_dissent -= 2; dnvp_dissent -= 1; cnbl_dissent -= 1; ddp_dissent += 1; sapd_dissent += 1; kpd_dissent += 1
+
+Trapped by mounting deficits, we are ending the state program that purchases and distributes food staples to workers and the urban poor. Those, who relied on us once, have been alienated by this move.
+
 
 @state_buyer
 title: State Buyer
