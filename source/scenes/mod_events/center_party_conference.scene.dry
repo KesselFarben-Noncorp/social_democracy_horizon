@@ -12,71 +12,339 @@ go-to: z_post_concordat if prussian_concordat >= 1
 
 Wilhelm Marx, former Center Party chancellor and presidential candidate, has chosen to resign from leadership of the Center Party. Now, the party holds a conference to replace him.
 
-The consensus candidate on the right is Ludwig Kaas, a Catholic priest who represents the party's traditionalists. On the other hand, there is Joseph Joos, a leader of the Catholic trade unions, who has been more supportive of cooperation with the SPD than most of the Center Party.
+The consensus candidate on the right is Ludwig Kaas, a Catholic priest who represents the party's traditionalists. On the other hand, there is Joseph Joos, a leader of the Catholic trade unions, who has been more supportive of cooperation with the SPD than most of the Center Party. Adam Stegerwald, leader of the Christian labor trade unions, stands apart from both — right-wing oriented, wary of clerical control over party politics, yet no friend of the aristocratic wing either.
 
-- @kaas: The Center Party elects Ludwig Kaas as the party chair.
-- @joos: Influence the Center Party to select Joseph Joos as the party chair.
-- @joos_campaign: We must hold a campaign in support of Joseph Joos as party chair.
+- @check_1: Who will the delegates choose...?
 
-@kaas
-choose-if: prussian_concordat = 0
-unavailable-subtitle: He sees no reason to run in this conference with his goal accomplished.
-on-arrival: z_party_leader = "Kaas"; z_relation -= 5; prussian_concordat_progress += 1
+@check_1
+on-arrival: {!
 
-Ludwig Kaas has been selected as the chairman of the Center Party. He seems to represent a rightward turn from Marx, and will preside over a Center Party less inclined to compromise with the left. However, his election made some progress towards Concordat.
+// === CONGRESS 1: PRE-CONCORDAT (Kaas vs Joos vs Stegerwald) ===
 
-@joos
-unavailable-subtitle: Our relations are not good enough.
-subtitle: Joos is likely to be friendlier to us than Kaas.
-choose-if: z_relation >= 70
-on-arrival: z_party_leader = "Joos"; catholics_spd += 5; workers_z += 3
+Q.z_clerical_power = Q.z_clerical_power || 250;
+Q.z_left_labor_power = Q.z_left_labor_power || 250;
+Q.z_right_labor_power = Q.z_right_labor_power || 200;
+Q.z_moderate_power = Q.z_moderate_power || 300;
 
-With our grassroots connections, we have been able to influence the Center delegates to support Joseph Joos as the new Center chairman. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Kaas. He also increases the appeal of the Center Party to the working class.
+// Candidate base power
+Q.kaas_power = Q.z_clerical_power;
+Q.joos_power = Q.z_left_labor_power;
+Q.steg_power = Q.z_right_labor_power;
 
-@joos_campaign
-choose-if: z_relation >= 62 and resources >= 1 
-view-if: z_relation < 70
-unavailable-subtitle: [? if z_relation <= 62 : Our relations are not good enough. ?] [? if resources < 1 : We do not have enough resources. ?]
-subtitle: -1 resource. Joos is likely to be friendlier to us than Kaas.
-on-arrival: resources -= 1; z_party_leader = "Joos"; catholics_spd += 5; workers_z += 3
+// Moderate power split: 50% Joos, 30% Kaas, 20% Stegerwald
+Q.joos_power += Q.z_moderate_power * 0.50;
+Q.kaas_power += Q.z_moderate_power * 0.30;
+Q.steg_power += Q.z_moderate_power * 0.20;
 
-With our grassroots connections as well as a professional campaign, we have been able to influence the Center delegates to support Joseph Joos as the new Center chairman. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Kaas. He also increases the appeal of the Center Party to the working class.
+// Seat allocation — Largest Remainder Method across 320 seats
+var seatBuckets_1 = [
+    { key: "kaas_final_votes", raw: Math.max(Q.kaas_power, 0) },
+    { key: "joos_final_votes", raw: Math.max(Q.joos_power, 0) },
+    { key: "steg_final_votes", raw: Math.max(Q.steg_power, 0) }
+];
+
+var seatTotalRaw_1 = 0;
+for (var s = 0; s < seatBuckets_1.length; s++) { seatTotalRaw_1 += seatBuckets_1[s].raw; }
+
+var seatsAllocated_1 = 0;
+for (var s2 = 0; s2 < seatBuckets_1.length; s2++) {
+    var exact = seatTotalRaw_1 > 0 ? (seatBuckets_1[s2].raw / seatTotalRaw_1 * 320) : 0;
+    seatBuckets_1[s2].floor = Math.floor(exact);
+    seatBuckets_1[s2].remainder = exact - seatBuckets_1[s2].floor;
+    seatsAllocated_1 += seatBuckets_1[s2].floor;
+}
+
+var remainingSeats_1 = 320 - seatsAllocated_1;
+var sortedBuckets_1 = seatBuckets_1.slice().sort(function(x, y) { return y.remainder - x.remainder; });
+for (var s3 = 0; s3 < sortedBuckets_1.length; s3++) {
+    sortedBuckets_1[s3].seats = sortedBuckets_1[s3].floor + (s3 < remainingSeats_1 ? 1 : 0);
+}
+for (var s4 = 0; s4 < seatBuckets_1.length; s4++) {
+    Q[seatBuckets_1[s4].key] = seatBuckets_1[s4].seats;
+}
+
+// Winner = highest seat count
+if (Q.kaas_final_votes >= Q.joos_final_votes && Q.kaas_final_votes >= Q.steg_final_votes) {
+    Q.congress_1_winner = "kaas";
+} else if (Q.joos_final_votes >= Q.kaas_final_votes && Q.joos_final_votes >= Q.steg_final_votes) {
+    Q.congress_1_winner = "joos";
+} else {
+    Q.congress_1_winner = "steg";
+}
+
+!}
+go-to: congress_1_result
+
+@congress_1_result
+on-display: {!
+var factionData = [
+    { id: "kaas", name: "Ludwig Kaas", subtitle: "Traditionalist / Clerical Wing",
+      votes: Q.kaas_final_votes, color: "#5c4a1e" },
+    { id: "joos", name: "Joseph Joos", subtitle: "Christian Trade Union / Left Labor Wing",
+      votes: Q.joos_final_votes, color: "#595BFF" },
+    { id: "steg", name: "Adam Stegerwald", subtitle: "Christian Trade Union / Right Labor Wing",
+      votes: Q.steg_final_votes, color: "#4a7c59" }
+];
+
+var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
+
+if (window && d3 && document.getElementById("z-congress-1")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("z-congress-1");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = visibleFactions.map(function(f) {
+        return { id: f.id, legend: f.name, name: f.name,
+                 seats: Math.round(f.votes), color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#z-congress-1").datum(data).call(parliament);
+
+    visibleFactions.forEach(function(f) {
+        d3.selectAll("#z-congress-1 circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", "#333")
+            .style("stroke-width", "1px")
+            .style("fill", f.color);
+    });
+}
+!}
+
+{!<svg id="z-congress-1" style="width:600px; height:300px;"></svg>!}
+
+*The final tally of delegate votes (320 congress seats):*
+
+*Ludwig Kaas (Clericals): [+ kaas_final_votes +]*
+
+*Joseph Joos (Christian Unions - Left): [+ joos_final_votes +]*
+
+*Adam Stegerwald (Christian Unions - Right): [+ steg_final_votes +]*
+
+[? if congress_1_winner = "kaas": Ludwig Kaas has been selected as the chairman of the Center Party. He seems to represent a rightward turn from Marx, and will preside over a Center Party less inclined to compromise with the left. However, his election made some progress towards Concordat. ?]
+
+[? if congress_1_winner = "joos": With our grassroots connections and the sympathies of the delegate floor, Joseph Joos has secured the chairmanship of the Center Party. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Kaas. He also increases the appeal of the Center Party to the working class. ?]
+
+[? if congress_1_winner = "steg": Adam Stegerwald has secured the chairmanship of the Center Party. The party turns away from its clericalist nature, shifting rightward and toward an interconfessional labor line — much to the discomfort of both the aristocratic traditionalists and the party's Vatican-aligned wing. ?]
+
+- @confirm_1: Continue.
+
+@confirm_1
+on-arrival: {!
+if (Q.congress_1_winner == "kaas") {
+    Q.z_party_leader = "Ludwig Kaas";
+    Q.z_relation -= 5;
+    Q.prussian_concordat_progress += 1;
+} else if (Q.congress_1_winner == "joos") {
+    Q.z_party_leader = "Joseph Joos";
+    Q.catholics_spd += 5;
+    Q.workers_z += 3;
+} else {
+    Q.z_party_leader = "Adam Stegerwald";
+    Q.z_relation -= 15;
+    Q.workers_z += 5;
+}
+!}
+
+
+
+
+
+
+
+
+
+
+
 
 @z_post_concordat
 
-As the result of the Prussian concordat being signed earlier than Kaas could depart to the Vatican, Kaas has refused to stand in, citing that he will be focused on the Reichskonkordat between the Papacy and the Reich. 
+As the result of the Prussian concordat being signed earlier than Kaas could depart to the Vatican, Kaas has refused to stand in, citing that he will be focused on the Reichskonkordat between the Papacy and the Reich.
 
 Instead, the majority of the party has pushed forward Heinrich Brauns, who has been Labor Minister for his 8-year-long career. His labor leanings have forced Joseph Joos to also drop out in the face of a threat of splitting against Adam Stegerwald—another leader of the Christian labor trade unions who, unlike Joos or Brauns, is right-wing oriented and opposes church interference in party politics. The resignation of Kaas has seriously split the Center across two labor candidates and has even made some consider abstaining in opposition.
 
-[? if z_relation > 70: We can force Joseph Joos in, however we will have to likely use an absurd amount of political capital in order to have Joseph Joos win this heated race. ?]
+[? if z_relation > 70: There is a chance to force Joseph Joos back into contention, however doing so will require spending a considerable amount of political capital and will likely cause chaos inside Zentrum. ?]
 
-- @brauns: The Center Party elects Heinrich Brauns as the party chair.
-- @stegerwald: The Center Party elects Adam Stegerwald to the leadership.
-- @joos_campaign_2: We must hold a campaign in support of Joseph Joos as party chair.
+- @dive_in: Let the conference unfold on its own — Brauns vs Stegerwald.
+- @force_joos: Force Joseph Joos into the race.
 
-@stegerwald
-subtitle: Right wing and reluctant center of Zentrum have secured majority for Adam Stegerwald.
-choose-if: z_relation < 60
-unavailable-subtitle: Stegerwald has been recently very unpopular amongst civil servants and white collars.
-on-arrival: z_party_leader = "Adam Stegerwald"; z_relation -= 15; workers_z += 5
+@force_joos
+choose-if: z_relation > 70 and resources >= 3
+on-arrival: {! Q.resources -= 3; Q.joos_forced_in = 1; !}
+unavailable-subtitle: [? if z_relation <= 70 : Our relations are not good enough to force this. ?] [? if resources < 3 : We do not have enough resources. ?]
+subtitle: -3 resources. Splits the labor/clerical vote three ways.
+go-to: check_2
 
-Stegerwald now presides over the party, turning the party away from its clericalist nature, however shifting the party rightward. [? if z_in_government and spd_in_government: This is big rock in current coalition, as Adam Stegerwald dislikes SPD enough to be willing to sabotage current coalition. ?]
+@dive_in
+on-arrival: joos_forced_in = 0
+go-to: check_2
 
-@brauns
-subtitle: Left and reluctant center defeated Adam Stegerwald, clearing way for Heinrich Brauns.
-choose-if: z_relation >= 60
-unavailable-subtitle: Brauns has been defeated by the right wing forces of Zentrum.
-on-arrival: z_party_leader = "Heinrich Brauns"; z_relation += 2; workers_aid += 1; welfare += 1
+@check_2
+on-arrival: {!
 
-Heinrich Brauns has been selected as the chairman of the Center Party. The dynamics between our parties practically remain the same, ensuring a baseline of stable cooperation. However his position is very fragile and entirely depends on whether reluctant center dislikes Stegerwald or not.
+// === CONGRESS 2: POST-CONCORDAT (Brauns vs Stegerwald, optionally + Joos) ===
 
-@joos_campaign_2
-choose-if: z_relation >= 70 and resources >= 3
-view-if: z_relation > 65
-unavailable-subtitle: [? if z_relation <= 70 : Joseph Joos is not willing to disrupt this run, preferring to back Brauns instead. ?] [? if resources < 3 : We do not have enough resources. ?]
-subtitle: -3 resources. Joos is likely to be friendlier to us than Brauns, however this move will likely cause chaos inside Zentrum.
-on-arrival: resources -= 3; z_party_leader = "Joseph Joos"; new_middle_spd += 2; workers_z += 3; z_relation -= 10
+Q.z_clerical_power = Q.z_clerical_power || 250;
+Q.z_left_labor_power = Q.z_left_labor_power || 250;
+Q.z_right_labor_power = Q.z_right_labor_power || 200;
+Q.z_moderate_power = Q.z_moderate_power || 300;
 
-With our grassroots connections as well as a professional campaign, we have been able to influence the Center delegates to support Joseph Joos as the new Center chairman. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Brauns. He also increases the appeal of the Center Party to the working class.
+// Clerical power splits between Brauns and Stegerwald, proportional to z_relation.
+// Higher z_relation -> more clerical support flows to Brauns.
+var relationShare = Q.z_relation / 100;
+if (relationShare < 0) { relationShare = 0; }
+if (relationShare > 1) { relationShare = 1; }
 
-This move caused a significant drop in relations between our parties due to our heavy-handed intervention.
+Q.brauns_power = Q.z_moderate_power + (Q.z_clerical_power * relationShare);
+Q.steg_power_2 = Q.z_right_labor_power + (Q.z_clerical_power * (1 - relationShare));
+
+// If Joos was forced in, he pulls from the left-labor pool directly (and a
+// modest cut of Brauns' moderate base, reflecting his crossover appeal).
+if (Q.joos_forced_in == 1) {
+    Q.joos_power_2 = Q.z_left_labor_power;
+    Q.brauns_power -= Q.z_moderate_power * 0.15;
+} else {
+    // No Joos in the race — left labor power still flows toward Brauns,
+    // as the labor-friendly consensus candidate.
+    Q.brauns_power += Q.z_left_labor_power;
+    Q.joos_power_2 = 0;
+}
+
+var seatBuckets_2 = [
+    { key: "brauns_final_votes", raw: Math.max(Q.brauns_power, 0) },
+    { key: "steg_final_votes_2", raw: Math.max(Q.steg_power_2, 0) }
+];
+if (Q.joos_forced_in == 1) {
+    seatBuckets_2.push({ key: "joos_final_votes_2", raw: Math.max(Q.joos_power_2, 0) });
+}
+
+var seatTotalRaw_2 = 0;
+for (var s = 0; s < seatBuckets_2.length; s++) { seatTotalRaw_2 += seatBuckets_2[s].raw; }
+
+var seatsAllocated_2 = 0;
+for (var s2 = 0; s2 < seatBuckets_2.length; s2++) {
+    var exact = seatTotalRaw_2 > 0 ? (seatBuckets_2[s2].raw / seatTotalRaw_2 * 320) : 0;
+    seatBuckets_2[s2].floor = Math.floor(exact);
+    seatBuckets_2[s2].remainder = exact - seatBuckets_2[s2].floor;
+    seatsAllocated_2 += seatBuckets_2[s2].floor;
+}
+
+var remainingSeats_2 = 320 - seatsAllocated_2;
+var sortedBuckets_2 = seatBuckets_2.slice().sort(function(x, y) { return y.remainder - x.remainder; });
+for (var s3 = 0; s3 < sortedBuckets_2.length; s3++) {
+    sortedBuckets_2[s3].seats = sortedBuckets_2[s3].floor + (s3 < remainingSeats_2 ? 1 : 0);
+}
+for (var s4 = 0; s4 < seatBuckets_2.length; s4++) {
+    Q[seatBuckets_2[s4].key] = seatBuckets_2[s4].seats;
+}
+if (Q.joos_forced_in == 0) { Q.joos_final_votes_2 = 0; }
+
+// Winner = highest seat count
+if (Q.joos_forced_in == 1 && Q.joos_final_votes_2 >= Q.brauns_final_votes && Q.joos_final_votes_2 >= Q.steg_final_votes_2) {
+    Q.congress_2_winner = "joos";
+} else if (Q.brauns_final_votes >= Q.steg_final_votes_2) {
+    Q.congress_2_winner = "brauns";
+} else {
+    Q.congress_2_winner = "steg";
+}
+
+!}
+go-to: congress_2_result
+
+@congress_2_result
+on-display: {!
+var factionData = [
+    { id: "brauns", name: "Heinrich Brauns", subtitle: "Moderate / Labor Wing",
+      votes: Q.brauns_final_votes, color: "#595BFF" },
+    { id: "steg", name: "Adam Stegerwald", subtitle: "Christian Union / Right Labor Wing",
+      votes: Q.steg_final_votes_2, color: "#4a7c59" },
+    { id: "joos", name: "Joseph Joos", subtitle: "Christian Union / Left Labor Wing",
+      votes: Q.joos_final_votes_2 || 0, color: "#FC7CD2" }
+];
+
+var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
+
+if (window && d3 && document.getElementById("z-congress-2")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("z-congress-2");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = visibleFactions.map(function(f) {
+        return { id: f.id, legend: f.name, name: f.name,
+                 seats: Math.round(f.votes), color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#z-congress-2").datum(data).call(parliament);
+
+    visibleFactions.forEach(function(f) {
+        d3.selectAll("#z-congress-2 circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", "#333")
+            .style("stroke-width", "1px")
+            .style("fill", f.color);
+    });
+}
+!}
+
+{!<svg id="z-congress-2" style="width:600px; height:300px;"></svg>!}
+
+*The final tally of delegate votes (320 congress seats):*
+
+*Heinrich Brauns (Moderates): [+ brauns_final_votes +]*
+
+*Adam Stegerwald (Right Labor): [+ steg_final_votes_2 +]*
+
+[? if joos_forced_in = 1: *Joseph Joos (Left Labor): [+ joos_final_votes_2 +]* ?]
+
+[? if congress_2_winner = "brauns": Heinrich Brauns has been selected as the chairman of the Center Party. The dynamics between our parties practically remain the same, ensuring a baseline of stable cooperation. However his position is very fragile and entirely depends on whether the reluctant center continues to prefer him over Stegerwald. ?]
+
+[? if congress_2_winner = "steg": Stegerwald now presides over the party, turning it away from its clericalist nature, however shifting the party rightward. [? if z_in_government and spd_in_government: This is a big rock in the current coalition, as Adam Stegerwald dislikes the SPD enough to be willing to sabotage the current coalition. ?] ?]
+
+[? if congress_2_winner = "joos": With our grassroots connections and a costly, professional campaign, we have engineered Joseph Joos's ascent to the Center chairmanship. He has long been a friend of the SPD, and will be more inclined to collaborate with us compared to Brauns or Stegerwald. This heavy-handed intervention, however, has left visible scars on the relationship between our parties. ?]
+
+- @confirm_2: Continue.
+
+@confirm_2
+on-arrival: {!
+if (Q.congress_2_winner == "brauns") {
+    Q.z_party_leader = "Heinrich Brauns";
+    Q.z_relation += 2;
+    Q.workers_aid += 1;
+    Q.welfare += 1;
+} else if (Q.congress_2_winner == "steg") {
+    Q.z_party_leader = "Adam Stegerwald";
+    Q.z_relation -= 15;
+    Q.workers_z += 5;
+} else {
+    Q.z_party_leader = "Joseph Joos";
+    Q.new_middle_spd += 2;
+    Q.workers_z += 3;
+    Q.z_relation -= 10;
+}
+!}
+go-to: root
