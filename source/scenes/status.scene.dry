@@ -78,59 +78,6 @@ var partyNameOverrideRelations = {
     dsbp: Q.dsbp_name
 };
 
-// Tooltip text for each party, used in Inter-party Relations.
-// Parties not listed here just get a plain (non-tooltip) label.
-var partyTooltips = {
-    z: "Center Party",
-    kpo: "Communist Party in Opposition",
-    sapd: "SAPD",
-    srpd: "SRPD",
-    sl: "Socialist League",
-    bvp: "Bavarian People's Party",
-    bb: "Bavarian Peasants' Party",
-    csrp: "Christian Social German Party",
-    hl: "Hanseatic League",
-    ddp: "German Democratic Party",
-    dhp: "German Hannover Party",
-    dvp: "German People's Party",
-    vnr: "People's National Reich Association",
-    wp: "Economic Party",
-    cnbl: "Chrisliche National Bauern League",
-    kvp: "Konservative Volkspartei",
-    aspd: "Old Social Democratic Party of Germany / Social Fascist Party",
-    kpd: "KPD",
-    csvd: "CSVD",
-    dnvp: "German National People's Party",
-    nsdap: "National-Socialist German Worker's Party (Nazis)",
-    dvfp: "German National Freedom Party",
-    lb: "Leninbund",
-    rdp: "Radical Democratic Party",
-    cvp: "Christian People's Party",
-    sls: "Sorbian People's Party",
-    dtsp: "German-Social Party"
-};
-
-// Parties whose relation line is gated behind an extra condition beyond
-// "party is in Q.parties" (mirrors the original hand-written [? if ?] guards).
-var partyRelationGate = {
-    kpo:  function() { return Q.kpo_votes > 0; },
-    sapd: function() { return Q.sapd_formed == 1; },
-    srpd: function() { return Q.srpd_formed == 1; },
-    sl:   function() { return Q.sl_votes > 0; },
-    hl:   function() { return Q.hl_votes > 0; },
-    dsbp: function() { return Q.dsbp_votes > 0; },
-    vnr:  function() { return Q.vnr_votes > 0; },
-    kvp:  function() { return Q.kvp_flee == 1; },
-    aspd: function() { return Q.aspd_votes > 0; },
-    csvd: function() { return Q.csvd_flee == 1; },
-    dvfp: function() { return Q.dvfp_votes > 0; },
-    lb:   function() { return Q.lb_votes > 0; },
-    rdp:  function() { return Q.rdp_votes > 0; },
-    cvp:  function() { return Q.cvp_votes > 0; },
-    sls:  function() { return Q.sls_votes > 0; },
-    dtsp: function() { return Q.dtsp_votes > 0; }
-};
-
 function partyLabelIdeology(p) {
     if (partyNameOverrideIdeology.hasOwnProperty(p)) return partyNameOverrideIdeology[p];
     return p.toUpperCase();
@@ -174,19 +121,15 @@ function formatRelationship(val) {
 var relationsHtml = "";
 for (var i = 0; i < Q.parties.length; i++) {
     var p = Q.parties[i];
-    var gate = partyRelationGate[p];
-    if (gate && !gate()) continue;
+    var votes = Q[p + '_votes'];
+    if (!(votes > 0)) continue;
 
     var label = partyLabelRelations(p);
-    var tooltip = partyTooltips[p];
-    var displayLabel = tooltip
-        ? '<span class="tooltip-text" title="' + tooltip + '">' + label + '</span>'
-        : label;
 
     var rawVal = Q[p + '_relation'];
     var formatted = formatRelationship(rawVal);
 
-    relationsHtml += displayLabel + ": " + formatted +
+    relationsHtml += label + ": " + formatted +
                       (Q.deterministic_mode == 1 ? " " + rawVal : "") +
                       "<br>";
 }
