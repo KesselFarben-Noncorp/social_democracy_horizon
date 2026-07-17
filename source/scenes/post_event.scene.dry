@@ -1033,6 +1033,13 @@ if (Q.ideology == "reformist") {
     Q.z_clerical_power += 3.5;
 }
 
+if (Q.enemies = "bourgeois parties") {
+    Q.z_right_labor_power += 3.0;
+    Q.z_left_labor_power -= 3.0;
+    Q.z_clerical_power += 1.0;
+    Q.z_moderate_power += 1.2;
+}
+
 // 2. COALITION STATUS & SPD RELATIONS
 // Joos and Brauns rely on a stable, cooperative relationship with the SPD.
 // If relations sour or the SPD acts aggressively, the bourgeois base swings to Kaas/Stegerwald.
@@ -1101,14 +1108,14 @@ if (Q.unions_independent) {
 
 if (Q.lambach_exile == 0 && (Q.year >= 1928 && Q.month >= 7) && Q.year < 1930) {
     Q.z_left_labor_power += 1.0;
-    Q.z_right_labor_power += 5.0;
+    Q.z_right_labor_power += 5.7;
     Q.z_moderate_power -= 1.5;
     Q.z_clerical_power -= 2.7;
 }
 
 if (Q.congress_path == "social_nationalists" && Q.year < 1930) {
     Q.z_left_labor_power += 2.5;
-    Q.z_right_labor_power += 9;
+    Q.z_right_labor_power += 12;
     Q.z_moderate_power -= 1.5;
     Q.z_clerical_power -= 3.5;
 }
@@ -1129,8 +1136,8 @@ const rural_z = Q.rural_z_display || 0;
 const old_middle_z = Q.old_middle_z_display || 0;
 const new_middle_z = Q.new_middle_z_display || 0;
 
-Q.z_left_labor_power += (workers_z * 0.50);
-Q.z_right_labor_power += (workers_z * 0.48);
+Q.z_left_labor_power += (workers_z * 0.50) + (new_middle_z * 0.18);
+Q.z_right_labor_power += (workers_z * 0.48) + (new_middle_z * 0.05);
 
 Q.z_clerical_power += (rural_z * 0.35) + (old_middle_z * 0.25);
 Q.z_moderate_power += (new_middle_z * 0.40) + (old_middle_z * 0.15);
@@ -1165,6 +1172,25 @@ if (new_middle_z > 20 || old_middle_z > 25) {
     }
 }
 
+if (Q.z_party_leader == "Joseph Joos") {
+
+    // Right labor always counts fully toward the anti-Joos bloc
+    let vonc_score = Q.z_right_labor_power;
+
+    const relation = Q.z_relation != null ? Q.z_relation : 50;
+    const relation_deficit = Math.max(0, 70 - relation) / 70; // 0 to 1
+    const clerical_weight = Math.pow(relation_deficit, 2);    // exponential curve
+
+    vonc_score += Q.z_clerical_power * clerical_weight;
+
+    const threshold_floor = 450;
+    const threshold_ceiling = 600;
+    const vonc_threshold = threshold_ceiling - (relation_deficit * (threshold_ceiling - threshold_floor));
+
+    if (vonc_score >= vonc_threshold) {
+        Q.z_vonc_triggered = 1;
+    }
+}
 
 
 
