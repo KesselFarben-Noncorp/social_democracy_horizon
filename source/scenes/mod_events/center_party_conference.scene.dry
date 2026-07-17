@@ -77,13 +77,15 @@ go-to: congress_1_result
 
 @congress_1_result
 on-display: {!
+var isDark = document.body.classList.contains('dark-mode');
+
 var factionData = [
     { id: "kaas", name: "Ludwig Kaas", subtitle: "Traditionalist / Clerical Wing",
-      votes: Q.kaas_final_votes, color: "#5c4a1e" },
+      votes: Q.kaas_final_votes, color: isDark ? "#c9a86a" : "#5c4a1e" },
     { id: "joos", name: "Joseph Joos", subtitle: "Christian Trade Union / Left Labor Wing",
-      votes: Q.joos_final_votes, color: "#595BFF" },
+      votes: Q.joos_final_votes, color: isDark ? "#9a9bff" : "#595BFF" },
     { id: "steg", name: "Adam Stegerwald", subtitle: "Christian Trade Union / Right Labor Wing",
-      votes: Q.steg_final_votes, color: "#4a7c59" }
+      votes: Q.steg_final_votes, color: isDark ? "#7fbf94" : "#4a7c59" }
 ];
 
 var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
@@ -265,13 +267,15 @@ go-to: congress_2_result
 
 @congress_2_result
 on-display: {!
+var isDark = document.body.classList.contains('dark-mode');
+
 var factionData = [
     { id: "brauns", name: "Heinrich Brauns", subtitle: "Moderate / Labor Wing",
-      votes: Q.brauns_final_votes, color: "#595BFF" },
+      votes: Q.brauns_final_votes, color: isDark ? "#9a9bff" : "#595BFF" },
     { id: "steg", name: "Adam Stegerwald", subtitle: "Christian Union / Right Labor Wing",
-      votes: Q.steg_final_votes_2, color: "#4a7c59" },
+      votes: Q.steg_final_votes_2, color: isDark ? "#7fbf94" : "#4a7c59" },
     { id: "joos", name: "Joseph Joos", subtitle: "Christian Union / Left Labor Wing",
-      votes: Q.joos_final_votes_2 || 0, color: "#FC7CD2" }
+      votes: Q.joos_final_votes_2 || 0, color: isDark ? "#ff9fdd" : "#FC7CD2" }
 ];
 
 var visibleFactions = factionData.filter(function(f) { return f.votes > 0; });
