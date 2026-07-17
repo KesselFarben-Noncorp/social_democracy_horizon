@@ -1,0 +1,130 @@
+Title: Joos Under Fire
+subtitle: The Christian Unions and the clergy make common cause against the chairman...
+view-if: z_party_leader = "Joseph Joos" and z_vonc_triggered = 1 and joos_vonc_timer == 0
+tags: event
+new-page: true
+
+= Joos Under Fire
+
+- @check_vonc: See how the delegate floor responds...
+
+@check_vonc
+on-arrival: {!
+
+// === VONC CHECK: Joos ===
+
+Q.z_clerical_power = Q.z_clerical_power || 250;
+Q.z_left_labor_power = Q.z_left_labor_power || 250;
+Q.z_right_labor_power = Q.z_right_labor_power || 200;
+Q.z_moderate_power = Q.z_moderate_power || 300;
+
+var relation = (Q.z_relation != null) ? Q.z_relation : 50;
+
+Q.vonc_score = Q.z_right_labor_power;
+
+var relation_deficit = Math.max(0, 70 - relation) / 70;
+if (relation_deficit > 1) { relation_deficit = 1; }
+var clerical_weight = Math.pow(relation_deficit, 2);
+
+Q.vonc_clerical_contribution = Q.z_clerical_power * clerical_weight;
+Q.vonc_score += Q.vonc_clerical_contribution;
+
+var threshold_ceiling = 600;
+var threshold_floor = 450;
+Q.vonc_threshold = threshold_ceiling - (relation_deficit * (threshold_ceiling - threshold_floor));
+
+Q.vonc_defense = Q.z_moderate_power + Q.z_left_labor_power;
+
+if (Q.vonc_score >= Q.vonc_threshold) {
+    Q.vonc_result = "ousted";
+} else {
+    Q.vonc_result = "survives";
+}
+
+// Pre-round for display, since [+ +] can't evaluate expressions
+Q.vonc_score_display = Math.round(Q.vonc_score);
+Q.vonc_threshold_display = Math.round(Q.vonc_threshold);
+Q.vonc_defense_display = Math.round(Q.vonc_defense);
+
+!}
+go-to: vonc_result
+
+@vonc_result
+on-display: {!
+var isDark = document.body.classList.contains('dark-mode');
+
+var factionData = [
+    { id: "challenge", name: "No Confidence", subtitle: "Right Labor + Clerical Wing",
+      votes: Q.vonc_score, color: isDark ? "#e08a8a" : "#a13d3d" },
+    { id: "defense", name: "Confidence", subtitle: "Moderates + Left Labor",
+      votes: Q.vonc_defense, color: isDark ? "#ff9fdd" : "#FC7CD2" }
+];
+
+if (window && d3 && document.getElementById("z-vonc")) {
+    var width = 600;
+    var height = 300;
+    var contentEl = document.getElementById('content');
+    var screenWidth = contentEl ? contentEl.offsetWidth : 600;
+    if (screenWidth < width - 50) {
+        width = screenWidth - 50;
+        height = Math.round(width / 2);
+    }
+
+    var svg = document.getElementById("z-vonc");
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+
+    var data = factionData.map(function(f) {
+        return { id: f.id, legend: f.name, name: f.name,
+                 seats: Math.round(f.votes), color: f.color };
+    });
+
+    var parliament = d3.parliament();
+    parliament.width(width).height(height).innerRadiusCoef(0.4);
+    parliament.enter.fromCenter(true).smallToBig(true);
+    parliament.exit.toCenter(false).bigToSmall(true);
+    d3.select("#z-vonc").datum(data).call(parliament);
+
+    factionData.forEach(function(f) {
+        d3.selectAll("#z-vonc circle")
+            .filter(function(d) { return d && d.data && d.data.id === f.id; })
+            .style("stroke", "#333")
+            .style("stroke-width", "1px")
+            .style("fill", f.color);
+    });
+}
+!}
+
+{!<svg id="z-vonc" style="width:600px; height:300px;"></svg>!}
+
+*Challenge strength: [+ vonc_score_display +] (threshold: [+ vonc_threshold_display +])*
+
+*Defense strength: [+ vonc_defense_display +]*
+
+[? if vonc_result = "ousted": Joos is cooked. ?]
+
+[? if vonc_result = "survives": Joos survives this. ?]
+
+- @confirm_vonc: Continue.
+
+@confirm_vonc
+on-arrival: {!
+Q.z_vonc_eligible = 0;
+Q.joos_vonc_timer = 48;
+
+if (Q.vonc_result == "ousted") {
+    Q.z_relation -= 8;
+
+    if (Q.z_right_labor_power >= Q.vonc_clerical_contribution) {
+        Q.z_party_leader = "Adam Stegerwald";
+    } else if (Q.prussian_concordat >= 1) {
+        Q.z_party_leader = "Georg Schreiber";
+    } else {
+        Q.z_party_leader = "Ludwig Kaas";
+    }
+} else {
+    Q.z_moderate_power += 3.0;
+    Q.z_right_labor_power -= 2.0;
+}
+!}
+go-to: root
