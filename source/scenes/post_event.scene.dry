@@ -993,13 +993,23 @@ if (Q.prussian_concordat >= 1) {
     // With the Prussian Concordat signed, Kaas is historically vindicated but 
     // focuses on Rome, leaving a vacuum that splits the labor wings.
     Q.z_clerical_power -= 3.5;
-    Q.z_right_labor_power += 2.8; 
+    Q.z_right_labor_power += 3.8; 
     Q.z_moderate_power += 2.0;
-} else {
+} else if (Q.prussian_concordat_progress == 0) {
     // Ongoing negotiations and Vatican pressure boost clerical authority.
     Q.z_clerical_power += 3.5;
-    Q.z_right_labor_power -= 1.8; // Vatican opposes Stegerwald's interconfessional plans
+    Q.z_right_labor_power -= 1.8; 
+} else if (Q.prussian_concordat_progress >= 1) {
+    Q.z_clerical_power += 2.5;
+    Q.z_left_labor_power += 1.0;
+    Q.z_right_labor_power -= 0.8; // Vatican opposes Stegerwald's interconfessional plans
+
+    Q.z_clerical_power -= 0.5 * Q.prussian_concordat_progress;
+    Q.z_right_labor_power += 0.7 * Q.prussian_concordat_progress;
+    Q.z_left_labor_power += 0.1 * Q.prussian_concordat_progress;
+    Q.z_moderate_power += 0.1 * Q.prussian_concordat_progress;
 }
+
 
 if (Q.catholic_action_influence >= 1) {
     Q.z_clerical_power += 4.5;
@@ -1007,10 +1017,10 @@ if (Q.catholic_action_influence >= 1) {
     Q.z_right_labor_power -= 3.0; // Christian Unions (DGB) hate clerical interference
 }
 
-// Fixed 'If' capitalization and aligned casing with DNVP file
 if (Q.ideology == "reformist") {
     Q.z_left_labor_power += 2.5;
-    Q.z_right_labor_power += 0.5;
+    Q.z_moderate_power += 0.5;
+    Q.z_right_labor_power += 1.0;
 } else if (Q.ideology == "labor") {
     Q.z_left_labor_power -= 1.5;
     Q.z_right_labor_power += 1.0;
@@ -1026,21 +1036,34 @@ if (Q.ideology == "reformist") {
 // 2. COALITION STATUS & SPD RELATIONS
 // Joos and Brauns rely on a stable, cooperative relationship with the SPD.
 // If relations sour or the SPD acts aggressively, the bourgeois base swings to Kaas/Stegerwald.
+
 if (Q.z_relation >= 70) {
-    Q.z_left_labor_power += 3.0;
-    Q.z_moderate_power += 1.5;
-    Q.z_right_labor_power -= 2.0; // Stegerwald's anti-SPD platform loses steam
+    let multiplier = Q.z_relation / 10; // e.g., 7.5 multiplier at 75 relation
+    
+    Q.z_left_labor_power += 3.0 * multiplier;
+    Q.z_moderate_power += 1.5 * multiplier;
+    Q.z_right_labor_power -= 2.0 * multiplier;
+
 } else if (Q.z_relation < 70 && Q.z_relation >= 60) {
-    Q.z_clerical_power += 1.5;
-    Q.z_right_labor_power += 1.5; // Stegerwald's skepticism of the SPD is vindicated
-    Q.z_left_labor_power -= 1.0;
-    Q.z_moderate_power += 1.0;
+
+    let multiplier = (70 - Q.z_relation) / 10; // e.g., 0.5 multiplier at 65 relation
+    if (multiplier < 0.1) multiplier = 0.1;   // Safety floor so it always triggers at least a tiny bit
+    
+    Q.z_clerical_power += 1.5 * multiplier;
+    Q.z_right_labor_power += 1.5 * multiplier;
+    Q.z_left_labor_power -= 1.0 * multiplier;
+    Q.z_moderate_power += 1.0 * multiplier;
+
 } else {
-    Q.z_clerical_power += 2.5;
-    Q.z_right_labor_power += 1.9;
-    Q.z_left_labor_power -= 1.2;
-    Q.z_moderate_power -= 0.5;
+
+    let multiplier = (80 - Q.z_relation) / 10; // e.g., 6.0 multiplier at 20 relation
+    
+    Q.z_clerical_power += 1.5 * multiplier;
+    Q.z_right_labor_power += 2.9 * multiplier;
+    Q.z_left_labor_power -= 1.2 * multiplier;
+    Q.z_moderate_power -= 0.5 * multiplier;
 }
+
 
 if (Q.spd_in_government && Q.z_in_government) {
     Q.z_moderate_power += 2.5;
@@ -1059,33 +1082,33 @@ if (Q.spd_in_government && Q.z_in_government) {
 
 // 3. SOCIAL POLICY & LABOR CONFLICTS
 // The fight over Welfare defines the labor split.
-const welfare_val = Q.welfare || 0; // Prevent NaN errors
+const welfare_val = Q.welfare || 0;
 if (welfare_val > 0) {
     Q.z_left_labor_power += 1.5 * welfare_val;
     Q.z_moderate_power += 2.0 * welfare_val; // Validates Brauns' welfare-state legacy
 } else if (welfare_val < 0) {
     // Austerity triggers union militancy, but also a defensive bourgeois backlash
-    Q.z_right_labor_power += 3.0 * Math.abs(welfare_val);
+    Q.z_right_labor_power += 3.5 * Math.abs(welfare_val);
     Q.z_clerical_power += 1.5 * Math.abs(welfare_val);
     Q.z_moderate_power -= 2.5 * Math.abs(welfare_val);
 }
 
 if (Q.unions_independent) {
     // ADBG unions strengthen the lay DGB wing
-    Q.z_right_labor_power += 5.0;
+    Q.z_right_labor_power += 6.0;
     Q.z_left_labor_power += 2.5;
 }
 
 if (Q.lambach_exile == 0 && (Q.year >= 1928 && Q.month >= 7) && Q.year < 1930) {
     Q.z_left_labor_power += 1.0;
-    Q.z_right_labor_power += 3.0;
+    Q.z_right_labor_power += 5.0;
     Q.z_moderate_power -= 1.5;
     Q.z_clerical_power -= 2.7;
 }
 
 if (Q.congress_path == "social_nationalists" && Q.year < 1930) {
     Q.z_left_labor_power += 2.5;
-    Q.z_right_labor_power += 7;
+    Q.z_right_labor_power += 9;
     Q.z_moderate_power -= 1.5;
     Q.z_clerical_power -= 3.5;
 }
@@ -1094,7 +1117,7 @@ if (Q.congress_path == "social_nationalists" && Q.year < 1930) {
 // Nothing unites and radicalizes Zentrum like threats to religious schools.
 // High secularization efforts by the SPD trigger a massive clerical backlash.
 if (Q.secularized == 1 || Q.major_curriculum == "scientific") {
-    Q.z_clerical_power += 6.5;    // Defensive Catholic mobilization
+    Q.z_clerical_power += 5.5;    // Defensive Catholic mobilization
     Q.z_left_labor_power -= 4.0;  // Socialists' "allies" are blamed for cultural betrayal
     Q.z_moderate_power -= 2.0;
 }
@@ -1106,8 +1129,8 @@ const rural_z = Q.rural_z_display || 0;
 const old_middle_z = Q.old_middle_z_display || 0;
 const new_middle_z = Q.new_middle_z_display || 0;
 
-Q.z_left_labor_power += (workers_z * 0.45);
-Q.z_right_labor_power += (workers_z * 0.35);
+Q.z_left_labor_power += (workers_z * 0.50);
+Q.z_right_labor_power += (workers_z * 0.48);
 
 Q.z_clerical_power += (rural_z * 0.35) + (old_middle_z * 0.25);
 Q.z_moderate_power += (new_middle_z * 0.40) + (old_middle_z * 0.15);
@@ -1118,8 +1141,8 @@ if (new_middle_z > 20 || old_middle_z > 25) {
     Q.z_right_labor_power -= 3.5;
     Q.z_clerical_power += 2.0;
 } else {
-    Q.z_right_labor_power += workers_z * 0.11;
-    Q.z_left_labor_power += workers_z * 0.05;
+    Q.z_right_labor_power += workers_z * 0.15;
+    Q.z_left_labor_power += workers_z * 0.07;
 }
 
 // 6. GLOBAL REGULATION: Cap combined total of all 4 tracked variables at 1000
