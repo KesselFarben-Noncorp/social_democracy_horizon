@@ -1,3 +1,4 @@
+
 title: library
 new-page: true
 is-special: true
@@ -388,65 +389,56 @@ go-to: menu
 on-display: {!
 var partyData = Q.partyData || [];
 
-// Build parliament diagram data from partyData
 var data = partyData
     .filter(function(p) { return p.show; })
     .map(function(p) { return { id: p.id, legend: p.name, name: p.name, seats: p.seats }; });
 
-// Build color and label maps from partyData for line graphs
 var partyColors = {};
 var partyLabels = {};
 partyData.forEach(function(p) {
     partyColors[p.id] = p.color;
     partyLabels[p.id] = p.name;
 });
-// Override ddp label with dynamic name
 partyLabels['ddp'] = Q.ddp_name;
 
 if (d3 && window) {
-    // get screen width
     var width = 500;
     var height = 500;
     var screenWidth = document.getElementById('content').offsetWidth;
     if (screenWidth < width - 50) {
         width = screenWidth - 50;
         height = width;
-        document.getElementById("reichstag").style.height = screenWidth/2 + "px";
+        document.getElementById("reichstag_2").style.height = screenWidth/2 + "px";
     }
     var parliament = d3.parliament();
     parliament.width(width).height(height).innerRadiusCoef(0.4);
     parliament.enter.fromCenter(true).smallToBig(true);
     parliament.exit.toCenter(false).bigToSmall(true);
-    d3.select("#reichstag").datum(data).call(parliament);
+    d3.select("#reichstag_2").datum(data).call(parliament);
 
-    var lines = d3.linegraph(false, false,
-            Q.parties,
-            partyColors,
-            partyLabels);
+    var lines = d3.linegraph(false, false, Q.parties, partyColors, partyLabels);
     lines.width(width).height(400);
     if (Q.election_records.length > 0) {
         d3.select("#election_history").datum(Q.election_records).call(lines);
     }
 
     if (!Q.historical_mode || Q.game_over) {
-        var lines_2 = d3.linegraph(true, true,
-            Q.parties,
-            partyColors,
-            partyLabels);
+        var lines_2 = d3.linegraph(true, true, Q.parties, partyColors, partyLabels);
         lines_2.width(width).height(400);
         d3.select("#party_support_history").datum(Q.party_support_records).call(lines_2);
     }
 
-    // economic stats
     var minInflation = d3.min(Q.economic_records, d => d.inflation);
     var maxUnemployment = d3.max(Q.economic_records, d => d.unemployment);
     var lines_3 = d3.linegraph(true, true, ['inflation', 'unemployment', 'economic_growth'],
             {'inflation': '#0000FF', 'unemployment': '#FF0000', 'economic_growth': '#00FF22'},
-            {'inflation': 'Inflation', 'unemployment': 'Unemployment' , 'economic_growth': 'Economic Growth'},
+            {'inflation': 'Inflation', 'unemployment': 'Unemployment', 'economic_growth': 'Economic Growth'},
             maxUnemployment + 5, minInflation - 5, 21);
     lines_3.width(width).height(300);
     d3.select("#economic_history").datum(Q.economic_records).call(lines_3);
 }
+
+document.getElementById('election-table').innerHTML = Q.election_table_html || '';
 !}
 
 = Reichstag composition
