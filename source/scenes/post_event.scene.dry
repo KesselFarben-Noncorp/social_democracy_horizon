@@ -1432,8 +1432,41 @@ Q.fiscal_upkeep = (welfare_upkeep + land_upkeep + agri_fin_upkeep + pro_consumer
                 + commonwealth_upkeep + econ_dem_upkeep + safety_upkeep) * macro_upkeep_mult;
 
 Q.budget += Q.fiscal_revenue - Q.fiscal_upkeep;
+Q.budget = Math.round(Q.budget * 100) / 100;
 
+// ============================================================
+// DIRECT MACRO -> BUDGET NUDGE (small, additive, separate from
+// the multiplier chain above — kept deliberately weak so it can
+// only ever shade the tick, never dominate it)
+// ============================================================
+
+const DIRECT_MACRO_SCALE = 0.01; // global dial for this whole block
+
+let growth_gap_effect = Math.max(-0.5, Math.min(0.5, (Q.economic_growth - 2.5) * 0.15));
+
+let unemployment_drag_direct = -Math.max(0, Math.min(0.5, ((Q.unemployed || 0) - 6) * 0.03));
+
+let inflation_drift = Q.inflation - 2.5;
+let inflation_effect_direct = 0;
+if (inflation_drift > 0) {
+    inflation_effect_direct = -Math.min(0.5, inflation_drift * 0.02);
+} else if (Q.inflation < -2) {
+    inflation_effect_direct = -Math.min(0.3, Math.abs(Q.inflation + 2) * 0.015);
+}
+
+let direct_macro_delta = (growth_gap_effect + unemployment_drag_direct + inflation_effect_direct) * DIRECT_MACRO_SCALE * 100;
+direct_macro_delta = Math.max(-1.0, Math.min(1.0, direct_macro_delta));
+
+Q.budget += direct_macro_delta;
+Q.budget = Math.round(Q.budget * 100) / 100;
+
+// budget_audit must exist BEFORE anything writes into it
 Q.budget_audit = Q.budget_audit || {};
+
+Q.budget_audit.direct_growth_effect      = Math.round(growth_gap_effect * DIRECT_MACRO_SCALE * 100 * 100) / 100;
+Q.budget_audit.direct_unemployment_drag  = Math.round(unemployment_drag_direct * DIRECT_MACRO_SCALE * 100 * 100) / 100;
+Q.budget_audit.direct_inflation_effect   = Math.round(inflation_effect_direct * DIRECT_MACRO_SCALE * 100 * 100) / 100;
+Q.budget_audit.direct_macro_delta        = Math.round(direct_macro_delta * 100) / 100;
 
 Q.budget_audit.income_upper_tax   = Math.round(upper_yield  * macro_revenue_mult * 100) / 100;
 Q.budget_audit.income_lower_tax   = Math.round(lower_yield  * macro_revenue_mult * 100) / 100;
@@ -1453,7 +1486,8 @@ Q.budget_audit.expense_safety        = Math.round(safety_upkeep        * macro_u
 Q.budget_audit.expense_total         = Math.round(Q.fiscal_upkeep * 100) / 100;
 
 // --- NET / MULTIPLIER CONTEXT ---
-Q.budget_audit.net_change      = Math.round((Q.fiscal_revenue - Q.fiscal_upkeep) * 100) / 100;
+// net_change now includes the direct macro nudge so it reflects the TRUE total budget movement this tick
+Q.budget_audit.net_change      = Math.round((Q.fiscal_revenue - Q.fiscal_upkeep + direct_macro_delta) * 100) / 100;
 Q.budget_audit.macro_rev_mult  = Math.round(macro_revenue_mult * 1000) / 1000;
 Q.budget_audit.macro_upk_mult  = Math.round(macro_upkeep_mult  * 1000) / 1000;
 Q.budget_audit.upper_tax_rate  = Q.upper_tax_rates || 0;
@@ -1485,7 +1519,7 @@ if (Q.budget < -25) {
 
 
 Q.budget_audit_text =
-    "Budget: " + (Math.round(Q.budget * 100) / 100) + " (" + Q.budget_audit.status + ")\n" +
+    "Budget: " + Q.budget.toFixed(2) + " (" + Q.budget_audit.status + ")\n" +
     "Income: " + Q.budget_audit.income_total +
         " [upper tax " + Q.budget_audit.income_upper_tax +
         ", lower tax " + Q.budget_audit.income_lower_tax +
@@ -1501,6 +1535,10 @@ Q.budget_audit_text =
         ", commonwealth " + Q.budget_audit.expense_commonwealth +
         ", econ democracy " + Q.budget_audit.expense_econ_dem +
         ", safety " + Q.budget_audit.expense_safety + "]\n" +
+    "Direct macro nudge: " + Q.budget_audit.direct_macro_delta +
+        " [growth " + Q.budget_audit.direct_growth_effect +
+        ", unemployment " + Q.budget_audit.direct_unemployment_drag +
+        ", inflation " + Q.budget_audit.direct_inflation_effect + "]\n" +
     "Net this tick: " + Q.budget_audit.net_change +
         " (upper tax rate: " + Q.budget_audit.upper_tax_rate + ")\n" +
     "Deficit streak: " + Q.budget_audit.deficit_tick_streak + " ticks, " +
@@ -2057,15 +2095,15 @@ Q.supply_pressure *= Math.exp(-0.20 * dt);
 Q.price_pressure  *= Math.exp(-0.25 * dt);
 
 
-// ============================================================
-// SECTION 8 — HARD BOUNDS (safety net, not gameplay logic)
-// ============================================================
+
+
 
 Q.inflation              = Math.max(-15, Math.min(1000, Q.inflation));
 Q.unemployed             = Math.max(0,   Math.min(50,   Q.unemployed));
 Q.economic_growth        = Math.max(-20, Math.min(20,   Q.economic_growth));
 Q.inflation_expectations = Math.max(-15, Math.min(1000, Q.inflation_expectations));
 Q.budget = Math.max(-50, Math.min(50, Q.budget));
+Q.budget = Math.round(Q.budget * 100) / 100;
 
 
 
@@ -5968,6 +6006,38 @@ if (Q.ma >= 1) {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q.inflation              = Math.max(-15, Math.min(1000, Q.inflation));
+Q.unemployed             = Math.max(0,   Math.min(50,   Q.unemployed));
+Q.economic_growth        = Math.max(-20, Math.min(20,   Q.economic_growth));
+Q.inflation_expectations = Math.max(-15, Math.min(1000, Q.inflation_expectations));
+Q.budget = Math.max(-50, Math.min(50, Q.budget));
+Q.budget = Math.round(Q.budget * 100) / 100;
 
 Q.capital_strike_progress = Math.max(0, Math.min(15, Q.capital_strike_progress || 0));
 Q.coup_progress           = Math.max(0, Math.min(15, Q.coup_progress           || 0));
