@@ -1431,9 +1431,82 @@ Q.fiscal_upkeep = (welfare_upkeep + land_upkeep + agri_fin_upkeep + pro_consumer
                 + state_buyer_upkeep + socialization_upkeep + coop_upkeep
                 + commonwealth_upkeep + econ_dem_upkeep + safety_upkeep) * macro_upkeep_mult;
 
-// --- NET APPLICATION ---
-
 Q.budget += Q.fiscal_revenue - Q.fiscal_upkeep;
+
+Q.budget_audit = Q.budget_audit || {};
+
+Q.budget_audit.income_upper_tax   = Math.round(upper_yield  * macro_revenue_mult * 100) / 100;
+Q.budget_audit.income_lower_tax   = Math.round(lower_yield  * macro_revenue_mult * 100) / 100;
+Q.budget_audit.income_tariffs     = Math.round(tariff_yield * macro_revenue_mult * 100) / 100;
+Q.budget_audit.income_total       = Math.round(Q.fiscal_revenue * 100) / 100;
+
+Q.budget_audit.expense_welfare       = Math.round(welfare_upkeep       * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_land_reform   = Math.round(land_upkeep          * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_agri_finance  = Math.round(agri_fin_upkeep      * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_pro_consumer  = Math.round(pro_consumer_upkeep  * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_state_buyer   = Math.round(state_buyer_upkeep   * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_socialization = Math.round(socialization_upkeep* macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_cooperatives  = Math.round(coop_upkeep          * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_commonwealth  = Math.round(commonwealth_upkeep * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_econ_dem      = Math.round(econ_dem_upkeep      * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_safety        = Math.round(safety_upkeep        * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_total         = Math.round(Q.fiscal_upkeep * 100) / 100;
+
+// --- NET / MULTIPLIER CONTEXT ---
+Q.budget_audit.net_change      = Math.round((Q.fiscal_revenue - Q.fiscal_upkeep) * 100) / 100;
+Q.budget_audit.macro_rev_mult  = Math.round(macro_revenue_mult * 1000) / 1000;
+Q.budget_audit.macro_upk_mult  = Math.round(macro_upkeep_mult  * 1000) / 1000;
+Q.budget_audit.upper_tax_rate  = Q.upper_tax_rates || 0;
+Q.budget_audit.lower_tax_rate  = Q.lower_tax_rates || 0;
+Q.budget_audit.tariff_rate     = Q.tariffs || 0;
+Q.budget_audit.phase           = Q.phase;
+
+if (Q.budget_audit.net_change < 0) {
+    Q.budget_audit.deficit_tick_streak = (Q.budget_audit.deficit_tick_streak || 0) + 1;
+} else {
+    Q.budget_audit.deficit_tick_streak = 0;
+}
+
+if (Q.budget < 0) {
+    Q.budget_audit.budget_negative_streak = (Q.budget_audit.budget_negative_streak || 0) + 1;
+} else {
+    Q.budget_audit.budget_negative_streak = 0;
+}
+
+if (Q.budget < -25) {
+    Q.budget_audit.status = "crisis";       // deep in the red
+} else if (Q.budget < 0) {
+    Q.budget_audit.status = "deficit";      // in the red
+} else if (Q.budget_audit.net_change < 0) {
+    Q.budget_audit.status = "declining";    // positive balance but losing ground
+} else {
+    Q.budget_audit.status = "stable";
+}
+
+
+Q.budget_audit_text =
+    "Budget: " + (Math.round(Q.budget * 100) / 100) + " (" + Q.budget_audit.status + ")\n" +
+    "Income: " + Q.budget_audit.income_total +
+        " [upper tax " + Q.budget_audit.income_upper_tax +
+        ", lower tax " + Q.budget_audit.income_lower_tax +
+        ", tariffs " + Q.budget_audit.income_tariffs + "]\n" +
+    "Expenses: " + Q.budget_audit.expense_total +
+        " [welfare " + Q.budget_audit.expense_welfare +
+        ", land " + Q.budget_audit.expense_land_reform +
+        ", agri finance " + Q.budget_audit.expense_agri_finance +
+        ", pro-consumer " + Q.budget_audit.expense_pro_consumer +
+        ", state buyer " + Q.budget_audit.expense_state_buyer +
+        ", socialization " + Q.budget_audit.expense_socialization +
+        ", cooperatives " + Q.budget_audit.expense_cooperatives +
+        ", commonwealth " + Q.budget_audit.expense_commonwealth +
+        ", econ democracy " + Q.budget_audit.expense_econ_dem +
+        ", safety " + Q.budget_audit.expense_safety + "]\n" +
+    "Net this tick: " + Q.budget_audit.net_change +
+        " (upper tax rate: " + Q.budget_audit.upper_tax_rate + ")\n" +
+    "Deficit streak: " + Q.budget_audit.deficit_tick_streak + " ticks, " +
+    "budget-negative streak: " + Q.budget_audit.budget_negative_streak + " ticks";
+
+
 
 
 
