@@ -5,7 +5,8 @@ choose-if: commercialized_media > 0
 unavailable-subtitle: Our commercial media must be expanded.
 on-arrival: {!
 window.enableFocusMode()
-
+!}
+Q.on-display: {!
 Q.budget_audit_table_html = (function() {
     var a = Q.budget_audit || {};
 
@@ -55,6 +56,8 @@ Q.budget_audit_table_html = (function() {
     html += '</table>';
     return html;
 })();
+
+document.getElementById('budget-audit-table').innerHTML = Q.budget_audit_table_html;
 !}
 on-departure: {!
 window.disableFocusMode()
@@ -62,6 +65,6 @@ window.disableFocusMode()
 
 = Budget Audit
 
-{!<div id="budget-audit-table">[+ budget_audit_table_html +]</div>!}
+{!<div id="budget-audit-table"></div>!}
 
 - @partyaff: Return back
