@@ -47,7 +47,6 @@ for (var party of Q.parties) {
     Q['old_' + party + '_seat_pct'] = Q[party + '_seat_pct'] ?? 0;
     Q['old_' + party + '_seats'] = Q[party + '_seats'] ?? 0;
     
-    // Handle banned parties - set support to 0
     if (Q[party + '_banned']) {
         Q[party + '_support'] = 0;
     }
@@ -61,25 +60,21 @@ for (var party of Q.parties) {
     }
     
     if (Q.math_broken) {
-        // CHAOS MODE: Support values become nonsense
         Q[party + '_support'] = Q.impossible_add(Q[party + '_support'], 0);
     }
     
     new_party_sum += Q[party + '_support'];
 }
 
-// Apply chaos to the sum itself
 if (Q.math_broken) {
     new_party_sum = Q.impossible_multiply(new_party_sum, 1);
 }
 
 for (var party of Q.parties) {
-    // If party is banned, force everything to 0
     if (Q[party + '_banned'] && !Q.math_broken) {
         Q[party + '_r'] = 0;
         Q[party + '_votes'] = 0;
     } else if (!Q.math_broken) {
-        // NORMAL: Votes sum to 100%
         if (new_party_sum > 0) {
             Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
         } else {
@@ -87,31 +82,23 @@ for (var party of Q.parties) {
         }
         Q[party + '_votes'] = Math.round(Q[party + '_r'] * 10) / 10;
     } else {
-        // CHAOS MODE: Division doesn't work properly
         if (new_party_sum > 0) {
-            // Random choice of broken operations
             var roll = Math.random();
             if (roll < 0.3) {
-                // Normal (rare)
                 Q[party + '_r'] = (Q[party + '_support'] / new_party_sum) * 100;
             } else if (roll < 0.5) {
-                // Multiplication instead of division
                 Q[party + '_r'] = Q.impossible_multiply(Q[party + '_support'], new_party_sum / 100);
             } else if (roll < 0.7) {
-                // Just add some chaos
                 Q[party + '_r'] = Q.impossible_percentage(Q[party + '_support']);
             } else {
-                // Complete nonsense
                 Q[party + '_r'] = Q.impossible_add(Q[party + '_support'], new_party_sum);
             }
         } else {
-            Q[party + '_r'] = Q.impossible_subtract(0, 0); // "Zero" that isn't zero
+            Q[party + '_r'] = Q.impossible_subtract(0, 0);
         }
         
-        // Votes calculation also broken
         Q[party + '_votes'] = Q.impossible_multiply(Q[party + '_r'], 1);
         
-        // Ensure no NaN
         if (isNaN(Q[party + '_r'])) Q[party + '_r'] = Math.random() * 50;
         if (isNaN(Q[party + '_votes'])) Q[party + '_votes'] = Math.random() * 50;
     }
@@ -119,30 +106,24 @@ for (var party of Q.parties) {
 
 for (var party of Q.parties) {
     if (!Q.math_broken) {
-        // NORMAL: Display formatting
         Q[party + '_r_disp'] = (Math.round(Q[party + '_r'] * 10) / 10).toFixed(1);
         
         Q['change_' + party + '_r'] = Q[party + '_r'] - Q['old_' + party + '_r'];
         Q['str_change_' + party] = (Q['change_' + party + '_r'] >= 0 ? '+' : '') +
             (Math.ceil(Q['change_' + party + '_r'] * 10) / 10).toFixed(1);
     } else {
-        // CHAOS MODE: Display formatting is also broken
         if (Q.use_decimals) {
             Q[party + '_r_disp'] = Q.impossible_add(Q[party + '_r'], 0).toFixed(1);
         } else {
             Q[party + '_r_disp'] = Math.round(Q.impossible_multiply(Q[party + '_r'], 1)).toString();
         }
         
-        // Change calculation doesn't work right
         Q['change_' + party + '_r'] = Q.impossible_subtract(Q[party + '_r'], Q['old_' + party + '_r']);
         
-        // Ensure no NaN in change
         if (isNaN(Q['change_' + party + '_r'])) Q['change_' + party + '_r'] = Math.random() * 20 - 10;
         
-        // Sign might be wrong
         var broken_sign = Math.random() < 0.3 ? '-' : '+';
         if (Math.random() < 0.5) {
-            // Sometimes use correct sign
             broken_sign = (Q['change_' + party + '_r'] >= 0 ? '+' : '');
         }
         
@@ -151,8 +132,6 @@ for (var party of Q.parties) {
     }
 }
 
-// === SEAT CALCULATIONS ===
-// Reichstag had 577 base seats (we use *6 multiplier from display, so 600 total)
 Q.total_seats = 600;
 
 Q.election_system_name = Q.fptp_variable === 1 ? 'First Past the Post' : 'Proportional Representation';
@@ -163,7 +142,7 @@ if (Q.fptp_variable === 1) {
     for (var i = 0; i < Q.parties.length; i++) {
         var party = Q.parties[i];
         var v = Q[party + '_r'] || 0;
-        if (v >= 3 && !Q[party + '_banned']) {  // 3% threshold, softer than 5%
+        if (v >= 3 && !Q[party + '_banned']) {
             fptp_votes[party] = v;
             fptp_sum += v;
         } else {
@@ -171,15 +150,12 @@ if (Q.fptp_variable === 1) {
         }
     }
 
-    // Normalise
     var fptp_normalised = {};
     for (var party in fptp_votes) {
         fptp_normalised[party] = fptp_sum > 0
             ? (fptp_votes[party] / fptp_sum) * 100 : 0;
     }
 
-    // Squared rule instead of cube — less brutal amplification
-    // s = v² / Σv²
     var sq_sum = 0;
     var squares = {};
     for (var party in fptp_normalised) {
@@ -188,7 +164,6 @@ if (Q.fptp_variable === 1) {
         sq_sum += squares[party];
     }
 
-    // Using variable 'k' to guarantee absolutely no overlap with existing loops
     for (var k = 0; k < Q.parties.length; k++) {
         var party = Q.parties[k];
         Q[party + '_seats'] = (sq_sum > 0 && squares[party] > 0)
@@ -196,7 +171,6 @@ if (Q.fptp_variable === 1) {
             : 0;
     }
 
-    // Fix rounding on largest party
     var fptp_seat_total = 0;
     var largest_fptp_party = null;
     var largest_fptp_seats = 0;
@@ -221,7 +195,6 @@ if (Q.fptp_variable === 1) {
     }
 }
 
-// Seat-based vote share (may differ slightly from _r due to rounding)
 Q.total_seats_filled = 0;
 for (var party of Q.parties) {
     Q.total_seats_filled += Q[party + '_seats'];
@@ -232,13 +205,11 @@ for (var party of Q.parties) {
     Q[party + '_seat_pct'] = Q.total_seats_filled > 0 
         ? Math.round((Q[party + '_seats'] / Q.total_seats_filled) * 1000) / 10 
         : 0;
-    // Display string
     Q[party + '_seats_disp'] = Q[party + '_seats'].toString();
     Q[party + '_seat_pct_disp'] = Q[party + '_seat_pct'].toFixed(1);
     Q['change_' + party + '_seat_pct'] = Q[party + '_seat_pct'] - Q['old_' + party + '_seat_pct'];
     Q['str_change_' + party + '_seats'] = (Q['change_' + party + '_seat_pct'] >= 0 ? '+' : '') +
         (Math.round(Q['change_' + party + '_seat_pct'] * 10) / 10).toFixed(1);
-    // NEW: number-based seat delta
     Q['change_' + party + '_seats_num'] = Q[party + '_seats'] - Q['old_' + party + '_seats'];
     Q['str_change_' + party + '_seats_num'] = (Q['change_' + party + '_seats_num'] >= 0 ? '+' : '') +
         Q['change_' + party + '_seats_num'].toString();
@@ -254,7 +225,6 @@ for (var party of Q.parties) {
     }
 }
 
-// Reset government flags
 Q.coalition_dissent = 0;
 Q.kpd_coalition_dissent = 0;
 Q.spd_in_government = 0;
@@ -271,7 +241,6 @@ Q.in_right_coalition = 0;
 Q.in_social_christian_coalition = 0;
 Q.in_social_liberal_coalition = 0;
 
-// Reset KPD goals
 Q.kpd_goals_seen = 0;
 Q.welfare_goal = 0;
 Q.agriculture_goal = 0;
@@ -281,10 +250,6 @@ Q.labor_goal = 0;
 Q.foreign_goal = 0;
 Q.interior_goal = 0;
 Q.reichswehr_goal = 0;
-
-// ============================================
-// SPECIAL COALITION CONDITIONS
-// ============================================
 
 Q.popular_front_possible = (Q.kpd_party_leader === "Conciliators" && Q.z_party_leader === "Joos") ? 1 : 0;
 Q.left_front_possible = (Q.communist_coalition >= 3 && Q.kpd_relation >= 50) ? 1 : 0;
@@ -300,47 +265,46 @@ Q.election_records.push(election_result);
 !}
 on-display: {!
 Q.partyData = [
-{ id: "kapd", name: "KAPD",       color: "#5C0000", seats: Q.kapd_seats, show: !!(Q.kapd_r > 0) },
-{ id: "faud", name: "FAUD",       color: "#1C1C1C", seats: Q.faud_seats, show: !!(Q.faud_r > 0) },
-{ id: "kpd",  name: "KPD",        color: "#8B0000", seats: Q.kpd_seats,  show: !!(Q.kpd_r  && Q.kpd_r  > 0) },
-{ id: "sapd", name: "SAPD",       color: "#C40000", seats: Q.sapd_seats, show: !!(Q.sapd_formed && Q.sapd_r) },
-{ id: "lb",   name: "LB",         color: "#6B0000", seats: Q.lb_seats,   show: !!(Q.lb_r   && Q.lb_r   > 0) },
-{ id: "sl",   name: "SL",         color: "#005B96", seats: Q.sl_seats,   show: !!(Q.sl_r   && Q.sl_r   > 0) },
-{ id: "kpo",  name: "KPO",        color: "#990000", seats: Q.kpo_seats,  show: !!(Q.kpo_r  && Q.kpo_r  > 0) },
-{ id: "spd",  name: "SPD",        color: "#E3000F", seats: Q.spd_seats,  show: !!(Q.spd_r  && Q.spd_r  > 0) },
-{ id: "srpd", name: "SRPD",       color: "#FF6B6B", seats: Q.srpd_seats, show: !!(Q.srpd_formed && Q.srpd_r) },
-{ id: "rdp",  name: "RDP",        color: "#B8B000", seats: Q.rdp_seats,  show: !!(Q.rdp_r  && Q.rdp_r  > 0) },
-{ id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", seats: Q.ddp_seats,  show: !!(Q.ddp_r  && Q.ddp_r  > 0) },
-{ id: "dbp",  name: "DBP",        color: "#03A331",  seats: Q.dbp_seats,  show: !!(Q.dbp_r  && Q.dbp_r  > 0) },
-{ id: "cvp",  name: "CVP",        color: "#1A1A1A", seats: Q.cvp_seats,  show: !!(Q.cvp_r  && Q.cvp_r  > 0) },
-{ id: "z",    name: "Center",     color: "#000000", seats: Q.z_seats,    show: !!(Q.z_r    && Q.z_r    > 0) },
-{ id: "bb",   name: "BB",         color: "#69A2BE", seats: Q.bb_seats,   show: !!(Q.bb_r   && Q.bb_r   > 0) },
-{ id: "bvp",  name: "BVP",        color: "#69A2BE", seats: Q.bvp_seats,  show: !!(Q.bvp_r  && Q.bvp_r  > 0) },
-{ id: "csrp", name: "CSRP",       color: "#FFCCFF", seats: Q.csrp_seats, show: !!(Q.csrp_r && Q.csrp_r > 0) },
-{ id: "sls",  name: "SLS",        color: "#4A7C59", seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) },
-{ id: "aspd", name: "ASPD",       color: "#B22222", seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
-{ id: "dhp",  name: "DHP",        color: "#69A2BE", seats: Q.dhp_seats,  show: !!(Q.dhp_r  && Q.dhp_r  > 0) },
-{ id: "dsbp", name: Q.dsbp_name, color: Q.dsbp_name === "DLP" ? "#F7FF05" : "#7A9DB5", seats: Q.dsbp_seats, show: !!(Q.dsbp_r && Q.dsbp_r > 0) },
-{ id: "dvp",  name: "DVP",        color: "#D5AC27", seats: Q.dvp_seats,  show: !!(Q.dvp_r  && Q.dvp_r  > 0) },
-{ id: "vrp",  name: "VRP",        color: "#8B7355", seats: Q.vrp_seats,  show: !!(Q.vrp_r  && Q.vrp_r  > 0) },
-{ id: "wp",   name: "WP",         color: "#424242", seats: Q.wp_seats,   show: !!(Q.wp_r   && Q.wp_r   > 0) },
-{ id: "hl",   name: "HL",         color: "#2E8B57", seats: Q.hl_seats,   show: !!(Q.hl_r   && Q.hl_r   > 0) },
-{ id: "vnr",  name: "VNR",        color: "#4B5320", seats: Q.vnr_seats,  show: !!(Q.vnr_r  && Q.vnr_r  > 0) },
-{ id: "cnbl", name: "CNBL",       color: "#5D4E37", seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
-{ id: "csvd", name: "CSVD",       color: "#3f7bc1", seats: Q.csvd_seats, show: !!(Q.csvd_r > 0) },
-{ id: "kvp",  name: "KVP",        color: "#3f7bc1", seats: Q.kvp_seats,  show: !!(Q.kvp_r  > 0) },
-{ id: "rlb",  name: "RLB",        color: "#4A5D23", seats: Q.rlb_seats,  show: !!(Q.rlb_r && Q.rlb_r > 0) },
-{ id: "dnvp", name: "DNVP",       color: "#3f7bc1", seats: Q.dnvp_seats, show: !!(Q.dnvp_r && Q.dnvp_r > 0) },
-{ id: "dnf", name: "DNF",         color:  "#000F70", seats: Q.dnf_seats, show: !!(Q.dnf_r && Q.dnf_r > 0) },
-{ id: "other",name: "Other",      color: "#a0a0a0", seats: Q.other_seats,show: !!(Q.other_r && Q.other_r > 0) },
-{ id: "nsdap",name: "NSDAP",      color: "#954B00", seats: Q.nsdap_seats,show: !!(Q.nsdap_r && Q.nsdap_r > 0) },
-{ id: "dtsp", name: "DtsP",       color: "#3B1A00", seats: Q.dtsp_seats, show: !!(Q.dtsp_r  && Q.dtsp_r  > 0) },
-{ id: "dvfp", name: "DVFP",       color: "#1A0F00", seats: Q.dvfp_seats, show: !!(Q.dvfp_formed && Q.dvfp_r > 0) },
+{ id: "kapd", name: "KAPD",       color: "#5C0000", row: "far-left",  seats: Q.kapd_seats, show: !!(Q.kapd_r > 0) },
+{ id: "faud", name: "FAUD",       color: "#1C1C1C", row: "far-left",  seats: Q.faud_seats, show: !!(Q.faud_r > 0) },
+{ id: "kpd",  name: "KPD",        color: "#8B0000", row: "left",      seats: Q.kpd_seats,  show: !!(Q.kpd_r  && Q.kpd_r  > 0) },
+{ id: "sapd", name: "SAPD",       color: "#C40000", row: "left",      seats: Q.sapd_seats, show: !!(Q.sapd_r && Q.sapd_r > 0) },
+{ id: "lb",   name: "LB",         color: "#6B0000", row: "left",      seats: Q.lb_seats,   show: !!(Q.lb_r   && Q.lb_r   > 0) },
+{ id: "sl",   name: "SL",         color: "#005B96", row: "left",      seats: Q.sl_seats,   show: !!(Q.sl_r   && Q.sl_r   > 0) },
+{ id: "kpo",  name: "KPO",        color: "#990000", row: "left",      seats: Q.kpo_seats,  show: !!(Q.kpo_r  && Q.kpo_r  > 0) },
+{ id: "spd",  name: "SPD",        color: "#E3000F", row: "left spd",  seats: Q.spd_seats,  show: !!(Q.spd_r  && Q.spd_r  > 0) },
+{ id: "srpd", name: "SRPD",       color: "#FF6B6B", row: "left",      seats: Q.srpd_seats, show: !!(Q.srpd_r && Q.srpd_r > 0) },
+{ id: "rdp",  name: "RDP",        color: "#B8B000", row: "center",    seats: Q.rdp_seats,  show: !!(Q.rdp_r  && Q.rdp_r  > 0) },
+{ id: "ddp",  name: Q.ddp_name,   color: "#DCCA4A", row: "center",    seats: Q.ddp_seats,  show: !!(Q.ddp_r  && Q.ddp_r  > 0) },
+{ id: "dbp",  name: "DBP",        color: "#03A331", row: "liberal",   seats: Q.dbp_seats,  show: !!(Q.dbp_r  && Q.dbp_r  > 0) },
+{ id: "cvp",  name: "CVP",        color: "#1A1A1A", row: "center",    seats: Q.cvp_seats,  show: !!(Q.cvp_r  && Q.cvp_r  > 0) },
+{ id: "z",    name: "Z (Center)", color: "#000000", row: "liberal",   seats: Q.z_seats,    show: !!(Q.z_r    && Q.z_r    > 0) },
+{ id: "bb",   name: "BB",         color: "#69A2BE", row: "liberal",   seats: Q.bb_seats,   show: !!(Q.bb_r   && Q.bb_r   > 0) },
+{ id: "bvp",  name: "BVP",        color: "#69A2BE", row: "liberal",   seats: Q.bvp_seats,  show: !!(Q.bvp_r  && Q.bvp_r  > 0) },
+{ id: "csrp", name: "CSRP",       color: "#FFCCFF", row: "center",    seats: Q.csrp_seats, show: !!(Q.csrp_r && Q.csrp_r > 0) },
+{ id: "sls",  name: "SLS",        color: "#4A7C59", row: "liberal",   seats: Q.sls_seats,  show: !!(Q.sls_r  && Q.sls_r  > 0) },
+{ id: "aspd", name: "ASPD",       color: "#B22222", row: "left",      seats: Q.aspd_seats, show: !!(Q.aspd_r && Q.aspd_r > 0) },
+{ id: "dhp",  name: "DHP",        color: "#69A2BE", row: "liberal",   seats: Q.dhp_seats,  show: !!(Q.dhp_r  && Q.dhp_r  > 0) },
+{ id: "dsbp", name: Q.dsbp_name,  color: Q.dsbp_name === "DLP" ? "#F7FF05" : "#7A9DB5", row: "center", seats: Q.dsbp_seats, show: !!(Q.dsbp_r && Q.dsbp_r > 0) },
+{ id: "dvp",  name: "DVP",        color: "#D5AC27", row: "center",    seats: Q.dvp_seats,  show: !!(Q.dvp_r  && Q.dvp_r  > 0) },
+{ id: "vrp",  name: "VRP",        color: "#8B7355", row: "neutral",   seats: Q.vrp_seats,  show: !!(Q.vrp_r  && Q.vrp_r  > 0) },
+{ id: "wp",   name: "WP",         color: "#424242", row: "neutral",   seats: Q.wp_seats,   show: !!(Q.wp_r   && Q.wp_r   > 0) },
+{ id: "hl",   name: "HL",         color: "#2E8B57", row: "liberal",   seats: Q.hl_seats,   show: !!(Q.hl_r   && Q.hl_r   > 0) },
+{ id: "vnr",  name: "VNR",        color: "#4B5320", row: "right",     seats: Q.vnr_seats,  show: !!(Q.vnr_r  && Q.vnr_r  > 0) },
+{ id: "cnbl", name: "CNBL",       color: "#5D4E37", row: "neutral",   seats: Q.cnbl_seats, show: !!(Q.cnbl_r && Q.cnbl_r > 0) },
+{ id: "csvd", name: "CSVD",       color: "#3f7bc1", row: "right",     seats: Q.csvd_seats, show: !!(Q.csvd_r > 0) },
+{ id: "kvp",  name: "KVP",        color: "#3f7bc1", row: "right",     seats: Q.kvp_seats,  show: !!(Q.kvp_r  > 0) },
+{ id: "rlb",  name: "RLB",        color: "#4A5D23", row: "right",     seats: Q.rlb_seats,  show: !!(Q.rlb_r && Q.rlb_r > 0) },
+{ id: "dnvp", name: "DNVP",       color: "#3f7bc1", row: "right",     seats: Q.dnvp_seats, show: !!(Q.dnvp_r && Q.dnvp_r > 0) },
+{ id: "dnf",  name: "DNF",        color: "#434F99", row: "far-right", seats: Q.dnf_seats,  show: !!(Q.dnf_r && Q.dnf_r > 0) },
+{ id: "other",name: "Other",      color: "#a0a0a0", row: "neutral",   seats: Q.other_seats,show: !!(Q.other_r && Q.other_r > 0) },
+{ id: "nsdap",name: "NSDAP",      color: "#954B00", row: "far-right", seats: Q.nsdap_seats,show: !!(Q.nsdap_r && Q.nsdap_r > 0) },
+{ id: "dtsp", name: "DtsP",       color: "#3B1A00", row: "far-right", seats: Q.dtsp_seats, show: !!(Q.dtsp_r  && Q.dtsp_r  > 0) },
+{ id: "dvfp", name: "DVFP",       color: "#1A0F00", row: "far-right", seats: Q.dvfp_seats, show: !!(Q.dvfp_r && Q.dvfp_r > 0) },
 ];
 
-var visibleParties = partyData.filter(function(p) { return p.show && p.seats > 0; });
+var visibleParties = Q.partyData.filter(function(p) { return p.show && p.seats > 0; });
 
-// Parliament diagram data
 var data = visibleParties.map(function(p) {
     return { id: p.id, legend: p.name, name: p.name, seats: p.seats };
 });
@@ -363,7 +327,6 @@ if (window && d3) {
     parliament.exit.toCenter(false).bigToSmall(true);
     d3.select("#reichstag").datum(data).call(parliament);
 
-    // Color bar
     var totalSeats = visibleParties.reduce(function(sum, p) { return sum + p.seats; }, 0);
     var bar = document.getElementById("party-color-bar");
     bar.innerHTML = "";
@@ -387,7 +350,6 @@ if (window && d3) {
         seg.style.boxSizing = "border-box";
         seg.title = p.name + ": " + p.seats + " seats";
 
-        // Label if segment wide enough (roughly >3.5% of total)
         if (pct > 0.035) {
             var label = document.createElement("span");
             label.style.fontSize = "10px";
@@ -412,9 +374,8 @@ function buildElectionTableHTML(Q, partyData) {
         var changeSeats = Q['change_' + p.id + '_seats_num'];
         var rColor = changeR > 0 ? 'color: green;' : (changeR < 0 ? 'color: red;' : '');
         var sColor = changeSeats > 0 ? 'color: green;' : (changeSeats < 0 ? 'color: red;' : '');
-        var label = p.name === 'z' ? 'Z (Center)' : p.name;
         return '<tr class="row-' + p.row + '">' +
-            '<td style="padding:8px;"><div class="box" style="background-color:' + p.color + '; display:inline-block; margin-right:8px;"> </div>' + label + '</td>' +
+            '<td style="padding:8px;"><div class="box" style="background-color:' + p.color + '; display:inline-block; margin-right:8px;"> </div>' + p.name + '</td>' +
             '<td style="padding:8px; text-align:right; font-weight:bold;">' + Q[p.id + '_r_disp'] + '%</td>' +
             '<td style="padding:8px; text-align:right; ' + rColor + '">' + Q['str_change_' + p.id] + '</td>' +
             '<td style="padding:8px; text-align:right;">' + Q[p.id + '_seats'] + '</td>' +
@@ -432,7 +393,7 @@ function buildElectionTableHTML(Q, partyData) {
         '</tr>' + rows + '</table>';
 }
 
-Q.election_table_html = buildElectionTableHTML(Q, partyData);
+Q.election_table_html = buildElectionTableHTML(Q, Q.partyData);
 
 document.getElementById('election-table').innerHTML = Q.election_table_html;
 !}
@@ -446,7 +407,6 @@ go-to: coalition_formation_start
 <div id="party-color-bar"></div>!}
 
 {!<div id="election-table"></div>!}
-
 
 
 
