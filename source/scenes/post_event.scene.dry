@@ -5875,6 +5875,24 @@ if (Q.ma >= 1) {
                              'economic_growth': Q.economic_growth,
                              'inflation': Q.inflation,
                              'unemployment': Q.unemployed});
+
+    // append to historical demographic-class party support records
+    // one array per demographic class, mirroring party_support_records,
+    // but reading class-specific normalized support (Q.<class>_<party>_normalized)
+    // instead of the population-wide Q.<party>_normalized
+    Q.demographic_support_records = Q.demographic_support_records || {
+        workers: [], old_middle: [], new_middle: [], rural: [], unemployedc: []
+    };
+
+    var _demo_date = new Date(Q.year, Q.month - 1);
+    for (var _dc of Q.classes) {
+        var _demo_result = {'date': _demo_date};
+        for (var party of Q.parties) {
+            _demo_result[party] = (Q[_dc + '_' + party + '_normalized'] || 0) * 100;
+        }
+        if (!Q.demographic_support_records[_dc]) Q.demographic_support_records[_dc] = [];
+        Q.demographic_support_records[_dc].push(_demo_result);
+    }
 }
 
 
