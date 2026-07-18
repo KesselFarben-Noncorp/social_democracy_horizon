@@ -1,8 +1,8 @@
 title: Budget Audit
 subtitle: Perhaps, expanding our commercial media will allow us to do this.
 tags: party_aff
-choose-if: commercialized_media > 0
-unavailable-subtitle: Our commercial media must be expanded.
+choose-if: commercialized_media > 1
+unavailable-subtitle: Our commercial media must be expanded in order to have budget audit.
 on-arrival: {!
 window.enableFocusMode()
 !}
@@ -22,26 +22,42 @@ Q.budget_audit_table_html = (function() {
             '</tr>';
     }
 
+    function labelFrom(key, prefix) {
+        var s = key.slice(prefix.length);
+        return s.split('_').map(function(w) {
+            return w.charAt(0).toUpperCase() + w.slice(1);
+        }).join(' ');
+    }
+
+    function buildSection(title, prefix, totalKey, sign, rateSuffixMap) {
+        var html = '<tr style="border-bottom:2px solid #333; border-top: 1px solid #555;">' +
+            '<td colspan="2" style="padding:6px 8px; font-weight:bold;">' + title + '</td></tr>';
+
+        Object.keys(a).sort().forEach(function(key) {
+            if (key.indexOf(prefix) !== 0) return;
+            if (key === totalKey) return;
+            var label = labelFrom(key, prefix);
+            if (rateSuffixMap && rateSuffixMap[key]) {
+                label += ' (rate: ' + (a[rateSuffixMap[key]] || 0) + ')';
+            }
+            html += row(label, sign * (a[key] || 0));
+        });
+
+        html += row('Total ' + title.toLowerCase(), sign * (a[totalKey] || 0), {bold: true, border: true});
+        return html;
+    }
+
     var html = '<table style="width:100%; border-collapse: collapse; font-size:0.93em;">';
 
-    html += '<tr style="border-bottom:2px solid #333;"><td colspan="2" style="padding:6px 8px; font-weight:bold;">Income</td></tr>';
-    html += row('Upper bracket tax (rate: ' + (a.upper_tax_rate || 0) + ')', a.income_upper_tax || 0);
-    html += row('Lower bracket tax (rate: ' + (a.lower_tax_rate || 0) + ')', a.income_lower_tax || 0);
-    html += row('Tariffs (rate: ' + (a.tariff_rate || 0) + ')', a.income_tariffs || 0);
-    html += row('Total income', a.income_total || 0, {bold: true, border: true});
+    html += buildSection('Income', 'income_', 'income_total', 1, {
+        income_upper_tax: 'upper_tax_rate',
+        income_lower_tax: 'lower_tax_rate',
+        income_tariffs:   'tariff_rate'
+    });
 
-    html += '<tr style="border-bottom:2px solid #333; border-top: 1px solid #555;"><td colspan="2" style="padding:6px 8px; font-weight:bold;">Expenses</td></tr>';
-    html += row('Welfare', -(a.expense_welfare || 0));
-    html += row('Land reform', -(a.expense_land_reform || 0));
-    html += row('Agricultural finance', -(a.expense_agri_finance || 0));
-    html += row('Pro-consumer policy', -(a.expense_pro_consumer || 0));
-    html += row('State buyer', -(a.expense_state_buyer || 0));
-    html += row('Socialization', -(a.expense_socialization || 0));
-    html += row('Cooperatives', -(a.expense_cooperatives || 0));
-    html += row('Commonwealth cooperation', -(a.expense_commonwealth || 0));
-    html += row('Economic democracy', -(a.expense_econ_dem || 0));
-    html += row('Workers safety', -(a.expense_safety || 0));
-    html += row('Total expenses', -(a.expense_total || 0), {bold: true, border: true});
+    html += buildSection('Expenses', 'expense_', 'expense_total', -1);
+
+    html += buildSection('Macro Adjustments', 'direct_', 'direct_macro_delta', 1);
 
     html += row('Net change this tick', a.net_change || 0, {bold: true, border: true});
 
