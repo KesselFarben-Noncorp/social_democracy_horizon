@@ -12,8 +12,8 @@ At the Labor and Socialist International, we can forge contacts with our fratern
 - @austria: **Learn organization and street fighting** from the Austrian SDAPÖ.
 - @scandi: **Learn economic reform strategies** from the Scandinavian social democrats.
 - @comintern: **Embed a spy in the Comintern** conference.
-- @help: **Request help** from the Labor and Socialist International.
-- @irmc: Contact the International Revolutionary Marxist Centre!
+- @meeting_with_keynes: Perhaps, we could look into trip with purpose of understanding how other countries fare with this crisis?
+- @irmc: We should form contacts with IRMC (International Revolutionary Marxist Center).
 - @return: We do not need international contacts at the moment.
 - @easy_discard
 - @cancel_advisor_action
@@ -39,7 +39,7 @@ Our Reichsbanner can learn much in paramilitary organization and training from t
 subtitle: -1 resources
 choose-if: resources >= 1
 unavailable-subtitle: Not enough resources.
-on-arrival: reformist_strength += 8; wtb_support += 1; resources -= 1; moderate_plan_support += 1
+on-arrival: reformist_strength += 8; wtb_support += 1 if year >= 1931; resources -= 1; moderate_plan_support += 1
 
 The programs of the Nordic socialists involve active government intervention in the economy. We can learn from their economic strategies and how they moved beyond their working-class base to attract a broader set of constituents.
 
@@ -52,18 +52,23 @@ on-arrival: resources -= 1; kpd_relation += 5*(1-dissent); communist_coalition +
 
 The Stalinists of the KPD insist on calling us "social fascists", suggesting social democrats are as bad or worse than actual fascists. By observing the Comintern, we can understand the KPD, potentially improving relations or countering them if necessary. [? if april_challenge = 1 and social_fascism_adopted: Possibly, we can gather information on their habits and tactics to have counter measure. ?]
 
-@help
-subtitle: -1 resources
-view-if: emergency_state = 1
-choose-if: resources >= 1
-unavailable-subtitle: Not enough resources.
-on-arrival: resources -= 1; workers_spd += 1; pro_republic += 3; nationalism -= 2; radicalization += 1
-
-We should request help from the Second International to aid our cause against the rising National Socialist Dictatorship threat!
-
 @reduce
 
 We do not need the international contacts at the moment.
+
+@meeting_with_keynes
+view-if: black_thursday_seen == 1 and wtb_support > 1 and return_to_normalcy == 0
+subtitle: The unorthodox economic theories of John Maynard Keynes have piqued curiosity among our labor members, who urge us to meet with the British economist. -1 resources
+choose-if: resources >= 1 and labor_strength > 20 
+unavailable-subtitle: We lack the necessary resources or the required labor strength to organize this summit.
+on-arrival: keynes_seen = 1; labor_strength += 10; wtb_support += 2
+max-visits: 1
+
+With the global economy steadily sliding into the depths of the Depression, we have arranged a meeting with a figure whose ideas are considered dangerously radical by our party's orthodox Marxists: the British economist John Maynard Keynes. 
+
+Keynes proposes a simple, revolutionary truth: "If the private sector will not do any spending, it means the state must take matters into its own hands and initiate aggressive, credit-financed public works programs to prime the pump of the economy." 
+
+While marxists criticized labor's plans, perhaps, this is the only sane way out?
 
 @irmc
 subtitle: -1 resources
