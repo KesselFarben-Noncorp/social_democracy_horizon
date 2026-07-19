@@ -20,6 +20,7 @@ As we control the Labor [? if economic_minister_party == "SPD" : and Economic ?]
 - @cooperatives_1
 - @privatize
 - @decooperativize
+- @unecondemocracy
 - @cooperative_commonwealth
 - @public_contracts
 - @transformation_economy: Transformation of the economy.
@@ -96,6 +97,14 @@ view-if: cooperatives >= 1 and false_reform_strength >= dismantle_required_stren
 on-arrival: economic_democracy -= 1; cooperatives -= 1; budget += 1; reformist_dissent -= 2; neorevisionist_dissent -= 2; labor_dissent += 8; left_dissent += 8; workers_spd -= 0.05*workers_spd; unemployedc_spd -= 0.05*unemployedc_spd; workers_kpd += 3; labor_strength -= 3; dvp_relation += 4; capital_strike_progress -= 1; general_strike_progress += 1; economic_growth += 0.05; pro_republic -= 1
 
 State support for the cooperative sector is quietly withdrawn as part of a broader retreat from economic democracy. Cooperatives will need to survive on their own footing, or not at all.
+
+@unecondemocracy
+title: Crackdown on economical democracy
+subtitle: Time to crush the unions...
+on-arrival: economic_democracy -= 2; budget += 0.5; labor_dissent += 10; left_dissent += 8; workers_spd -= 0.03*workers_spd; unemployedc_spd -= 0.03*unemployedc_spd; workers_kpd += 3; labor_strength -= 3; dvp_relation += 4; capital_strike_progress -= 1; general_strike_progress += 1; economic_growth += 0.05; pro_republic -= 1
+view-if: economic_democracy >= 1 and false_reform_strength >= dismantle_required_strength
+
+In the order to appease the business, first we must crush the economical democracy to pave them the way for effective management. Of course, labor and left factions are mad, but what is done is done.
 
 @cooperative_commonwealth
 title: Establish cooperative commonwealth networks.
