@@ -1413,8 +1413,9 @@ Q.fiscal_revenue = (upper_yield + lower_yield + tariff_yield) * macro_revenue_mu
 
 // --- UPKEEP SIDE ---
 // Every enacted program from Agricultural Policy, Economic Democracy,
-// and Social Welfare costs ongoing budget to maintain, scaled down
-// since it fires every tick (vs. the one-time enactment cost).
+// Social Welfare, and Education & Science costs ongoing budget to
+// maintain, scaled down since it fires every tick (vs. the one-time
+// enactment cost).
 
 let welfare_upkeep       = Math.max(0, Q.welfare || 0)          * UPKEEP_SCALE * 0.55;
 let land_upkeep          = (Q.land_reform || 0)                  * UPKEEP_SCALE * 0.25;
@@ -1427,9 +1428,20 @@ let commonwealth_upkeep  = (Q.commonwealth_cooperation || 0)      * UPKEEP_SCALE
 let econ_dem_upkeep      = (Q.economic_democracy || 0)            * UPKEEP_SCALE * 0.15;
 let safety_upkeep        = (Q.workers_safety || 0)                * UPKEEP_SCALE * 0.10;
 
+let edu_science_upkeep    = (Q.education_science || 0)            * UPKEEP_SCALE * 0.10;
+let school_boards_upkeep  = (Q.school_boards || 0)                * UPKEEP_SCALE * 0.05;
+let public_hs_upkeep      = (Q.public_hs || 0)                    * UPKEEP_SCALE * 0.35;
+let medical_research_upkeep = (Q.medical_research || 0)           * UPKEEP_SCALE * 0.40;
+let applied_research_upkeep = (Q.applied_research || 0)           * UPKEEP_SCALE * 0.40;
+let science_upkeep        = (Q.science || 0)                      * UPKEEP_SCALE * 0.10;
+let kwg_research_upkeep   = (Q.kwg_research || 0)                 * UPKEEP_SCALE * 0.30;
+
 Q.fiscal_upkeep = (welfare_upkeep + land_upkeep + agri_fin_upkeep + pro_consumer_upkeep
                 + state_buyer_upkeep + socialization_upkeep + coop_upkeep
-                + commonwealth_upkeep + econ_dem_upkeep + safety_upkeep) * macro_upkeep_mult;
+                + commonwealth_upkeep + econ_dem_upkeep + safety_upkeep
+                + edu_science_upkeep + school_boards_upkeep + public_hs_upkeep
+                + medical_research_upkeep + applied_research_upkeep + science_upkeep
+                + kwg_research_upkeep) * macro_upkeep_mult;
 
 Q.budget += Q.fiscal_revenue - Q.fiscal_upkeep;
 Q.budget = Math.round(Q.budget * 100) / 100;
@@ -1483,6 +1495,15 @@ Q.budget_audit.expense_cooperatives  = Math.round(coop_upkeep          * macro_u
 Q.budget_audit.expense_commonwealth  = Math.round(commonwealth_upkeep * macro_upkeep_mult * 100) / 100;
 Q.budget_audit.expense_econ_dem      = Math.round(econ_dem_upkeep      * macro_upkeep_mult * 100) / 100;
 Q.budget_audit.expense_safety        = Math.round(safety_upkeep        * macro_upkeep_mult * 100) / 100;
+
+Q.budget_audit.expense_education_science  = Math.round(edu_science_upkeep      * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_school_boards      = Math.round(school_boards_upkeep    * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_public_hs          = Math.round(public_hs_upkeep        * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_medical_research   = Math.round(medical_research_upkeep * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_applied_research   = Math.round(applied_research_upkeep * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_science            = Math.round(science_upkeep          * macro_upkeep_mult * 100) / 100;
+Q.budget_audit.expense_kwg_research       = Math.round(kwg_research_upkeep     * macro_upkeep_mult * 100) / 100;
+
 Q.budget_audit.expense_total         = Math.round(Q.fiscal_upkeep * 100) / 100;
 
 // --- NET / MULTIPLIER CONTEXT ---
@@ -1534,7 +1555,14 @@ Q.budget_audit_text =
         ", cooperatives " + Q.budget_audit.expense_cooperatives +
         ", commonwealth " + Q.budget_audit.expense_commonwealth +
         ", econ democracy " + Q.budget_audit.expense_econ_dem +
-        ", safety " + Q.budget_audit.expense_safety + "]\n" +
+        ", safety " + Q.budget_audit.expense_safety +
+        ", education & science " + Q.budget_audit.expense_education_science +
+        ", school boards " + Q.budget_audit.expense_school_boards +
+        ", public high schools " + Q.budget_audit.expense_public_hs +
+        ", medical research " + Q.budget_audit.expense_medical_research +
+        ", applied research " + Q.budget_audit.expense_applied_research +
+        ", science " + Q.budget_audit.expense_science +
+        ", KWG research " + Q.budget_audit.expense_kwg_research + "]\n" +
     "Direct macro nudge: " + Q.budget_audit.direct_macro_delta +
         " [growth " + Q.budget_audit.direct_growth_effect +
         ", unemployment " + Q.budget_audit.direct_unemployment_drag +
