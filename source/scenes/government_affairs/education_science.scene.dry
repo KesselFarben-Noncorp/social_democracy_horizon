@@ -51,7 +51,9 @@ Socialism has always stood for science and rationality. Despite the setbacks of 
 - @kwg
 - @applied
 - @medical
-- @cut_funding
+- @dismantle_kwg
+- @dismantle_applied
+- @dismantle_medical
 - @ed_menu: Do not increase research funding.
 - @cancel_advisor_action
 
@@ -80,15 +82,35 @@ on-arrival: budget -= 1; science += 1; medical_research += 1; economic_growth +=
 
 Our research program focuses on medical research to improve the treatment of diseases and public health. [? if change_sex: Some of our medical advancements include new methods for sex change surgery and hormone therapy for transsexual individuals. ?]
 
-@cut_funding
-title: Cut science funding.
+@dismantle_kwg
+title: Cut funding for the Kaiser Wilhelm Society.
 subtitle: +1 budget
-choose-if: science_funding >= 1
-unavailable-subtitle: We have not funded science.
-on-arrival: budget += 1; science -= 1; science_funding -= 1; applied_research -= 0.33; kwg_research -= 0.33; medical_research -= 0.33; economic_growth -= 0.5; new_middle_spd -= 5; workers_spd -= 2; ddp_relation -= 5; unemployed += 0.3
+view-if: kwg_research >= 1
+choose-if: budget < -1 and republican_strength >= dismantle_required_strength
+unavailable-subtitle: [? if kwg_research < 1: We have not funded the Kaiser Wilhelm Society. ?][? if budget >= -1: The budget is not in a severe enough crisis to justify this. ?][? if republican_strength < dismantle_required_strength: We lack the internal party strength to push through this reversal. ?]
+on-arrival: budget += 1; science -= 1 if science > 0; kwg_research = 0; economic_growth -= 0.3; new_middle_spd -= 5*(1-dissent); ddp_relation -= 5*(1-dissent); unemployed += 0.2; west_relation -= 1; science_funding -= 1 if science_funding > 0
 
-We have cut funding for science. This has a negative effect on our economic growth, and unemployed scientists are less likely to support the SPD.
+With the budget in crisis, we have cut funding for the Kaiser Wilhelm Society. Basic research grinds to a halt, and Germany's academic prestige abroad suffers.
 
+@dismantle_applied
+title: Cut funding for applied industrial research.
+subtitle: +1 budget
+view-if: applied_research >= 1
+choose-if: budget < -1 and true_reform_strength >= dismantle_required_strength
+unavailable-subtitle: [? if applied_research < 1: We have not funded applied research. ?][? if budget >= -1: The budget is not in a severe enough crisis to justify this. ?][? if true_reform_strength < dismantle_required_strength: We lack the internal party strength to push through this reversal. ?]
+on-arrival: budget += 1; science -= 1 if science > 0; applied_research = 0; economic_growth -= 0.5; new_middle_spd -= 5*(1-dissent); workers_spd -= 3*(1-dissent); ddp_relation -= 5*(1-dissent); unemployed += 0.5; capital_strike_progress += 1; science_funding -= 1 if science_funding > 0
+
+With the budget in crisis, we have cut funding for applied industrial research. Industry loses a valuable partner, and capital grows bolder in its opposition.
+
+@dismantle_medical
+title: Cut funding for biomedical research.
+subtitle: +1 budget
+view-if: medical_research >= 1
+choose-if: budget < -1 and true_reform_strength >= dismantle_required_strength
+unavailable-subtitle: [? if medical_research < 1: We have not funded medical research. ?][? if budget >= -1: The budget is not in a severe enough crisis to justify this. ?][? if true_reform_strength < dismantle_required_strength: We lack the internal party strength to push through this reversal. ?]
+on-arrival: budget += 1; science -= 1 if science > 0; medical_research = 0; economic_growth -= 0.4; new_middle_spd -= 5*(1-dissent); workers_spd -= 3*(1-dissent); ddp_relation -= 5*(1-dissent); unemployed += 0.2; science_funding -= 1 if science_funding > 0
+
+With the budget in crisis, we have cut funding for biomedical research at hospitals and medical schools. Public health suffers, and the medical establishment turns against us.
 
 @structure
 title: Change the structure and funding of education.
@@ -98,6 +120,9 @@ Education in Germany has traditionally been organized on religious and class lin
 - @secularize
 - @public_hs
 - @school_boards
+- @desecularize
+- @dismantle_public_hs
+- @dismantle_school_boards
 - @ed_menu: Do not change school funding or organization.
 - @cancel_advisor_action
 
@@ -124,26 +149,57 @@ The SPD, [+ ddp_name +], DVP, and KPD vote in favor of secular education, overco
 
 [? if in_weimar_coalition or in_grand_coalition or in_popular_front or in_emergency_government: Of course, the Center Party is in revolt at this proposal, and have called for a vote of no confidence in our government. ?]
 
+@desecularize
+title: Restore religious schools, reversing secularization.
+subtitle: instant Zentrum relation boost; DDP, DVP, KPD relation loss
+unavailable-subtitle: [? if secularized = 0: We have not secularized education. ?][? if z_relation + dnvp_relation < 50: We lack sufficient conservative and religious pressure to justify this reversal. ?]
+choose-if: secularized = 1 and (z_relation + dnvp_relation >= 50)
+view-if: secularized = 1
 
+Are you sure about this? Reversing secularization will restore the privileges of the denominational schools, but the [+ ddp_name +], DVP, and KPD who supported the original reform will see this as a betrayal — and the working class will view it as capitulation to clerical reaction.
+
+- @desecularize_2: Yes, do it.
+- @ed_menu: No, leave secular education in place.
+- @cancel_advisor_action
+
+@desecularize_2
+on-arrival: secularized = 0; old_middle_spd += 10; z_relation += 15; dvp_relation -= 9*(1-dissent); ddp_relation -= 15*(1-dissent); kpd_relation -= 8*(1-dissent); new_middle_spd -= 3*(1-dissent); workers_spd -= 5*(1-dissent); education_science -= 0.5 if education_science > 0; new_middle_ddp += 4; new_middle_dvp += 4; pro_republic -= 3
+
+We have restored denominational control over community schools, ending the secular experiment. The Center Party is relieved and reconciled, but the [+ ddp_name +], DVP, and KPD — who backed secularization — see this as a betrayal, and the working class views it as capitulation to clerical reaction.
 
 @public_hs
 title: Increase educational opportunities for the working class by funding public high schools.
 subtitle: -1 budget
 choose-if: budget >= 1
 on-arrival: budget -= 1; public_hs += 1; workers_spd += 6*(1-dissent); unemployed_spd += 3*(1-dissent); prussian_police_loyalty += 0.04; education_science += 0.5; unemployed -= 0.2; economic_growth += 0.2; pro_republic += 4*(1-dissent); general_strike_progress -= 1
-max-visits: 3
 
 # this makes the bureaucracy more proletarian
 We have funded more public secondary schools so that proletarian children may receive the same education as middle and upper-class children, and can be prepared for universities.
 
+@dismantle_public_hs
+title: Cut funding for public high schools.
+subtitle: +1 budget
+view-if: public_hs >= 1
+choose-if: budget < -1 and true_reform_strength >= dismantle_required_strength
+unavailable-subtitle: [? if public_hs < 1: We have no public high schools to defund. ?][? if budget >= -1: The budget is not in a severe enough crisis to justify this. ?][? if true_reform_strength < dismantle_required_strength: We lack the internal party strength to push through this reversal. ?]
+on-arrival: budget += 1; public_hs = 0; workers_spd -= 6*(1-dissent); unemployed_spd -= 3*(1-dissent); prussian_police_loyalty -= 0.04; education_science -= 0.5 if education_science > 0; unemployed += 0.2; economic_growth -= 0.2; pro_republic -= 4*(1-dissent); general_strike_progress += 1
+
+With the budget in crisis, we have cut funding for public secondary schools, closing off this path to university for proletarian children. Workers and the unemployed see this as a betrayal, and unrest grows.
+
+@dismantle_school_boards
+title: Dismantle the elected school boards.
+view-if: school_boards >= 1
+unavailable-subtitle: [? if school_boards < 1: We have no school boards to dismantle. ?]
+on-arrival: school_boards = 0; workers_spd -= 3*(1-dissent); new_middle_spd -= 3*(1-dissent); old_middle_spd -= 2*(1-dissent); education_science -= 0.2 if education_science > 0; pro_republic -= 2; ddp_relation -= 3
+
+With the budget in crisis, we have dismantled the local elected school boards, recentralizing control over education and cutting costs. This reverses the goodwill we built with parents and teachers who valued local input.
 
 @school_boards
 title: Create elected school boards to give local areas more control over education.
 on-arrival: school_boards += 1; workers_spd += 3*(1-dissent); new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); education_science += 0.2;
-view-if: school_boards = 0
+view-if: school_boards <= 0
 
 We have created local elected school boards, and delegated some of the decision-making for local schools to them.
-
 
 @curriculum
 title: Change the educational curriculum.
