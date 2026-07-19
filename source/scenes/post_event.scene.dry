@@ -1447,14 +1447,10 @@ Q.budget += Q.fiscal_revenue - Q.fiscal_upkeep;
 Q.budget = Math.round(Q.budget * 100) / 100;
 
 // ============================================================
-// DIRECT MACRO -> BUDGET NUDGE (small, additive, separate from
-// the multiplier chain above — kept deliberately weak so it can
-// only ever shade the tick, never dominate it)
-// ============================================================
 
 const DIRECT_MACRO_SCALE = 0.01; // global dial for this whole block
 
-let growth_gap_effect = Math.max(-0.5, Math.min(0.5, (Q.economic_growth - 2.5) * 0.15));
+let growth_gap_effect = Math.max(-0.25, Math.min(0.25, (Q.economic_growth - 2.5) * 0.15));
 
 let unemployment_drag_direct = -Math.max(0, Math.min(0.5, ((Q.unemployed || 0) - 6) * 0.03));
 
