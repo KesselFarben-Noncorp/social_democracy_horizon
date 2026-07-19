@@ -4,6 +4,10 @@ tags: event
 view-if: year = 1929 and month = 4
 max-visits: 1
 face-image: img/paris1.jpeg
+on-arrival: {!
+window.enableFocusMode()
+
+!}
 go-to: schavog if reparation_negotiation = "schacht"; schacht if reparation_negotiation = "schacht_solo"; hilfer if reparation_negotiation = "hilferding"; laboris if reparation_negotiation = "labor_included"
 
 @schavog
@@ -24,6 +28,7 @@ On April 17th, we received the following urgent dispatch from a member of our de
 
 > **CONFIDENTIAL**
 > *To: Minister Hilferding*
+
 > *Regrettably, I cannot bring glad tidings from the conference; our ordeal here is deteriorating rapidly. The four primary delegates and their deputies are currently trapped in an incredibly precarious position.*
 > *I must bring one critical matter to your immediate attention: Dr. Schacht recently informed us that the Allies are pushing to raise the baseline payments to 52 million reichsmarks over a duration of 37 years. He has flatly declared that he will resign unless his strategy is adopted without amendment.*
 > *In response to the Allied pressure, Schacht has launched a aggressive counter-proposal demanding two specific concessions:*
@@ -32,6 +37,7 @@ On April 17th, we received the following urgent dispatch from a member of our de
 > *Furthermore, Mr. Albert has officially tendered his resignation as negotiator alongside Schacht. For the time being, the industrial expert Mr. Kastl has stepped in to fill the vacancy.*
 > *Schacht is now presenting the Reich Government with a stark choice: either the Cabinet backs his hardline approach, or he walks away. He has already cabled Berlin via telegram to announce his intentions, and he is preparing to return to the capital to confront the Cabinet directly. We have been told to sit tight and await the impending political storm here in Paris.*
 > *Swift, decisive action from Berlin is paramount. God only knows what Schacht is truly plotting.*
+
 > *— Leadership, ADGB Berlin Chapter.*
 
 It is increasingly obvious that Schacht is attempting to unnerve and manipulate Owen Young, hoping to stress him to the breaking point and intentionally blow up the conference. Among the entire lot, Young appears to be the only one maintaining a cool head.
@@ -45,6 +51,9 @@ The situation is critical. What is our course of action?
 face-image: img/melchior.jpeg
 subtitle: Plan must be signed - there is no going out of this crisis.
 on-arrival: young_signed = 1
+on-departure: {!
+window.disableFocusMode()
+!}
 
 Schacht has returned from the Berlin and under immense pressure of all situation around had him begin the next round of negotiations and finally come to signing the Young's Plan, finally submitting to the position of Government.
 
@@ -55,6 +64,9 @@ The plan for the future of Germany had been signed, perhaps at the cost of the n
 @stall
 subtitle: There is no concrete plan of actions, therefore no action.
 on-arrival: young_delayed = 1
+on-departure: {!
+window.disableFocusMode()
+!}
 
 Schacht has returned from the Berlin and despite his dissatisfaction regarding our decision, he believes it is far better than if he had to sign the Young Plan off.
 
@@ -67,6 +79,9 @@ choose-if: left_strength > 30
 unavailable-subtitle: This is unreasonable...
 subtitle: The Young Plan is nothing but pure catastrophy domestically, we can't afford to take it.
 on-arrival: young_plan_collapse = 1; france_relation -= 5; britain_relation -= 2; reformist_dissent += 10
+on-departure: {!
+window.disableFocusMode()
+!}
 
 Despite our formerly internationalist position, today it was decided that we will no longer serve their bourgeouisie interests and have completely sabotaged negotiations process, which is exactly the goal of Mr. Schacht despite our different intentions.
 
@@ -75,17 +90,37 @@ Now how we will look at the French and British with straight face after this has
 We will likely expect confrontation in the Ruhr now.
 
 @schacht
-on-arrival: young_plan_collapse = 1
+on-arrival: young_plan_collapse = 1; schacht_young_sabotage = 1; nationalism += 10; france_relation -= 5 
+on-departure: {!
+window.disableFocusMode()
+!}
 
-Oof.
+...
+
+As soon as the whole ordeal had begun, Dr. Schacht has ever been since restless: Poland, Danzig, Germany, economy...
+
+He is in the full control over the delegation. So, why is he stressing it? He must make favor to the german nation and end this treaty once and for all...
+
+Schacht arrived to the Berlin with sole news: Young Plan is enslavement attempt of the german nation by western countries.
+
+We had no one to restrain him or force back anymore. All is done.
+
+...
 
 @laboris
 on-arrival: young_plan_collapse = 1
+on-departure: {!
+window.disableFocusMode()
+!}
 
-WIP
+Laborites? Okay, back to Germany. Young Plan collapse.
 
 @hilfer
 on-arrival: young_plan_collapse = 1
+on-departure: {!
+window.disableFocusMode()
+!}
 
+Socialist? Really?
 
-Just for WIP
+Okay, Young Plan collapse for you. Get back where you came from. GG.
