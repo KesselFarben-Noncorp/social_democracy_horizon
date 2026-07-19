@@ -1,14 +1,15 @@
 title: Labor Unrest
 subtitle: Clashes between workers and employers in the Ruhr...
-view-if: year = 1928 and month = 12 and spd_in_government and labor_minister_party != "SPD"
+view-if: year = 1928 and month = 12
 max-visits: 1
 new-page: true
 face-image: img/Kollwitz_Weavers.jpg
 tags: event
+go-to: suppress if not spd_in_government
 
 = Labor Unrest
 
-The mining and metals industry of the Ruhr region is beset by a wave of strikes against cuts to wages and benefits. Meanwhile, employers have started a retaliatory lockout to force their workers to accept these cuts. Both the strikers and the employers look to the SPD in the government to resolve this crisis.
+The mining and metals industry of the Ruhr region is beset by a wave of strikes against cuts to wages and benefits. Meanwhile, employers have started a retaliatory lockout to force their workers to accept these cuts. [? if spd_in_government:  Both the strikers and the employers look to the SPD in the government to resolve this crisis. ?]
 
 - @support_labor: Support labor in their demands.
 - @support_employers: Support the employers in their demands.
@@ -31,3 +32,8 @@ subtitle: Both sides need to share the pain in the current crisis.
 on-arrival: labor_dissent += 4; workers_spd -= 2; kpd_coalition_dissent += 1; kpd_relation -= 5; workers_kpd += 2
 
 Many workers are unhappy at our compromises, but they will learn to accept that we are all in a shared struggle against economic forces. This is perhaps the best we could do given the present circumstances.
+
+@suppress
+on-arrival: workers_z -= 6; workers_dnvp -= 4; workers_dvp -= 5; workers_ddp -= 3; workers_bvp -= 1; workers_spd += 2; workers_kpd += 10; workers_nsdap += 2; workers_sapd += 2; workers_lb += 2; workers_sl += 2; unemployedc_kpd += 15; general_strike_progress += 1; labor_dissent += 3; z_relation -= 3; dvp_relation -= 3; labor_strength += 5; inflation += 0.3; economic_growth -= 0.5; unemployed += 0.5; left_dissent -= 2; new_middle_spd += 1; radicalization += 1; left_strength += 5
+
+To the horror of ours, labor unrests of the Ruhr region have been suppressed without involving SPD, further intensifying the situation.
