@@ -32,11 +32,11 @@ Meanwhile, moderates and reformists draw up proposals for a limited plan of job 
 
 AfA-Bund Plan Progress: [+ moderate_plan_support +] / 4 
 
-Bruning's / Centrist Plan: [+ austerity_support +] / 2
+Orthodoxal Plan: [+ austerity_support +] / 2
 
 Nationalization / Left Plan: [+ nationalization_support +] / 5
 
-[? if year >= 1931 or wtb_new_deal == 1: WTB Plan Progress: [+ wtb_support +] / [+ wtb_threshold +] ?]
+[? if year >= 1931 or keynes_seen == 1: WTB Plan Progress: [+ wtb_support +] / [+ wtb_threshold +] ?]
 
 - @support_centrist: Support the Centrist view.
 - @support_labor: Support the Labor view.
@@ -68,7 +68,7 @@ The party has formally adopted the centrist position of fiscal restraint and aus
 @support_labor
 subtitle: Call for increased public works and fiscal stimulus.
 unavailable-subtitle: The Labor faction is not strong enough.
-view-if: wtb_adopted = 0 and (year >= 1931 or wtb_new_deal)
+view-if: wtb_adopted = 0 and (year >= 1931 or keynes_seen)
 choose-if: historical_mode == 0 or (labor_strength >= left_strength and labor_strength >= center_strength and labor_strength >= reformist_strength)
 on-arrival: center_dissent += 10; left_dissent += 5; labor_strength += 5; wtb_support += 1;
 go-to: plan_adopted if wtb_support >= wtb_threshold; plan_support if wtb_support < wtb_threshold
