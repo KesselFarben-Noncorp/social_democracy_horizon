@@ -1,9 +1,8 @@
-title: Post Stresemann Succession DVP Congress
-subtitle: The weight of his death is truly big...
+title: DVP Congress
+subtitle: DVP holds another congress for leadership...
 tags: event
 view-if: (year = 1929 and month = 11 and stresemann_dead) or (dvp_congress_timer <= 0) and dvp_votes > 0
 new-page: true
-max-visits: 1
 on-arrival: dvp_congress_timer = 48
 
 = Post Stresemann congress
@@ -19,22 +18,9 @@ The ballots are cast, counted, and the final tally is announced from the podium.
 @winner_dvp_1929_congress
 on-arrival: {!
 
-Q.dvp_curtius = Q.dvp_curtius || 0;
-Q.dvp_luther = Q.dvp_luther || 0;
-Q.dvp_scholz = Q.dvp_scholz || 0;
-
-if (Q.dvp_reform_outcome == "stresemann_success") {
-    Q.dvp_curtius += 3;
-    Q.dvp_luther += 1;
-    Q.dvp_scholz -= 1;
-} else if (Q.dvp_reform_outcome == "scholz_victory") {
-    Q.dvp_scholz += 4;   // Scholz has existing institutional momentum
-    Q.dvp_curtius -= 2;
-} else {
-    Q.dvp_luther += 3;
-    Q.dvp_curtius += 1;
-    Q.dvp_scholz += 1;
-}
+Q.dvp_curtius = 0;
+Q.dvp_luther = 0;
+Q.dvp_scholz = 0;
 
 Q.dvp_curtius += Q.dvp_left
 Q.dvp_scholz += Q.dvp_right
