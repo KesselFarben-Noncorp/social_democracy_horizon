@@ -40,7 +40,7 @@ on-arrival: {!
     // Need labor dominance OR extremely high unemployment
     if (Q.labor_push > Q.total_opposition || Q.unemployed >= 20) {
         Q.emergency_budget_secured = 1;
-        Q.budget += 1;
+        Q.budget += 2;
         Q.center_dissent += 15;
         Q.left_dissent += 10;
         Q.coalition_dissent += 1;
@@ -77,7 +77,7 @@ Our own unity has suffered from the internal fight.
 title: Carry out the economic plan.
 subtitle: If we are in government, we can carry out a public works program such as the WTB-Plan.
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if wtb_adopted == 0 : We have not yet adopted an economic plan. ?][? if spd_in_government == 0 : The SPD is not in government. ?][? if works_program >= 2 : We have already started implementing the plan. ?]
-choose-if: advisor_action_timer <= 0 and wtb_adopted and spd_in_government and wtb_implemented <= 3
+choose-if: advisor_action_timer <= 0 and wtb_adopted and spd_in_government and wtb_implemented <= 5
 on-arrival: advisor_action_timer = 6; economic_policy_timer -= 12
 go-to: economic_policy
 
@@ -85,8 +85,9 @@ go-to: economic_policy
 @depression
 title: Addressing the economic crisis
 subtitle: Formulate a plan to get us out of the economic crisis.
-choose-if: advisor_action_timer <= 0 and wtb_adopted == 0 and black_thursday_seen == 1 and wtb_support <= 6
+choose-if: advisor_action_timer <= 0 and wtb_adopted == 0 and black_thursday_seen == 1 and wtb_support <= wtb_threshold
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if black_thursday_seen == 0 : We are not currently in an economic crisis. ?][? if wtb_adopted > 0 : We have already adopted the WTB-Plan. ?]
-on-arrival: advisor_action_timer = 6; wtb_support += 2; center_dissent += 10; labor_strength += 5; demand_impulse += 0.0047; supply_impulse += 0.009; price_pressure += 0.0035; capital_pressure += 0.0005; fiscal_demand += 0.0038
+on-arrival: advisor_action_timer = 6; wtb_support += 2; center_dissent += 7; labor_strength += 10
 
 The WTB-plan, named for its primary supporters Woytinsky, Tarnow, and Baade, has been adopted as the unions' plan for getting us out of the depression. Woytinsky canvasses in favor of this policy through the SPD and the unions.
+
