@@ -12,6 +12,7 @@ Baade is one of the few agricultural experts in the SPD, and an unorthodox econo
 - @agriculture
 - @rural_campaign
 - @depression
+- @carry_out_policy
 - @root: Return to main
 
 @agriculture
@@ -42,3 +43,11 @@ on-arrival: advisor_action_timer = 8; wtb_support += 2; center_dissent += 10; la
 
 The WTB-Plan, standing for its primary supporters Woytinsky, Tarnow, and Baade, has been adopted as the unions' plan for getting us out of the depression. Baade canvasses in favor of this plan throughout the party.
 
+@carry_out_policy
+title: Carry out the economic plan.
+subtitle: If we are in government, we can carry out a public works program such as the WTB-Plan.
+unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?][? if wtb_adopted == 0 : We have not yet adopted an economic plan. ?][? if spd_in_government == 0 : The SPD is not in government. ?][? if works_program >= 2 : We have already started implementing the plan. ?]
+choose-if: advisor_action_timer <= 0 and spd_in_government and wtb_implemented <= 4
+view-if: wtb_adopted
+on-arrival: advisor_action_timer = 6; economic_policy_timer -= 12
+go-to: economic_policy
