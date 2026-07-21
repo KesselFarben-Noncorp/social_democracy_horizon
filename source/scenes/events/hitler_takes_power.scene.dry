@@ -40,7 +40,7 @@ title: Appeal to the Reichswehr
 subtitle: Let the army restore order.
 choose-if: presidential_powers = 1 and president != "Hitler" and reichswehr_loyalty > 0.5 and (reichswehr_minister = "Gröner" or reichswehr_minister = "Schleicher") and nsdap_r < 35
 unavailable-subtitle: [? if presidential_powers = 0 : We stripped the President of emergency powers. ?][? if president = "Hitler" : The President is Hitler himself. ?][? if reichswehr_loyalty <= 0.5 : The military won't act for us. ?][? if reichswehr_minister != "Gröner" and reichswehr_minister != "Schleicher" : We have no allies in the military leadership. ?][? if nsdap_r >= 35 : The Nazis are too strong — the army fears civil war. ?]
-on-arrival: chancellor = "Schleicher"; chancellor_party = "Military"; spd_in_government = 0; pro_republic -= 10; nationalism += 8; socialism += 5; coup_progress = 0; reichswehr_loyalty += 0.2; sa_strength += 20; nsdap_r += 3; dnvp_relation -= 25; kpd_relation -= 30; coalition_dissent = 100
+on-arrival: chancellor = "Schleicher"; chancellor_party = "Military"; spd_in_government = 0; pro_republic -= 10; nationalism += 8; socialism += 5; coup_progress = 0; reichswehr_loyalty += 0.2; sa_strength += 20; nsdap_r += 3; dnvp_relation -= 25; kpd_relation -= 30
 
 We make the call. President [+ president +] authorizes General [+ reichswehr_minister +] to "restore constitutional order."
 
@@ -55,9 +55,9 @@ Democracy is suspended. We handed the country to generals. What have we done?
 - @root: Continue.
 
 @rally_reichstag
-choose-if: (z_r + ddp_r + spd_r + dvp_r + bvp_r) >= 50 and coalition_dissent < 2 and nsdap_r < 35 and nationalism < 55
-unavailable-subtitle: [? if (z_r + ddp_r + spd_r + dvp_r + bvp_r) < 50 : We lack the votes. ?][? if coalition_dissent >= 2 : The democratic parties are too divided. ?][? if nsdap_r >= 35 : The Nazis are too strong to remove peacefully. ?][? if nationalism >= 55 : The country won't support this. ?]
-on-arrival: chancellor = "Müller"; chancellor_party = "SPD"; nationalism -= 2; pro_republic += 4; nsdap_r -= 2; coalition_dissent += 15; workers_nsdap += 3; rural_nsdap += 3; sa_strength += 10
+choose-if: (z_r + ddp_r + spd_r + dvp_r + bvp_r) >= 50 and nsdap_r < 35 and nationalism < 55
+unavailable-subtitle: [? if (z_r + ddp_r + spd_r + dvp_r + bvp_r) < 50 : We lack the votes. ?][? if nsdap_r >= 35 : The Nazis are too strong to remove peacefully. ?][? if nationalism >= 55 : The country won't support this. ?]
+on-arrival: chancellor = "Müller"; chancellor_party = "SPD"; nationalism -= 2; pro_republic += 4; nsdap_r -= 4; workers_nsdap += 3; rural_nsdap += 3; sa_strength += 10
 
 The Reichstag votes. Z, DDP, DVP, BVP, and SPD unite — barely. The motion of no confidence passes by a razor-thin margin.
 

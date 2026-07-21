@@ -43,7 +43,7 @@ Capital strikes and business confidence decrease will no longer happen anymore.
 title: Support works councils.
 subtitle: Give works councils a greater influence in managing enterprises.
 view-if: works_councils == 0
-on-arrival: economic_democracy += 1; workers_spd += 7*(1-dissent); capital_strike_progress += 1; works_councils += 1; labor_dissent -= 6; labor_strength += 8; dvp_relation -= 5; coalition_dissent +=1 if (in_grand_coalition or dvp_in_government); general_strike_progress -= 1; dvp_dissent += 2; ddp_dissent += 1; z_dissent += 1; aspd_dissent += 1; wp_dissent += 3; dnvp_dissent += 3; kpd_dissent -= 1; sapd_dissent -= 2; srpd_dissent += 1
+on-arrival: economic_democracy += 1; workers_spd += 7*(1-dissent); capital_strike_progress += 1; works_councils += 1; labor_dissent -= 6; labor_strength += 8; dvp_relation -= 5;  general_strike_progress -= 1; dvp_dissent += 2; ddp_dissent += 1; z_dissent += 1; aspd_dissent += 1; wp_dissent += 3; dnvp_dissent += 3; kpd_dissent -= 1; sapd_dissent -= 2; srpd_dissent += 1
 
 The works councils, elected by workers at each major business, have been in place since the German Revolution of 1918, but they have been largely powerless in the face of capital. Now, we will have worker representation on the boards of companies, giving them more influence in management decisions.
 
@@ -52,7 +52,7 @@ The works councils, elected by workers at each major business, have been in plac
 title: Support national and sectorial works councils.
 subtitle: This is a step towards workers' control over the entire economy.
 view-if: works_councils == 1
-on-arrival: economic_democracy += 1; workers_spd += 7*(1-dissent); capital_strike_progress += 1; works_councils += 1; labor_dissent -= 6; labor_strength += 8; dvp_relation -= 5; coalition_dissent +=1 if in_grand_coalition; economic_growth += 0.1 if economic_growth < 3; general_strike_progress -= 1; dvp_dissent += 2; wp_dissent += 2; cnbl_dissent += 1; bvp_dissent += 2
+on-arrival: economic_democracy += 1; workers_spd += 7*(1-dissent); capital_strike_progress += 1; works_councils += 1; labor_dissent -= 6; labor_strength += 8; dvp_relation -= 5; economic_growth += 0.1 if economic_growth < 3; general_strike_progress -= 1; dvp_dissent += 2; wp_dissent += 2; cnbl_dissent += 1; bvp_dissent += 2
 
 National and sectorial workers councils have been part of the Weimar Constitution, but they were disempowered in the past, acting as nothing more than advisory bodies. We can change that.
 
@@ -61,7 +61,7 @@ National and sectorial workers councils have been part of the Weimar Constitutio
 title: Empower sectorial works councils.
 subtitle: Give works councils a role in setting wage and price policy for entire industrial sectors.
 view-if: works_councils == 2
-on-arrival: economic_democracy += 1; workers_spd += 7*(1-dissent); capital_strike_progress += 1; works_councils += 1; labor_dissent -= 6; labor_strength += 8; dvp_relation -= 5; coalition_dissent +=1 if in_grand_coalition; unemployed -= 2 if unemployed > 5; workers += 2; economic_growth += 0.1 if economic_growth < 3; general_strike_progress -= 1; dvp_dissent += 5; wp_dissent += 5; dnvp_dissent += 5; csvd_dissent += 2; bvp_dissent += 2; z_dissent += 1; ddp_dissent += 1; rdp_dissent -= 1; sapd_dissent -= 2; srpd_dissent += 1; bb_dissent += 1; cvp_dissent += 5
+on-arrival: economic_democracy += 1; workers_spd += 7*(1-dissent); capital_strike_progress += 1; works_councils += 1; labor_dissent -= 6; labor_strength += 8; dvp_relation -= 5; unemployed -= 2 if unemployed > 5; workers += 2; economic_growth += 0.1 if economic_growth < 3; general_strike_progress -= 1; dvp_dissent += 5; wp_dissent += 5; dnvp_dissent += 5; csvd_dissent += 2; bvp_dissent += 2; z_dissent += 1; ddp_dissent += 1; rdp_dissent -= 1; sapd_dissent -= 2; srpd_dissent += 1; bb_dissent += 1; cvp_dissent += 5
 
 Sectorial works councils can now negotiate wage and price policies for entire economic sectors, helping to both give workers more of a voice, and to rationalize the economy, smoothing over the anarchy of the market.
 
@@ -69,7 +69,7 @@ Sectorial works councils can now negotiate wage and price policies for entire ec
 @nationalize_1
 title: Begin to socialize key industries.
 subtitle: -1 budget - we should buy out industries and govern them together with workers and consumers.
-on-arrival: economic_democracy += 1; capital_strike_progress += 1; budget -= 1; socialization += 1; workers_spd += 6*(1-dissent); unemployedc_spd += 3*(1-dissent); coalition_dissent += 1 if in_grand_coalition; capital_strike_progress += 1 if black_thursday_seen; unemployed -= 1 if unemployed > 9; economic_growth += 0.2 if economic_growth < 5; general_strike_progress -= 3
+on-arrival: economic_democracy += 1; capital_strike_progress += 1; budget -= 1; socialization += 1; workers_spd += 6*(1-dissent); unemployedc_spd += 3*(1-dissent); capital_strike_progress += 1 if black_thursday_seen; unemployed -= 1 if unemployed > 9; economic_growth += 0.2 if economic_growth < 5; general_strike_progress -= 3
 choose-if: budget >= 1
 
 We have begun to socialize key industries by buying out the capitalist owners, and creating coordinated governing boards consisting of worker, consumer, and state representatives. The capitalists are not pleased at our intrusion into the economy.
@@ -86,7 +86,7 @@ We have enacted legislation that makes it easier to create cooperative enterpris
 title: Reverse socialization of key industries.
 subtitle: +1 budget recovered - sell state-held industries back to private ownership.
 view-if: socialization >= 1 and false_reform_strength >= dismantle_required_strength
-on-arrival: economic_democracy -= 1; socialization -= 1; budget += 1; reformist_dissent -= 3; neorevisionist_dissent -= 3; labor_dissent += 12; left_dissent += 15; unemployedc_spd -= 0.05*unemployedc_spd; workers_spd -= 0.08*workers_spd; workers_kpd += 6; unemployedc_kpd += 4; labor_strength -= 5; dvp_relation += 6; coalition_dissent -= 1 if in_grand_coalition; capital_strike_progress -= 2; general_strike_progress += 2; economic_growth += 0.1; pro_republic -= 3
+on-arrival: economic_democracy -= 1; socialization -= 1; budget += 1; reformist_dissent -= 3; neorevisionist_dissent -= 3; labor_dissent += 12; left_dissent += 15; unemployedc_spd -= 0.05*unemployedc_spd; workers_spd -= 0.08*workers_spd; workers_kpd += 6; unemployedc_kpd += 4; labor_strength -= 5; dvp_relation += 5; capital_strike_progress -= 2; general_strike_progress += 2; economic_growth += 0.1; pro_republic -= 3
 
 Bowing to sustained pressure from capital and coalition partners, we return the socialized industries to private hands. The reformists frame this as a necessary retreat in the light of current situation; much of the party sees it as a betrayal of the revolution's promise.
 
@@ -109,7 +109,7 @@ In the order to appease the business, first we must crush the economical democra
 @cooperative_commonwealth
 title: Establish cooperative commonwealth networks.
 subtitle: -2 budget - integrate cooperatives into coordinated economic regions.
-on-arrival: economic_democracy += 2; cooperatives += 2; workers_spd += 8*(1-dissent); unemployedc_spd += 6*(1-dissent); budget -= 2; capital_strike_progress += 1; labor_strength += 6; unemployed -= 2 if unemployed > 9; economic_growth += 0.3 if economic_growth < 5; coalition_dissent += 1 if in_grand_coalition; commonwealth_cooperation += 1; general_strike_progress -= 2
+on-arrival: economic_democracy += 2; cooperatives += 2; workers_spd += 8*(1-dissent); unemployedc_spd += 6*(1-dissent); budget -= 2; capital_strike_progress += 1; labor_strength += 6; unemployed -= 2 if unemployed > 9; economic_growth += 0.3 if economic_growth < 5;  commonwealth_cooperation += 1; general_strike_progress -= 2
 unavailable-subtitle: [? if budget < 2: Low budget. ?] [? if cooperatives <= 3: Low cooperative enterprise power. ?]
 choose-if: budget >= 2 and cooperatives >= 3
 view-if: cooperatives >= 1
@@ -121,6 +121,6 @@ Building on our existing cooperative sector, we are creating integrated "coopera
 view-if: cooperatives > 0
 title: Favor cooperatives and worker-managed firms in government contracts.
 subtitle: Use procurement policy to support economic democracy.
-on-arrival: economic_democracy += 0.3; workers_spd += 3*(1-dissent); cooperatives += 0.5; capital_strike_progress += 0.5; coalition_dissent += 1 if in_grand_coalition
+on-arrival: economic_democracy += 0.3; workers_spd += 3*(1-dissent); cooperatives += 0.5; capital_strike_progress += 0.5
 
 We are directing government procurement to favor cooperative enterprises and firms with strong worker participation. This costs the state nothing but helps build the cooperative sector through market mechanisms.
