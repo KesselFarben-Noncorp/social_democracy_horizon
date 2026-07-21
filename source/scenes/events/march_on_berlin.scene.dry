@@ -107,12 +107,33 @@ President [+ president +] and Chancellor [+ chancellor +] judge the paramilitari
 
 
 @non_govt_menu
+go-to: non_govt_favorable if president_party == "I" or president_party == "DNVP" or president_party == "NSDAP"; non_govt_unfavorable if not (president_party == "I" or president_party == "DNVP" or president_party == "NSDAP")
+
+@non_govt_favorable
 
 It appears that President [+ president +] is looking favorably upon the fascist proposals. Chancellor [+ chancellor +] has announced plans to resign.
 
 - @fight
+- @fight_kpd
 - @accept
 - @launch
+
+@non_govt_unfavorable
+
+President [+ president +], unlike his predecessors, shows no sign of favoring the fascist demands. Chancellor [+ chancellor +]'s government may not include the SPD, but it has no intention of resigning to street pressure.
+
+- @non_govt_reichswehr
+- @fight_kpd
+- @launch
+
+@non_govt_reichswehr
+title: Deploy the Reichswehr against the paramilitaries.
+choose-if: reichswehr_loyalty > 0.5 and president_party != "KPD"
+unavailable-subtitle: [? if president_party == "KPD" : The Reichswehr will not defend a Communist head of state. ?][? if president_party != "KPD" : The Reichswehr is not loyal enough to be trusted with this. ?]
+on-arrival: defense_strength = reichswehr_strength*reichswehr_loyalty*reichswehr_militancy; defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if spd_prussia; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy
+go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
+
+President [+ president +] orders the Reichswehr into the streets against the paramilitaries. With the SPD out of government, the Reichsbanner does not have official standing to act, so the burden falls entirely on the army.
 
 @launch
 title: Launch the revolution!
