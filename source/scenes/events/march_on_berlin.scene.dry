@@ -2,15 +2,107 @@ title: March on Berlin
 subtitle: Right-wing militants are taking action...
 view-if: march_on_berlin_timer = 0 and not civil_war_end_modifier_national and ((coup_progress >= 10 and year >= 1930 and (sa_banned = 0 or sh_banned = 0)) or (year >= 1933 and month >= 2 and nsdap_votes >= 20 and sa_strength > 900) or (nsdap_votes + dnvp_votes > 30 and sa_strength + sh_strength > 3000) or ((chancellor = "Thälmann" or president = "Thälmann") and nsdap_votes + dnvp_votes > 25 and sa_strength + sh_strength > 2900))
 new-page: true
-on-arrival: march_on_berlin_seen += 1; sa_strength += 80; sh_strength += 80; strife += 1; march_on_berlin_timer += 8
-go-to: ask_resign if spd_in_government and president != "Braun"; govt_menu if president = "Braun"; non_govt_menu if spd_in_government = 0 and president != "Braun"
+on-arrival: march_on_berlin_seen += 1; sa_strength += 80; sh_strength += 80; strife += 1; march_on_berlin_timer += 8; far_right_demands_seldte = 1 if sh_strength > sa_strength; far_right_demands_seldte = 0 if sh_strength <= sa_strength; {! 
+  var repIdeo = (Q.president_party && Q[Q.president_party.toLowerCase() + '_ideo_score'] !== undefined) ? Q[Q.president_party.toLowerCase() + '_ideo_score'] : -1;
+  Q.president_is_republican = (repIdeo >= 6 && repIdeo <= 15) ? 1 : 0;
+  var chanIdeo = (Q.chancellor_party && Q[Q.chancellor_party.toLowerCase() + '_ideo_score'] !== undefined) ? Q[Q.chancellor_party.toLowerCase() + '_ideo_score'] : -1;
+  Q.chancellor_is_right_nonnazi = (chanIdeo >= 12 && chanIdeo <= 18) ? 1 : 0;
+  Q.march_scenario = 'default';
+  if (Q.president === 'Hindenburg' && Q.spd_in_government && Q.president_is_republican === 0 && (Q.sa_strength + Q.sh_strength) > (Q.rb_strength * 2)) {
+    Q.march_scenario = 'article48';
+  } else if (Q.president_is_republican && Q.spd_in_government === 0 && Q.chancellor_is_right_nonnazi && Q.chancellor_party !== 'NSDAP') {
+    Q.march_scenario = 'republican_pres_right_chancellor';
+  } else if (Q.chancellor_is_right_nonnazi && Q.chancellor_party !== 'NSDAP' && (Q.sa_strength + Q.sh_strength) > 1500 && Q.nsdap_in_government !== 1) {
+    Q.march_scenario = 'purge_conservatives';
+  }
+!}
+go-to: article48_dismissal if march_scenario == "article48"; purge_menu if march_scenario == "purge_conservatives"; republican_pres_right_menu if march_scenario == "republican_pres_right_chancellor"; ask_resign if spd_in_government and president != "Braun"; govt_menu if president = "Braun"; non_govt_menu if spd_in_government = 0 and president != "Braun"
 tags: event
 
 = March on Berlin
 
 The far right is mobilizing. Paramilitary forces of the Stahlhelm and SA, organized under the Harzburg Front, have marched on Berlin, threatening to violently overthrow the government.
 
-They demand either immediate elections under the "supervision" of the nationalist paramilitaries, or else the immediate resignation of the government and the appointment of Adolf Hitler as chancellor[? if hitler_deported : , and the revocation of his deportation ?]. It is obvious that they are threatening a civil war if their demands are not met.
+[? if march_scenario == "purge_conservatives" : Their demand this time is not the overthrow of the republic outright — Chancellor [+ chancellor +]'s government is, after all, already dominated by the right. Instead, they demand that the National Socialists be given a share of power befitting their strength in the streets: cabinet seats, or else the same threats of civil war that have been leveled against the republic itself. ?][? if march_scenario != "purge_conservatives" : They demand either immediate elections under the "supervision" of the nationalist paramilitaries, or else the immediate resignation of the government and the appointment of [? if far_right_demands_seldte : Franz Seldte ?][? if not far_right_demands_seldte : Adolf Hitler[? if hitler_deported : , and the revocation of his deportation ?] ?] as chancellor. ?] It is obvious that they are threatening a civil war if their demands are not met.
+
+
+@article48_dismissal
+on-arrival: old_chancellor = chancellor; chancellor = "Papen"; chancellor_party = "I"; spd_in_government = 0
+
+President Hindenburg does not wait for negotiation. Citing Article 48, and with the SA and Stahlhelm numbering far beyond anything the Reichsbanner could hope to counter, he unilaterally dismisses the government. Chancellor [+ old_chancellor +]'s cabinet is gone before the SPD leadership can even convene.
+
+- @article48_fight
+- @article48_accept
+
+@article48_fight
+title: Resist the dismissal in the streets, constitution or no constitution.
+on-arrival: defense_strength = rb_strength*rb_militancy*(1-dissent/2); defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if spd_prussia; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy; defense_strength += workers_spd_normalized*(2 - dissent)*(2 - unemployed/100)
+go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
+
+Legality be damned — the Reichsbanner takes to the streets anyway, refusing to accept a dismissal it considers unconstitutional. [+ rb_strength +] thousand strong, they move to confront the paramilitaries before the new government can consolidate.
+
+@article48_accept
+go-to: accept
+
+The SPD leadership concludes that resisting a fait accompli, backed by the President's constitutional authority, is unwise. The dismissal stands.
+
+
+@purge_menu
+
+The paramilitaries have turned on their own allies. Chancellor [+ chancellor +]'s government is conservative, but not conservative enough — the SA and Stahlhelm want the NSDAP inside the tent, not outside it.
+
+- @purge_fight
+- @purge_capitulate
+- @purge_coopt
+
+@purge_fight
+title: Order the Reichswehr to disperse the paramilitaries.
+choose-if: reichswehr_loyalty > 0.5
+unavailable-subtitle: The Reichswehr will not fire on the SA and Stahlhelm to defend a government it sees as barely different from them.
+on-arrival: defense_strength = reichswehr_strength*reichswehr_loyalty*reichswehr_militancy; defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if not spd_prussia == 0; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy
+go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
+
+Chancellor [+ chancellor +] orders what remains of the loyal Reichswehr to clear the streets. It is an uneasy use of force — soldiers moving against men who, in other circumstances, they might sympathize with.
+
+@purge_capitulate
+title: Give in entirely — resign in favor of a fully Nazi-led government.
+go-to: braun_appoints_hitler if president == "Braun"; accept_hitler if president != "Braun"
+
+Chancellor [+ chancellor +], unwilling to risk civil war over a government that was never fully committed to the republic anyway, resigns outright.
+
+@purge_coopt
+title: Bring the NSDAP into the cabinet to defuse the crisis.
+on-arrival: {!
+  var ministries = ['foreign_minister','interior_minister','justice_minister','labor_minister','economic_minister','finance_minister','agriculture_minister','transport_minister'];
+  var pick = ministries[Math.floor(Math.random() * ministries.length)];
+  Q[pick] = 'Frick';
+  Q[pick + '_party'] = 'NSDAP';
+  Q.nsdap_in_government = 1;
+  Q.nsdap_coalition_ministry = pick;
+!} sa_strength *= 0.9; sh_strength *= 0.9; coup_progress -= 3; nsdap_normalized += 0.05
+
+Chancellor [+ chancellor +] relents just enough to hold the coalition together, offering the NSDAP a cabinet post. [+ nsdap_coalition_ministry +] passes to a National Socialist. It is a fateful concession — the paramilitaries stand down, for now, but the republic's remaining defenders are unnerved to see the Nazis given a seat at the table without a single vote being cast for it.
+
+
+@republican_pres_right_menu
+
+President [+ president +], no friend of the fascists despite the current government's rightward lean, is unwilling to simply hand power to the paramilitaries. Chancellor [+ chancellor +]'s cabinet, though far from the SPD's preference, is not eager to be replaced by Hitler or Seldte either.
+
+- @republican_pres_right_fight
+- @republican_pres_right_accept
+
+@republican_pres_right_fight
+title: Deploy what loyal Reichswehr remains to defend the government.
+on-arrival: defense_strength = reichswehr_strength*reichswehr_loyalty*reichswehr_militancy*0.75; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy
+go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
+
+With the SPD out of government, the Reichsbanner does not mobilize on the state's behalf. It falls to the Reichswehr alone — and its loyalty to a non-SPD, non-Nazi cabinet is thinner than it would be for a government it more naturally sympathizes with.
+
+@republican_pres_right_accept
+go-to: accept
+
+President [+ president +] and Chancellor [+ chancellor +] judge the paramilitaries too strong to confront, and choose to let events play out rather than risk an open confrontation they may lose.
+
 
 @non_govt_menu
 
@@ -34,7 +126,7 @@ We have launched the revolution. Republic fades away.
 
 @accept
 title: There is nothing we can do.
-go-to: accept_election if (nsdap_normalized + dnvp_normalized >= 0.5 and far_right_coalition < 50); accept_hitler if (nsdap_normalized + dnvp_normalized < 0.5 or far_right_coalition >= 50)
+go-to: accept_election if (nsdap_normalized + dnvp_normalized >= 0.5 and far_right_coalition < 50); accept_seldte if far_right_demands_seldte and (nsdap_normalized + dnvp_normalized < 0.5 or far_right_coalition >= 50); accept_hitler if (not far_right_demands_seldte) and (nsdap_normalized + dnvp_normalized < 0.5 or far_right_coalition >= 50)
 
 @accept_election
 on-arrival: next_election_time = time + 1 if next_election_time > time+1; next_election_month = month + 1 if next_election_time >= time+1; next_election_year = year if next_election_time >= time+1; next_election_year += 1 if next_election_month > 12; next_election_month -= 12 if next_election_month > 12; old_middle_nsdap += 10; new_middle_nsdap += 10; workers_nsdap += 10; rural_nsdap += 10; unemployed_nsdap += 8; workers_spd -= 10; workers_kpd -= 10; sa_strength += 100;
@@ -46,6 +138,13 @@ President [+ president +] has called for emergency elections, to be held next mo
 on-arrival: chancellor = "Hitler"; chancellor_party = "NSDAP"; spd_in_government = 0
 
 After the resignation of the chancellor, Hitler has been appointed chancellor [? if hitler_deported: , after being made a citizen again ?].
+
+- @hitler_takes_power
+
+@accept_seldte
+on-arrival: chancellor = "Seldte"; chancellor_party = "DNVP"; spd_in_government = 0; martial_law_state = 1
+
+After the resignation of the chancellor, and with the Stahlhelm's ranks dwarfing the SA's in the streets, Seldte of the DNVP has been appointed chancellor instead of Hitler. The Nazis grumble, but for now they accept a junior role in the new order.
 
 - @hitler_takes_power
 
@@ -69,12 +168,34 @@ President [+ president +] has asked our government to resign.
 
 @fight
 title: Deploy the Reichsbanner and call a general strike to resist the fascists!
-on-arrival: defense_strength = rb_strength*rb_militancy*(1-dissent/2); defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if spd_prussia; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy; defense_strength += workers_spd_normalized*(2 - dissent)*(2 - unemployed/100); defense_strength += reichswehr_strength*reichswehr_loyalty*reichswehr_militancy if president=="Braun" and spd_in_government
+view-if: chancellor_party != "KPD" and president_party != "KPD"
+on-arrival: defense_strength = rb_strength*rb_militancy*(1-dissent/2); defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if spd_prussia; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy; defense_strength += workers_spd_normalized*(2 - dissent)*(2 - unemployed/100); defense_strength += reichswehr_strength*reichswehr_loyalty*reichswehr_militancy if (president_is_republican or president=="Braun") and spd_in_government
 go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
 
 The Reichsbanner number at [+ rb_strength +] thousand; many are in Berlin to counter the fascist demonstration.
 
-[? if spd_prussia: The Prussian police has been deployed against the fascists. ?] [? if spd_in_government and president == "Braun" : The portions of the Reichswehr that are loyal are also deployed. ?]
+[? if spd_prussia: The Prussian police has been deployed against the fascists. ?] [? if president_is_republican or president == "Braun" : The portions of the Reichswehr that are loyal to the republic are also deployed. ?]
+
+
+@fight_kpd
+title: The RFB has mobilized against the fascists. Will the Reichsbanner join them?
+view-if: chancellor_party = "KPD" or president_party = "KPD"
+- @fight_kpd_join
+- @fight_kpd_abstain
+
+@fight_kpd_join
+title: Deploy the Reichsbanner alongside the RFB.
+on-arrival: defense_strength = rfb_strength*rfb_militancy*(1-dissent/2); defense_strength += rb_strength*rb_militancy*(1-dissent/2); defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if spd_prussia; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy
+go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
+
+The Rotfrontkämpferbund, numbering [+ rfb_strength +] thousand, has already mobilized against the fascists. The Reichsbanner marches alongside them.
+
+@fight_kpd_abstain
+title: Hold the Reichsbanner back and let the RFB handle it alone.
+on-arrival: defense_strength = rfb_strength*rfb_militancy*(1-dissent/2); defense_strength += prussian_police_strength*prussian_police_militancy*prussian_police_loyalty if spd_prussia; enemy_strength = sa_strength*sa_militancy + sh_strength*sh_militancy
+go-to: fight_2_win if defense_strength >= enemy_strength and march_on_berlin_seen <= 1; fight_2_win_2 if defense_strength >= enemy_strength and march_on_berlin_seen > 1; fight_2_pre_civil_war if defense_strength < enemy_strength
+
+The Rotfrontkämpferbund, numbering [+ rfb_strength +] thousand, faces the fascists alone. The Reichsbanner stays home.
 
 
 @fight_2_win
@@ -127,7 +248,7 @@ go-to: new_elections_braun_2 if nsdap_normalized + dnvp_normalized >= 0.5 and fa
 
 @new_elections_braun_reject
 
-The fascists reject our offer of free and fair elections. They are demanding that President [+ president +] dismisses the current government and appoints Hitler chancellor. [? if far_right_coalition >= 50 : They claim that since the far-right coalition has the majority in the Reichstag, they are constitutionally justified in appointing the chanellor. Unfortunately, their argument is not exactly wrong. ?]
+The fascists reject our offer of free and fair elections. They are demanding that President [+ president +] dismisses the current government and appoints [? if far_right_demands_seldte : Seldte ?][? if not far_right_demands_seldte : Hitler ?] chancellor. [? if far_right_coalition >= 50 : They claim that since the far-right coalition has the majority in the Reichstag, they are constitutionally justified in appointing the chancellor. Unfortunately, their argument is not exactly wrong. ?]
 
 - @braun_appoints_hitler
 - @braun_appoints_seldte
@@ -170,7 +291,7 @@ We have resigned our positions in the government.
 @braun_appoints_seldte
 title: We cannot do anything but appoint Seldte as the chancellor.
 view-if: president == "Braun"
-choose-if: dnvp_normalized >= 0.4 or (sh_strength > 300 and sh_militancy > 0.65)
+choose-if: dnvp_normalized >= 0.4 or (sh_strength > 300 and sh_militancy > 0.65) or far_right_demands_seldte
 unavailable-subtitle: There is no way President [+ president +] could do such a blatantly undemocratic act.
 on-arrival: chancellor = "Seldte"; chancellor_party = "DNVP"; spd_in_government = 0; martial_law_state = 1
 
