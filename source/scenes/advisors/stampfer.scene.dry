@@ -26,9 +26,9 @@ go-to: media
 
 @faction_support_
 title: Editorial Line
-subtitle: We can change the editorial line of Vorwärts to support a particular faction. (-1 resource, no cooldown)
+subtitle: We can change the editorial line of Vorwärts to support a particular faction. (-1 resource)
 unavailable-subtitle: [? if resources < 1: Not enough resources! ?]
-on-arrival: resources -= 1
+on-arrival: resources -= 1; advisor_action_timer = 2;
 
 Which faction should we support?
 
@@ -41,7 +41,7 @@ Which faction should we support?
 
 @back_stampfer
 on-arrival: resources += 1
-go-to: stampfer
+go-to: stampfer; advisor_action_timer = 1
 
 @support_left
 on-arrival: left_dissent -= 10; left_strength += 10
@@ -74,6 +74,6 @@ title: Cooperation with the KPD
 subtitle: Could we build closer ties with the KPD?
 unavailable-subtitle: [? if advisor_action_timer > 0 : [+ advisor_action_timer +] months before next advisor action. ?]
 choose-if: advisor_action_timer = 0
-on-arrival: advisor_action_timer = 6; left_strength += 2; kpd_relation += 4*(1-dissent); reformist_dissent += 2; communist_coalition += 1 if communist_coalition <= 3
+on-arrival: advisor_action_timer = 8; left_strength += 2; kpd_relation += 4*(1-dissent); reformist_dissent += 2; communist_coalition += 1 if communist_coalition <= 3
 
 Stampfer works towards closer ties with the KPD through our media.
