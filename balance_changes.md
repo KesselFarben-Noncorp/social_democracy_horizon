@@ -44,8 +44,9 @@ Siemsen
 
 Buff:
 
-• "Change the structure and funding of education" timer: 6 -> 4
-• "Change the educational curriculum.": 6 -> 4
+- "Change the structure and funding of education" timer: 6 -> 4
+
+- "Change the educational curriculum.": 6 -> 4
 
 ---
 
