@@ -50,3 +50,15 @@ Buff:
 
 ---
 
+
+Juchasz Rework:
+
+Nerf:
+
+Advisor time action for "Organizing women" increased from base 8 to 6.
+
+Buff: 
+
+On peoples' party, decrease timer for "Organizing women" by two.
+
+Additional += 2 towards rural and += 3 towards other demographics if peoples_party is active.
