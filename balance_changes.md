@@ -22,7 +22,7 @@ Gold Standard for advisor actions:
 
 Nerf:
 
-Editorial Line: No cooldown -> 2 turns cooldown.
+- Editorial Line: No cooldown -> 2 turns cooldown.
 
 ---
 
@@ -36,7 +36,7 @@ Decrease for nsdap worker and unemployed class shares is nerfed:
 
 Buff:
 
-Advisor timer: 3 turns -> 2 turns.
+- Advisor timer: 3 turns -> 2 turns.
 
 ---
 
@@ -55,10 +55,10 @@ Juchasz Rework:
 
 Nerf:
 
-Advisor time action for "Organizing women" increased from base 8 to 6.
+- Advisor time action for "Organizing women" increased from base 8 to 6.
 
 Buff: 
 
-On peoples' party, decrease timer for "Organizing women" by two.
+- On peoples' party, decrease timer for "Organizing women" by two.
 
-Additional += 2 towards rural and += 3 towards other demographics if peoples_party is active.
+- Additional += 2 towards rural and += 3 towards other demographics if peoples_party is active.
