@@ -188,76 +188,6 @@ if (gov_count > 0) {
 }
 
 
-// ============================================
-// PRESIDENTIAL PATIENCE
-// ============================================
-// 0-100 scale. Decays while a government is sitting, driven (for now) purely
-// by economic performance. Does NOT run during emergency rule (the president
-// IS the emergency government at that point, there's nothing to lose patience
-// with) and is dampened under a presidential cabinet (already his own pick,
-// so he's more forgiving of it). Reaching 0 dismisses the sitting government
-// and schedules a snap election, mirroring the existing government_collapsed
-// pattern above.
-
-if (Q.presidential_enabled === 1 && !Q.government_dismissed) {
-
-    var pp_gov_count = 0;
-    for (var i = 0; i < Q.parties.length; i++) {
-        if (Q[Q.parties[i] + '_in_government'] === 1) pp_gov_count++;
-    }
-
-    if (pp_gov_count > 0 && !Q.emergency_rule) {
-
-        // --- target patience level based on current economic conditions ---
-        var pp_unemp_stress = Math.max(0, (Q.unemployed || 0) - 8);         // 0 at baseline
-        var pp_infl_stress  = Math.abs((Q.inflation || 0) - 2);              // 0 at stable 2%
-        var pp_growth_bonus = Math.max(0, (Q.economic_growth || 0) - 1);     // rewards real growth
-        var pp_growth_stress = Math.max(0, -(Q.economic_growth || 0));      // punishes contraction
-
-        var pp_target = 50;
-        pp_target -= pp_unemp_stress   * 3.0;
-        pp_target -= pp_infl_stress    * 2.0;
-        pp_target -= pp_growth_stress  * 4.0;
-        pp_target += pp_growth_bonus   * 2.0;
-        pp_target = Math.max(0, Math.min(100, pp_target));
-
-        // --- drift current patience toward target, slowly ---
-        var pp_decay_rate = 0.12; // base monthly drift speed
-        if (Q.presidential_cabinet === 1) {
-            pp_decay_rate *= 0.7; // 30% slowdown: this is his own cabinet
-        }
-
-        Q.presidential_patience = (Q.presidential_patience === undefined) ? 50 : Q.presidential_patience;
-        Q.presidential_patience += (pp_target - Q.presidential_patience) * pp_decay_rate;
-        Q.presidential_patience = Math.max(0, Math.min(100, Q.presidential_patience));
-
-        // --- dismissal trigger (edge-triggered: fires once, on crossing to 0) ---
-        if (Q.presidential_patience <= 0) {
-            Q.government_dismissed = 1;
-            Q.government_dismissed_reason = "presidential_patience";
-
-            Q.next_election_year = Q.year;
-            Q.next_election_month = Q.month + 2;
-            if (Q.next_election_month > 12) {
-                Q.next_election_month -= 12;
-                Q.next_election_year += 1;
-            }
-
-            for (var i = 0; i < Q.parties.length; i++) {
-                Q[Q.parties[i] + '_in_government'] = 0;
-            }
-            Q.government_parties = [];
-            Q.tolerating_parties = [];
-            Q.spd_toleration = 0;
-            Q.is_minority_government = 0;
-
-            // grace period for the incoming government so it isn't born at 0
-            Q.presidential_patience = 40;
-        }
-    }
-}
-
-
 // QOL. REMOVES PHANTON PARTIES.
 
 const inGov = Object.keys(Q)
@@ -2377,6 +2307,114 @@ if ((Q.wtb_timer || 0) > 0) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================
+// PRESIDENTIAL PATIENCE
+// ============================================
+// 0-100 scale. Decays while a government is sitting, driven (for now) purely
+// by economic performance. Does NOT run during emergency rule (the president
+// IS the emergency government at that point, there's nothing to lose patience
+// with) and is dampened under a presidential cabinet (already his own pick,
+// so he's more forgiving of it). Reaching 0 dismisses the sitting government
+// and schedules a snap election, mirroring the existing government_collapsed
+// pattern above.
+
+if (Q.presidential_powers == 0 && !Q.government_dismissed) {
+
+    var pp_gov_count = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        if (Q[Q.parties[i] + '_in_government'] === 1) pp_gov_count++;
+    }
+
+    if (pp_gov_count > 0 && !Q.emergency_rule) {
+
+        // --- target patience level based on current economic conditions ---
+        var pp_unemp_stress = Math.max(0, (Q.unemployed || 0) - 8);         // 0 at baseline
+        var pp_infl_stress  = Math.abs((Q.inflation || 0) - 2);              // 0 at stable 2%
+        var pp_growth_bonus = Math.max(0, (Q.economic_growth || 0) - 1);     // rewards real growth
+        var pp_growth_stress = Math.max(0, -(Q.economic_growth || 0));      // punishes contraction
+
+        var pp_target = 50;
+        pp_target -= pp_unemp_stress   * 3.0;
+        pp_target -= pp_infl_stress    * 2.0;
+        pp_target -= pp_growth_stress  * 4.0;
+        pp_target += pp_growth_bonus   * 2.0;
+        pp_target = Math.max(0, Math.min(100, pp_target));
+
+        // --- drift current patience toward target, slowly ---
+        var pp_decay_rate = 0.12; // base monthly drift speed
+        if (Q.presidential_cabinet === 1) {
+            pp_decay_rate *= 0.7; // 30% slowdown: this is his own cabinet
+        }
+
+        Q.presidential_patience = (Q.presidential_patience === undefined) ? 50 : Q.presidential_patience;
+        Q.presidential_patience += (pp_target - Q.presidential_patience) * pp_decay_rate;
+        Q.presidential_patience = Math.max(0, Math.min(100, Q.presidential_patience));
+
+        // --- dismissal trigger (edge-triggered: fires once, on crossing to 0) ---
+        if (Q.presidential_patience <= 0) {
+            Q.government_dismissed = 1;
+            Q.government_dismissed_reason = "presidential_patience";
+
+            Q.next_election_year = Q.year;
+            Q.next_election_month = Q.month + 2;
+            if (Q.next_election_month > 12) {
+                Q.next_election_month -= 12;
+                Q.next_election_year += 1;
+            }
+
+            for (var i = 0; i < Q.parties.length; i++) {
+                Q[Q.parties[i] + '_in_government'] = 0;
+            }
+            Q.government_parties = [];
+            Q.tolerating_parties = [];
+            Q.spd_toleration = 0;
+            Q.is_minority_government = 0;
+
+            // grace period for the incoming government so it isn't born at 0
+            Q.presidential_patience = 40;
+        }
+    }
+}
 
 
 
