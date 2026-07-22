@@ -2350,13 +2350,9 @@ if ((Q.wtb_timer || 0) > 0) {
 // ============================================
 // PRESIDENTIAL PATIENCE
 // ============================================
-// 0-100 scale. Decays while a government is sitting, driven (for now) purely
-// by economic performance. Does NOT run during emergency rule (the president
-// IS the emergency government at that point, there's nothing to lose patience
-// with) and is dampened under a presidential cabinet (already his own pick,
-// so he's more forgiving of it). Reaching 0 dismisses the sitting government
-// and schedules a snap election, mirroring the existing government_collapsed
-// pattern above.
+
+
+
 
 if (Q.presidential_powers == 0 && !Q.government_dismissed) {
 
@@ -2395,23 +2391,6 @@ if (Q.presidential_powers == 0 && !Q.government_dismissed) {
             Q.government_dismissed = 1;
             Q.government_dismissed_reason = "presidential_patience";
 
-            Q.next_election_year = Q.year;
-            Q.next_election_month = Q.month + 2;
-            if (Q.next_election_month > 12) {
-                Q.next_election_month -= 12;
-                Q.next_election_year += 1;
-            }
-
-            for (var i = 0; i < Q.parties.length; i++) {
-                Q[Q.parties[i] + '_in_government'] = 0;
-            }
-            Q.government_parties = [];
-            Q.tolerating_parties = [];
-            Q.spd_toleration = 0;
-            Q.is_minority_government = 0;
-
-            // grace period for the incoming government so it isn't born at 0
-            Q.presidential_patience = 40;
         }
     }
 }
