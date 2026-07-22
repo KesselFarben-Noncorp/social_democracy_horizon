@@ -2,17 +2,16 @@ title: [+ president +] has dismissed the government of [+ chancellor +]
 subtitle: The President's patience has run out.
 tags: event
 new-page: true
-view-if: hindenburg_ready_to_dismiss = 1 and chancellor != 0 and not presidential_powers and not hindenburg_dismissed_government_this_turn
+view-if: government_dismissed = 1 and chancellor != 0 and not presidential_powers
 on-arrival: {!
 
-if (Q.hindenburg_dismissed_government_this_turn) return; // prevent double-fire
-Q.hindenburg_dismissed_government_this_turn = 1;
-
 // === RESET PATIENCE & DISMISS FLAG ===
-Q.hindenburg_ready_to_dismiss = 0;
-Q.hindenburg_patience = 30;
-Q.hindenburg_patience_low = 0;
-Q.hindenburg_patience_critical = 0;
+// government_dismissed is cleared here (not by the tick block) so the
+// presidential-patience check re-arms only once a new chancellor is seated
+// and this scene has run.
+Q.government_dismissed = 0;
+Q.government_dismissed_reason = null;
+Q.presidential_patience = 40;
 
 // === RECORD DISMISSED CHANCELLOR ===
 Q.last_dismissed_chancellor = Q.chancellor;
@@ -90,8 +89,8 @@ if (Q.camarilla_member_influences) {
 Q.pro_republic -= 3;
 
 // Street reaction
-Q.sa_militancy  = Math.min(5, (Q.sa_militancy  || 1) + 0.12);
-Q.rfb_militancy = Math.min(5, (Q.rfb_militancy || 1) + 0.10);
+Q.sa_militancy  = Math.min(5, (Q.sa_militancy  || 1) + 0.03);
+Q.rfb_militancy = Math.min(5, (Q.rfb_militancy || 1) + 0.02);
 
 // === ELECTION TIMER ===
 Q.next_election_month = Q.month + 4;
@@ -110,9 +109,6 @@ Q.snap_election = 1;
 // Hindenburg will push his preferred successor
 Q.hindenburg_pushing_successor = 1;
 Q.hindenburg_successor_pressure = (Q.camarilla_strength || 0) > 70 ? "strong" : "mild";
-
-// Schedule flag reset for next turn — don't clear it immediately
-Q.hindenburg_dismissed_cooldown_turns = 1;
 
 !}
 
