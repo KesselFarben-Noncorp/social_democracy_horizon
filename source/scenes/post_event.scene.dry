@@ -4081,14 +4081,14 @@ function computeTarget(party, c) {
 
         case 'kpd': {
             if (Q.kpd_banned) return 0;
-            let buff = Q.april_challenge === 1 ? 1.20 : 1;
-            base = soc * 45 * 1.9 * (1 + unr * 0.13) * buff * im.kpd;
+            let buff = Q.april_challenge === 1 ? 1.30 : 1;
+            base = soc * 34 * 1.9 * (1 + unr * 0.13) * buff * im.kpd;
 
-            let workers_m     = 1.55 * (Q.peoples_party === 1 ? 1.08 : 1);
-            let old_middle_m  = 0.10 * (Q.peoples_party === 1 ? 0.92 : 1);
-            let new_middle_m  = 0.30 * (Q.peoples_party === 1 ? 0.92 : 1);
-            let rural_m       = 0.20 * (Q.peoples_party === 1 ? 0.92 : 1);
-            let unemployedc_m = 1.45 * (Q.peoples_party === 1 ? 1.08 : 1);
+            let workers_m     = 1.45 * (Q.peoples_party === 1 ? 1.08 : 1);
+            let old_middle_m  = 0.05 * (Q.peoples_party === 1 ? 0.92 : 1);
+            let new_middle_m  = 0.10 * (Q.peoples_party === 1 ? 0.92 : 1);
+            let rural_m       = 0.15 * (Q.peoples_party === 1 ? 0.92 : 1);
+            let unemployedc_m = 1.35 * (Q.peoples_party === 1 ? 1.08 : 1);
             const class_mods  = { workers: workers_m, old_middle: old_middle_m, new_middle: new_middle_m, rural: rural_m, unemployedc: unemployedc_m };
             return _applyQOL(base * (class_mods[c] || 1.0), party, c);
         }
@@ -4309,10 +4309,13 @@ function computeTarget(party, c) {
 
         case 'z': {
             if (Q.z_banned) return 0;
-            let cath_bonus  = Q.catholics / 12.5;
+            let cath_bonus  = Q.catholics / 8;
             let leader_mod  = Q.z_party_leader === 'Kaas' ? 0.94 : Q.z_party_leader === 'Joos' ? 1.06 : 1.0;
             let gov_mod     = Q.z_in_government ? 1.12 : 0.93;
-            base = (rep * 88 + cath_bonus) * leader_mod * gov_mod * im.z;
+            base = (rep * 70 + cath_bonus * 4) * leader_mod * gov_mod * im.z;
+
+            let floor = cath_bonus * 3.2 * gov_mod;
+            base = Math.max(base, floor);
 
             const class_mods = {
                 workers:     0.65 * (Q.z_party_leader == 'Adam Stegerwald' ? 1.08 : 1) * (Q.peoples_party === 1 ? 0.94 : 1),
