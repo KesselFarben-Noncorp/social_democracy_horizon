@@ -1,4 +1,4 @@
-presidential_patiencetitle: Ratification
+titlepresidential_patiencetitle: Ratification
 new-page: true
 on-arrival: {!
 Q.bill_awaiting_ratification = 0; // consumed on entry — cannot re-trigger
@@ -46,7 +46,7 @@ Q.spd_holds_ministry = (Q.ratify_minister_party === 'SPD') ? 1 : 0;
 var bill_type = Q.ratify_bill_type || 'economic';
 Q.hindenburg_intercepts = 0;
 if (Q.president === 'Hindenburg') {
-    if ((bill_type === 'constitutional' || bill_type === 'civil') && (Q.hindenburg_patience || 50) < 30) {
+    if ((bill_type === 'constitutional' || bill_type === 'civil') && (Q.presidential_patience || 50) < 30) {
         Q.hindenburg_intercepts = 1;
     }
 }
@@ -102,7 +102,7 @@ Minister responsible: **[+ ratify_minister_name +]** ([+ ratify_minister_party +
 
 @ratify_hindenburg
 on-arrival: {!
-var patience = Q.hindenburg_patience || 50;
+var patience = Q.presidential_patience || 50;
 if (patience >= 30) {
     Q.ratify_auto_decision = 'approve';
 } else if (patience >= 15) {
@@ -117,8 +117,8 @@ go-to: ratify_resolve_auto
 
 President **Hindenburg** has taken personal interest in **[+ ratify_bill_name +]**.
 
-[? if hindenburg_patience < 15 : His patience with the government is nearly exhausted. He will not allow this to pass. ?]
-[? if hindenburg_patience >= 15 and hindenburg_patience < 30 : He is wary. He will delay implementation. ?]
+[? if presidential_patience < 15 : His patience with the government is nearly exhausted. He will not allow this to pass. ?]
+[? if presidential_patience >= 15 and presidential_patience < 30 : He is wary. He will delay implementation. ?]
 
 - @ratify_resolve_auto: Continue
 
@@ -215,7 +215,7 @@ if (decision === 'approve') {
 
     // Hindenburg patience bump on blocked left bills
     if (bill_ideo <= 4 && Q.president === 'Hindenburg') {
-        Q.hindenburg_patience = Math.min(100, (Q.hindenburg_patience || 50) + 2);
+        Q.presidential_patience = Math.min(100, (Q.presidential_patience || 50) + 2);
     }
 
     // Track block pressure for pick-count curve

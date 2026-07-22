@@ -1,4 +1,4 @@
-presidential_patiencepresidential_patiencetitle: Constitutional Reform
+titlepresidential_patiencepresidential_patiencetitle: Constitutional Reform
 new-page: true
 is-card: true
 view-if: spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer = 0 and judicial_reform >= 4 and full_reform_initiated = 1 and constitutional_reform < 5 and ( coalition_votes >= 67 or (coalition_votes >= 50 and (kpd_in_government or sapd_in_government or ddp_in_government or z_in_government)) or (spd_r >= 40) or (dnvp_in_government = 0 and nsdap_r < 20 and coalition_votes >= 55) )
@@ -386,7 +386,7 @@ Required: [+ ban_threshold +]
 @ban_dnvp_confirm
 choose-if: can_ban_dnvp = 1
 unavailable-subtitle: [? if dnvp_line != 3: The DNVP has not yet crossed into full anti-constitutional territory. ?] [? if ban_support < ban_threshold: Not enough political support. ?]
-on-arrival: dnvp_banned = 1; sh_strength *= 0.1; constitutional_reform_timer = 24; pro_republic += 3; z_relation -= 8; dvp_relation -= 15; bvp_relation -= 12; hindenburg_patience -= 10 if president = "Hindenburg"; camarilla_strength += 15 if president = "Hindenburg"; workers_dvp += workers_dnvp * 0.3; workers_other += workers_dnvp * 0.3; workers_nsdap += workers_dnvp * 0.2 if nsdap_banned = 0; old_middle_dvp += old_middle_dnvp * 0.4; old_middle_other += old_middle_dnvp * 0.3; old_middle_nsdap += old_middle_dnvp * 0.2 if nsdap_banned = 0; rural_other += rural_dnvp * 0.4; rural_nsdap += rural_dnvp * 0.3 if nsdap_banned = 0; new_middle_dvp += new_middle_dnvp * 0.5; new_middle_other += new_middle_dnvp * 0.3; strife += 1;
+on-arrival: dnvp_banned = 1; sh_strength *= 0.1; constitutional_reform_timer = 24; pro_republic += 3; z_relation -= 8; dvp_relation -= 15; bvp_relation -= 12; presidential_patience -= 10 if president = "Hindenburg"; camarilla_strength += 15 if president = "Hindenburg"; workers_dvp += workers_dnvp * 0.3; workers_other += workers_dnvp * 0.3; workers_nsdap += workers_dnvp * 0.2 if nsdap_banned = 0; old_middle_dvp += old_middle_dnvp * 0.4; old_middle_other += old_middle_dnvp * 0.3; old_middle_nsdap += old_middle_dnvp * 0.2 if nsdap_banned = 0; rural_other += rural_dnvp * 0.4; rural_nsdap += rural_dnvp * 0.3 if nsdap_banned = 0; new_middle_dvp += new_middle_dnvp * 0.5; new_middle_other += new_middle_dnvp * 0.3; strife += 1;
 
 The DNVP has been banned. The conservative movement has been decapitated, but many warn this creates martyrs and drives their voters toward the NSDAP.
 
@@ -459,7 +459,7 @@ Required: [+ ban_threshold +]
 @ban_kpd_confirm
 choose-if: can_ban_kpd = 1
 unavailable-subtitle: [? if ban_support < ban_threshold: Not enough political support. This requires a center-right coalition. ?] [? if left_strength >= 40: Our left wing will never allow this. ?] [? if kpd_relation >= 50: We have good relations with the KPD — this would be a betrayal. ?]
-on-arrival: kpd_banned = 1; rfb_strength *= 0.05; constitutional_reform_timer = 24; left_dissent += 40; labor_dissent += 30; center_dissent += 15; workers_spd -= 10; workers_kpd *= 0.4; workers_sapd += workers_kpd * 0.3 if sapd_formed; unemployed_spd -= 8; unemployed_kpd *= 0.5; z_relation += 10; dvp_relation += 12; dnvp_relation += 8 if dnvp_line = 1; reformist_strength += 10; left_strength -= 15; strife += 2; hindenburg_patience += 5 if president = "Hindenburg";
+on-arrival: kpd_banned = 1; rfb_strength *= 0.05; constitutional_reform_timer = 24; left_dissent += 40; labor_dissent += 30; center_dissent += 15; workers_spd -= 10; workers_kpd *= 0.4; workers_sapd += workers_kpd * 0.3 if sapd_formed; unemployed_spd -= 8; unemployed_kpd *= 0.5; z_relation += 10; dvp_relation += 12; dnvp_relation += 8 if dnvp_line = 1; reformist_strength += 10; left_strength -= 15; strife += 2; presidential_patience += 5 if president = "Hindenburg";
 
 **The KPD has been banned.**
 
