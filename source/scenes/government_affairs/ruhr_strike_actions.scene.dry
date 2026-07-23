@@ -1,0 +1,90 @@
+title: Second Ruhr Strike
+new-page: true
+is-card: true
+tags: govt_affairs, cabinet
+on-arrival: {!
+labor_affairs_timer = 2;
+month_actions += 1;
+
+// --- workers vs employers ---
+Q.ruhr_workers = Q.workers / 7;
+Q.ruhr_worker_rfb = Q.ruhr_workers * 0.80;
+Q.ruhr_worker_rb  = Q.ruhr_workers * 0.15;
+Q.ruhr_worker_unaligned = Q.ruhr_workers * 0.05;
+Q.ruhr_worker_force = Q.ruhr_workers * 0.70;
+
+Q.ruhr_rfb_effective = Q.rfb_strength * Q.rfb_militancy * 0.20;
+
+Q.ruhr_employer_base = Q.old_middle / 18;
+Q.ruhr_employer_force = Q.ruhr_employer_base * 0.30;
+Q.ruhr_sa_backing = Q.sa_strength * Q.sa_militancy;
+Q.ruhr_sh_backing = Q.sh_strength * Q.sh_militancy;
+Q.ruhr_employer_total = Q.ruhr_employer_force + Q.ruhr_sa_backing + Q.ruhr_sh_backing;
+
+// --- reichswehr deployment ---
+Q.reichswehr_strength_ruhr = 5;
+Q.ruhr_reichswehr_effective = Q.reichswehr_strength_ruhr * 1000 * (Q.reichswehr_militancy / 100);
+Q.ruhr_rw_loyal = Q.ruhr_reichswehr_effective * 0.5;
+Q.ruhr_rw_order = Q.ruhr_reichswehr_effective * 0.5;
+
+// --- three-camp armed contest ---
+Q.ruhr_rb_effective = Q.rb_strength * Q.rb_militancy;
+Q.ruhr_camp_rb  = Q.ruhr_rb_effective + Q.ruhr_rw_order;
+Q.ruhr_camp_rfb = Q.ruhr_rfb_effective;
+Q.ruhr_camp_reaction = Q.ruhr_sa_backing + Q.ruhr_sh_backing + Q.ruhr_rw_loyal;
+!}
+On-display: {!
+if (!window.Chart) {
+  var s = document.createElement('script');
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js";
+  s.onload = renderRuhrCharts;
+  document.head.appendChild(s);
+} else {
+  renderRuhrCharts();
+}
+
+function renderRuhrCharts(){
+  var host = document.getElementById('ruhr-charts');
+  if (!host) return;
+  host.innerHTML =
+    '<canvas id="ruhrLaborChart" height="180"></canvas>' +
+    '<canvas id="ruhrFactionChart" height="180" style="margin-top:16px"></canvas>';
+
+  new Chart(document.getElementById('ruhrLaborChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Ruhr Front'],
+      datasets: [
+        { label: 'Workers (70%)', data: [Q.ruhr_worker_force], backgroundColor: '#c0392b' },
+        { label: 'Employer core (30%)', data: [Q.ruhr_employer_force], backgroundColor: '#b08d4f' },
+        { label: 'SA backing', data: [Q.ruhr_sa_backing], backgroundColor: '#4a4642' },
+        { label: 'SH backing', data: [Q.ruhr_sh_backing], backgroundColor: '#7a746a' }
+      ]
+    },
+    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Workers vs. Employers' } } }
+  });
+
+  new Chart(document.getElementById('ruhrFactionChart'), {
+    type: 'bar',
+    data: {
+      labels: ['RB + loyal Reichswehr', 'RFB', 'SA + SH + Reichswehr'],
+      datasets: [{
+        label: 'Effective force',
+        data: [Q.ruhr_camp_rb, Q.ruhr_camp_rfb, Q.ruhr_camp_reaction],
+        backgroundColor: ['#3a5a6b', '#c0392b', '#4a4642']
+      }]
+    },
+    options: { plugins: { title: { display: true, text: 'RB & Reichswehr vs. RFB vs. SA & SH & Reichswehr' }, legend: { display: false } } }
+  });
+}
+!}
+view-if: spd_in_government = 1 and labor_minister_party = "SPD" and labor_affairs_timer = 0 and ruhr_labor_strike == 1
+card-image: img/ruhr_iron_strike_second_1
+
+= Second Ruhr Strike
+
+The industrial Ruhr region is aflame with labor unrest and practically communist rebellion. We need to solve this as soon as possible, it seems.
+
+<div id="ruhr-charts"></div>
+
+- @easy_discard
