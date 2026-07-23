@@ -1,0 +1,58 @@
+title: Second Ruhr Strike...
+subtitle: Indomitable spirit of the Red Ruhr is still sparking...
+tags: event
+view-if: general_strike_progress >= 6 and year >= 1929 and month >= 2 and weeks >= 2
+priority: -2
+new-page: true
+on-arrival: rfb_strength += 100; rfb_militancy += 0.1; rb_strength -= 120; rb_militancy -= 0.02; sh_militancy -= 0.01; sa_militancy -= 0.02; reichswehr_strength -= 5; rfb_strength += 200 if unions_independent; rfb_militancy += 0.05 if unions_independent
+face-image: img/ruhr_iron_strike_second_1.png
+
+= Ruhr is burning once again.
+
+As the direct result of the Ruhr iron strikes being put down by the right-wing government through all given options - ranging from expulsions to firing at workers, the workers of the Ruhr have turned to revolutionary measures once again.
+
+On the morning of 23rd of March, the remaining workers cut ties with their wage-less jobs and took up arms, forcing employers to flee. The national government, alerted by the current events, has deployed the Reichswehr and is assisted by the right-wing paramilitaries.
+
+The Red Front Fighters / RFB, taking advantage of this, have armed their Ruhr chapters against the right-wing paramilitaries and military. Soon, they entered clashes, and the workers of the Ruhr have unilaterally taken the communist side.
+
+As the party - founder of the Weimar and, unfortunately, crusher of the Spartakist uprising - we are paralyzed by inaction and division amongst our ranks. [? if unions_independent: Unions have taken this matter into their own hands, joining communists in resistance against the industrialists of the Ruhr. ?]
+
+- @ruhr_2: Ruhr, oh Ruhr.
+
+@ruhr_2
+on-arrival: {!
+  Q.socialism += 20;
+  window.enableFocusMode()
+  window.MusicPlayer.loadFromUrl('music/ruhrstrike2.mp3', 'Streiklied', { autoplay: true, force: true});
+!}
+on-departure: {!
+window.disableFocusMode()
+!}
+
+<div id="ruhr-strike-slider" style="width:100%; position:relative; overflow:hidden;">
+  {! 
+  <style>
+    #ruhr-strike-slider img {
+      width: 100%;
+      display: block;
+      opacity: 0;
+      animation: ruhr-fadein 1.5s ease-in forwards;
+    }
+    @keyframes ruhr-fadein {
+      to { opacity: 1; }
+    }
+    #ruhr-strike-slider::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%),
+        linear-gradient(rgba(120,0,0,0.15), rgba(120,0,0,0.15));
+      pointer-events: none;
+    }
+  </style>
+  <img src="img/ruhr_iron_strike_second_2.png" alt="Ruhr Strike">
+  !}
+</div>
+
+The fire is ignited...
