@@ -192,6 +192,14 @@ if (Q.sh_strength) {
 if (Q.sa_strength) {
     Q.sa_strength_2 = Q.sa_strength.toFixed(1);
 }
+if (Q.ruhr_labor_strike == 1) {
+    if (Q.ruhr_faud_strength) {
+        Q.ruhr_faud_strength_2 = Q.ruhr_faud_strength.toFixed(1);
+    }
+    if (Q.ruhr_kapd_strength) {
+        Q.ruhr_kapd_strength_2 = Q.ruhr_kapd_strength.toFixed(1);
+    }
+}
 
 !}
 
@@ -217,6 +225,10 @@ RFB: [+ para_share_rfb +]%
 Stahlhelm: [+ para_share_stahlhelm +]%
 
 SA: [+ para_share_sa +]%
+
+[? if ruhr_labor_strike == 1: FAUD: [+ para_share_ruhr_faud +]% ?]
+
+[? if ruhr_labor_strike == 1: KAPD: [+ para_share_ruhr_kapd +]% ?]
 
 = Blocs
 
@@ -256,6 +268,14 @@ Stahlhelm Militarization: [+ sh_militancy : militancy +] [? if deterministic_mod
 
 SA Militarization: [+ sa_militancy : militancy +] [? if deterministic_mode == 1: [+ sa_militancy +] ?]
 
+[? if ruhr_labor_strike == 1: {!<span class="tooltip-text" title="The FAUD (Freie Arbeiter-Union Deutschlands) is an anarcho-syndicalist union active in the Ruhr strike.">FAUD</span>!} Strength: [+ ruhr_faud_strength_2 +] thousand ?]
+
+[? if ruhr_labor_strike == 1: FAUD Militarization: [+ ruhr_faud_militancy : militancy +] [? if deterministic_mode == 1: [+ ruhr_faud_militancy +] ?] ?]
+
+[? if ruhr_labor_strike == 1: {!<span class="tooltip-text" title="The KAPD (Kommunistische Arbeiter-Partei Deutschlands) is a council-communist party active in the Ruhr strike.">KAPD</span>!} Strength: [+ ruhr_kapd_strength_2 +] thousand ?]
+
+[? if ruhr_labor_strike == 1: KAPD Militarization: [+ ruhr_kapd_militancy : militancy +] [? if deterministic_mode == 1: [+ ruhr_kapd_militancy +] ?] ?]
+
 = Official military/paramilitaries
 
 = Reichswehr
@@ -272,9 +292,9 @@ Prussian police: [+ prussian_police_strength +] thousand members.
 
 Prussian police loyalty: [+ prussian_police_loyalty : loyalty +] [? if deterministic_mode == 1: [+ prussian_police_loyalty +] ?]
 
-[? if spd_in_government : Interior police loyalty: [+ interior_police_loyalty : loyalty +] [? if deterministic_mode == 1: [+ interior_police_loyalty +] ?] ?]
+Interior police loyalty: [+ interior_police_loyalty : loyalty +] [? if deterministic_mode == 1: [+ interior_police_loyalty +] ?]
 
-[? if spd_in_government : Interior police strength: [+ interior_police_strength +] ?]
+Interior police strength: [+ interior_police_strength +]
 
 @polls
 on-arrival: {!
