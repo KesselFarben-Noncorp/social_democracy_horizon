@@ -266,6 +266,40 @@ for (var i = 0; i < Q.parties.length; i++) {
 
 
 
+
+
+Q.coalition_tension = 0;
+
+if (Q.government_parties) {
+    for (var i = 0; i < Q.government_parties.length; i++) {
+        var p = Q.government_parties[i].toLowerCase();
+        if (p === 'spd') continue;
+        var rel = Q[p + '_relation'] !== undefined ? Q[p + '_relation'] : 50;
+        if (rel < 50) {
+            Q.coalition_tension += (50 - rel) / 10;
+        }
+    }
+}
+
+Q.coalition_tension = Math.round(Q.coalition_tension * 10) / 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // === VARIABLE RANGE CAPPING ===
 // Clamps each listed Q.<var> to its defined [min, max] range after any
 // mechanic that might push it out of bounds (e.g. relation dynamics,
@@ -322,6 +356,7 @@ Q.apply_var_caps = function() {
 };
 
 Q.apply_var_caps();
+
 
 
 
