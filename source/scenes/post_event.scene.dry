@@ -5575,18 +5575,18 @@ if (Q.prussian_police_training < 1) {
             Q.ruhr_kapd_strength = Math.min(Math.max(Q.ruhr_kapd_strength, 0), 10000);
         }
 
-        // Constrain militancy to 0 - 0.99999 (Reichswehr excluded)
-        Q.sa_militancy     = Math.min(Math.max(Q.sa_militancy, 0), 0.99999);
-        Q.sh_militancy     = Math.min(Math.max(Q.sh_militancy, 0), 0.99999);
-        Q.rfb_militancy    = Math.min(Math.max(Q.rfb_militancy, 0), 0.99999);
-        Q.rb_militancy     = Math.min(Math.max(Q.rb_militancy, 0), 0.99999);
-        Q.jungdo_militancy = Math.min(Math.max(Q.jungdo_militancy, 0), 0.99999);
+        // Constrain militancy to 0.01 - 0.99999 (Reichswehr excluded)
+        Q.sa_militancy     = Math.min(Math.max(Q.sa_militancy, 0.01), 0.99999);
+        Q.sh_militancy     = Math.min(Math.max(Q.sh_militancy, 0.01), 0.99999);
+        Q.rfb_militancy    = Math.min(Math.max(Q.rfb_militancy, 0.01), 0.99999);
+        Q.rb_militancy     = Math.min(Math.max(Q.rb_militancy, 0.01), 0.99999);
+        Q.jungdo_militancy = Math.min(Math.max(Q.jungdo_militancy, 0.01), 0.99999);
         if (Q.rpb_formed) {
-            Q.rpb_militancy = Math.min(Math.max(Q.rpb_militancy, 0), 0.99999);
+            Q.rpb_militancy = Math.min(Math.max(Q.rpb_militancy, 0.01), 0.99999);
         }
         if (Q.ruhr_labor_strike == 1) {
-            Q.ruhr_faud_militancy = Math.min(Math.max(Q.ruhr_faud_militancy, 0), 0.99999);
-            Q.ruhr_kapd_militancy = Math.min(Math.max(Q.ruhr_kapd_militancy, 0), 0.99999);
+            Q.ruhr_faud_militancy = Math.min(Math.max(Q.ruhr_faud_militancy, 0.01), 0.99999);
+            Q.ruhr_kapd_militancy = Math.min(Math.max(Q.ruhr_kapd_militancy, 0.01), 0.99999);
         }
     } else {
         // MATH BROKEN: Paramilitary numbers can be anything
