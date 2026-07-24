@@ -5506,6 +5506,22 @@ if (Q.jungdo_banned) {
     Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
 }
 
+if (Q.ruhr_labor_strike == 1) {
+    if (Q.ruhr_faud_banned) {
+        Q.ruhr_faud_strength *= 0.95;
+        Q.ruhr_faud_militancy = Math.max(0, Q.ruhr_faud_militancy - 0.3);
+    } else {
+        Q.ruhr_faud_strength += Q.random_factor(Q.unrest_factor / 8, 0.3);
+    }
+
+    if (Q.ruhr_kapd_banned) {
+        Q.ruhr_kapd_strength *= 0.95;
+        Q.ruhr_kapd_militancy = Math.max(0, Q.ruhr_kapd_militancy - 0.3);
+    } else {
+        Q.ruhr_kapd_strength += Q.random_factor(Q.unrest_factor / 8, 0.3);
+    }
+}
+
 
 // Decay factors — FIXED
 // stability_decay: only applies when things are genuinely calm (low unrest)
@@ -5529,6 +5545,11 @@ Q.rfb_strength    -= Q.random_factor(Q.combined_decay, 0.25);
 Q.rb_strength     -= Q.random_factor(Q.combined_decay, 0.25);
 Q.jungdo_strength -= Q.random_factor(Q.combined_decay, 0.25);
 
+if (Q.ruhr_labor_strike == 1) {
+    Q.ruhr_faud_strength -= Q.random_factor(Q.combined_decay, 0.25);
+    Q.ruhr_kapd_strength -= Q.random_factor(Q.combined_decay, 0.25);
+}
+
 // Caps for RB.
 
 if (Q.prussian_police_training < 1) {
@@ -5544,6 +5565,10 @@ if (Q.prussian_police_training < 1) {
         Q.rfb_strength = Math.min(Math.max(Q.rfb_strength, 0), 10000);
         Q.rb_strength  = Math.min(Math.max(Q.rb_strength, 0), 10000);
         Q.jungdo_strength  = Math.min(Math.max(Q.jungdo_strength, 0), 10000);
+        if (Q.ruhr_labor_strike == 1) {
+            Q.ruhr_faud_strength = Math.min(Math.max(Q.ruhr_faud_strength, 0), 10000);
+            Q.ruhr_kapd_strength = Math.min(Math.max(Q.ruhr_kapd_strength, 0), 10000);
+        }
     } else {
         // MATH BROKEN: Paramilitary numbers can be anything
         Q.sa_strength = Q.impossible_add(Q.sa_strength, 0);
@@ -5551,6 +5576,10 @@ if (Q.prussian_police_training < 1) {
         Q.rfb_strength = Q.impossible_subtract(Q.rfb_strength, 0);
         Q.rb_strength = Q.impossible_percentage(Q.rb_strength / 100) * 100;
         Q.jungdo_strength = Q.impossible_add(Q.jungdo_strength, 0);
+        if (Q.ruhr_labor_strike == 1) {
+            Q.ruhr_faud_strength = Q.impossible_add(Q.ruhr_faud_strength, 0);
+            Q.ruhr_kapd_strength = Q.impossible_multiply(Q.ruhr_kapd_strength, 1);
+        }
     }
 
 
@@ -5586,6 +5615,11 @@ const forces = {
     sa:                    Q.sa_strength || 0,
 };
 
+if (Q.ruhr_labor_strike == 1) {
+    forces.ruhr_faud = Q.ruhr_faud_strength || 0;
+    forces.ruhr_kapd = Q.ruhr_kapd_strength || 0;
+}
+
 // Militancy weights — raw strength alone isn't threat; multiply by militancy
 const militancy_weights = {
     prussian_police:  (Q.prussian_police_loyalty || 50) / 100,
@@ -5598,6 +5632,11 @@ const militancy_weights = {
     stahlhelm:        (Q.sh_militancy || 1) / 5,
     sa:               (Q.sa_militancy || 1) / 5,
 };
+
+if (Q.ruhr_labor_strike == 1) {
+    militancy_weights.ruhr_faud = (Q.ruhr_faud_militancy || 1) / 5;
+    militancy_weights.ruhr_kapd = (Q.ruhr_kapd_militancy || 1) / 5;
+}
 
 // Effective strength = raw * militancy weight
 let total_effective = 0;
@@ -5636,6 +5675,11 @@ Q.para_share_rfb              = para_share.rfb;
 Q.para_share_stahlhelm        = para_share.stahlhelm;
 Q.para_share_sa               = para_share.sa;
 
+if (Q.ruhr_labor_strike == 1) {
+    Q.para_share_ruhr_faud = para_share.ruhr_faud;
+    Q.para_share_ruhr_kapd = para_share.ruhr_kapd;
+}
+
 //// Faction blocs
 if (Q.april_challenge === 1 && Q.year >= 1933 && Q.month >= 10) {
     Q.para_bloc_pro_republic =
@@ -5647,7 +5691,8 @@ if (Q.april_challenge === 1 && Q.year >= 1933 && Q.month >= 10) {
 
     Q.para_bloc_left =
         para_share.rfb +
-        para_share.reichsbanner;
+        para_share.reichsbanner +
+        (Q.ruhr_labor_strike == 1 ? (para_share.ruhr_faud + para_share.ruhr_kapd) : 0);
 
     Q.para_bloc_right    = para_share.sa;
     Q.para_bloc_military = para_share.reichswehr;
@@ -5659,10 +5704,12 @@ if (Q.april_challenge === 1 && Q.year >= 1933 && Q.month >= 10) {
         para_share.rpb +
         para_share.jungdo;
 
-    Q.para_bloc_left     = para_share.rfb;
+    Q.para_bloc_left     = para_share.rfb +
+        (Q.ruhr_labor_strike == 1 ? (para_share.ruhr_faud + para_share.ruhr_kapd) : 0);
     Q.para_bloc_right    = para_share.stahlhelm + para_share.sa;
     Q.para_bloc_military = para_share.reichswehr;
 }
+
 
 
 
