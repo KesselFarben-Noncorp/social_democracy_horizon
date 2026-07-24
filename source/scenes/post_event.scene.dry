@@ -635,8 +635,8 @@ if (Q.month_actions >= 1) {
     console.log(Q.month);
     console.log(Q.time);
     
-    // Advance by 2 weeks
-    Q.weeks = (Q.weeks || 0) + 2;
+    // Advance by 1 week during a Ruhr labor strike, 2 weeks otherwise
+    Q.weeks = (Q.weeks || 0) + (Q.ruhr_labor_strike == 1 ? 1 : 2);
     
     // Roll over to next month when 4+ weeks pass
     if (Q.weeks >= 4) {
