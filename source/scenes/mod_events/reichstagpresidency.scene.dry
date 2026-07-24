@@ -55,7 +55,7 @@ function get_rt_president_name(party) {
 var ideology_pos = {
     KPD: 1, LB: 1, KPO: 1,
     SAPD: 2, SL: 2,
-    SPD: 3, SRPD: 3, ASPD: 3,
+    SPD: 3, SRPD: 3, ASPD: 5,
     RDP: 4,
     DDP: 5, CSRP: 5, CVP: 5, SLS: 5,
     Z: 5, BVP: 6, CSVD: 6, KVP: 6,
@@ -238,6 +238,8 @@ if (Q.council_other > 0) Q.council_display += " | Other: " + Q.council_other;
 
 // ============================================
 // AUTO-NOMINATE largest government party
+// (overridden by the player's own choice below,
+// since the player character is always SPD)
 // ============================================
 Q.rt_nominated_name  = Q.largest_gov_candidate;
 Q.rt_nominated_party = Q.largest_gov_party;
@@ -309,10 +311,50 @@ The largest government party, **[+ largest_gov_party +]**, will put forward **[+
 [? if rt_goering_scenario : ⚠ The NSDAP, as the largest party, is demanding the Presidency by right of electoral strength. Göring has been put forward. ?]
 [? if rt_hugenberg_scenario : ⚠ Hugenberg's DNVP is strong enough to mount a credible challenge. ?]
 
-- @rt_proceed_to_vote: Proceed to the vote
+- @rt_spd_pick_candidate: Choose our Reichstag President candidate
 
 
-@rt_proceed_to_vote
+@rt_spd_pick_candidate
+
+= Choose the SPD's Candidate for Reichstag President
+
+As the party's Reichstag delegation gathers, the question of who to put forward for the Presidency falls to us.
+
+- @rt_pick_loebe: Paul Löbe
+- @rt_pick_mierendorff: Carlo Mierendorff
+- @rt_pick_breitscheid: Rudolf Breitscheid 
+- @rt_pick_wels: Otto Wels
+
+
+@rt_pick_loebe
+on-arrival: {!
+Q.rt_nominated_name  = 'Paul Löbe';
+Q.rt_nominated_party = 'SPD';
+!}
+go-to: rt_vote_simulation
+
+
+@rt_pick_mierendorff
+on-arrival: {!
+Q.rt_nominated_name  = 'Carlo Mierendorff';
+Q.rt_nominated_party = 'SPD';
+!}
+go-to: rt_vote_simulation
+
+
+@rt_pick_breitscheid
+on-arrival: {!
+Q.rt_nominated_name  = 'Rudolf Breitscheid';
+Q.rt_nominated_party = 'SPD';
+!}
+go-to: rt_vote_simulation
+
+
+@rt_pick_wels
+on-arrival: {!
+Q.rt_nominated_name  = 'Otto Wels';
+Q.rt_nominated_party = 'SPD';
+!}
 go-to: rt_vote_simulation
 
 
