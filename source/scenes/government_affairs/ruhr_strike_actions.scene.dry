@@ -4,7 +4,6 @@ is-card: true
 tags: govt_affairs, cabinet
 on-arrival: {!
 Q.labor_affairs_timer = 2;
-Q.month_actions += 1;
 
 // --- workers vs employers ---
 Q.ruhr_workers = Q.workers / 7;
@@ -24,59 +23,126 @@ Q.ruhr_employer_total = Q.ruhr_employer_force + Q.ruhr_sa_backing + Q.ruhr_sh_ba
 // --- reichswehr deployment ---
 Q.reichswehr_strength_ruhr = 5;
 Q.ruhr_reichswehr_effective = Q.reichswehr_strength_ruhr * 1000 * (Q.reichswehr_militancy / 100);
-Q.ruhr_rw_loyal = Q.ruhr_reichswehr_effective * 0.5;
-Q.ruhr_rw_order = Q.ruhr_reichswehr_effective * 0.5;
+Q.ruhr_rw_loyal = Q.ruhr_reichswehr_effective * (Q.reichswehr_loyalty || 0.5);
+Q.ruhr_rw_order = Q.ruhr_reichswehr_effective - Q.ruhr_rw_loyal;
 
-// --- three-camp armed contest ---
+// --- FAUD / KAPD ---
+Q.ruhr_faud_effective = (Q.ruhr_faud_strength || 0) * (Q.ruhr_faud_militancy || 0);
+Q.ruhr_kapd_effective = (Q.ruhr_kapd_strength || 0) * (Q.ruhr_kapd_militancy || 0);
+
+// --- ideology bonus, shared by RB-split and independent-worker calcs ---
+Q.ruhr_left_ideology_bonus = (Q.ideology == "left") ? 1.5 : 1.0;
+
+// --- Reichsbanner split toward left camp, scaled by left_strength (1-99) + ideology bonus ---
 Q.ruhr_rb_effective = Q.rb_strength * Q.rb_militancy;
-Q.ruhr_camp_rb  = Q.ruhr_rb_effective + Q.ruhr_rw_order;
-Q.ruhr_camp_rfb = Q.ruhr_rfb_effective;
-Q.ruhr_camp_reaction = Q.ruhr_sa_backing + Q.ruhr_sh_backing + Q.ruhr_rw_loyal;
-!}
-On-display: {!
-if (!window.Chart) {
-  var s = document.createElement('script');
-  s.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js";
-  s.onload = renderRuhrCharts;
-  document.head.appendChild(s);
-} else {
-  renderRuhrCharts();
-}
+Q.ruhr_rb_to_left_pct = Math.min(1, ((Q.left_strength || 1) / 99) * Q.ruhr_left_ideology_bonus * 0.5);
+Q.ruhr_rb_to_left = Q.ruhr_rb_effective * Q.ruhr_rb_to_left_pct;
+Q.ruhr_rb_remaining = Q.ruhr_rb_effective - Q.ruhr_rb_to_left;
 
-function renderRuhrCharts(){
+// --- independent worker share: 1-5% of left_strength (1-99), capped 20%, ideology bonus ---
+Q.ruhr_worker_independent_pct = Math.min(0.20, ((Q.left_strength || 1) / 99) * 0.05 * Q.ruhr_left_ideology_bonus);
+Q.ruhr_worker_independent = Q.ruhr_workers * Q.ruhr_worker_independent_pct;
+
+// --- left camp: KAPD + FAUD + RFB + RB(split-in) + independent workers ---
+Q.ruhr_camp_left = Q.ruhr_kapd_effective
+                  + Q.ruhr_faud_effective
+                  + Q.ruhr_rfb_effective
+                  + Q.ruhr_rb_to_left
+                  + Q.ruhr_worker_independent;
+
+// --- republic camp: national Reichswehr(loyalty-weighted) + remaining RB + negligible Jungdo ---
+Q.ruhr_jungdo_effective = (Q.jungdo_strength || 0) * 0.01;
+Q.ruhr_camp_republic = (Q.reichswehr_strength * (Q.reichswehr_loyalty || 0.5) * Q.reichswehr_militancy)
+                      + Q.ruhr_rb_remaining
+                      + Q.ruhr_jungdo_effective;
+
+// --- right camp: disloyal Reichswehr(Ruhr-deployed) + SA + SH + employers ---
+Q.ruhr_employer_share = Q.ruhr_employer_base * 0.30;
+Q.ruhr_camp_right = Q.ruhr_rw_order
+                   + Q.ruhr_sa_backing
+                   + Q.ruhr_sh_backing
+                   + Q.ruhr_employer_share;
+!}
+on-display: {!
+function renderRuhrStruggle(){
   var host = document.getElementById('ruhr-charts');
   if (!host) return;
-  host.innerHTML =
-    '<canvas id="ruhrLaborChart" height="180"></canvas>' +
-    '<canvas id="ruhrFactionChart" height="180" style="margin-top:16px"></canvas>';
 
-  new Chart(document.getElementById('ruhrLaborChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Ruhr Front'],
-      datasets: [
-        { label: 'Workers (70%)', data: [Q.ruhr_worker_force], backgroundColor: '#c0392b' },
-        { label: 'Employer core (30%)', data: [Q.ruhr_employer_force], backgroundColor: '#b08d4f' },
-        { label: 'SA backing', data: [Q.ruhr_sa_backing], backgroundColor: '#4a4642' },
-        { label: 'SH backing', data: [Q.ruhr_sh_backing], backgroundColor: '#7a746a' }
-      ]
-    },
-    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Workers vs. Employers' } } }
-  });
+  var left = Q.ruhr_camp_left || 0;
+  var rep  = Q.ruhr_camp_republic || 0;
+  var right = Q.ruhr_camp_right || 0;
+  var total = left + rep + right;
+  if (total <= 0) total = 1;
 
-  new Chart(document.getElementById('ruhrFactionChart'), {
-    type: 'bar',
-    data: {
-      labels: ['RB + loyal Reichswehr', 'RFB', 'SA + SH + Reichswehr'],
-      datasets: [{
-        label: 'Effective force',
-        data: [Q.ruhr_camp_rb, Q.ruhr_camp_rfb, Q.ruhr_camp_reaction],
-        backgroundColor: ['#3a5a6b', '#c0392b', '#4a4642']
-      }]
-    },
-    options: { plugins: { title: { display: true, text: 'RB & Reichswehr vs. RFB vs. SA & SH & Reichswehr' }, legend: { display: false } } }
-  });
+  var leftPct  = Math.round((left / total) * 1000) / 10;
+  var repPct   = Math.round((rep / total) * 1000) / 10;
+  var rightPct = Math.round((right / total) * 1000) / 10;
+
+  var COLOR_LEFT = '#c0392b';
+  var COLOR_REP  = '#3a5a6b';
+  var COLOR_RIGHT = '#4a4642';
+
+  host.innerHTML = `
+    <div style="margin: 12px 0 20px 0;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85em; margin-bottom:4px; opacity:0.85;">
+        <span style="color:${COLOR_LEFT}">LEFT ${leftPct}%</span>
+        <span style="color:${COLOR_REP}">REPUBLIC ${repPct}%</span>
+        <span style="color:${COLOR_RIGHT}">RIGHT ${rightPct}%</span>
+      </div>
+      <div style="display:flex; width:100%; height:28px; border-radius:6px; overflow:hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);">
+        <div style="width:${leftPct}%; background:${COLOR_LEFT};"></div>
+        <div style="width:${repPct}%; background:${COLOR_REP};"></div>
+        <div style="width:${rightPct}%; background:${COLOR_RIGHT};"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; justify-content:space-between; flex-wrap:wrap;">
+      ${ruhrCampColumn('LEFT', COLOR_LEFT, [
+          ['KAPD', Q.ruhr_kapd_effective],
+          ['FAUD', Q.ruhr_faud_effective],
+          ['RFB', Q.ruhr_rfb_effective],
+          ['RB (defected)', Q.ruhr_rb_to_left],
+          ['Independent workers', Q.ruhr_worker_independent]
+        ])}
+      ${ruhrCampColumn('REPUBLIC', COLOR_REP, [
+          ['Reichswehr (loyal)', Q.reichswehr_strength * (Q.reichswehr_loyalty || 0.5) * Q.reichswehr_militancy],
+          ['Reichsbanner', Q.ruhr_rb_remaining],
+          ['Jungdo', Q.ruhr_jungdo_effective]
+        ])}
+      ${ruhrCampColumn('RIGHT', COLOR_RIGHT, [
+          ['Reichswehr (disloyal)', Q.ruhr_rw_order],
+          ['SA', Q.ruhr_sa_backing],
+          ['Stahlhelm', Q.ruhr_sh_backing],
+          ['Employers', Q.ruhr_employer_share]
+        ])}
+    </div>
+  `;
 }
+
+function ruhrCampColumn(label, color, rows){
+  var total = rows.reduce(function(s, r){ return s + (r[1] || 0); }, 0) || 1;
+  var rowsHtml = rows.map(function(r){
+    var name = r[0], val = r[1] || 0;
+    var pct = Math.round((val / total) * 1000) / 10;
+    return `
+      <div style="margin-bottom:6px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.78em; opacity:0.85;">
+          <span>${name}</span><span>${pct}%</span>
+        </div>
+        <div style="width:100%; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">
+          <div style="width:${pct}%; height:100%; background:${color};"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div style="flex:1; min-width:150px;">
+      <div style="font-size:0.9em; font-weight:600; color:${color}; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">${label}</div>
+      ${rowsHtml}
+    </div>`;
+}
+
+renderRuhrStruggle();
 !}
 view-if: spd_in_government = 1 and labor_minister_party = "SPD" and labor_affairs_timer = 0 and ruhr_labor_strike == 1
 card-image: img/ruhr_iron_strike_second_1.png
