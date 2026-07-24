@@ -5475,21 +5475,21 @@ Q.bill_proposed_this_month = 0;
 
 if (Q.nsdap_banned) {
     Q.sa_strength *= 0.98;
-    Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.1);
+    Q.sa_militancy = Math.max(0, Q.sa_militancy - 0.0003);
 } else {
     Q.sa_strength += Q.random_factor(Q.unrest_factor / 3, 0.3);
 }
 
 if (Q.dnvp_banned || Q.sh_banned) {
     Q.sh_strength *= 0.95;
-    Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.3);
+    Q.sh_militancy = Math.max(0, Q.sh_militancy - 0.008);
 } else {
     Q.sh_strength += Q.random_factor(Q.unrest_factor / 6, 0.3);
 }
 
 if (Q.rfb_banned && !Q.april_challenge) {
     Q.rfb_strength *= 0.98;
-    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+    Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.005);
 } else if (Q.rfb_true_ban && Q.april_challenge) {
     Q.rfb_strength *= 0.97;
     Q.rfb_militancy = Math.max(0, Q.rfb_militancy - 0.01);
@@ -5499,14 +5499,14 @@ if (Q.rfb_banned && !Q.april_challenge) {
 
 if (Q.rb_banned) {
     Q.rb_strength *= 0.93;
-    Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+    Q.rb_militancy = Math.max(0, Q.rfb_militancy - 0.0005);
 } else {
     Q.rb_strength += Q.random_factor(Q.unrest_factor / 20, 0.3);
 }
 
 if (Q.jungdo_banned) {
     Q.jungdo_strength *= 0.90;
-    Q.jungdo_militancy = Math.max(0, Q.rfb_militancy - 0.6);
+    Q.jungdo_militancy = Math.max(0, Q.rfb_militancy - 0.0009);
 } else {
     Q.jungdo_strength += Q.random_factor(Q.new_middle/50 + Q.old_middle/100 + Q.nationalism/100, 0.3);
 }
@@ -5514,14 +5514,14 @@ if (Q.jungdo_banned) {
 if (Q.ruhr_labor_strike == 1) {
     if (Q.ruhr_faud_banned) {
         Q.ruhr_faud_strength *= 0.95;
-        Q.ruhr_faud_militancy = Math.max(0, Q.ruhr_faud_militancy - 0.3);
+        Q.ruhr_faud_militancy = Math.max(0, Q.ruhr_faud_militancy - 0.00000005);
     } else {
-        Q.ruhr_faud_strength += Q.random_factor(Q.unrest_factor / 8, 0.3);
+        Q.ruhr_faud_strength += Q.random_factor(Q.unrest_factor / 5, 0.3);
     }
 
     if (Q.ruhr_kapd_banned) {
         Q.ruhr_kapd_strength *= 0.95;
-        Q.ruhr_kapd_militancy = Math.max(0, Q.ruhr_kapd_militancy - 0.3);
+        Q.ruhr_kapd_militancy = Math.max(0, Q.ruhr_kapd_militancy - 0.00000005);
     } else {
         Q.ruhr_kapd_strength += Q.random_factor(Q.unrest_factor / 8, 0.3);
     }
