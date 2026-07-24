@@ -4006,7 +4006,7 @@ for (var i = 0; i < coalition.length; i++) {
     if (party === 'SPD') {
         if (Q.president === 'Braun') base += 5;
         if (Q.spd_prussia) base += 3;
-        if (Q.coalition_dissent > 3) base -= 5;
+        if (Q.coalition_tension > 3) base -= 5;
     }
     
     Q.shuffle_leverage[party] = Math.max(base, 5);
@@ -4271,7 +4271,6 @@ on-arrival: {!
     Q.reichswehr_minister_party = "SPD";
     Q.reichswehr_minister = "Leber";
     Q.reichswehr_loyalty -= 0.15;
-    Q.coalition_dissent += 1;
     
     for (var i = 0; i < Q.government_parties.length; i++) {
         var party = Q.government_parties[i];
@@ -4309,7 +4308,6 @@ on-arrival: {!
     }
     Q.labor_minister_party = new_party;
     Q.labor_minister = 'Stegerwald';
-    if (Q.coalition_dissent > 0) Q.coalition_dissent -= 1;
 !}
 go-to: ministry_picker
 
@@ -4333,7 +4331,6 @@ on-arrival: {!
     }
     Q.interior_minister_party = new_party;
     Q.interior_minister = 'Wirth';
-    if (Q.coalition_dissent > 0) Q.coalition_dissent -= 1;
 !}
 go-to: ministry_picker
 
@@ -4380,7 +4377,6 @@ on-arrival: {!
     }
     Q.finance_minister_party = new_party;
     Q.finance_minister = 'Moldenhauer';
-    if (Q.coalition_dissent > 1) Q.coalition_dissent -= 2;
 !}
 go-to: ministry_picker
 
@@ -4404,7 +4400,6 @@ on-arrival: {!
     }
     Q.economic_minister_party = new_party;
     Q.economic_minister = 'Curtius';
-    if (Q.coalition_dissent > 1) Q.coalition_dissent -= 2;
 !}
 go-to: ministry_picker
 
@@ -4428,7 +4423,6 @@ on-arrival: {!
     }
     Q.foreign_minister_party = new_party;
     Q.foreign_minister = Q.stresemann_dead ? 'Curtius' : 'Stresemann';
-    if (Q.coalition_dissent > 1) Q.coalition_dissent -= 2;
 !}
 go-to: ministry_picker
 
@@ -4489,7 +4483,6 @@ on-arrival: {!
     Q.reichswehr_minister_party = 'I';
     Q.reichswehr_minister = 'Groener';
     Q.reichswehr_loyalty += 0.10;
-    if (Q.coalition_dissent > 2) Q.coalition_dissent -= 3;
 !}
 go-to: ministry_picker
 
@@ -4644,7 +4637,7 @@ on-arrival: {!
     }
     
     // Opportunistic grabs when SPD is weak
-    if ((Q.shuffle_leverage.SPD || 0) < 40 || Q.coalition_dissent > 3) {
+    if ((Q.shuffle_leverage.SPD || 0) < 40 || Q.coalition_tension > 3) {
         for (var i = 0; i < Q.government_parties.length; i++) {
             var party = Q.government_parties[i];
             if (party === 'SPD') continue;
@@ -4658,7 +4651,7 @@ on-arrival: {!
             var grab_chance = 0;
             if (party_leverage > spd_leverage * 1.3) grab_chance = 0.25;
             if (relation < 35) grab_chance += 0.15;
-            if (Q.coalition_dissent > 4) grab_chance += 0.15;
+            if (Q.coalition_tension > 4) grab_chance += 0.15;
             
             if (Math.random() < grab_chance && available_to_take.length > 0) {
                 var ministry_idx = Math.floor(Math.random() * available_to_take.length);
@@ -4679,13 +4672,6 @@ on-arrival: {!
     }
     
     Q.shuffle_changes_made = changes;
-    
-    // Coalition stability impact
-    if (changes > 5) {
-        Q.coalition_dissent += 2;
-    } else if (changes > 3) {
-        Q.coalition_dissent += 1;
-    }
     
     // Build response text — BUG FIX: this is now actually displayed in scene text below
     Q.coalition_response_text = "";
