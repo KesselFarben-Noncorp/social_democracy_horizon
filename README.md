@@ -1,26 +1,10 @@
 # Social Democracy: An Alternate Horizon
 
-Modification of the Social Democracy: An Alternate History, oriented on mechanical aspect of the game compared to the narrative side of the Dynamic Social Democracy. 
+Modification of the base intended at huge rework. Currently project is WIP.
 
-What is expected: Replayability enhancement, enhancement of algorithm of other parties and etcetera.
+Developers: GaufenSpelt and Arkadyevna.
 
 Copyright belongs to the Autumn Chen OR https://github.com/aucchen/social_democracy_alternate_history , as usual. My work simply modifies the original source. 
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
 
 ---
 
@@ -39,7 +23,3 @@ Copyright belongs to the Autumn Chen OR https://github.com/aucchen/social_democr
 2. Run `dendrynexus make-html` in this folder.
 
 To update dendrynexus in `package-lock.json`, run `npm install --upgrade https://github.com/aucchen/dendrynexus`
-
----
-
-Be not feared. This push is made through normal terminal. Proceed on.
