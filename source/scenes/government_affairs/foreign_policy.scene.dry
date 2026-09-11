@@ -28,6 +28,7 @@ What should our foreign policy priority be?
 - @concordat
 - @tyrole
 - @ruhr
+- @new_axis
 - @support_austria
 - @support_austria_2
 - @root: Do not enact any policies for now.
@@ -51,9 +52,9 @@ title: Improve relations with Fasci regime of Italy
 view-if: britain_relation + france_relation < 12
 choose-if: eu = 0
 unavailable-subtitle: This is superseded by the European Union!
-on-arrival: italy_relation += 1; west_relation -= 0.5; france_relation -= 1; nationalism += 1; left_dissent += 2; center_dissent += 2; labor_dissent += 2; reformist_dissent += 2
+on-arrival: italy_relation += 1; france_relation -= 1; nationalism += 1; left_dissent += 2; center_dissent += 2; labor_dissent += 2; reformist_dissent += 2
 
-Despite the fasci regime of the Italian Dictatorship under Mussolini, we may initiate negotiations and talks with them in order to disable their expansionist policy.
+Despite the fasci regime of the Italian dictatorship under Mussolini, we may initiate negotiations and talks with them in order to disable their expansionist policy.
 
 @improve_soviet
 title: Improve our relations with the Soviet Union.
@@ -293,10 +294,22 @@ This is bold and controversial—but could end nationalist wars forever.
 - @root: The European project begins.
 
 @ruhr 
-title: Negotiate the Ruhrland's status once again.
-view-if: sandbox = 1 and (young_plan_seen = 0 or young_plan_catastrophy = 1)
-choose-if: france_relation > 6 and britain_relation > 3 and reparations_negotiation >= 4
-unavailable-subtitle: British or French relation is too low or reparations are not negotiated!
-on-arrival: young_plan_catastrophy = 0; ruhr_labor = 0; young_plan_seen = 1; france_relation += 2; britain_relation += 1; economic_growth *= 1.20
+title: Fight back Ruhrland...
+subtitle: Are you nuts?
+view-if: young_plan_catastrophy = 1 and not ruhr_war
+choose-if: soviet_relation > 3 and italy_relation > 6 and reichswehr_strength >= 200
+unavailable-subtitle: We can't risk this unless we were to mobilize and gain allies somewhere else...
+on-arrival: young_plan_catastrophy = 0; young_plan_seen = 1; economic_growth *= 1.20; ruhr_war = 1; italy_relation += 1; soviet_relation += 1; france_relation -= 1000; britain_relation -= 1000; eu_progress -= 1000; eu = 0
 
-We negotiated the Rheinland status and French finally submitted in, giving the way for Germany to reintegrate the Ruhr. We are gonna celebrate this case, for sure.
+On [+ month: month +] of [+ year +], German Reichswehr crossed Rheinland and have forced French garrizon to retreat. This was celebrated by nationalists and socialists in lesser scale. When threatened against, Italian fasci regime and Soviet Union have guaranteed our safety, forcing them back out of occupied territory. Our relations with France and United Kingdom are forever broken. Perhaps, form the new axis?
+
+@new_axis
+title: Forge the new axis with USSR and Italy.
+view-if: ruhr_war >= 1
+choose-if: soviet_relation >= 10 and italy_relation >= 10
+unavailable-subtitle: We must develop our relations with USSR and Italy.
+subtitle: New counterweight?
+on-arrival: budget += 2; resources += 20; new_axis = 1
+achievement: new_axis
+
+As the result of negotiations, USSR, Italy and Germany have formed the new informal alliance, creating new counterweight against western powers.
