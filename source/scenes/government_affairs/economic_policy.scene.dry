@@ -3,7 +3,8 @@ new-page: true
 is-card: true
 tags: govt_affairs, cabinet
 on-arrival: {!
-Q.economic_policy_timer += (Q.unemployed < 10) ? 22 : Math.max(6, 22 - Math.floor((Q.unemployed - 10)));
+Q.economic_policy_timer = Q.economic_policy_timer || (Q.unemployed < 10) ? 22 : Math.max(6, 22 - Math.floor((Q.unemployed - 10)));
+if (Q.economic_minister_party == "SPD" && Q.finance_minister_party != "SPD") { Q.economic_policy_timer *= 0.8 }
 Q.month_actions += 1;
 
 Q.nationalize_budget = 4;
@@ -37,7 +38,6 @@ We have already formulated an economic plan. Now we have to implement it.
 - @nationalize_2
 - @afabund
 - @moderate_plan
-- @moderate_plan_limited_budget
 - @root: Do not implement the economic plan.
 - @easy_discard
 - @cancel_advisor_action
@@ -53,7 +53,6 @@ Q.new_middle += 2;
 Q.workers += 0.1;
 Q.ddp_relation += 1;
 !}
-achievement: wirtschaftspolitik
 
 AfA-Bund / General Association of Free Employees , association of left liberal and social democratic unions, represents salaried employees who under imperial period were corporatist aligned. AfA-bund's plan is, seems, expansion of government's control over economy and possibly transition towards dirigisme / hybrid model, akin to the nordic countries.
 
@@ -74,7 +73,6 @@ unavailable-subtitle: [? if unemployed < 12 : The crisis must be more severe to 
 view-if: centrist_adopted = 1 and center_strength >= 40
 choose-if: unemployed >= 12
 on-arrival: budget += 2; austerity_progress += 2; unemployed += 3; inflation -= 0.5; workers_spd -= 8; unemployed_spd -= 10; old_middle_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); z_relation += 6; ddp_relation += 7; dvp_relation += 6; center_strength += 8; labor_dissent += 15; left_dissent += 15; reformist_dissent += 8; coalition_dissent -= 2; capital_strike_progress -= 2 if capital_strike_progress > 0; workers_nsdap += 5; unemployed_nsdap += 6; workers_kpd += 4; economic_growth -= 0.15; pro_republic -= 2; demand_impulse -= 0.15; coup_progress += 2 if (sa_strength + sh_strength) > 1500
-achievement: wirtschaftspolitik
 
 @implement_austerity_moderate
 title: Implement modest austerity measures.
@@ -83,50 +81,6 @@ unavailable-subtitle: [? if unemployed < 6 : There is no crisis requiring auster
 view-if: centrist_adopted = 1 and budget <= 0
 choose-if: unemployed >= 6
 on-arrival: budget += 0.5; austerity_progress += 1; unemployed += 0.5; inflation -= 0.15; workers_spd -= 2; unemployed_spd -= 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 1*(1-dissent); z_relation += 2; ddp_relation += 3; center_strength += 3; labor_dissent += 4; left_dissent += 4; coalition_dissent -= 1 if coalition_dissent > 0; workers_nsdap += 1; workers_kpd += 1; economic_growth -= 0.04; demand_impulse -= 0.04; coup_progress += 1 if (sa_strength + sh_strength) > 1500
-
-@schacht_continuation
-title: Continue the Schacht Plan for economic recovery.
-subtitle: -2 budget. [? if schacht_plan_adopted = 1 : Continue industrial credit expansion and export-focused recovery. ?]
-unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 2 : We lack the necessary budget. ?]
-view-if: schacht_plan_adopted = 1 and schacht_plan > 0
-choose-if: unemployed >= 6 and budget >= 2
-on-arrival: budget -= 2; unemployed -= 4; works_program += 1; economic_growth += 0.42; schacht_relation += 3; dvp_relation += 4; dnvp_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 3; labor_dissent += 2; nationalism += 1; demand_impulse += 0.36; supply_impulse += 0.66;
-
-[? if schacht_plan_adopted = 1 : The Schacht Plan continues: the Reichsbank extends emergency credit to strategic industries—steel, chemicals, machinery. Export industries receive subsidized financing. Employment rises primarily in heavy industry. ?]
-
-The bourgeois press approves: "Responsible economic nationalism produces results." Hjalmar Schacht meets regularly with the Cabinet, his influence over policy growing. Industrial production rises, but critics note the benefits flow more to factory owners than workers.
-
-[? if left_strength > 30 : Our left wing grows increasingly uncomfortable. "We're implementing capitalist planning under a reactionary banker's direction," they complain. "Where are the workers' interests in all this?" ?]
-
-@schacht_continuation_limited
-title: Limited continuation of the Schacht Plan.
-subtitle: -1 budget. Reduced industrial support with lower impact.
-unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 1 : We lack the necessary budget. ?]
-view-if: schacht_plan_adopted = 1 and schacht_plan > 0
-choose-if: unemployed >= 6 and budget >= 1
-on-arrival: budget -= 1; unemployed -= 6; works_program += 1; economic_growth += 0.24; schacht_relation += 1; dvp_relation += 2; old_middle_spd += 1*(1-dissent); left_dissent += 2; demand_impulse += 0.24; supply_impulse += 0.42;
-
-We continue the Schacht Plan at reduced scale. Credit flows to fewer industries, employment gains are modest. Schacht expresses disappointment at our "half-measures," but the program proceeds.
-
-@schacht_expansion
-title: Expand the Schacht Plan with aggressive credit expansion.
-subtitle: -1 budget. Risk increased nationalist economics and Schacht's influence.
-unavailable-subtitle: [? if unemployed < 8 : The crisis isn't severe enough to justify expansion. ?] [? if budget < 1 : We lack the necessary budget. ?]
-view-if: schacht_plan_adopted = 1 and unemployed >= 8 and schacht_plan < 1 and schacht_plan >= 0
-choose-if: budget >= 1
-on-arrival: budget -= 1; unemployed -= 8.5; works_program += 1; economic_growth += 0.60; schacht_relation += 8; dvp_relation += 6; dnvp_relation += 6; reichsbank_independent = 1; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 8; labor_dissent += 6; nationalism += 3; demand_impulse += 0.48; supply_impulse += 0.84; schacht_plan += 1
-achievement: wirtschaftspolitik
-
-We dramatically expand the Schacht Plan: massive credit injections to heavy industry, aggressive export subsidies, virtual abandonment of social spending priorities in favor of productive investment.
-
-Hjalmar Schacht is triumphant. "Finally, Germany acts decisively!" he declares. The Reichsbank's independence strengthens—increasingly, economic policy is made in Schacht's office, not the Cabinet.
-
-Unemployment falls rapidly, concentrated in male-dominated heavy industry. Export industries boom. But our left wing is furious: "We've become administrators of nationalist autarky! Schacht is the real Finance Minister, not our party!"
-
-[? if left_strength > 35 : The left faction threatens revolt. "We're implementing right-wing economics under socialist cover!" Emergency party conferences are demanded. ?]
-
-[? if schacht_relation >= 30 : Schacht's influence has grown dangerous. An unelected technocrat now effectively controls Germany's economic policy. Is this still democratic governance? ?]
-
 
 ########## WTB PLAN - ECONOMIC PLAN 3.   WOYTINSKY TARNOW BAADE, WORKS AND DEFICIT SPENDING.
 
@@ -181,7 +135,6 @@ unavailable-subtitle: Unemployment is low enough that the time for the WTB-Plan 
 view-if: budget >= wtb_budget and wtb_implemented == 0 and wtb_adopted == 1
 choose-if: unemployed > 8
 on-arrival: budget -= wtb_budget; works_program += 1; unemployed -= 6.0; workers_spd += 7*(1-dissent); unemployed_spd += 5*(1-dissent); wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.2; economic_growth += 0.44; pro_republic += 3*(1-dissent); demand_impulse += 0.70; supply_impulse += 0.40; price_pressure += 0.06; wtb_timer = 48
-achievement: wirtschaftspolitik
 
     We have started to enact the WTB plan. Money is beginning to flow through the economy via investments in large-scale public works.
 
@@ -194,7 +147,6 @@ unavailable-subtitle: Unemployment is low enough that the time for the WTB-Plan 
 view-if: budget < wtb_budget and wtb_implemented == 0 and wtb_adopted == 1
 choose-if: unemployed > 8
 on-arrival: coalition_dissent += 1; coalition_dissent += 1 if historical_mode; coalition_dissent += 1 if chancellor == "Brüning"; works_program += 1; budget -= wtb_budget; unemployed -= 6.0; workers += 1; workers_spd += 6*(1-dissent); unemployed_spd += 4*(1-dissent); capital_strike_progress += 1; wtb_implemented += 1; kpd_coalition_dissent += 1; kpd_relation -= 5 if in_popular_front or in_left_front; inflation += 0.33; economic_growth += 0.46; pro_republic += 3*(1-dissent); demand_impulse += 0.60; supply_impulse += 0.40; price_pressure += 0.10; wtb_timer = 48
-achievement: wirtschaftspolitik
 
     We have entered the realm of deficit spending. Our coalition partners are disgusted, but the works plan is enacted anyway. Money is beginning to flow through the economy via investments in large-scale public works.
 
@@ -212,7 +164,6 @@ go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_defici
 
 @nationalize_no_deficit
 on-arrival: nationalization_progress += 1; capital_strike_progress += 2; unemployed -= 5.5 if unemployed >= 6; unemployed -= 3.6 if works_councils >= 3; workers += 2 if nationalization_progress < 2; budget -= nationalize_budget; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 5*(1-dissent); coalition_dissent += 1; dvp_relation -= 4; left_dissent -= 5; new_middle_spd -= 2; old_middle_spd -= 3; economy_goal_completed += 1; inflation += 0.2; economic_growth += 0.51 if economic_growth < 5; demand_impulse += 0.21; supply_impulse += 0.12; price_pressure += 0.09;
-achievement: wirtschaftspolitik
 
     [? if nationalization_progress == 1 : We have begun purchasing idling enterprises from the capitalists[? if works_councils >= 1: , and running them in coordination with empowered works councils ?]. By keeping production going, we can stave off the rising unemployment. ?]
 
@@ -236,7 +187,6 @@ choose-if: left_strength > reformist_strength + center_strength or woytinsky_adv
 subtitle: [? if woytinsky_advisor: Woytinsky can bring us around to supporting a budget deficit. ?]
 unavailable-subtitle: [? if left_strength <= reformist_strength + center_strength: The party does not yet support budget deficits for this purpose. ?] [? if not woytinsky_advisor : Perhaps bringing on an advisor might help make this action palatable? ?]
 on-arrival: nationalization_progress += 1; capital_strike_progress += 3; unemployed -= 9 if unemployed >= 6; unemployed -= 3.6 if works_councils >= 3; budget -= nationalize_budget; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 5*(1-dissent); coalition_dissent += 2; dvp_relation -= 6; z_relation -= 4; new_middle_spd -= 3; old_middle_spd -= 3; economy_goal_completed += 1; inflation += 0.3; economic_growth += 0.60 if economic_growth < 5; demand_impulse += 0.21; supply_impulse += 0.12; price_pressure += 0.15;
-achievement: wirtschaftspolitik
 
     [? if woytinsky_advisor: Most of the party, even on the left, are opposed to budget deficits for any purpose, with the exception of Wladimir Woytinsky. While he did not originally support the left's "transformational" plan, he has come around, and has persuaded the party and the Finance Ministry to support budget deficits in limited cases, for the purpose of exiting from the depression. ?]
 
@@ -252,7 +202,6 @@ subtitle: There is no reason why we should not simply take over idle factories. 
 unavailable-subtitle: [? if left_strength <= reformist_strength + center_strength: The bulk of the party does not support this quasi-legal action. ?] [? if judicial_reform < 3 : The judiciary would oppose this action. ?]
 choose-if: left_strength > reformist_strength + center_strength and judicial_reform >= 3
 on-arrival: nationalization_progress += 1; capital_strike_progress += 7; coup_progress += 3; unemployed -= 2.5 if unemployed >= 6; unemployed -= 1.2 if works_councils >= 3 and unemployed >= 3; works_program += 1; workers_spd += 8*(1-dissent); unemployed_spd += 6*(1-dissent); coalition_dissent += 2; dvp_relation -= 10; z_relation -= 8; ddp_relation -= 8; left_strength += 15; reformist_dissent += 10; left_dissent -= 10; new_middle_spd -= 5; old_middle_spd -= 8; economy_goal_completed += 1; kpd_relation += 5*(1-dissent); inflation += 0.4; economic_growth += 0.10 if economic_growth < 4; demand_impulse += 0.06; supply_impulse += 0.03; price_pressure += 0.06;
-achievement: wirtschaftspolitik
 
     The capitalists are, predictably, up in arms about our policy of nationalization without compensation. They call it illegal expropriation, and it is. Nevertheless, it is clear that they have failed by keeping their factories idle, and we must take radical action.
 
@@ -266,7 +215,6 @@ subtitle: We can promise to legalize factory occupations, giving the factories o
 unavailable-subtitle: [? if left_strength <= reformist_strength + neorevisionist_strength : The bulk of the party does not support this radical action. ?] [? if judicial_reform < 3 : The judiciary would oppose this action. ?] [? if rb_militancy < 0.25 : If we increased the strength of our paramilitary forces, perhaps we could do this. ?] [? if works_councils < 1 : We need the support of the works councils first. ?]
 choose-if: left_strength > reformist_strength + neorevisionist_strength and (judicial_reform >= 3 or rb_militancy >= 0.25) and works_councils >= 1
 on-arrival: nationalization_progress += 1; capital_strike_progress += 6; coup_progress += 5; unemployed -= 3 if unemployed >= 6; unemployed -= 1.5 if works_councils >= 3 and unemployed > 4; works_program += 1; workers_spd += 10*(1-dissent); unemployed_spd += 10*(1-dissent); coalition_dissent += 2; dvp_relation -= 10; z_relation -= 8; ddp_relation -= 8; workers_nsdap -= 5*(1-dissent); unemployed_nsdap -= 5*(1-dissent); left_strength += 15; reformist_dissent += 10; left_dissent -= 10; new_middle_spd -= 5; old_middle_spd -= 10; factory_takeovers += 1; economy_goal_completed += 1; kpd_relation += 5*(1-dissent); inflation += 0.3; economic_growth += 0.10 if economic_growth < 3; demand_impulse += 0.07; supply_impulse += 0.03; price_pressure += 0.05;
-achievement: wirtschaftspolitik
 
     The capitalists are, predictably, up in arms about our policy of legalizing factory occupations. They call it illegal expropriation, and it is. Nevertheless, it is clear that they have failed, and we must take radical action.
 
@@ -285,11 +233,13 @@ go-to: nationalize_deficit if budget < nationalize_budget; nationalize_no_defici
 @moderate_plan
 title: Implement the Reformists' job-creation plan.
 subtitle: -2 budget.
-unavailable-subtitle: -2 budget. [? if budget < 2 : We do not have the necessary budget. ?] [? if unemployed < 8 : Unemployment is low enough that job creation is not necessary. ?]
+unavailable-subtitle: [? if unemployed < 8 : Unemployment is low enough that job creation is not necessary. ?]
 view-if: moderate_plan_adopted == 1
-choose-if: budget >= 2 and unemployed >= 8
+choose-if: unemployed >= 8
+go-to: moderate_plan_austerity if budget < 2; moderate_plan_funded if budget >= 2
+
+@moderate_plan_funded
 on-arrival: budget -= 2; works_program += 1; unemployed -= 4 if unemployed >= 8; inflation += 0.35; workers_spd += 6*(1-dissent); unemployed_spd += 4*(1-dissent); new_middle_spd += 3*(1-dissent); old_middle_spd += 2*(1-dissent); rural_spd += 2*(1-dissent); moderate_plan_progress += 1; kpd_coalition_dissent += 1; inflation += 0.1 if unemployed < 10; kpd_relation -= 5 if in_popular_front or in_left_front; economic_growth += 0.48; pro_republic += 3*(1-dissent); demand_impulse += 0.18; supply_impulse += 0.09; price_pressure += 0.075;
-achievement: wirtschaftspolitik
 
     [? if moderate_plan_progress == 1 : We have started to implement the job-creation plan! Funds are sent to build public works projects across Germany, reducing unemployment. ?]
 
@@ -301,21 +251,113 @@ achievement: wirtschaftspolitik
 
     [? if in_popular_front or in_left_front: The KPD opposes the economic plan, seeing it as a rescue of capitalism rather than a step towards real socialism. ?]
 
-@moderate_plan_limited_budget
-title: Partially implement the Reformists' job-creation plan, with a lower cost.
-subtitle: -1 budget.
-unavailable-subtitle: -1 budget. [? if budget < 1 : We do not have the necessary budget. ?] [? if unemployed < 8 : Unemployment is low enough that job creation is not necessary. ?]
-view-if: moderate_plan_adopted == 1
-choose-if: budget >= 1 and unemployed >= 8
-on-arrival: budget -= 1; works_program += 1; unemployed -= 3 if unemployed >= 8; inflation += 0.3; workers_spd += 4*(1-dissent); unemployed_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); old_middle_spd += 1*(1-dissent); rural_spd += 1*(1-dissent); moderate_plan_progress += 1; kpd_coalition_dissent += 1; inflation += 0.1 if unemployed < 10; kpd_relation -= 5 if in_popular_front or in_left_front; economic_growth += 0.21; pro_republic += 3*(1-dissent); demand_impulse += 0.12; supply_impulse += 0.06; price_pressure += 0.045;
-achievement: wirtschaftspolitik
+@moderate_plan_austerity
+title: We lack the budget to fund the job-creation plan outright.
 
-    [? if moderate_plan_progress == 1 : We have started to implement the job-creation plan! Funds are sent to build public works projects across Germany, reducing unemployment. ?]
+We do not have the necessary funds. Some in the party are urging fiscal retrenchment elsewhere to free up the budget, rather than abandoning the plan.
 
-    [? if moderate_plan_progress > 1 : We have continued to fund the job-creation plan, using our funds to build public works throughout Germany. ?]
+- @moderate_cut_welfare
+- @moderate_cut_workers_aid
+- @moderate_cut_cooperatives
+- @moderate_cut_socialization
+- @moderate_industrial_levy
+- @economic_policy: No, we should not do this.
 
-    [? if unemployed >= 10 : The bourgeois approve of this plan as the "least bad" alternative, seeing it as necessary to save Germany's economy. ?]
+@moderate_cut_welfare
+title: Cut welfare provisions to fund the plan.
+subtitle: -2 welfare. Fund the job-creation plan through austerity elsewhere.
+choose-if: welfare >= 2
+on-arrival: welfare -= 2; budget += 2; works_program += 1; unemployed -= 2.5 if unemployed >= 8; inflation += 0.3; workers_spd += 1*(1-dissent); unemployed_spd -= 4*(1-dissent); left_dissent += 7; labor_dissent += 6; reformist_dissent += 2; moderate_plan_progress += 1; economic_growth += 0.18; demand_impulse += 0.08; supply_impulse += 0.04; price_pressure += 0.05;
 
-    [? if unemployed < 10 : Unemployment is low enough that the plan does not seem to have the intended effect. ?]
+    We fund the job-creation plan by cutting welfare provisions elsewhere. It is a bitter trade—robbing the vulnerable to employ the able-bodied.
 
-    [? if in_popular_front or in_left_front: The KPD opposes the economic plan, seeing it as a rescue of capitalism rather than a step towards real socialism. ?]
+@moderate_cut_workers_aid
+title: Cut workers' aid to fund the plan.
+subtitle: -10 workers' aid. Fund the job-creation plan through austerity elsewhere.
+choose-if: workers_aid >= 10
+on-arrival: workers_aid -= 10; budget += 2; works_program += 1; unemployed -= 2.5 if unemployed >= 8; inflation += 0.3; workers_spd -= 5*(1-dissent); unemployed_spd += 1*(1-dissent); labor_dissent += 9; left_dissent += 5; moderate_plan_progress += 1; economic_growth += 0.18; demand_impulse += 0.08; supply_impulse += 0.04; price_pressure += 0.05;
+
+    We divert funds earmarked for workers' aid programs into the job-creation plan instead. The unions are displeased.
+
+@moderate_cut_cooperatives
+title: Cut cooperative funding to fund the plan.
+subtitle: -1 cooperative. Fund the job-creation plan through austerity elsewhere.
+choose-if: cooperatives >= 1
+on-arrival: cooperatives -= 1; budget += 2; works_program += 1; unemployed -= 2.5 if unemployed >= 8; inflation += 0.3; left_dissent += 8; labor_dissent += 4; moderate_plan_progress += 1; economic_growth += 0.18; demand_impulse += 0.08; supply_impulse += 0.04; price_pressure += 0.05;
+
+    We wind down support for the cooperative movement, redirecting its funding into direct job creation. The left sees this as a retreat from the cooperative model.
+
+@moderate_cut_socialization
+title: Roll back socialization to fund the plan.
+subtitle: -1 socialization. Fund the job-creation plan through austerity elsewhere.
+choose-if: socialization >= 1
+on-arrival: socialization -= 1; budget += 2; works_program += 1; unemployed -= 2.5 if unemployed >= 8; inflation += 0.3; left_dissent += 9; labor_dissent += 4; dvp_relation += 2; moderate_plan_progress += 1; economic_growth += 0.18; demand_impulse += 0.08; supply_impulse += 0.04; price_pressure += 0.05;
+
+    We partially reverse our socialization program, selling off state holdings to fund the job-creation plan. The left is furious at this retreat.
+
+@moderate_industrial_levy
+title: Impose an industrial levy to fund the plan.
+subtitle: A one-time tax on industry, deeply unpopular with capital.
+on-arrival: budget += 2; works_program += 1; unemployed -= 2.5 if unemployed >= 8; inflation += 0.4; workers_spd += 5*(1-dissent); unemployed_spd += 2*(1-dissent); dvp_relation -= 14; dnvp_relation -= 10; capital_strike_progress = (capital_strike_progress + 2) * 2; coalition_dissent += 3; moderate_plan_progress += 1; economic_growth += 0.20; demand_impulse += 0.10; supply_impulse += 0.03; price_pressure += 0.07; nationalism * 1.1
+
+    We impose an emergency levy on industrial profits to fund the job-creation plan directly. Capital reacts with fury - this smells of confiscation, whatever we call it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@schacht_continuation
+title: Continue the Schacht Plan for economic recovery.
+subtitle: -2 budget. [? if schacht_plan_adopted = 1 : Continue industrial credit expansion and export-focused recovery. ?]
+unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 2 : We lack the necessary budget. ?]
+view-if: schacht_plan_adopted = 1 and schacht_plan > 0
+choose-if: unemployed >= 6 and budget >= 2
+on-arrival: budget -= 2; unemployed -= 4; works_program += 1; economic_growth += 0.42; schacht_relation += 3; dvp_relation += 4; dnvp_relation += 3; old_middle_spd += 2*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 3; labor_dissent += 2; nationalism += 1; demand_impulse += 0.36; supply_impulse += 0.66;
+
+[? if schacht_plan_adopted = 1 : The Schacht Plan continues: the Reichsbank extends emergency credit to strategic industries—steel, chemicals, machinery. Export industries receive subsidized financing. Employment rises primarily in heavy industry. ?]
+
+The bourgeois press approves: "Responsible economic nationalism produces results." Hjalmar Schacht meets regularly with the Cabinet, his influence over policy growing. Industrial production rises, but critics note the benefits flow more to factory owners than workers.
+
+[? if left_strength > 30 : Our left wing grows increasingly uncomfortable. "We're implementing capitalist planning under a reactionary banker's direction," they complain. "Where are the workers' interests in all this?" ?]
+
+@schacht_continuation_limited
+title: Limited continuation of the Schacht Plan.
+subtitle: -1 budget. Reduced industrial support with lower impact.
+unavailable-subtitle: [? if unemployed < 6 : Unemployment is low enough that emergency measures are unnecessary. ?] [? if budget < 1 : We lack the necessary budget. ?]
+view-if: schacht_plan_adopted = 1 and schacht_plan > 0
+choose-if: unemployed >= 6 and budget >= 1
+on-arrival: budget -= 1; unemployed -= 6; works_program += 1; economic_growth += 0.24; schacht_relation += 1; dvp_relation += 2; old_middle_spd += 1*(1-dissent); left_dissent += 2; demand_impulse += 0.24; supply_impulse += 0.42;
+
+We continue the Schacht Plan at reduced scale. Credit flows to fewer industries, employment gains are modest. Schacht expresses disappointment at our "half-measures," but the program proceeds.
+
+@schacht_expansion
+title: Expand the Schacht Plan with aggressive credit expansion.
+subtitle: -1 budget. Risk increased nationalist economics and Schacht's influence.
+unavailable-subtitle: [? if unemployed < 8 : The crisis isn't severe enough to justify expansion. ?] [? if budget < 1 : We lack the necessary budget. ?]
+view-if: schacht_plan_adopted = 1 and unemployed >= 8 and schacht_plan < 1 and schacht_plan >= 0
+choose-if: budget >= 1
+on-arrival: budget -= 1; unemployed -= 8.5; works_program += 1; economic_growth += 0.60; schacht_relation += 8; dvp_relation += 6; dnvp_relation += 6; reichsbank_independent = 1; old_middle_spd += 3*(1-dissent); new_middle_spd += 2*(1-dissent); left_dissent += 8; labor_dissent += 6; nationalism += 3; demand_impulse += 0.48; supply_impulse += 0.84; schacht_plan += 1
+
+We dramatically expand the Schacht Plan: massive credit injections to heavy industry, aggressive export subsidies, virtual abandonment of social spending priorities in favor of productive investment.
+
+Hjalmar Schacht is triumphant. "Finally, Germany acts decisively!" he declares. The Reichsbank's independence strengthens—increasingly, economic policy is made in Schacht's office, not the Cabinet.
+
+Unemployment falls rapidly, concentrated in male-dominated heavy industry. Export industries boom. But our left wing is furious: "We've become administrators of nationalist autarky! Schacht is the real Finance Minister, not our party!"
+
+[? if left_strength > 35 : The left faction threatens revolt. "We're implementing right-wing economics under socialist cover!" Emergency party conferences are demanded. ?]
+
+[? if schacht_relation >= 30 : Schacht's influence has grown dangerous. An unelected technocrat now effectively controls Germany's economic policy. Is this still democratic governance? ?]
+
