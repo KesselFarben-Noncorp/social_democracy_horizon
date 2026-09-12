@@ -3,7 +3,7 @@ new-page: true
 is-card: true
 view-if: spd_in_government = 1 and justice_minister_party = "SPD" and constitutional_reform_timer = 0 and judicial_reform >= 4 and full_reform_initiated = 1 and constitutional_reform < 5 and ( coalition_votes >= 67 or (coalition_votes >= 50 and (kpd_in_government or sapd_in_government or ddp_in_government or z_in_government)) or (spd_r >= 40) or (dnvp_in_government = 0 and nsdap_r < 20 and coalition_votes >= 55) )
 frequency: 25
-on-arrival: month_actions += 1; constitutional_reform_timer += 12; pass_threshold = 0.51; pass_threshold = 0.6 if pro_republic < 65;
+on-arrival: {! Q.month_actions += 1; Q.constitutional_reform_timer += 12; Q.pass_threshold = 0.51; if (Q.pro_republic < 65) { Q.pass_threshold = 0.6; } !}
 card-image: img/portraits/RadbruchGustav.jpg
 go-to: reforms_menu
 tags: govt_affairs, cabinet
@@ -46,7 +46,19 @@ We have come to the thought that alteration of the vote threshold is for the bes
 @threshold_1
 subtitle: Propose a 1% electoral threshold.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized + Q.z_normalized + Q.kpd_normalized + Q.nsdap_normalized + Q.ddp_normalized + Q.dvp_normalized;
+    // Token threshold: draw each party name from Q.parties in turn and compare
+    // its ideo_score, relation, and normalized weight to accumulate support.
+    Q.reform_min_relation_base = 20;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: electoral_threshold != 1
 
@@ -61,7 +73,7 @@ A 1% threshold is a token gesture, filtering out only the most marginal fringe l
 @threshold_1_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?]
-on-arrival: constitutional_reform += 1; electoral_threshold = 1;
+on-arrival: {! Q.constitutional_reform += 1; Q.electoral_threshold = 1; !}
 
 We have passed a constitutional amendment setting the electoral threshold to 1%. Minor and fringe parties retain their ability to enter the Reichstag.
 
@@ -69,16 +81,19 @@ We have passed a constitutional amendment setting the electoral threshold to 1%.
 @threshold_3
 subtitle: Propose a 3% electoral threshold.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized;
-if (Q.z_relation > 20) {
-    Q.reform_support += Q.z_normalized;
-}
-if (Q.kpd_relation > 40) {
-    Q.reform_support += Q.kpd_normalized;
-}
-if (Q.nsdap_normalized >= 0.15) {
-    Q.reform_support += Q.nsdap_normalized;
-}
+    // Moderate threshold: draw each party name from Q.parties in turn and compare
+    // its ideo_score, relation, and normalized weight to accumulate support.
+    Q.reform_min_relation_base = 40;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: electoral_threshold != 3
 
@@ -91,7 +106,7 @@ A 3% threshold would still allow regional parties like the BVP to survive in the
 @threshold_3_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?]
-on-arrival: constitutional_reform += 1; electoral_threshold = 3; left_dissent += 10;
+on-arrival: {! Q.constitutional_reform += 1; Q.electoral_threshold = 3; Q.left_dissent += 10; !}
 
 We have passed a constitutional amendment setting the electoral threshold to 3%. Regional parties are likely to survive this change intact.
 
@@ -99,16 +114,19 @@ We have passed a constitutional amendment setting the electoral threshold to 3%.
 @threshold_5
 subtitle: Propose a 5% electoral threshold.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized;
-if (Q.z_relation > 30) {
-    Q.reform_support += Q.z_normalized;
-}
-if (Q.kpd_relation > 50 && Q.kpd_normalized >= 0.1) {
-    Q.reform_support += Q.kpd_normalized;
-}
-if (Q.nsdap_normalized >= 0.2 ) {
-    Q.reform_support += Q.nsdap_normalized;
-}
+    // Higher threshold: draw each party name from Q.parties in turn and compare
+    // its ideo_score, relation, and normalized weight to accumulate support.
+    Q.reform_min_relation_base = 60;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: electoral_threshold != 5
 
@@ -125,7 +143,31 @@ The SPD Left opposes this change, as they believe it to be anti-democratic.
 @threshold_5_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?] [? if z_relation <= 30 : The Center Party does not trust us enough to support this policy. ?]
-on-arrival: constitutional_reform += 1; electoral_threshold = 5; ddp_relation -= 25; dvp_relation -= 25; left_dissent += 20; workers_dnvp += workers_other*0.4; workers_nsdap += workers_other*0.4; workers_other *= 0.1; new_middle_dvp += new_middle_other*0.3; new_middle_nsdap += new_middle_other*0.3; new_middle_other *= 0.1; old_middle_dvp += 0.3*old_middle_other; old_middle_nsdap += 0.3*old_middle_other; old_middle_dnvp += 0.3*old_middle_other; old_middle_other *= 0.1; rural_dnvp += 0.5*rural_other; rural_nsdap += 0.4*rural_other; rural_other *= 0.1; unemployed_nsdap += 0.3*unemployed_other; unemployed_kpd += 0.4*unemployed_other; unemployed_other *= 0.2; catholics_z += 0.6*catholics_other; catholics_other *= 0.1;
+on-arrival: {!
+    Q.constitutional_reform += 1;
+    Q.electoral_threshold = 5;
+    Q.ddp_relation -= 25;
+    Q.dvp_relation -= 25;
+    Q.left_dissent += 20;
+    Q.workers_dnvp += Q.workers_other * 0.4;
+    Q.workers_nsdap += Q.workers_other * 0.4;
+    Q.workers_other *= 0.1;
+    Q.new_middle_dvp += Q.new_middle_other * 0.3;
+    Q.new_middle_nsdap += Q.new_middle_other * 0.3;
+    Q.new_middle_other *= 0.1;
+    Q.old_middle_dvp += 0.3 * Q.old_middle_other;
+    Q.old_middle_nsdap += 0.3 * Q.old_middle_other;
+    Q.old_middle_dnvp += 0.3 * Q.old_middle_other;
+    Q.old_middle_other *= 0.1;
+    Q.rural_dnvp += 0.5 * Q.rural_other;
+    Q.rural_nsdap += 0.4 * Q.rural_other;
+    Q.rural_other *= 0.1;
+    Q.unemployed_nsdap += 0.3 * Q.unemployed_other;
+    Q.unemployed_kpd += 0.4 * Q.unemployed_other;
+    Q.unemployed_other *= 0.2;
+    Q.catholics_z += 0.6 * Q.catholics_other;
+    Q.catholics_other *= 0.1;
+!}
 
 We have passed a constitutional amendment to increase the electoral threshold to 5%. This is likely to benefit the larger parties and harm the smaller ones.
 
@@ -133,7 +175,19 @@ We have passed a constitutional amendment to increase the electoral threshold to
 @threshold_10
 subtitle: Propose a 10% electoral threshold.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized * 0.5;
+    // Extreme threshold: draw each party name from Q.parties in turn and compare
+    // its ideo_score, relation, and normalized weight to accumulate support.
+    Q.reform_min_relation_base = 100;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: electoral_threshold != 10
 
@@ -146,23 +200,26 @@ A 10% threshold is an extreme measure that would wipe out nearly every minor par
 @threshold_10_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy - a 10% threshold is broadly unpopular, even among our own coalition.
-on-arrival: constitutional_reform += 1; electoral_threshold = 10; ddp_relation -= 40; dvp_relation -= 40; left_dissent += 35; z_relation -= 15;
+on-arrival: {! Q.constitutional_reform += 1; Q.electoral_threshold = 10; Q.ddp_relation -= 40; Q.dvp_relation -= 40; Q.left_dissent += 35; Q.z_relation -= 15; !}
 
 We have passed a radical constitutional amendment setting the electoral threshold to 10%. Minor and regional parties are effectively eliminated from the Reichstag.
 
 @vote_threshold
 subtitle: Change the vote threshold to 5% for parties to be represented in the Reichstag.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized;
-if (Q.z_relation > 30) {
-    Q.reform_support += Q.z_normalized - 0.03;
-}
-if (Q.kpd_relation > 50 && Q.kpd_normalized >= 0.1) {
-    Q.reform_support += Q.kpd_normalized;
-}
-if (Q.nsdap_normalized >= 0.2 ) {
-    Q.reform_support += Q.nsdap_normalized;
-}
+    // Same as threshold_5: draw each party name from Q.parties in turn and compare
+    // its ideo_score, relation, and normalized weight to accumulate support.
+    Q.reform_min_relation_base = 60;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: electoral_threshold = 0
 
@@ -181,7 +238,31 @@ The SPD Left opposes this change, as they believe it to be anti-democratic.
 @vote_threshold_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?] [? if z_relation <= 30 : The Center Party does not trust us enough to support this policy. ?]
-on-arrival: constitutional_reform += 1; electoral_threshold = 5; ddp_relation -= 25; dvp_relation -= 25; left_dissent += 20; workers_dnvp += workers_other*0.4; workers_nsdap += workers_other*0.4; workers_other *= 0.1; new_middle_dvp += new_middle_other*0.3; new_middle_nsdap += new_middle_other*0.3; new_middle_other *= 0.1; old_middle_dvp += 0.3*old_middle_other; old_middle_nsdap += 0.3*old_middle_other; old_middle_dnvp += 0.3*old_middle_other; old_middle_other *= 0.1; rural_dnvp += 0.5*rural_other; rural_nsdap += 0.4*rural_other; rural_other *= 0.1; unemployed_nsdap += 0.3*unemployed_other; unemployed_kpd += 0.4*unemployed_other; unemployed_other *= 0.2; catholics_z += 0.6*catholics_other; catholics_other *= 0.1;
+on-arrival: {!
+    Q.constitutional_reform += 1;
+    Q.electoral_threshold = 5;
+    Q.ddp_relation -= 25;
+    Q.dvp_relation -= 25;
+    Q.left_dissent += 20;
+    Q.workers_dnvp += Q.workers_other * 0.4;
+    Q.workers_nsdap += Q.workers_other * 0.4;
+    Q.workers_other *= 0.1;
+    Q.new_middle_dvp += Q.new_middle_other * 0.3;
+    Q.new_middle_nsdap += Q.new_middle_other * 0.3;
+    Q.new_middle_other *= 0.1;
+    Q.old_middle_dvp += 0.3 * Q.old_middle_other;
+    Q.old_middle_nsdap += 0.3 * Q.old_middle_other;
+    Q.old_middle_dnvp += 0.3 * Q.old_middle_other;
+    Q.old_middle_other *= 0.1;
+    Q.rural_dnvp += 0.5 * Q.rural_other;
+    Q.rural_nsdap += 0.4 * Q.rural_other;
+    Q.rural_other *= 0.1;
+    Q.unemployed_nsdap += 0.3 * Q.unemployed_other;
+    Q.unemployed_kpd += 0.4 * Q.unemployed_other;
+    Q.unemployed_other *= 0.2;
+    Q.catholics_z += 0.6 * Q.catholics_other;
+    Q.catholics_other *= 0.1;
+!}
 
 # this should result in a redistribution of votes - other parties should not get so many votes anymore. maybe ddp and dvp get a recovery of middle-class votes? or maybe they flow to the others.
 
@@ -191,13 +272,19 @@ We have passed a constitutional amendment to increase the electoral threshold to
 @constructive_vonc
 subtitle: Votes of no confidence can only be called if an alternative plan for government formation can be passed, greatly reducing their incidence.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized + Q.ddp_normalized;
-if (Q.z_relation >= 30) {
-    Q.reform_support += Q.z_normalized - 0.03;
-}
-if (Q.dvp_relation >= 50) {
-    Q.reform_support += Q.dvp_normalized;
-}
+    // Governing-stability reform: draw each party name from Q.parties in turn and
+    // compare its ideo_score, relation, and normalized weight to accumulate support.
+    Q.reform_min_relation_base = 50;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: constructive_vonc = 0
 
@@ -209,19 +296,25 @@ view-if: constructive_vonc = 0
 @constructive_vonc_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?] [? if z_relation <= 30 : The Center Party does not trust us enough to support this policy. ?]
-on-arrival: constitutional_reform += 1; constructive_vonc = 1
+on-arrival: {! Q.constitutional_reform += 1; Q.constructive_vonc = 1; !}
 
 We have successfully passed a constitutional amendment to ban votes of no confidence when a new government cannot be formed. Hopefully this increases the stability of our governments.
 
 @presidential_powers
 subtitle: The president can no longer dissolve the Reichstag at will, or call a *Reichsexekution* on state governments.
 on-arrival: {!
-Q.reform_support = Q.spd_normalized + Q.ddp_normalized + Q.kpd_normalized;
-if (Q.z_relation > 49 && (Q.president == "Hindenburg" || Q.president == "Eckener")) {
-    Q.reform_support += Q.z_normalized;
-} else if (Q.president == "Braun") {
-    Q.reform_support += Q.z_normalized - 0.03;
-}
+
+    Q.reform_min_relation_base = 50;
+    Q.reform_support = 0;
+    for (var i = 0; i < Q.parties.length; i++) {
+        Q.p = Q.parties[i];
+        Q.ideo_diff = Math.abs(Q[Q.p + "_ideo"] - Q.spd_ideo);
+        Q[Q.p + "_ideo_score"] = Q.ideo_diff / 19;
+        Q.required_relation = Q.reform_min_relation_base * Q[Q.p + "_ideo_score"];
+        if (Q[Q.p + "_relation"] >= Q.required_relation) {
+            Q.reform_support += Q[Q.p + "_normalized"];
+        }
+    }
 !}
 view-if: presidential_powers = 0
 
@@ -235,7 +328,7 @@ The KPD is in favor of this reform, having been victims of the *Reichsexekution*
 @presidential_powers_2
 choose-if: reform_support >= pass_threshold
 unavailable-subtitle: We do not have enough support for this policy. [? if pro_republic < 65 : We should have an additional margin for the referendum since we need a majority of voters, and many voters who do not support the republic will not participate. ?] [? if z_relation <= 49 and president != "Braun" : The Center Party does not trust us enough to support this policy. ?]
-on-arrival: constitutional_reform += 1; presidential_powers = 1
+on-arrival: {! Q.constitutional_reform += 1; Q.presidential_powers = 1; !}
 
 We have successfully passed a constitutional amendment to limit presidential powers! Hopefully this results in a less authoritarian Germany.
 
