@@ -4,7 +4,15 @@ tags: event
 new-page: true
 view-if: april_challenge >= 1 and month == 1 and year >= 1934 and president = "Noske" and civil_war_socfac >= 1
 max-visits: 1
-on-arrival: president = "Großmann"; president_party = "I"; social_fascism_adopted = 0; left_dissent = 5; unions_independent = 0; left_split = 0; reformists_resign = 0; centrists_resign = 0; center_dissent = 0; labor_dissent = 5; reformist_dissent = 5; spd_party_leader = "Wels"
+on-arrival: president = "Großmann"; president_party = "I"; social_fascism_adopted = 0; left_dissent = 5; unions_independent = 0; left_split = 0; reformists_resign = 0; centrists_resign = 0; center_dissent = 0; labor_dissent = 5; reformist_dissent = 5; spd_party_leader = "Wels"; {!
+Q.next_presidential_election_month = Q.month + 3;
+Q.next_presidential_election_year = Q.year;
+if (Q.next_presidential_election_month > 12) {
+    Q.next_presidential_election_month -= 12;
+    Q.next_presidential_election_year += 1;
+}
+Q.next_presidential_election_time = Q.time + 6;
+!}
 
 = Our death is nearer than it seems.
 
