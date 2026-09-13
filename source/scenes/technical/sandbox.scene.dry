@@ -254,6 +254,7 @@ Insert any code.
 - @callfn: Function calls
 - @null: Null variables?
 - @sanity_check: Sanity_check
+- @setpath: General JS, paths, States.
 - @set
 - @set_p
 - @timers
@@ -262,6 +263,183 @@ Insert any code.
 - @debug: Purest Debug
 - @very-well: Economical Variables Debug 
 - @sandbox_menu: Back
+
+@setpath
+on-display: {!
+if (!window.dendryUI.injectPathSetter) {
+    window.dendryUI.injectPathSetter = function() {
+        var container = document.getElementById('path-setter');
+        if (!container) return;
+        container.innerHTML = '';
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'e.g. state.disableSaves = false  or  engine.state.qualities.spd_r = 25  or  window.foo.bar = "x"';
+        input.style.cssText =
+            'background:#111; color:#0f0; border:1px solid #0f0;' +
+            'padding:6px 10px; font-family:monospace; font-size:13px;' +
+            'width:70%; outline:none; border-radius:2px;';
+
+        var btn = document.createElement('button');
+        btn.textContent = 'Set';
+        btn.style.cssText =
+            'margin-left:8px; background:#0f0; color:#000; border:none;' +
+            'padding:6px 12px; font-family:monospace; font-size:13px;' +
+            'cursor:pointer; border-radius:2px;';
+
+        var status = document.createElement('p');
+        status.style.cssText = 'font-size:12px; margin-top:6px; min-height:16px; word-break:break-all;';
+
+        var history = document.createElement('div');
+        history.style.cssText = 'font-size:11px; margin-top:10px; color:#888; max-height:150px; overflow-y:auto;';
+
+        // Roots available by bare name, so users don't have to type
+        // "window.dendryUI.dendryEngine.state" every time.
+        function getRoots() {
+            var engine = window.dendryUI && window.dendryUI.dendryEngine;
+            return {
+                window: window,
+                dendryUI: window.dendryUI,
+                engine: engine,
+                state: engine && engine.state,
+                game: engine && engine.game,
+                Q: engine && engine.state && engine.state.qualities
+            };
+        }
+
+        function parseValue(valStr) {
+            valStr = valStr.trim();
+            if (valStr === 'true') return { ok: true, val: true };
+            if (valStr === 'false') return { ok: true, val: false };
+            if (valStr === 'null') return { ok: true, val: null };
+            if (valStr === 'undefined') return { ok: true, val: undefined };
+            if (valStr !== '' && !isNaN(Number(valStr))) return { ok: true, val: Number(valStr) };
+            if ((valStr[0] === '"' && valStr[valStr.length - 1] === '"') ||
+                (valStr[0] === "'" && valStr[valStr.length - 1] === "'")) {
+                return { ok: true, val: valStr.slice(1, -1) };
+            }
+            // Fall back to full JS eval for objects/arrays/expressions,
+            // e.g. { a: 1 }  or  [1,2,3]  or  Q.spd_r + 5
+            try {
+                var roots = getRoots();
+                /*jshint -W054 */
+                var fn = new Function('window', 'dendryUI', 'engine', 'state', 'game', 'Q',
+                    'return (' + valStr + ');');
+                /*jshint +W054 */
+                var v = fn(roots.window, roots.dendryUI, roots.engine, roots.state, roots.game, roots.Q);
+                return { ok: true, val: v };
+            } catch (e) {
+                return { ok: false, err: e.message };
+            }
+        }
+
+        function applySet() {
+            var raw = input.value.trim();
+            if (!raw) return;
+
+            var eqIdx = raw.indexOf('=');
+            if (eqIdx === -1) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Format must be: path.to.prop = value';
+                return;
+            }
+
+            var pathStr = raw.slice(0, eqIdx).trim();
+            var valStr = raw.slice(eqIdx + 1).trim();
+
+            var path = pathStr.split('.');
+            var rootName = path[0];
+            var roots = getRoots();
+
+            if (!(rootName in roots)) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Unknown root "' + rootName + '". Use one of: ' + Object.keys(roots).join(', ');
+                return;
+            }
+
+            var target = roots[rootName];
+            var subPath = path.slice(1);
+
+            if (subPath.length === 0) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Cannot reassign a root directly (' + rootName + ')';
+                return;
+            }
+
+            // Walk/create intermediate objects.
+            for (var i = 0; i < subPath.length - 1; i++) {
+                var part = subPath[i];
+                if (target === undefined || target === null) {
+                    status.style.color = '#f55';
+                    status.textContent = '✗ Cannot resolve "' + path.slice(0, i + 2).join('.') + '" — undefined/null';
+                    return;
+                }
+                if (target[part] === undefined || target[part] === null || typeof target[part] !== 'object') {
+                    target[part] = {};
+                }
+                target = target[part];
+            }
+
+            var lastKey = subPath[subPath.length - 1];
+            var parsed = parseValue(valStr);
+
+            if (!parsed.ok) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Could not parse value: ' + parsed.err;
+                return;
+            }
+
+            var oldVal;
+            try { oldVal = target[lastKey]; } catch (e) { oldVal = undefined; }
+
+            try {
+                target[lastKey] = parsed.val;
+            } catch (e) {
+                status.style.color = '#f55';
+                status.textContent = '✗ Assignment failed: ' + e.message;
+                return;
+            }
+
+            status.style.color = '#5f5';
+            var oldDisp, newDisp;
+            try { oldDisp = JSON.stringify(oldVal); } catch (e) { oldDisp = String(oldVal); }
+            try { newDisp = JSON.stringify(parsed.val); } catch (e) { newDisp = String(parsed.val); }
+            status.textContent = '✓ ' + pathStr + ': ' + oldDisp + ' → ' + newDisp;
+
+            var entry = document.createElement('div');
+            entry.textContent = raw + '  →  ' + newDisp;
+            history.insertBefore(entry, history.firstChild);
+
+            input.value = '';
+
+            if (window.updateSidebar) window.updateSidebar();
+            if (window.updateBottomPanel) window.updateBottomPanel();
+        }
+
+        btn.addEventListener('click', applySet);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') applySet();
+        });
+
+        container.appendChild(input);
+        container.appendChild(btn);
+        container.appendChild(status);
+        container.appendChild(history);
+    };
+}
+
+window.dendryUI.injectPathSetter();
+!}
+
+= Set any property on `state`, `engine`, `game`, `Q`, `dendryUI`, or `window` directly, by dotted path.
+
+{!<div id="path-setter"></div>!}
+
+*Available roots: `state`, `engine`, `game`, `Q`, `dendryUI`, `window`. Values are parsed as booleans/numbers/strings automatically, or as full JS expressions if quotes/brackets fail simple parsing (e.g. `{a:1}`, `[1,2,3]`, `Q.spd_r + 5`).*
+
+*This bypasses all engine validation and side effects — same caveat as `@setvar`, but broader in scope. Save before use.*
+
+- @technical: Back
 
 @callfn
 on-display: {!
