@@ -3461,20 +3461,20 @@ function computeTarget(party, c) {
 
         case 'dvfp': {
             if (Q.dvfp_banned || !Q.dvfp_formed) return 0;
-            let nat_floor   = nat * 5;
+            let nat_floor   = nat * 4;
             let u           = Math.max(0, unrest_nat_hybrid - 0.6);
-            let crisis_ramp = 18 / (1 + Math.exp(-1.4 * (u - 1.8)));
-            let buff = Q.april_challenge === 1 ? 1.28 : 0.85;
+            let crisis_ramp = 24 / (1 + Math.exp(-1.4 * (u - 1.8)));
+            let buff = Q.april_challenge === 1 ? 1.35 : 0.85;
             base = (nat_floor + crisis_ramp) * buff * im.dvfp;
             base *= _partyAdj('dvfp');
             base *= _campaignMult('dvfp', c);
 
             const class_mods = {
-                workers:     0.20 * (Q.peoples_party === 1 ? 1.02 : 1),
-                old_middle:  1.74 * (1 + Math.min(Q.nationalism/100,1)*0.25) * (Q.peoples_party === 1 ? 0.95 : 1),
-                new_middle:  0.77 * (Q.peoples_party === 1 ? 0.95 : 1),
-                rural:       1.79 * (1 + Math.min(Q.nationalism/100,1)*0.22) * (Q.peoples_party === 1 ? 0.95 : 1),
-                unemployedc: 0.77 * (Q.peoples_party === 1 ? 1.03 : 1),
+                workers:     0.02 * (Q.peoples_party === 1 ? 1.02 : 1),
+                old_middle:  1.85 * (1 + Math.min(Q.nationalism/100,1)*0.25) * (Q.peoples_party === 1 ? 0.95 : 1),
+                new_middle:  0.55 * (Q.peoples_party === 1 ? 0.95 : 1),
+                rural:       1.85 * (1 + Math.min(Q.nationalism/100,1)*0.22) * (Q.peoples_party === 1 ? 0.95 : 1),
+                unemployedc: 0.55 * (Q.peoples_party === 1 ? 1.03 : 1),
             };
             return _applyQOL(base * (class_mods[c] || 1.0) * _classAdj('dvfp', c), party, c);
         }
@@ -3512,7 +3512,7 @@ function computeTarget(party, c) {
            base *= _partyAdj('dnvp');
            base *= _campaignMult('dnvp', c);
 
-           let workers_m     = 0.10
+           let workers_m     = 0.15
                * (Q.peoples_party                      === 1 ? 1.10 : 1)
                * (Q.lambach_reinstated && lambachEarly        ? 1.40 : 1)
                * (Q.lambach_momentum   && lambachEarly        ? 1.50 : 1)
@@ -3564,7 +3564,7 @@ function computeTarget(party, c) {
             const isHarzburg   = Q.harzburg_front_seen === true;
             const mediaBlitz   = Q.hugenberg_media_blitz === true;
 
-            let workers_m     = 0.10
+            let workers_m     = 0.03
                 * (mediaBlitz                                 ? 1.20 : 1)
                 * (isHarzburg                                  ? 0.70 : 1);
 
@@ -3572,7 +3572,7 @@ function computeTarget(party, c) {
                 * (Q.peoples_party                      === 1 ? 0.90 : 1)
                 * (mediaBlitz                                  ? 1.15 : 1);
 
-            let new_middle_m  = 0.30 * (1 + Math.min(Q.nationalism/100,1)*0.22)
+            let new_middle_m  = 0.20 * (1 + Math.min(Q.nationalism/100,1)*0.22)
                 * (mediaBlitz                                  ? 1.35 : 1)
                 * (isHarzburg                                  ? 1.10 : 1);
 
@@ -7295,6 +7295,82 @@ Q.GLOBAL_PARTY_ACTIONS = {
             );
         }
     },
+
+
+
+
+    // DVP
+        dvp_capital_strike: {
+        ideoMin: 1, ideoMax: 20, // DVP itself isn't ideo-gated; the check is on other gov parties
+        weight: () => scaledWeight(1.50, Q.capital_strike_progress, 20),
+        description: (party) => partyLabel(party) + ' has protested against the presence of a socialist party in government, calling industrialists and financiers to strike against them.',
+        eligible: (party) => {
+            if (!isParty(party, 'dvp')) return false;
+            return Q.parties.some(p =>
+                inReichGovernment(p) && Q[p + '_ideo_score'] < 8
+            );
+        },
+        timer: 18,
+        apply: () => {
+            Q.capital_strike_progress += 2;
+            Q.dvp_right += 20; 
+            Q.nationalism += 5;
+      }
+    },
+
+    dvp_industrial_lobby: {
+    ideoMin: 16, ideoMax: 20,
+    weight: () => {
+        var pressure =
+            Math.max(0, Q.upper_tax_rates || 0) * 1.0 +
+            Math.max(0, Q.working_hours || 0) * 0.6 +
+            Math.max(0, Q.workers_safety || 0) * 0.5 +
+            (Q.ruhr_labor > 0 ? 2.0 : 0) +
+            (Q.works_councils || 0) * 0.8 +
+            (Q.socialization || 0) * 1.2 +
+            (Q.cooperatives || 0) * 0.8 +
+            (Q.capital_strike_progress || 0) * 0.5;
+        return scaledWeight(1.00, pressure, 10);
+    },
+    description: (party) => {
+        var reasons = [];
+        if ((Q.socialization || 0) > 0) reasons.push({ label: 'creeping socialization', weight: (Q.socialization || 0) * 1.2 });
+        if ((Q.works_councils || 0) > 0) reasons.push({ label: 'expanded works councils', weight: (Q.works_councils || 0) * 0.8 });
+        if ((Q.workers_safety || 0) > 0) reasons.push({ label: 'new workplace safety mandates', weight: (Q.workers_safety || 0) * 0.5 });
+        if ((Q.working_hours || 0) > 0) reasons.push({ label: 'shortened working hours', weight: (Q.working_hours || 0) * 0.6 });
+        if (Q.ruhr_labor > 0) reasons.push({ label: 'the Ruhr arbitration award', weight: 2.0 });
+        if ((Q.upper_tax_rates || 0) > 0) reasons.push({ label: 'rising upper tax rates', weight: (Q.upper_tax_rates || 0) * 1.0 });
+        if ((Q.cooperatives || 0) > 0) reasons.push({ label: 'the spread of cooperatives', weight: (Q.cooperatives || 0) * 0.8 });
+
+        reasons.sort((a, b) => b.weight - a.weight);
+
+        var cause;
+        if (reasons.length === 0) {
+            cause = 'mounting regulatory pressure';
+        } else if (reasons.length === 1) {
+            cause = reasons[0].label;
+        } else {
+            cause = reasons[0].label + ' and ' + reasons[1].label;
+        }
+
+        return partyLabel(party) + ' has coordinated with major industrial associations to lobby against ' + cause + ', pressing for a friendlier business climate.';
+    },
+    eligible: (party) => isParty(party, 'dvp'),
+    timer: 10,
+    apply: () => {
+        var pressure =
+            Math.max(0, Q.upper_tax_rates || 0) * 1.0 +
+            Math.max(0, Q.working_hours || 0) * 0.6 +
+            Math.max(0, Q.workers_safety || 0) * 0.5 +
+            (Q.ruhr_labor > 0 ? 2.0 : 0) +
+            (Q.works_councils || 0) * 0.8 +
+            (Q.socialization || 0) * 1.2 +
+            (Q.cooperatives || 0) * 0.8 +
+            (Q.capital_strike_progress || 0) * 0.5;
+        Q.dvp_right += Math.min(10, 3 + pressure * 0.3);
+        Q.capital_strike_progress = (Q.capital_strike_progress || 0) + 1;
+    }
+  },
 };
 
 // --- Run one party's action turn ---
