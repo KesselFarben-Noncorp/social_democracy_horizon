@@ -1598,6 +1598,10 @@ if (Q.presidential_powers == 0 && !Q.government_dismissed) {
         }
         Q.presidential_patience += pp_delta;
 
+        if (Q.president == "Hindenburg" && Q.spd_in_government) {
+            if (Q.stabbed_myth_modifier >= 1) Q.presidential_patience -= 0.50;
+        }
+
         Q.presidential_patience = Math.max(0, Math.min(100, Q.presidential_patience));
         Q.presidential_patience = Math.round(Q.presidential_patience * 100) / 100;
 
