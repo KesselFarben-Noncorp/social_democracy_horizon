@@ -5664,7 +5664,30 @@ if (Q.year == 1928 && Q.month >= 2 && Q.strelitz_flavor_1 != 1) {
 
 // ==========================================
 
-if ( Q.year == 1928 &&  Q.month == 4 && (Q.weeks == 0 || Q.weeks == 1) && Q.urban_plan_flavor_1 != 1 &&  ( (Q.workers_nsdap_display * 2 > Q.rural_nsdap_display && Q.geest_wildfire >= 1) || (Q.workers_nsdap_display * 3.5 > Q.rural_nsdap_display) ) ) {
+if (Q.year == 1928 && Q.month == 2 && Q.weeks >= 2 && Q.poland_trade_flavor != 1) {
+    Q.poland_trade_flavor = 1;
+    Q.poland_trade_agreement = 0;
+    if (Q.landvolk_fury >= 0) {
+        Q.poland_trade_agreement += Q.landvolk_fury;
+    }
+        if (Q.rlb_pct >= 10) Q.poland_trade_agreement += 3;
+        if (Q.agricultural_assist >= 1) Q.poland_trade_agreement -= Q.agricultural_assist || 0;
+        if (Q.tariffs >= 1) Q.poland_trade_agreement += 5;
+
+    if (Q.poland_trade_agreement >= 10) {
+        Q.poland_trade_collapse = 1;
+        Q.poland_relation -= 2;
+    } else {
+        Q.poland_trade_collapse = 0;
+        Q.budget += 1;
+        Q.poland_relation += 1;
+        Q.tariffs -= 1;
+        Q.rural -= 1;
+    }
+}
+    
+
+if ( Q.year == 1928 &&  Q.month == 4 && (Q.weeks == 0 || Q.weeks == 1) && Q.urban_plan_flavor_1 != 1 &&  ( (Q.workers_nsdap_display * 1.5 > Q.rural_nsdap_display && Q.geest_wildfire >= 1) || (Q.workers_nsdap_display * 3.5 > Q.rural_nsdap_display) ) ) {
     Q.urban_plan_flavor_1 = 1;
     Q.workers_nsdap += 4;
 }
