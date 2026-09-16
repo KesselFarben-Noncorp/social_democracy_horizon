@@ -1,5 +1,5 @@
 title: Agricultural crisis' culmination...
-subtitle: Small farmers and rurals are preparing for splitting away...
+subtitle: Small farmers and rural Landvolks are preparing for splitting away...
 new-page: true
 tags: event
 view-if: year >= 1928 and year <= 1929 and month = 3 and weeks >= 1
@@ -21,15 +21,16 @@ on-arrival: {!
   const conditions = [
     Q.commercialized_media >= 2,
     Q.radio >= 1,
-    Q.rural_spd_display >= 18.5,
+    Q.rural_spd_pct >= 5,
     Q.local_rally >= 1,
-    Q.nationalism > 205,
-    Q.dnvp_votes >= 20.3,
+    Q.nationalism > 25,
+    Q.dnvp_pct <= 20.3,
     Q.pro_republic <= 67.2,
     (Q.enemies == "DNVP" || Q.enemies == "far right"),
     Q.peoples_party == 1,
     Q.ideology == "reformist",
-    Q.landvolk_fury > 4
+    Q.landvolk_fury > 4,
+    Q.landvolk_fury >= 8
   ];
 
   let base_score = conditions.filter(Boolean).length;
