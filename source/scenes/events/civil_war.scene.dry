@@ -355,59 +355,39 @@ on-arrival: sandbox = 1; civil_war_end = "republic"; reichswehr_coup_civil_war =
 
 The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. Today, the forces of the republic prevail over the fascists and the reactionaries. 
 
-[? if reichswehr_coup_civil_war : That the army itself rose against us — and was defeated — marks a turning point. The officer corps must be fundamentally reformed if the republic is to survive. ?]
-
-[? if kpd_relation >= 60 : The Communists fought alongside us, and together we have defended democratic Germany. ?]
-
-The Weimar Republic has survived its greatest test. Democracy, not dictatorship, will shape Germany's future. Let us hope this victory produces a longer-lasting peace than the revolution of 1918.
+The Weimar Republic has survived its greatest test. Democracy, not dictatorships, will shape Germany's future. Let us hope this victory produces a longer-lasting peace than the revolution of 1918.
 
 - @game_over: Game over.
-- @root: You may continue.
+- @transition: You may continue... Not.
 
 @socialist_victory
 on-arrival: sandbox = 1; civil_war_end = "socialist"; reichswehr_coup_civil_war = 0
 
 = Victory for the Revolution
 
-The battle lines hold, and the SA, Stahlhelm, and pro-coup Reichswehr forces are defeated. But this is more than a defensive victory - it is a revolutionary transformation.
+With our forces combined alongside the KPD and their paramilitary, we have dawned the Republic. Revolution is supreme and the rest of reactionary elements is to be dealt with. We have avenged our Spartakist brothers and sisters...
 
-[? if chancellor_party == "KPD" or president == "Thälmann" : Under Communist leadership, the workers have seized power. ?]
-[? if kpd_relation >= 60 and chancellor_party != "KPD" : Fighting alongside the KPD, we have forged a new workers' state. The divisions between Social Democrats and Communists are overcome in the heat of battle. ?]
-[? if left_strength >= 60 : The left wing of the SPD has proven ascendant. We have moved beyond reformism to revolutionary socialism. ?]
-
-The councils are taking control of the factories. The old order is being swept away. A socialist Germany rises from the ashes of civil war - though whether it will be democratic socialism or soviet dictatorship remains to be seen.
-
-[? if economic_democracy >= 5 : Our years of building economic democracy have borne fruit - the workers already control much of the economy. ?]
-[? if kpd_relation < 50 : Without KPD support, we have achieved a purely Social Democratic revolution. ?]
+But that would be another story whether the revolution will succeed or fail and slide back to dictatorship...
 
 - @game_over: Game over.
-- @root: The revolution continues.
+- @transition: The revolution continues.
 
 @kpd_victory_scene
-on-arrival: sandbox = 1; civil_war_end = "communist"; civil_war_end_modifier_national = 1; reichswehr_coup_civil_war = 0; spd_in_government = 0; chancellor = "Thälmann"; chancellor_party = "KPD"; president = "Thälmann"; nsdap_banned = 1; dnvp_banned = 1; csvd_banned = 1; kvp_banned = 1; cnbl_banned = 1; vrp_banned = 1; csrp_banned = 1; dvp_banned = 1; wp_banned = 1; bb_banned = 1; z_banned = 1; ddp_banned = 1; bb_banned = 1; dhp_banned = 1; spd_banned = 1 if kpd_relation < 30; others_banned = 1
+on-arrival: sandbox = 1; civil_war_end = "communist"; civil_war_end_modifier_socialist = 1; reichswehr_coup_civil_war = 0; spd_in_government = 0; chancellor = "Thälmann"; chancellor_party = "KPD"; president = "Thälmann"; nsdap_banned = 1; dnvp_banned = 1; csvd_banned = 1; kvp_banned = 1; cnbl_banned = 1; vrp_banned = 1; csrp_banned = 1; dvp_banned = 1; wp_banned = 1; bb_banned = 1; z_banned = 1; ddp_banned = 1; bb_banned = 1; dhp_banned = 1; spd_banned = 1 if kpd_relation < 30; others_banned = 1
 
 = Defeat — The Red Revolution
 
-The battle lines fracture — but not in the direction we feared.
+The battle lines shifted towards the victory of KPD, and very soon, they took over the last territories, declaring Soviet Republic of Germany to end with old reactionary republic.
 
-The SA and Stahlhelm, expecting a weakened republic, instead walk into a trap. The RFB has been preparing not for defense but for offense. While our Reichsbanner fought desperately on one front, the Communist militias encircled the fascist columns from the other direction.
+Our members are mostly integrated, with most being "re-educated" or facing one or other way of punishment, with only some facing capital punishment.
 
-[? if rfb_side = "hostile" : The RFB that was moments ago attacking our rear has turned — not to help us, but to finish off the fascists first. We are merely next. ?]
-
-The Reichswehr, caught between three armed factions, collapses into desertion and neutrality. Neither the republic nor the NSDAP flag flies over the Reichstag.
-
-The red one does.
-
-Thälmann addresses the nation by radio from the steps of the Chancellery:
-
-*"Workers of Germany — the November betrayal is avenged. The SPD, the social fascists who stabbed the revolution in the back in 1918, have been swept away alongside their class enemies. The German Soviet Republic is proclaimed."*
-
-[? if kpd_relation >= 30 : Despite our prior cooperation, the KPD makes no offer of partnership. We are given a choice: exile or silence. ?]
-[? if kpd_relation < 30 : Our hostility to the KPD is returned in full. SPD leaders are arrested within hours. ?]
-
-Our party is dissolved. Some of our members join the new order. Most do not.
-
-History will record that German democracy died twice in the same week — once when the fascists marched, and once when the Communists won.
+Red banner flies over the Germany.
 
 - @game_over: Game over.
-- @root: Perhaps something can still be done.
+- @transition: Perhaps something can still be done.
+
+@transition
+go-to: root
+choose-if: 1 == 0 or developer_mode >= 1
+unavailable-subtitle: Currently unavailable.
+subtitle: Wow, 1 == 0? won't that break the game?
